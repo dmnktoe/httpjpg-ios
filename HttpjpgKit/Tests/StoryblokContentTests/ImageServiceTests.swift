@@ -80,6 +80,27 @@ final class ImageServiceTests: XCTestCase {
         XCTAssertEqual(ImageService.pixelWidth(for: 2000, scale: 3), 2560)
     }
 
+    // MARK: - Natural dimensions
+
+    func testReadsDimensionsOutOfTheAssetPath() throws {
+        let size = try XCTUnwrap(ImageService.dimensions(of: asset))
+        XCTAssertEqual(size.width, 2000)
+        XCTAssertEqual(size.height, 1000)
+        XCTAssertEqual(try XCTUnwrap(ImageService.aspectRatio(of: asset)), 2, accuracy: 0.0001)
+    }
+
+    func testDimensionsSurviveATransformedURL() {
+        let transformed = ImageService.Preset.thumb(asset)
+        XCTAssertEqual(ImageService.dimensions(of: transformed)?.width, 2000)
+    }
+
+    func testDimensionsAreNilForExternalOrDimensionlessAssets() {
+        XCTAssertNil(ImageService.dimensions(of: "https://example.com/2000x1000/photo.jpg"))
+        XCTAssertNil(ImageService.dimensions(of: "https://a.storyblok.com/f/1/abc/photo.jpg"))
+        XCTAssertNil(ImageService.dimensions(of: nil))
+        XCTAssertNil(ImageService.aspectRatio(of: "https://a.storyblok.com/f/1/0x0/photo.jpg"))
+    }
+
     // MARK: - Video detection
 
     func testDetectsVideoByContentType() {

@@ -3,17 +3,26 @@ import SwiftUI
 /// Async image with a low-res blur placeholder — the Swift counterpart of
 /// `@httpjpg/ui`'s `<Image>` with `blurOnLoad`.
 ///
-/// Callers pass both URLs already transformed by the Storyblok image service;
-/// this view knows nothing about Storyblok itself.
+/// The layout is driven by a transparent spacer at the target aspect ratio,
+/// with the image drawn as an overlay on top. That keeps the view's height
+/// deterministic before the image arrives — the alternative, letting a loaded
+/// `Image` size itself, makes rows jump as each asset lands and stacks them
+/// unpredictably inside a `ScrollView`.
+///
+/// Callers pass URLs already transformed by the Storyblok image service; this
+/// view knows nothing about Storyblok itself.
 public struct RemoteImage: View {
     private let url: URL?
     private let placeholderURL: URL?
-    private let aspectRatio: CGFloat?
+    private let aspectRatio: CGFloat
     private let contentMode: ContentMode
     private let accessibilityText: String?
 
     @Environment(\.pageTheme) private var theme
 
+    /// - Parameter aspectRatio: Width ÷ height. Pass the asset's real ratio —
+    ///   `ImageService.aspectRatio(of:)` reads it out of the Storyblok URL —
+    ///   rather than relying on the 3:2 default.
     public init(
         url: URL?,
         placeholderURL: URL? = nil,
@@ -23,28 +32,28 @@ public struct RemoteImage: View {
     ) {
         self.url = url
         self.placeholderURL = placeholderURL
-        self.aspectRatio = aspectRatio
+        self.aspectRatio = aspectRatio ?? 3.0 / 2.0
         self.contentMode = contentMode
         self.accessibilityText = accessibilityText
     }
 
     public var body: some View {
-        content
-            .modifier(AspectRatioModifier(ratio: aspectRatio, contentMode: contentMode))
+        Color.clear
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .overlay { image }
             .clipped()
             .accessibilityLabel(accessibilityText ?? "")
             .accessibilityHidden(accessibilityText == nil)
     }
 
     @ViewBuilder
-    private var content: some View {
+    private var image: some View {
         AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.35))) { phase in
             switch phase {
             case .success(let image):
                 image
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
-                    .transition(.opacity)
             case .failure:
                 placeholder(showsGlyph: true)
             case .empty:
@@ -78,20 +87,5 @@ public struct RemoteImage: View {
                     AsciiArt(Ascii.offline, label: "Image unavailable", size: Typography.Size.xxs, opacity: 0.6)
                 }
             }
-    }
-}
-
-/// Applies a fixed aspect ratio when one is known, and otherwise leaves the
-/// image to size itself — Storyblok assets don't always carry dimensions.
-private struct AspectRatioModifier: ViewModifier {
-    let ratio: CGFloat?
-    let contentMode: ContentMode
-
-    func body(content: Content) -> some View {
-        if let ratio {
-            content.aspectRatio(ratio, contentMode: contentMode)
-        } else {
-            content
-        }
     }
 }

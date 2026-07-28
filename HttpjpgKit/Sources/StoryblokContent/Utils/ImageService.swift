@@ -89,6 +89,32 @@ public enum ImageService {
         return Int(min(raw.rounded(.up), cap))
     }
 
+    /// The asset's real pixel size, read straight out of its URL.
+    ///
+    /// Storyblok encodes dimensions in the path — `/f/281211/5000x2400/abc/x.jpg`
+    /// — which is the only place they are available without a second request.
+    /// Using them means images render at their true proportions instead of a
+    /// guessed 4:3, and nothing gets letterboxed or cropped by accident.
+    public static func dimensions(of filename: String?) -> CGSize? {
+        guard let filename, isStoryblokAsset(filename) else { return nil }
+        for segment in filename.split(separator: "/") {
+            let parts = segment.split(separator: "x")
+            guard parts.count == 2,
+                  let width = Double(parts[0]),
+                  let height = Double(parts[1]),
+                  width > 0, height > 0
+            else { continue }
+            return CGSize(width: width, height: height)
+        }
+        return nil
+    }
+
+    /// Width ÷ height, or `nil` when the URL carries no dimensions.
+    public static func aspectRatio(of filename: String?) -> CGFloat? {
+        guard let size = dimensions(of: filename) else { return nil }
+        return size.width / size.height
+    }
+
     private static let videoExtensions: Set<String> = ["mp4", "webm", "ogg", "mov", "avi", "mkv"]
 
     /// Heuristic check mirroring `isVideoAsset` — Storyblok's `content_type`

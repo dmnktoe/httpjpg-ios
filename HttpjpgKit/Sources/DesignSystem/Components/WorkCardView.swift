@@ -138,12 +138,22 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     public let id: String
     public let url: URL?
     public let placeholderURL: URL?
+    /// The asset's real width ÷ height, so the card reserves the right box
+    /// before the image lands.
+    public let aspectRatio: CGFloat?
     public let accessibilityText: String?
 
-    public init(id: String, url: URL?, placeholderURL: URL? = nil, accessibilityText: String? = nil) {
+    public init(
+        id: String,
+        url: URL?,
+        placeholderURL: URL? = nil,
+        aspectRatio: CGFloat? = nil,
+        accessibilityText: String? = nil
+    ) {
         self.id = id
         self.url = url
         self.placeholderURL = placeholderURL
+        self.aspectRatio = aspectRatio
         self.accessibilityText = accessibilityText
     }
 }
@@ -154,29 +164,35 @@ private struct WorkCardImages: View {
     let images: [WorkCardImage]
     let accessibilityText: String
 
-    private static let aspectRatio: CGFloat = 4.0 / 3.0
+    @Environment(\.viewportWidth) private var viewportWidth
+
+    /// One carousel needs one height, so every slide is shown in the first
+    /// image's box. Letting each page size itself makes the card resize as you
+    /// swipe, which reads as a layout bug rather than a design.
+    private var aspectRatio: CGFloat {
+        images.first?.aspectRatio ?? 3.0 / 2.0
+    }
 
     var body: some View {
         if images.count == 1, let image = images.first {
-            RemoteImage(
-                url: image.url,
-                placeholderURL: image.placeholderURL,
-                aspectRatio: Self.aspectRatio,
-                accessibilityText: image.accessibilityText ?? accessibilityText
-            )
+            slide(image)
         } else {
             TabView {
                 ForEach(images) { image in
-                    RemoteImage(
-                        url: image.url,
-                        placeholderURL: image.placeholderURL,
-                        aspectRatio: Self.aspectRatio,
-                        accessibilityText: image.accessibilityText ?? accessibilityText
-                    )
+                    slide(image)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .automatic))
-            .aspectRatio(Self.aspectRatio, contentMode: .fit)
+            .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
         }
+    }
+
+    private func slide(_ image: WorkCardImage) -> some View {
+        RemoteImage(
+            url: image.url,
+            placeholderURL: image.placeholderURL,
+            aspectRatio: aspectRatio,
+            accessibilityText: image.accessibilityText ?? accessibilityText
+        )
     }
 }

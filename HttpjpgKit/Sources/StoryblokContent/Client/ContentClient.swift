@@ -80,6 +80,26 @@ public final class ContentClient: @unchecked Sendable {
         return PageDocument(story: story)
     }
 
+    /// Every story that is not a work entry — the pages the site's own header
+    /// menu links to (`cv`, `feed-xml_html`, the legal pages, …).
+    ///
+    /// The space has no manifest of these, so they are discovered rather than
+    /// hardcoded: fetch everything outside `work/`, then drop the two stories
+    /// that are not pages. `config` is settings, and `home` is the work index
+    /// the first tab already shows.
+    public func pageIndex(perPage: Int = 100) async throws -> [PageSummary] {
+        let stories: [Story<StoryOverview>] = try await stories(
+            startingWith: nil,
+            excludingSlugs: StorySlug.workPrefix + "*",
+            perPage: perPage,
+            sortBy: "name:asc"
+        )
+
+        return stories
+            .filter { !StorySlug.isHiddenFromPageIndex($0.slug, component: $0.content.component) }
+            .map(PageSummary.init(story:))
+    }
+
     /// The `config` story. Falls back to ``SiteConfig/fallback`` rather than
     /// throwing — navigation should never be the reason a screen fails.
     public func siteConfig() async -> SiteConfig {
@@ -122,16 +142,22 @@ public final class ContentClient: @unchecked Sendable {
     }
 
     private func stories<Content: Decodable>(
-        startingWith prefix: String,
+        startingWith prefix: String?,
+        excludingSlugs: String? = nil,
         perPage: Int,
         sortBy: String?
     ) async throws -> [Story<Content>] {
         var request = URLRequest(storyblok: session, path: "stories")
         var queryItems = [
-            URLQueryItem(name: "starts_with", value: prefix),
             URLQueryItem(name: "per_page", value: String(perPage)),
             URLQueryItem(name: "page", value: "1"),
         ]
+        if let prefix {
+            queryItems.append(URLQueryItem(name: "starts_with", value: prefix))
+        }
+        if let excludingSlugs {
+            queryItems.append(URLQueryItem(name: "excluding_slugs", value: excludingSlugs))
+        }
         if let sortBy {
             queryItems.append(URLQueryItem(name: "sort_by", value: sortBy))
         }

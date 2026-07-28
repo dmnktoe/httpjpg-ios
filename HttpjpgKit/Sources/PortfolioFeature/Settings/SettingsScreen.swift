@@ -9,6 +9,7 @@ import SwiftUI
 /// override for their own screen.
 struct SettingsScreen: View {
     @Binding var appearance: AppearancePreference
+    @Binding var isGlassEnabled: Bool
 
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
@@ -18,6 +19,7 @@ struct SettingsScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.s8) {
                 appearanceSection
+                glassSection
                 if !app.config.headerMenu.isEmpty {
                     linksSection
                 }
@@ -31,28 +33,34 @@ struct SettingsScreen: View {
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
             SectionLabel("appearance")
-            HStack(spacing: 0) {
-                ForEach(AppearancePreference.allCases) { option in
-                    Button {
-                        appearance = option
-                    } label: {
-                        Text(option.label)
-                            .font(Typography.mono(
-                                Typography.Size.sm,
-                                weight: option == appearance ? .bold : .regular
-                            ))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.s3)
-                            .background(option == appearance ? theme.foreground : .clear)
-                            .foregroundStyle(option == appearance ? theme.background : theme.foreground)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(option == appearance ? [.isSelected, .isButton] : .isButton)
+            SegmentedRow(
+                options: AppearancePreference.allCases,
+                selection: appearance,
+                label: \.label,
+                onSelect: { appearance = $0 }
+            )
+        }
+    }
+
+    /// Liquid Glass is the one thing in the app that argues with the design
+    /// language, so it is a switch rather than a decision made for the reader.
+    private var glassSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.s3) {
+            SectionLabel("chrome")
+            Toggle(isOn: $isGlassEnabled) {
+                VStack(alignment: .leading, spacing: Spacing.s1) {
+                    MonoText("liquid glass", size: Typography.Size.sm)
+                    BodyText(glassFootnote, size: .sm, emphasis: .dimmed)
                 }
             }
-            .overlay(Rectangle().stroke(theme.foreground, lineWidth: 1))
+            .tint(theme.foreground)
         }
+    }
+
+    private var glassFootnote: String {
+        isLiquidGlassAvailable
+            ? "Masthead and tab bar float as glass; content stays flat."
+            : "This device predates Liquid Glass — the chrome falls back to a blur."
     }
 
     private var linksSection: some View {

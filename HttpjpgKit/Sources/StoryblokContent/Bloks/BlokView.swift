@@ -23,6 +23,12 @@ extension PortfolioBlok: View {
             return AnyView(SbSectionView(blok: blok))
         case .container(let blok):
             return AnyView(SbContainerView(blok: blok))
+        case .grid(let blok):
+            return AnyView(SbGridView(blok: blok))
+        case .gridItem(let blok):
+            return AnyView(SbGridItemView(blok: blok))
+        case .marquee(let blok):
+            return AnyView(SbMarqueeView(blok: blok))
         case .headline(let blok):
             return AnyView(SbHeadlineView(blok: blok))
         case .paragraph(let blok):

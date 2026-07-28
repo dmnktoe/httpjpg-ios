@@ -1,3 +1,5 @@
+import CoreGraphics
+import DesignSystem
 import Foundation
 import StoryblokClient
 
@@ -19,6 +21,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
     // Layout
     case section(SectionBlok)
     case container(ContainerBlok)
+    case grid(GridBlok)
+    case gridItem(GridItemBlok)
 
     // Content
     case headline(HeadlineBlok)
@@ -30,6 +34,7 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
     case callout(CalloutBlok)
     case codeBlock(CodeBlok)
     case workList(WorkListBlok)
+    case marquee(MarqueeBlok)
 
     case unknown(component: String, id: String)
 
@@ -44,6 +49,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .work(let blok): return blok.id
         case .section(let blok): return blok.id
         case .container(let blok): return blok.id
+        case .grid(let blok): return blok.id
+        case .gridItem(let blok): return blok.id
         case .headline(let blok): return blok.id
         case .paragraph(let blok): return blok.id
         case .richText(let blok): return blok.id
@@ -53,6 +60,7 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .callout(let blok): return blok.id
         case .codeBlock(let blok): return blok.id
         case .workList(let blok): return blok.id
+        case .marquee(let blok): return blok.id
         case .unknown(_, let id): return id
         }
     }
@@ -64,6 +72,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .work: return "work"
         case .section: return "section"
         case .container: return "container"
+        case .grid: return "grid"
+        case .gridItem: return "grid_item"
         case .headline: return "headline"
         case .paragraph: return "paragraph"
         case .richText: return "richtext"
@@ -73,6 +83,7 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .callout: return "callout"
         case .codeBlock: return "code_block"
         case .workList: return "work_list"
+        case .marquee: return "marquee"
         case .unknown(let component, _): return component
         }
     }
@@ -89,6 +100,9 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case "work": self = .work(try WorkBlok(from: decoder))
         case "section": self = .section(try SectionBlok(from: decoder))
         case "container": self = .container(try ContainerBlok(from: decoder))
+        case "grid": self = .grid(try GridBlok(from: decoder))
+        case "grid_item": self = .gridItem(try GridItemBlok(from: decoder))
+        case "marquee": self = .marquee(try MarqueeBlok(from: decoder))
         case "headline": self = .headline(try HeadlineBlok(from: decoder))
         case "paragraph": self = .paragraph(try ParagraphBlok(from: decoder))
         case "richtext": self = .richText(try RichTextBlok(from: decoder))
@@ -260,7 +274,75 @@ public struct ContainerBlok: Decodable, Identifiable {
     }
 }
 
+public struct GridBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [PortfolioBlok]
+    /// The base breakpoint's column count. `auto` and the tablet/desktop
+    /// variants describe layouts a phone never reaches.
+    public let columns: Int
+    public let gap: CGFloat
+
+    private enum CodingKeys: String, CodingKey {
+        case items, columns, gap
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(PortfolioBlok.self, forKey: .items)
+        columns = container.cmsInt(forKey: .columns) ?? 1
+        gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s4
+    }
+}
+
+public struct GridItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let content: [PortfolioBlok]
+
+    private enum CodingKeys: String, CodingKey {
+        case content
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        content = container.cmsArray(PortfolioBlok.self, forKey: .content)
+    }
+}
+
 // MARK: - Content bloks
+
+public struct MarqueeBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let text: String
+    /// Scroll speed in points per second.
+    ///
+    /// The CMS stores `speed` as the number of *seconds* per loop, which only
+    /// means something once you know the text width. `MarqueeLabel` wants a
+    /// rate, so the seconds value is inverted against a nominal loop width —
+    /// the same motion, expressed the way the platform asks for it.
+    public let rate: CGFloat
+
+    private enum CodingKeys: String, CodingKey {
+        case text, speed
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        text = container.cmsString(forKey: .text) ?? ""
+
+        let seconds = CGFloat(container.cmsInt(forKey: .speed) ?? 20)
+        rate = seconds > 0 ? max(600 / seconds, 10) : 30
+    }
+}
 
 public struct HeadlineBlok: Decodable, Identifiable {
     public let id: String

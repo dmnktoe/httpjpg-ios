@@ -100,6 +100,16 @@ final class WorkItemTests: XCTestCase {
         XCTAssertFalse(StorySlug.isDirectWork("home"))
     }
 
+    /// `home` is the work index on the web and `config` is settings; neither
+    /// belongs in the info tab's page list.
+    func testPageIndexHidesTheIndexAndSettingsStories() {
+        XCTAssertTrue(StorySlug.isHiddenFromPageIndex("home", component: "page"))
+        XCTAssertTrue(StorySlug.isHiddenFromPageIndex("config", component: "config"))
+        XCTAssertTrue(StorySlug.isHiddenFromPageIndex("some-slug", component: "work"))
+        XCTAssertFalse(StorySlug.isHiddenFromPageIndex("cv", component: "page"))
+        XCTAssertFalse(StorySlug.isHiddenFromPageIndex("legal-notice", component: "page"))
+    }
+
     // MARK: - Collection split
 
     func testUntaggedStoriesCountAsProjects() throws {

@@ -7,9 +7,9 @@ import SwiftUI
 /// `app/(portfolio)/[...slug]/page.tsx`.
 struct PageScreen: View {
     let slug: String
+    let title: String
 
     @Environment(AppModel.self) private var app
-    @Environment(\.pageTheme) private var inheritedTheme
 
     @State private var model: PageModel?
 
@@ -21,6 +21,8 @@ struct PageScreen: View {
                 LoadingState()
             }
         }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)
@@ -47,18 +49,28 @@ struct PageScreen: View {
         }
     }
 
+    @ViewBuilder
     private func document(_ page: PageDocument) -> some View {
-        let theme = page.isDark ? PageTheme.dark : inheritedTheme
-        return ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.s6) {
-                Headline(page.title, level: .two)
+        let theme = page.isDark ? PageTheme.dark : PageTheme.light
+        if page.body.isEmpty {
+            // A story whose body holds nothing this app renders would otherwise
+            // be an empty white screen with no way to tell why.
+            AsciiState(
+                art: Ascii.ghost,
+                label: "Nothing to render",
+                message: "\"\(page.title)\" has no bloks this app knows how to draw yet."
+            )
+            .pageTheme(theme)
+            .pageSurface(theme)
+        } else {
+            ScrollView {
                 BlokListView(page.body)
+                    .padding(.horizontal, PageLayout.gutter)
+                    .padding(.vertical, Spacing.s6)
             }
-            .padding(.horizontal, PageLayout.gutter)
-            .padding(.vertical, Spacing.s6)
+            .pageTheme(theme)
+            .pageSurface(theme)
         }
-        .pageTheme(theme)
-        .pageSurface(theme)
     }
 }
 

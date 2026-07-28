@@ -110,6 +110,7 @@ public enum WorkCardAdapter {
             id: filename ?? UUID().uuidString,
             url: URL(string: ImageService.Preset.width(filename, targetWidth, scale: scale, focus: focus ?? "")),
             placeholderURL: URL(string: ImageService.Preset.blur(filename, focus: focus ?? "")),
+            aspectRatio: ImageService.aspectRatio(of: filename),
             accessibilityText: alt
         )
     }

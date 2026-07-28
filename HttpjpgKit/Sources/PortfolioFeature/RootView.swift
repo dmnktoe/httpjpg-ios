@@ -2,14 +2,15 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The app shell — masthead, tab content, brutalist tab bar.
+/// The app shell — masthead, tab content, tab bar.
 ///
-/// SwiftUI's stock `TabView` chrome is rounded and translucent, which fights
-/// the design; the bar below is a plain row with a hard rule, the same read as
-/// the site's header.
+/// Both bars are `safeAreaInset`s rather than stack siblings: that keeps
+/// content clear of them at rest while letting it scroll underneath, which is
+/// the only way Liquid Glass has anything to refract.
 public struct RootView: View {
     @State private var model: AppModel
     @AppStorage("appearance") private var appearance: AppearancePreference = .system
+    @AppStorage("liquidGlass") private var isGlassEnabled = true
     @Environment(\.colorScheme) private var systemScheme
 
     public init(configuration: StoryblokConfiguration) {
@@ -18,15 +19,18 @@ public struct RootView: View {
 
     public var body: some View {
         ViewportReader {
-            VStack(spacing: 0) {
-                Masthead(title: model.siteName)
-                content
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                TabBar(selection: $model.selectedTab)
-            }
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    Masthead(title: model.siteName)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    TabBar(selection: $model.selectedTab)
+                }
         }
         .pageTheme(theme)
         .pageSurface(theme)
+        .environment(\.isLiquidGlassEnabled, isGlassEnabled)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
         .task { await model.loadConfig() }
@@ -38,9 +42,9 @@ public struct RootView: View {
         case .work:
             WorkIndexScreen()
         case .info:
-            PageScreen(slug: StorySlug.home)
+            InfoScreen()
         case .settings:
-            SettingsScreen(appearance: $appearance)
+            SettingsScreen(appearance: $appearance, isGlassEnabled: $isGlassEnabled)
         }
     }
 
@@ -49,11 +53,13 @@ public struct RootView: View {
     }
 }
 
-/// The site name, set like the web header: display face, hard bottom rule.
+/// The site name, set like the web header. Glass panel when Liquid Glass is on,
+/// the original hairline rule when it isn't.
 private struct Masthead: View {
     let title: String
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.isLiquidGlassEnabled) private var isGlass
 
     var body: some View {
         HStack(spacing: Spacing.s2) {
@@ -66,39 +72,97 @@ private struct Masthead: View {
         .padding(.horizontal, PageLayout.gutter)
         .padding(.vertical, Spacing.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .glassBackground(in: .rect)
         .overlay(alignment: .bottom) {
-            Rectangle().fill(theme.foreground).frame(height: 1)
+            if !isGlass {
+                Rectangle().fill(theme.foreground).frame(height: 1)
+            }
         }
         .accessibilityAddTraits(.isHeader)
     }
 }
 
+/// Tab bar in two dialects.
+///
+/// Glass on: a floating capsule rail whose selection pill morphs from tab to
+/// tab — the one gesture Liquid Glass is actually for. Glass off: the flat
+/// inverse-block row, hard rule on top, which is what the site would do.
 private struct TabBar: View {
     @Binding var selection: AppModel.Tab
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.isLiquidGlassEnabled) private var isGlass
+    @Namespace private var glassNamespace
 
     var body: some View {
+        if isGlass {
+            glassRail
+        } else {
+            flatRow
+        }
+    }
+
+    /// Only the selected pill is glass. Apple's own guidance is not to nest
+    /// glass inside glass, so there is no rail behind the row — the pill does
+    /// all the work, and travels because every state shares one morph ID.
+    private var glassRail: some View {
+        GlassGroup(spacing: Spacing.s3) {
+            HStack(spacing: Spacing.s2) {
+                ForEach(AppModel.Tab.allCases) { tab in
+                    Button {
+                        withAnimation(.smooth(duration: 0.35)) { selection = tab }
+                    } label: {
+                        label(for: tab)
+                            .padding(.horizontal, Spacing.s4)
+                            .padding(.vertical, Spacing.s3)
+                            .contentShape(Capsule())
+                            .modifier(SelectionPill(
+                                isSelected: selection == tab,
+                                tint: theme.foreground,
+                                namespace: glassNamespace
+                            ))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(traits(for: tab))
+                }
+            }
+        }
+        .padding(.horizontal, PageLayout.gutter)
+        .padding(.bottom, Spacing.s2)
+    }
+
+    private var flatRow: some View {
         HStack(spacing: 0) {
             ForEach(AppModel.Tab.allCases) { tab in
                 Button {
                     selection = tab
                 } label: {
-                    Text(tab.label)
-                        .font(Typography.mono(Typography.Size.sm, weight: selection == tab ? .bold : .regular))
-                        .tracking(Typography.Size.sm * 0.1)
+                    label(for: tab)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.s3)
                         .background(selection == tab ? theme.foreground : .clear)
-                        .foregroundStyle(selection == tab ? theme.background : theme.foreground)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityAddTraits(selection == tab ? [.isSelected, .isButton] : .isButton)
+                .accessibilityAddTraits(traits(for: tab))
             }
         }
+        .background(theme.background)
         .overlay(alignment: .top) {
             Rectangle().fill(theme.foreground).frame(height: 1)
         }
+    }
+
+    /// Selected labels invert on the flat row, but sit on tinted glass in the
+    /// rail — same contrast, different mechanism.
+    private func label(for tab: AppModel.Tab) -> some View {
+        Text(tab.label)
+            .font(Typography.mono(Typography.Size.sm, weight: selection == tab ? .bold : .regular))
+            .tracking(Typography.Size.sm * 0.1)
+            .foregroundStyle(selection == tab ? theme.background : theme.foreground)
+    }
+
+    private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {
+        selection == tab ? [.isSelected, .isButton] : .isButton
     }
 }

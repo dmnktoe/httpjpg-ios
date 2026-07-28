@@ -125,17 +125,49 @@ SwiftPM resources land in `Bundle.module`, not the app bundle, so the `UIAppFont
 Info.plist key cannot see them — registration goes through
 `CTFontManagerRegisterFontsForURL` with `.process` scope instead.
 
+### Liquid Glass
+
+Liquid Glass is, aesthetically, the opposite of this site: soft, translucent,
+rounded. Rather than sand the design down to meet it, the app splits the two —
+**chrome floats, content stays flat.** The masthead, tab bar and navigation bar
+are glass that content slides under; work cards, headlines and rich text never
+are.
+
+`GlassStyle.swift` degrades in three steps: real `glassEffect` on iOS 26,
+`.ultraThinMaterial` below it, and the original flat chrome with its hairline
+rule when the reader turns glass off in settings. That last one is a setting
+rather than a fallback, which is what makes the split above testable by eye.
+
+The tab bar is where it earns its keep: only the selected pill is glass, and
+every state shares one `glassEffectID`, so the pill travels between tabs instead
+of blinking. Glass is never nested inside glass, per Apple's guidance.
+
 ## Screens
 
 - **work** — the index, split by the CMS header menu (Projects / Websites), with
   the tag filter from `<WorkTagFilter>`. External-only entries link straight out,
   exactly as they do on the web.
-- **work detail** — hero carousel, the `description` rich text rendered natively
-  by the SDK's `RichTextView`, the story's `body` bloks, and a share link to the
-  canonical web URL. A story with `isDark` set flips its own screen to the dark
-  page theme.
-- **info** — the `home` story, rendered through the blok registry.
-- **settings** — appearance preference, CMS links, colophon.
+- **work detail** — the story's `body` bloks, rendered through the registry, with
+  the date stamp and tags above them. The story's `images` field is *not* shown
+  here: it feeds the index card, and the page's own images are already `image`
+  bloks in the body — the web makes the same split. A story with `isDark` set
+  flips its own screen to the dark page theme.
+- **info** — every story outside `work/`, discovered rather than hardcoded, each
+  opening through the blok registry. (`home` is excluded: on the web it *is* the
+  work index, so pointing the tab at it made it a duplicate of the first tab.)
+- **settings** — appearance preference, the Liquid Glass switch, CMS links,
+  colophon.
+
+## Images
+
+Storyblok encodes an asset's real pixel size in its URL path
+(`/f/281211/5000x2400/…`), which `ImageService.dimensions(of:)` reads back. Every
+image therefore renders at its true proportions, and the layout box is reserved
+before the bytes arrive — no guessed 4:3, no rows jumping as assets land.
+
+Request widths are the layout width times the display scale, so a 3× phone never
+downloads a 1× asset and never a desktop-sized one either. That is this app's
+version of `srcSet`/`sizes`.
 
 ## Adding a blok
 
@@ -171,3 +203,5 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   misapplied to a phone.
 - `work_list` grid columns collapse to the stacked variant, which is what the web
   renders below its `md` breakpoint anyway.
+- `music_player` has no native renderer yet, so it shows as `SbMissingView`. It
+  needs an `AVPlayer` and transport controls, which is its own piece of work.
