@@ -60,13 +60,20 @@ struct WorkIndexScreen: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.s8) {
                 masthead(model)
-                rows(model)
-                    // A pure crossfade on filter changes. The animation hangs
-                    // on the *transition*, not on the layout — animating the
-                    // layout made the whole page's height change ride along,
-                    // and the page visibly rushed upward on every switch.
-                    .id(filterFingerprint(model))
-                    .transition(.opacity.animation(.easeInOut(duration: 0.25)))
+                // The ZStack is what makes the crossfade safe: during the
+                // transition the outgoing and incoming lists both exist, and
+                // as stack *siblings* they stacked vertically — content
+                // doubled for a moment and the scroll position ended up down
+                // at the first card. Overlapped, they occupy the same space.
+                ZStack(alignment: .topLeading) {
+                    rows(model)
+                        // A pure crossfade on filter changes. The animation
+                        // hangs on the *transition*, not on the layout —
+                        // animating the layout made the whole page's height
+                        // change ride along and rush the page upward.
+                        .id(filterFingerprint(model))
+                        .transition(.opacity.animation(.easeInOut(duration: 0.25)))
+                }
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, TabBarClearance.bottomPadding)
