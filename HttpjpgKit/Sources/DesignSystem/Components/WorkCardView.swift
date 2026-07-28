@@ -151,6 +151,9 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     public let aspectRatio: CGFloat?
     public let accessibilityText: String?
     public let copyright: String?
+    /// Set when the slide is a clip; it renders as a muted loop instead of an
+    /// image, exactly like the web card's video slides.
+    public let videoURL: URL?
 
     public init(
         id: String,
@@ -158,7 +161,8 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
         placeholderURL: URL? = nil,
         aspectRatio: CGFloat? = nil,
         accessibilityText: String? = nil,
-        copyright: String? = nil
+        copyright: String? = nil,
+        videoURL: URL? = nil
     ) {
         self.id = id
         self.url = url
@@ -166,6 +170,7 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
         self.aspectRatio = aspectRatio
         self.accessibilityText = accessibilityText
         self.copyright = copyright
+        self.videoURL = videoURL
     }
 }
 
@@ -186,16 +191,24 @@ private struct WorkCardImages: View {
         }
     }
 
+    @ViewBuilder
     private func slide(_ image: WorkCardImage) -> some View {
-        RemoteImage(
-            url: image.url,
-            placeholderURL: image.placeholderURL,
-            // One fixed ratio for every card, not the asset's own: the library
-            // mixes panoramas, phone photos and screenshots, and sizing each
-            // card to its file made the index scroll in lurches.
-            aspectRatio: PageLayout.mediaAspectRatio,
-            accessibilityText: image.accessibilityText ?? accessibilityText
-        )
+        Group {
+            if let videoURL = image.videoURL {
+                LoopingVideoPlayer(url: videoURL, aspectRatio: PageLayout.mediaAspectRatio)
+            } else {
+                RemoteImage(
+                    url: image.url,
+                    placeholderURL: image.placeholderURL,
+                    // One fixed ratio for every card, not the asset's own: the
+                    // library mixes panoramas, phone photos and screenshots,
+                    // and sizing each card to its file made the index scroll
+                    // in lurches.
+                    aspectRatio: PageLayout.mediaAspectRatio,
+                    accessibilityText: image.accessibilityText ?? accessibilityText
+                )
+            }
+        }
         .overlay(alignment: .bottomTrailing) {
             if let copyright = image.copyright, !copyright.isEmpty {
                 CopyrightLabel(copyright, position: .inlineWhite)

@@ -13,9 +13,12 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let summary: String
     /// Already run through ``ImageService/Preset`` — a thumbnail, not the original.
     public let thumbnailURL: URL?
-    /// Raw asset URLs, still untransformed, so the card can size them to the
-    /// device it is actually rendering on.
+    /// Raw *image* asset URLs, untransformed. Kept image-only for the widget
+    /// and the thumbnail, which cannot show a clip.
     public let imageFilenames: [String]
+    /// Every media asset in CMS order, clips included — the card carousel
+    /// renders this, the same list the web card feeds its slideshow.
+    public let media: [WorkMedia]
     public let isDraft: Bool
     public let isExternal: Bool
     public let externalURL: URL?
@@ -30,6 +33,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         summary: String = "",
         thumbnailURL: URL?,
         imageFilenames: [String],
+        media: [WorkMedia] = [],
         isDraft: Bool,
         isExternal: Bool,
         externalURL: URL?,
@@ -43,11 +47,23 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.summary = summary
         self.thumbnailURL = thumbnailURL
         self.imageFilenames = imageFilenames
+        self.media = media.isEmpty ? imageFilenames.map { WorkMedia(filename: $0, isVideo: false) } : media
         self.isDraft = isDraft
         self.isExternal = isExternal
         self.externalURL = externalURL
         self.date = date
         self.tags = tags
+    }
+}
+
+/// One entry in a story's media strip — a still or a clip, in CMS order.
+public struct WorkMedia: Hashable, Sendable {
+    public let filename: String
+    public let isVideo: Bool
+
+    public init(filename: String, isVideo: Bool) {
+        self.filename = filename
+        self.isVideo = isVideo
     }
 }
 
@@ -57,6 +73,13 @@ public extension WorkItem {
         let content = story.content
         let externalURL = content.link?.href.flatMap(URL.init(string:))
         let filenames = content.images.images.compactMap(\.filename)
+        // Clips stay in, in CMS order — the web card's slideshow plays them,
+        // and dropping them here was why card videos never appeared.
+        let media = content.images
+            .filter { !$0.isEmpty }
+            .compactMap { asset in
+                asset.filename.map { WorkMedia(filename: $0, isVideo: asset.isVideo) }
+            }
 
         self.init(
             id: story.uuid.uuidString,
@@ -66,6 +89,7 @@ public extension WorkItem {
             summary: extractPlainText(content.details, maxLength: 280),
             thumbnailURL: URL(string: ImageService.Preset.thumb(filenames.first)),
             imageFilenames: filenames,
+            media: media,
             isDraft: story.firstPublishedAt == nil,
             isExternal: content.isExternalOnly,
             externalURL: externalURL,

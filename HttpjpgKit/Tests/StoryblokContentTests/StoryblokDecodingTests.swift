@@ -170,6 +170,16 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.decoration, Ascii.dividerMusic)
     }
 
+    /// External clips count as videos too — the site hosts card loops on
+    /// Dropbox, and their URLs end in `.mp4?rlkey=…`, extension before query.
+    func testExternalDropboxClipIsDetectedAsVideo() throws {
+        let asset = try decode(StoryblokAsset.self, """
+        {"filename":"https://www.dropbox.com/scl/fi/x/logo-loop.mp4?rlkey=abc&raw=1",
+         "is_external_url":true}
+        """)
+        XCTAssertTrue(asset.isVideo)
+    }
+
     /// Clips stay in the slide list. Filtering them out collapsed video-heavy
     /// slideshows to one slide — and a one-slide carousel draws no arrows, no
     /// counter and never autoplays, which read as the whole feature missing.

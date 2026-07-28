@@ -92,9 +92,9 @@ public struct ImageCarousel<Slide: View>: View {
             advance(by: step)
         } label: {
             Image(systemName: symbol)
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 44, height: 44)
+                .frame(width: 34, height: 34)
                 .contentShape(Circle())
                 .glassBackground(in: .circle, tint: .black.opacity(0.55), interactive: true)
         }

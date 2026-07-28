@@ -25,13 +25,22 @@ public enum WorkCardAdapter {
             date: item.date,
             dateEnd: nil,
             tags: item.tags,
-            images: images(
-                filenames: item.imageFilenames,
-                focus: nil,
-                alt: item.title,
-                targetWidth: targetWidth,
-                scale: scale
-            ),
+            images: item.media.map { entry in
+                if entry.isVideo {
+                    return WorkCardImage(
+                        id: entry.filename,
+                        url: nil,
+                        videoURL: URL(string: entry.filename)
+                    )
+                }
+                return image(
+                    filename: entry.filename,
+                    focus: nil,
+                    alt: item.title,
+                    targetWidth: targetWidth,
+                    scale: scale
+                )
+            },
             externalURL: item.externalURL
         )
     }
@@ -49,15 +58,8 @@ public enum WorkCardAdapter {
             date: detail.date,
             dateEnd: detail.dateEnd,
             tags: detail.tags,
-            images: detail.images.images.map { asset in
-                image(
-                    filename: asset.filename,
-                    focus: asset.focus,
-                    alt: asset.accessibilityText(fallback: detail.title),
-                    targetWidth: targetWidth,
-                    scale: scale,
-                    copyright: asset.copyright
-                )
+            images: detail.images.map { asset in
+                slide(for: asset, fallbackAlt: detail.title, targetWidth: targetWidth, scale: scale)
             }
         )
     }
@@ -78,29 +80,36 @@ public enum WorkCardAdapter {
             date: StoryblokDate.parse(blok.date),
             dateEnd: StoryblokDate.parse(blok.dateEnd),
             tags: story.tagList,
-            images: blok.images.images.map { asset in
-                image(
-                    filename: asset.filename,
-                    focus: asset.focus,
-                    alt: asset.accessibilityText(fallback: title),
-                    targetWidth: targetWidth,
-                    scale: scale,
-                    copyright: asset.copyright
-                )
+            images: blok.images.filter { !$0.isEmpty }.map { asset in
+                slide(for: asset, fallbackAlt: title, targetWidth: targetWidth, scale: scale)
             }
         )
     }
 
-    private static func images(
-        filenames: [String],
-        focus: String?,
-        alt: String,
+    /// One asset, one slide — a clip becomes a muted loop, a still goes
+    /// through the image service at the device's pixel budget.
+    private static func slide(
+        for asset: StoryblokAsset,
+        fallbackAlt: String,
         targetWidth: CGFloat,
         scale: CGFloat
-    ) -> [WorkCardImage] {
-        filenames.map { filename in
-            image(filename: filename, focus: focus, alt: alt, targetWidth: targetWidth, scale: scale)
+    ) -> WorkCardImage {
+        if asset.isVideo {
+            return WorkCardImage(
+                id: asset.filename ?? UUID().uuidString,
+                url: nil,
+                copyright: asset.copyright,
+                videoURL: asset.filename.flatMap(URL.init(string:))
+            )
         }
+        return image(
+            filename: asset.filename,
+            focus: asset.focus,
+            alt: asset.accessibilityText(fallback: fallbackAlt),
+            targetWidth: targetWidth,
+            scale: scale,
+            copyright: asset.copyright
+        )
     }
 
     private static func image(

@@ -173,8 +173,13 @@ private struct VariantPicker: View {
         }
     }
 
+    /// Selection is colour, not weight: the active chip wears the design
+    /// system's `primary` — the web's button blue — and the inactive one
+    /// recedes to faint glass. Bold flipped the label width and made the row
+    /// breathe on every switch, same problem the tab pills had.
     private func chip(for variant: MenuLink.Variant) -> some View {
         let isSelected = variant == selection
+        let primary = BrutalButtonStyle.Variant.primary
         // The CMS label is ignored on purpose: these two headings are set
         // pieces on the web, glyph for glyph, and they carry combining marks
         // that letter-spacing pulls apart from the characters they belong to.
@@ -182,24 +187,30 @@ private struct VariantPicker: View {
             onSelect(variant)
         } label: {
             Text(variant.filterLabel)
-                .font(Typography.mono(Typography.Size.sm, weight: isSelected ? .bold : .regular))
+                .font(Typography.mono(Typography.Size.sm))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(theme.foreground)
+                .foregroundStyle(isSelected ? primary.label : theme.foreground)
                 .padding(.horizontal, Spacing.s3)
                 .padding(.vertical, Spacing.s2)
                 .contentShape(Capsule())
-                .glassBackground(in: .capsule, interactive: true)
+                .glassBackground(
+                    in: .capsule,
+                    tint: isSelected ? primary.fill.opacity(0.85) : nil,
+                    interactive: true
+                )
                 // Clipped before the stroke: interactive glass blooms past its
                 // shape, and the wash was sliding out from under the border.
                 .clipShape(Capsule())
                 .overlay(
                     Capsule().stroke(
-                        Palette.neutral.s400.opacity(isSelected ? 0.9 : 0.45),
+                        isSelected
+                            ? primary.fill.opacity(0.9)
+                            : Palette.neutral.s400.opacity(0.35),
                         lineWidth: 1
                     )
                 )
-                .opacity(isSelected ? 1 : Opacities.muted)
+                .opacity(isSelected ? 1 : 0.55)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)

@@ -1,4 +1,3 @@
-import AVKit
 import DesignSystem
 import SwiftUI
 
@@ -32,8 +31,8 @@ public struct SbSlideshowView: View {
 
     @ViewBuilder
     private func slide(_ asset: StoryblokAsset) -> some View {
-        if asset.isVideo {
-            SlideshowVideoSlide(asset: asset, aspectRatio: aspectRatio)
+        if asset.isVideo, let filename = asset.filename, let url = URL(string: filename) {
+            LoopingVideoPlayer(url: url, aspectRatio: aspectRatio)
         } else {
             AssetImage(asset: asset, aspectRatio: aspectRatio)
         }
@@ -47,44 +46,3 @@ public struct SbSlideshowView: View {
     }
 }
 
-/// A clip inside a slideshow: muted, looping, no chrome.
-///
-/// `allowsHitTesting(false)` is what keeps it chromeless — `VideoPlayer` only
-/// shows its controls on touch, and the touches go to the carousel instead.
-/// Muted playback shares the audio session politely, so a running music track
-/// keeps playing over it.
-private struct SlideshowVideoSlide: View {
-    let asset: StoryblokAsset
-    /// A player view has no intrinsic size — without this box a lone video
-    /// slide laid out at zero height and simply never appeared.
-    let aspectRatio: CGFloat
-
-    @State private var player: AVQueuePlayer?
-    @State private var looper: AVPlayerLooper?
-
-    var body: some View {
-        Color.black
-            .aspectRatio(aspectRatio, contentMode: .fit)
-            .overlay {
-                if let player {
-                    VideoPlayer(player: player)
-                        .allowsHitTesting(false)
-                }
-            }
-            .clipped()
-            .onAppear(perform: start)
-            .onDisappear { player?.pause() }
-            .accessibilityHidden(true)
-    }
-
-    private func start() {
-        if player == nil {
-            guard let filename = asset.filename, let url = URL(string: filename) else { return }
-            let queue = AVQueuePlayer()
-            queue.isMuted = true
-            looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
-            player = queue
-        }
-        player?.play()
-    }
-}
