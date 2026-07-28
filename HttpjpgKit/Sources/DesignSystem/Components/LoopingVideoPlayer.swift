@@ -32,6 +32,9 @@ public struct LoopingVideoPlayer: View {
                 }
             }
             .clipped()
+            // Same as RemoteImage: clipping trims pixels, not hit testing, and
+            // an overflowing player must not steal taps from its neighbours.
+            .contentShape(Rectangle())
             .onAppear(perform: start)
             .onDisappear { player?.pause() }
             .accessibilityHidden(true)

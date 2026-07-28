@@ -42,6 +42,12 @@ public struct RemoteImage: View {
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay { image }
             .clipped()
+            // `clipped()` trims pixels, not hit testing: a filled image
+            // overflows its box, and the invisible overflow stole taps from
+            // whatever sat above or below the card — tapping the work filter
+            // opened the first story. The contentShape pins the tappable
+            // region to the visible box.
+            .contentShape(Rectangle())
             .accessibilityLabel(accessibilityText ?? "")
             .accessibilityHidden(accessibilityText == nil)
     }
