@@ -112,6 +112,53 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.spacing.marginTop, 16)
     }
 
+    /// The spacing matrix used to be read as `String` only, so an axis that had
+    /// ever been saved through a number field decoded as nothing at all and the
+    /// blok silently lost its margins.
+    func testSpacingDecodesFromNumbersAsWellAsStrings() throws {
+        let blok = try decode(ImageBlok.self, """
+        {"_uid":"i1","component":"image","mt":8,"mb":"12","pt":4,"pb":"0",
+         "image":{"filename":"https://a.storyblok.com/f/1/1200x800/x/p.jpg"}}
+        """)
+        XCTAssertEqual(blok.spacing.marginTop, 32)
+        XCTAssertEqual(blok.spacing.marginBottom, 48)
+        XCTAssertEqual(blok.spacing.paddingTop, 16)
+        XCTAssertEqual(blok.spacing.paddingBottom, 0)
+    }
+
+    func testSlideshowCarriesThePlaybackSettingsFromTheCMS() throws {
+        let blok = try decode(SlideshowBlok.self, """
+        {"_uid":"s1","component":"slideshow","aspectRatio":"4/3",
+         "autoplayDelay":"4500","speed":200,"showNavigation":"false","showCounter":true,
+         "images":[{"filename":"https://a.storyblok.com/f/1/1200x900/x/a.jpg"},
+                   {"filename":"https://a.storyblok.com/f/1/1200x900/x/b.jpg"}]}
+        """)
+        XCTAssertEqual(blok.autoplayInterval, 4.5)
+        XCTAssertEqual(blok.transitionDuration, 0.2)
+        XCTAssertFalse(blok.showsNavigation)
+        XCTAssertTrue(blok.showsCounter)
+        XCTAssertEqual(blok.aspectRatio ?? 0, 4.0 / 3.0, accuracy: 0.001)
+    }
+
+    /// Everything unset must land on the web component's defaults, not on zero.
+    func testSlideshowDefaultsMatchTheWebComponent() throws {
+        let blok = try decode(SlideshowBlok.self, """
+        {"_uid":"s2","component":"slideshow","images":[]}
+        """)
+        XCTAssertEqual(blok.autoplayInterval, 7)
+        XCTAssertEqual(blok.transitionDuration, 0.3)
+        XCTAssertTrue(blok.showsNavigation)
+        XCTAssertFalse(blok.showsCounter)
+    }
+
+    /// `0` is how an editor switches autoplay off in a number field.
+    func testZeroAutoplayDelayDisablesAutoplay() throws {
+        let blok = try decode(SlideshowBlok.self, """
+        {"_uid":"s3","component":"slideshow","autoplayDelay":0,"images":[]}
+        """)
+        XCTAssertNil(blok.autoplayInterval)
+    }
+
     func testWorkBlokDecodesEveryField() throws {
         let blok = try decode(WorkBlok.self, """
         {"_uid":"w1","component":"work","title":"Atlas","date":"2024-06-15 00:00",

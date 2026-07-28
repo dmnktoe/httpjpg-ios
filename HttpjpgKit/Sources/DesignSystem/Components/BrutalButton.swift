@@ -11,7 +11,9 @@ public struct BrutalButtonStyle: ButtonStyle {
         case accent
         case danger
 
-        var fill: Color {
+        /// Public because the tab bar's selection pill tints itself from the
+        /// same table — one definition of what "secondary" looks like.
+        public var fill: Color {
             switch self {
             case .primary: return Palette.primary.s500
             case .secondary: return Palette.neutral.s300
@@ -20,7 +22,8 @@ public struct BrutalButtonStyle: ButtonStyle {
             }
         }
 
-        var label: Color {
+        /// The text colour that stays legible on ``fill``.
+        public var label: Color {
             switch self {
             case .primary, .danger: return Palette.white
             case .secondary, .accent: return Palette.black
@@ -66,14 +69,22 @@ public struct BrutalButtonStyle: ButtonStyle {
         self.size = size
     }
 
+    /// The pill is Liquid Glass tinted by the variant rather than a solid fill.
+    /// `interactive: true` is what makes it flex under a finger — a button is
+    /// exactly the kind of control that behaviour was written for. With glass
+    /// switched off it falls back to the variant's own colour, so the button
+    /// still reads as primary or danger.
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Typography.sans(size.font).weight(.medium))
             .foregroundStyle(variant.label)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
-            .background(
-                Capsule().fill(variant.fill.opacity(configuration.isPressed ? 1 : 0.9))
+            .glassBackground(
+                in: .capsule,
+                tint: variant.fill.opacity(configuration.isPressed ? 1 : 0.9),
+                interactive: true,
+                fallback: variant.fill.opacity(configuration.isPressed ? 1 : 0.9)
             )
             .shadow(color: variant.fill.opacity(0.3), radius: 10)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)

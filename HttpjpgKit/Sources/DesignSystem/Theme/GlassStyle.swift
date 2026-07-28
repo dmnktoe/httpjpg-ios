@@ -23,7 +23,7 @@ private struct LiquidGlassEnabledKey: EnvironmentKey {
 
 public extension EnvironmentValues {
     /// Whether chrome renders as Liquid Glass. Read by ``GlassGroup`` and
-    /// ``SwiftUI/View/glassBackground(in:tint:interactive:)``.
+    /// ``SwiftUI/View/glassBackground(in:tint:interactive:fallback:)``.
     var isLiquidGlassEnabled: Bool {
         get { self[LiquidGlassEnabledKey.self] }
         set { self[LiquidGlassEnabledKey.self] = newValue }
@@ -49,12 +49,22 @@ public extension View {
     ///   - tint: Optional tint pulled through the material.
     ///   - interactive: Whether the glass reacts to touch. Only for things
     ///     that are actually tappable.
+    ///   - fallback: The fill to use with glass switched off. Defaults to the
+    ///     page background, which is right for chrome; a control whose colour
+    ///     carries meaning — a button variant, a selected pill — passes its own
+    ///     so it does not go colourless when the setting is off.
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false
+        interactive: Bool = false,
+        fallback: Color? = nil
     ) -> some View {
-        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
+        modifier(GlassBackgroundModifier(
+            shape: shape,
+            tint: tint,
+            isInteractive: interactive,
+            fallback: fallback
+        ))
     }
 
     /// Tags a view so Liquid Glass can morph it into its neighbours as it
@@ -75,6 +85,7 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
+    let fallback: Color?
 
     @Environment(\.isLiquidGlassEnabled) private var isEnabled
     @Environment(\.pageTheme) private var theme
@@ -83,9 +94,15 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         if isEnabled, #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else if isEnabled {
-            content.background(.ultraThinMaterial, in: shape)
+            // Two layers, because `.ultraThinMaterial` has no tint of its own:
+            // the wash sits in front of the blur, which is the closest iOS 17
+            // gets to tinted glass. Without it a tinted control loses its
+            // colour entirely on older systems.
+            content
+                .background(tint?.opacity(0.55) ?? .clear, in: shape)
+                .background(.ultraThinMaterial, in: shape)
         } else {
-            content.background(theme.background, in: shape)
+            content.background(fallback ?? theme.background, in: shape)
         }
     }
 

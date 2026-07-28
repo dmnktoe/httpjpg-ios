@@ -174,18 +174,26 @@ Info.plist key cannot see them — registration goes through
 
 Liquid Glass is, aesthetically, the opposite of this site: soft, translucent,
 rounded. Rather than sand the design down to meet it, the app splits the two —
-**chrome floats, content stays flat.** The masthead, tab bar and navigation bar
-are glass that content slides under; work cards, headlines and rich text never
-are.
+**chrome and controls float, content stays flat.** The tab bar, navigation bar,
+buttons and the slideshow's arrows are glass; work cards, headlines and rich
+text never are.
 
 `GlassStyle.swift` degrades in three steps: real `glassEffect` on iOS 26,
-`.ultraThinMaterial` below it, and the original flat chrome with its hairline
-rule when the reader turns glass off in settings. That last one is a setting
-rather than a fallback, which is what makes the split above testable by eye.
+`.ultraThinMaterial` below it, and a flat fill when the reader turns glass off
+in settings. That last one is a setting rather than a fallback, which is what
+makes the split above testable by eye.
 
-The tab bar is where it earns its keep: only the selected pill is glass, and
-every state shares one `glassEffectID`, so the pill travels between tabs instead
-of blinking. Glass is never nested inside glass, per Apple's guidance.
+Tint survives all three. `.ultraThinMaterial` has no tint of its own, so the
+middle step washes the shape with the colour in front of the blur; the flat step
+takes a `fallback` colour, because a `danger` button that goes grey when a
+setting is off has lost the only thing it was saying. `BrutalButtonStyle` and
+the tab pill both read their colour from `BrutalButtonStyle.Variant`, so
+"secondary" means one thing in the app.
+
+In the tab bar every tab wears a pill: the selected one in `secondary`, the rest
+in the page foreground. Selection reads as a colour change across a steady row,
+so each pill keeps its own `glassEffectID` rather than sharing a travelling one.
+Glass is never nested inside glass, per Apple's guidance.
 
 ## Screens
 
@@ -273,3 +281,9 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   instead of embedding. Neither hands out a playable stream, and embedding their
   web player would drag its tracking into the app past the consent choice the
   web already asks for. Uploaded assets play inline.
+- The slideshow honours `autoplayDelay`, `speed`, `showNavigation` and
+  `showCounter`, but not `effect`: cube, coverflow, flip and cards are Swiper's
+  own 3-D transitions, and every slideshow renders as the paged `slide`.
+  Autoplay also stops permanently at the first swipe, which Swiper's
+  `disableOnInteraction: false` does not do — on a phone the carousel is under
+  your thumb, not across the room.

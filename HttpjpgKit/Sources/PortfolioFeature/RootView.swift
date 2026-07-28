@@ -72,9 +72,9 @@ private struct TabBar: View {
         }
     }
 
-    /// Only the selected pill is glass. Apple's own guidance is not to nest
-    /// glass inside glass, so there is no rail behind the row — the pill does
-    /// all the work, and travels because every state shares one morph ID.
+    /// Every tab is a glass pill; only the tint distinguishes them. There is no
+    /// rail behind the row — Apple's guidance is not to nest glass in glass, so
+    /// the pills sit directly over the content they refract.
     private var glassRail: some View {
         GlassGroup(spacing: Spacing.s3) {
             HStack(spacing: Spacing.s2) {
@@ -88,8 +88,8 @@ private struct TabBar: View {
                             .contentShape(Capsule())
                             .modifier(SelectionPill(
                                 isSelected: selection == tab,
-                                tint: theme.foreground,
-                                namespace: glassNamespace
+                                namespace: glassNamespace,
+                                morphID: tab.id
                             ))
                     }
                     .buttonStyle(.plain)
@@ -123,13 +123,19 @@ private struct TabBar: View {
         }
     }
 
-    /// Selected labels invert on the flat row, but sit on tinted glass in the
-    /// rail — same contrast, different mechanism.
+    /// Two different contrast problems. On the flat row only the selected tab
+    /// has a fill behind it, so the label inverts on selection. In the rail
+    /// every tab sits on a tinted pill, so the label follows the pill it is on.
     private func label(for tab: AppModel.Tab) -> some View {
-        Text(tab.label)
-            .font(Typography.mono(Typography.Size.sm, weight: selection == tab ? .bold : .regular))
+        let isSelected = selection == tab
+        return Text(tab.label)
+            .font(Typography.mono(Typography.Size.sm, weight: isSelected ? .bold : .regular))
             .tracking(Typography.Size.sm * 0.1)
-            .foregroundStyle(selection == tab ? theme.background : theme.foreground)
+            .foregroundStyle(
+                isGlass
+                    ? SelectionPill.labelColor(isSelected: isSelected, theme: theme)
+                    : (isSelected ? theme.background : theme.foreground)
+            )
     }
 
     private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {

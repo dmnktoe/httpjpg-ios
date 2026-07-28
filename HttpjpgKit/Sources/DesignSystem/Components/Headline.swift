@@ -30,13 +30,25 @@ public struct Headline: View {
     private let text: String
     private let level: Level
     private let alignment: TextAlignment
+    private let lineSpacingRatio: CGFloat
 
     @Environment(\.viewportWidth) private var viewportWidth
 
-    public init(_ text: String, level: Level = .one, alignment: TextAlignment = .leading) {
+    /// - Parameter lineSpacing: Leading adjustment as a fraction of the font
+    ///   size, on top of the face's own. Negative tightens — display faces set
+    ///   at headline sizes carry far more line gap than a two-line title wants,
+    ///   which is the web's `line-height: 0.9` on `<Headline>` expressed the
+    ///   only way SwiftUI offers.
+    public init(
+        _ text: String,
+        level: Level = .one,
+        alignment: TextAlignment = .leading,
+        lineSpacing: CGFloat = 0
+    ) {
         self.text = text
         self.level = level
         self.alignment = alignment
+        self.lineSpacingRatio = lineSpacing
     }
 
     public var body: some View {
@@ -44,6 +56,7 @@ public struct Headline: View {
         Text(text)
             .font(Typography.headline(size))
             .tracking(size * level.trackingRatio)
+            .lineSpacing(size * lineSpacingRatio)
             .multilineTextAlignment(alignment)
             .frame(maxWidth: .infinity, alignment: frameAlignment)
             .accessibilityAddTraits(.isHeader)

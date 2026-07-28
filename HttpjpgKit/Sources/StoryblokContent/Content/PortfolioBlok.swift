@@ -167,9 +167,12 @@ extension KeyedDecodingContainer {
         return cmsString(forKey: key).flatMap(Int.init)
     }
 
-    func cmsBool(forKey key: Key) -> Bool {
+    /// - Parameter fallback: What an absent or cleared field means. Most CMS
+    ///   booleans default to off, but a few — `showNavigation` — ship `true`
+    ///   and must stay on when the editor never touched them.
+    func cmsBool(forKey key: Key, default fallback: Bool = false) -> Bool {
         if let value = cmsValue(Bool.self, forKey: key) { return value }
-        guard let raw = cmsString(forKey: key) else { return false }
+        guard let raw = cmsString(forKey: key) else { return fallback }
         return raw == "true" || raw == "1"
     }
 }
@@ -598,9 +601,15 @@ public struct SlideshowBlok: Decodable, Identifiable {
     /// The CMS stores ratios as `"16/9"`; `nil` means "let the images decide".
     public let aspectRatio: CGFloat?
     public let showsCounter: Bool
+    public let showsNavigation: Bool
+    /// Seconds between slides, converted from the CMS's milliseconds. `nil`
+    /// when the editor set it to `0`, which is how the CMS says "don't".
+    public let autoplayInterval: TimeInterval?
+    /// How long a transition runs, also in seconds.
+    public let transitionDuration: TimeInterval
 
     private enum CodingKeys: String, CodingKey {
-        case images, aspectRatio, showCounter
+        case images, aspectRatio, showCounter, showNavigation, autoplayDelay, speed
     }
 
     public init(from decoder: any Decoder) throws {
@@ -611,6 +620,12 @@ public struct SlideshowBlok: Decodable, Identifiable {
         images = container.cmsArray(StoryblokAsset.self, forKey: .images).images
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
         showsCounter = container.cmsBool(forKey: .showCounter)
+        // Defaults match `slideshow.tsx`, including the boolean: the CMS field
+        // ships `"true"`, and an unset one should still show the arrows.
+        showsNavigation = container.cmsBool(forKey: .showNavigation, default: true)
+        let delay = container.cmsInt(forKey: .autoplayDelay) ?? 7000
+        autoplayInterval = delay > 0 ? TimeInterval(delay) / 1000 : nil
+        transitionDuration = TimeInterval(container.cmsInt(forKey: .speed) ?? 300) / 1000
     }
 }
 

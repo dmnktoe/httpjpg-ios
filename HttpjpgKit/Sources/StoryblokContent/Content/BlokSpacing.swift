@@ -38,9 +38,12 @@ public struct BlokSpacing: Decodable, Hashable, Sendable {
     /// spacing fields are flattened onto the component, not nested.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        /// Datasource fields normally serialise as strings (`"8"`), but a value
+        /// that was ever saved through a number field comes back as a JSON
+        /// number — and decoding that as `String` throws, which used to drop
+        /// the axis silently. `cmsInt` reads either shape.
         func step(_ key: CodingKeys) -> CGFloat? {
-            guard let raw = try? container.decodeIfPresent(String.self, forKey: key) else { return nil }
-            return SpacingScale.points(raw)
+            SpacingScale.points(container.cmsInt(forKey: key))
         }
         marginTop = step(.mt)
         marginBottom = step(.mb)
@@ -58,9 +61,14 @@ public struct BlokSpacing: Decodable, Hashable, Sendable {
 /// Kept here rather than in `DesignSystem` so the design tokens stay free of
 /// CMS vocabulary; the numbers themselves come from `Spacing`.
 enum SpacingScale {
-    static func points(_ raw: String?) -> CGFloat? {
-        guard let raw, !raw.isEmpty, let key = Int(raw) else { return nil }
+    static func points(_ key: Int?) -> CGFloat? {
+        guard let key else { return nil }
         return table[key]
+    }
+
+    /// For the fields that reach us already narrowed to a string.
+    static func points(_ raw: String?) -> CGFloat? {
+        points(raw.flatMap(Int.init))
     }
 
     private static let table: [Int: CGFloat] = [

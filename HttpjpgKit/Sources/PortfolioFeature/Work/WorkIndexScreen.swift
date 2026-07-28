@@ -65,8 +65,13 @@ struct WorkIndexScreen: View {
                     AsciiState(art: Ascii.empty, label: "Nothing here yet")
                         .frame(minHeight: 240)
                 } else {
-                    ForEach(model.visibleItems) { item in
-                        row(for: item)
+                    // The web's `<WorkList showDividers>`: a star rule between
+                    // cards, never after the last one.
+                    ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
+                        row(for: entry.element)
+                        if entry.offset < model.visibleItems.count - 1 {
+                            BrutalDivider(variant: .ascii)
+                        }
                     }
                 }
             }
@@ -80,7 +85,7 @@ struct WorkIndexScreen: View {
     /// reads as one header rather than two floating rows.
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Headline(app.siteName, level: .two)
+            Headline(app.siteName, level: .two, lineSpacing: -0.14)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
 
@@ -137,12 +142,17 @@ private struct VariantPicker: View {
                 Button {
                     onSelect(link.variant)
                 } label: {
-                    Text(link.label.lowercased())
+                    // The CMS label is ignored here on purpose: these two
+                    // headings are set pieces on the web, glyph for glyph, and
+                    // they carry combining marks that letter-spacing pulls
+                    // apart from the characters they belong to.
+                    Text(link.variant.filterLabel)
                         .font(Typography.mono(
-                            Typography.Size.md,
+                            Typography.Size.sm,
                             weight: link.variant == selection ? .bold : .regular
                         ))
-                        .tracking(Typography.Size.md * 0.05)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .opacity(link.variant == selection ? 1 : Opacities.subtle)
                         .overlay(alignment: .bottom) {
                             if link.variant == selection {
@@ -172,4 +182,12 @@ private struct VariantPicker: View {
 
 extension MenuLink.Variant {
     static let allVariants: [MenuLink.Variant] = [.projects, .websites]
+
+    /// The web's own headings for the two slices, from `navigation.tsx`.
+    var filterLabel: String {
+        switch self {
+        case .projects: return "⇝ᵣₑcꫀₙₜ TH1𝓃𝑔S"
+        case .websites: return "⇝ᵣₑcꫀₙₜ ℘ɑׁׅ֮ᧁׁꫀׁׅܻ꯱ׁׅ֒"
+        }
+    }
 }
