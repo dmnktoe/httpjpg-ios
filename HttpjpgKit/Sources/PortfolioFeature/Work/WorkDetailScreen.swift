@@ -42,7 +42,24 @@ struct WorkDetailScreen: View {
                 model = WorkDetailModel(client: app.client, slug: route.slug)
                 await model?.load()
             }
+            // The cancellation check keeps a swipe-back during loading from
+            // resurrecting the pill after `onDisappear` already cleared it.
+            if !Task.isCancelled {
+                app.previewURL = externalPreviewURL
+            }
         }
+        .onDisappear { app.previewURL = nil }
+    }
+
+    /// What the web's floating preview badge points at: the story's own link,
+    /// and only when it leads off-site — an internal story link is navigation,
+    /// not a preview.
+    private var externalPreviewURL: URL? {
+        guard let url = loadedDetail?.link?.resolvedURL(siteOrigin: app.configuration.siteOrigin),
+              url.scheme == "https" || url.scheme == "http",
+              url.host != app.configuration.siteOrigin.host
+        else { return nil }
+        return url
     }
 
     private var loadedDetail: WorkDetail? {

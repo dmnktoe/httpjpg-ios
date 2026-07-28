@@ -1,3 +1,4 @@
+import DesignSystem
 import StoryblokClient
 import XCTest
 
@@ -149,6 +150,35 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.transitionDuration, 0.3)
         XCTAssertTrue(blok.showsNavigation)
         XCTAssertFalse(blok.showsCounter)
+    }
+
+    func testMusicPlayerMp3BecomesAPlayableTrack() throws {
+        let blok = try decode(MusicPlayerBlok.self, """
+        {"_uid":"mp1","component":"music_player","source":"mp3",
+         "src":"https://example.com/final-pak.mp3?raw=1",
+         "title":"te3k23 final pak","artist":"te3shay",
+         "artwork":"https://example.com/artwork.jpg",
+         "headerText":"outlet delivery store-exclusive","footerText":"FINAL PAK"}
+        """)
+        let track = try XCTUnwrap(blok.track)
+        XCTAssertEqual(track.title, "te3k23 final pak")
+        XCTAssertEqual(track.artist, "te3shay")
+        XCTAssertEqual(track.streamURL.host, "example.com")
+        XCTAssertNotNil(track.artworkURL)
+        XCTAssertEqual(blok.headerText, "outlet delivery store-exclusive")
+        XCTAssertTrue(blok.showsInfo)
+        XCTAssertTrue(blok.showsArtwork)
+    }
+
+    /// Streaming sources never become tracks — they hand off to the browser.
+    func testMusicPlayerSpotifyHasNoTrack() throws {
+        let blok = try decode(MusicPlayerBlok.self, """
+        {"_uid":"mp2","component":"music_player","source":"spotify",
+         "src":"https://open.spotify.com/track/abc"}
+        """)
+        XCTAssertNil(blok.track)
+        XCTAssertEqual(blok.externalURL?.host, "open.spotify.com")
+        XCTAssertEqual(blok.decoration, Ascii.dividerMusic)
     }
 
     /// `0` is how an editor switches autoplay off in a number field.

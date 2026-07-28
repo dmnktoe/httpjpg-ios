@@ -277,8 +277,13 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   misapplied to a phone.
 - `work_list` grid columns collapse to the stacked variant, which is what the web
   renders below its `md` breakpoint anyway.
-- `music_player` has no native renderer yet, so it shows as `SbMissingView`. It
-  needs an `AVPlayer` and transport controls, which is its own piece of work.
+- `music_player` plays uploaded mp3s natively: the blok renders the web's card,
+  play hands an `AudioTrack` through the `\.playAudioTrack` environment seam to
+  the app's one `AVPlayer`, and a glass now-playing bar above the tab pills
+  expands into a full-screen player. Spotify and SoundCloud sources hand off to
+  the browser — no raw streams, and their embeds bring their tracking.
+  Lock-screen / Control-Center metadata (`MPNowPlayingInfoCenter`) is not wired
+  up yet.
 - `work_list` relations do not resolve — see "Why the SDK's networking is not
   used" above. The blok renders an empty list rather than the linked stories.
 - `video` bloks that point at Vimeo or YouTube hand off to the system browser

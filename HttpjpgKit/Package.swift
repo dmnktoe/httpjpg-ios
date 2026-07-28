@@ -69,7 +69,9 @@ let package = Package(
         ),
         .testTarget(
             name: "StoryblokContentTests",
-            dependencies: ["StoryblokContent"],
+            // DesignSystem is explicit because the tests compare decoded
+            // defaults against Ascii tokens directly.
+            dependencies: ["StoryblokContent", "DesignSystem"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

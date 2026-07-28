@@ -129,6 +129,10 @@ struct WorkIndexScreen: View {
 }
 
 /// The Projects / Websites switch, built from the CMS header menu.
+///
+/// Two glass tags rather than underlined text: thin material with a hairline
+/// gray border, the selected one at full strength, the other faded — the same
+/// chrome-vs-content split the tab bar makes.
 private struct VariantPicker: View {
     let links: [MenuLink]
     let selection: MenuLink.Variant
@@ -137,37 +141,43 @@ private struct VariantPicker: View {
     @Environment(\.pageTheme) private var theme
 
     var body: some View {
-        HStack(spacing: Spacing.s4) {
-            ForEach(entries) { link in
-                Button {
-                    onSelect(link.variant)
-                } label: {
-                    // The CMS label is ignored here on purpose: these two
-                    // headings are set pieces on the web, glyph for glyph, and
-                    // they carry combining marks that letter-spacing pulls
-                    // apart from the characters they belong to.
-                    Text(link.variant.filterLabel)
-                        .font(Typography.mono(
-                            Typography.Size.sm,
-                            weight: link.variant == selection ? .bold : .regular
-                        ))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .opacity(link.variant == selection ? 1 : Opacities.subtle)
-                        .overlay(alignment: .bottom) {
-                            if link.variant == selection {
-                                Rectangle()
-                                    .fill(theme.foreground)
-                                    .frame(height: 2)
-                                    .offset(y: 4)
-                            }
-                        }
+        GlassGroup(spacing: Spacing.s2) {
+            HStack(spacing: Spacing.s2) {
+                ForEach(entries) { link in
+                    chip(for: link.variant)
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(link.variant == selection ? [.isSelected, .isButton] : .isButton)
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
         }
+    }
+
+    private func chip(for variant: MenuLink.Variant) -> some View {
+        let isSelected = variant == selection
+        // The CMS label is ignored on purpose: these two headings are set
+        // pieces on the web, glyph for glyph, and they carry combining marks
+        // that letter-spacing pulls apart from the characters they belong to.
+        return Button {
+            onSelect(variant)
+        } label: {
+            Text(variant.filterLabel)
+                .font(Typography.mono(Typography.Size.sm, weight: isSelected ? .bold : .regular))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(theme.foreground)
+                .padding(.horizontal, Spacing.s3)
+                .padding(.vertical, Spacing.s2)
+                .contentShape(Capsule())
+                .glassBackground(in: .capsule, interactive: true)
+                .overlay(
+                    Capsule().stroke(
+                        Palette.neutral.s400.opacity(isSelected ? 0.9 : 0.45),
+                        lineWidth: 1
+                    )
+                )
+                .opacity(isSelected ? 1 : Opacities.muted)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
     /// One entry per variant. The CMS can list several links per variant; the

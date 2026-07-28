@@ -31,6 +31,8 @@ extension PortfolioBlok: View {
             return AnyView(SbSlideshowView(blok: blok))
         case .video(let blok):
             return AnyView(SbVideoView(blok: blok))
+        case .musicPlayer(let blok):
+            return AnyView(SbMusicPlayerView(blok: blok))
         case .headline(let blok):
             return AnyView(SbHeadlineView(blok: blok))
         case .paragraph(let blok):

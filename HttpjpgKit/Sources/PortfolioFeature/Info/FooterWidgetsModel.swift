@@ -27,14 +27,6 @@ final class FooterWidgetsModel {
         self.flags = flags
     }
 
-    /// `true` once there is at least one line worth a divider above it.
-    var hasContent: Bool {
-        discord != nil || film != nil || trophy != nil || weather != nil || isClockShown
-    }
-
-    /// The clock needs no network and no flag — it is the device's own time.
-    var isClockShown: Bool { true }
-
     func load() async {
         // Concurrently, because four sequential round trips to four unrelated
         // services is three round trips of dead time.

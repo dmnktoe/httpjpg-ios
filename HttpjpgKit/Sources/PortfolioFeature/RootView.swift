@@ -16,6 +16,7 @@ import SwiftUI
 /// keep working for no one's benefit.
 public struct RootView: View {
     @State private var model: AppModel
+    @State private var player = AudioPlayerModel()
     @Environment(\.colorScheme) private var systemScheme
 
     public init(configuration: StoryblokConfiguration) {
@@ -24,17 +25,33 @@ public struct RootView: View {
     }
 
     public var body: some View {
-        ViewportReader {
+        @Bindable var player = player
+        return ViewportReader {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    TabBar(selection: model.selectedTab) { model.select(tab: $0) }
+                    // The now-playing bar stacks above the pills so both stay
+                    // visible; content clearance follows automatically because
+                    // the whole stack is the inset.
+                    VStack(spacing: Spacing.s2) {
+                        MiniPlayerBar(player: player)
+                        TabBar(
+                            selection: model.selectedTab,
+                            previewURL: model.previewURL,
+                            onSelect: { model.select(tab: $0) }
+                        )
+                    }
+                    .animation(.smooth(duration: 0.35), value: player.track)
                 }
         }
         .pageTheme(theme)
         .pageSurface(theme)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
+        .environment(\.playAudioTrack) { player.play($0) }
+        .sheet(isPresented: $player.isExpanded) {
+            PlayerScreen(player: player)
+        }
         .onOpenURL { model.open($0) }
         .task { await model.loadConfig() }
     }
@@ -60,11 +77,17 @@ public struct RootView: View {
 /// glass, so the pills sit directly over the content they refract.
 private struct TabBar: View {
     let selection: AppModel.Tab
+    /// The current story's external preview, when there is one. It joins the
+    /// row as a third pill — the app's reading of the web's floating
+    /// `(っ◔◡◔)っ ♥ preview` badge, shortened to the arrow because three long
+    /// pills do not fit a phone.
+    let previewURL: URL?
     /// Not a binding: tapping the *current* tab is a meaningful action — it
     /// pops that tab's stack — and a binding can only express a change.
     let onSelect: (AppModel.Tab) -> Void
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.openURL) private var openURL
     @Namespace private var glassNamespace
 
     var body: some View {
@@ -88,10 +111,35 @@ private struct TabBar: View {
                     .accessibilityLabel(tab.accessibilityLabel)
                     .accessibilityAddTraits(traits(for: tab))
                 }
+
+                if let previewURL {
+                    previewPill(previewURL)
+                }
             }
         }
+        .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2)
+    }
+
+    /// Lighter than the tab pills on purpose — untinted glass with a hairline
+    /// gray border, so it reads as an annotation to the row, not a third tab.
+    private func previewPill(_ url: URL) -> some View {
+        Button {
+            openURL(url)
+        } label: {
+            Text("↗")
+                .font(Typography.mono(Typography.Size.md, weight: .bold))
+                .foregroundStyle(theme.foreground)
+                .padding(.horizontal, Spacing.s4)
+                .padding(.vertical, Spacing.s3)
+                .contentShape(Capsule())
+                .glassBackground(in: .capsule, interactive: true)
+                .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.7), lineWidth: 1))
+                .glassMorphID("preview", in: glassNamespace)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open external preview")
     }
 
     /// Every tab sits on a tinted pill, so the label follows the pill it is on.

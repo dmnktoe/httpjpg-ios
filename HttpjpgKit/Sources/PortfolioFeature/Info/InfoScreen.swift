@@ -21,20 +21,25 @@ struct InfoScreen: View {
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.s8) {
-                    pages
-                    InfoLinksSection(links: app.config.headerMenu)
-                }
-                .padding(.horizontal, PageLayout.gutter)
-                .padding(.top, Spacing.s6)
+                // The clearance lives on the *content*, not the scroll view —
+                // padding the scroll view would end it above the tab pills and
+                // leave the glass nothing to refract.
+                VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: Spacing.s8) {
+                        pages
+                        InfoLinksSection(links: app.config.headerMenu)
+                    }
+                    .padding(.horizontal, PageLayout.gutter)
+                    .padding(.top, Spacing.s6)
 
-                // Full-bleed: the footer is centred and has its own gutter, so
-                // it sits outside the column above rather than inside it.
-                if let widgets {
-                    InfoFooter(config: app.config, widgets: widgets)
+                    // Full-bleed: the footer is centred and has its own gutter,
+                    // so it sits outside the column above rather than inside it.
+                    if let widgets {
+                        InfoFooter(config: app.config, widgets: widgets)
+                    }
                 }
+                .padding(.bottom, TabBarClearance.bottomPadding)
             }
-            .padding(.bottom, TabBarClearance.bottomPadding)
             .refreshable {
                 await model?.load()
                 await widgets?.load()

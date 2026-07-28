@@ -36,6 +36,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
     case marquee(MarqueeBlok)
     case slideshow(SlideshowBlok)
     case video(VideoBlok)
+    case musicPlayer(MusicPlayerBlok)
 
     case unknown(component: String, id: String)
 
@@ -64,6 +65,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .marquee(let blok): return blok.id
         case .slideshow(let blok): return blok.id
         case .video(let blok): return blok.id
+        case .musicPlayer(let blok): return blok.id
         case .unknown(_, let id): return id
         }
     }
@@ -89,6 +91,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .marquee: return "marquee"
         case .slideshow: return "slideshow"
         case .video: return "video"
+        case .musicPlayer: return "music_player"
         case .unknown(let component, _): return component
         }
     }
@@ -119,6 +122,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case "callout": self = .callout(try CalloutBlok(from: decoder))
         case "code_block": self = .codeBlock(try CodeBlok(from: decoder))
         case "work_list": self = .workList(try WorkListBlok(from: decoder))
+        case "music_player": self = .musicPlayer(try MusicPlayerBlok(from: decoder))
         default:
             self = .unknown(component: component, id: try BlokEnvelope(from: decoder).uid)
         }
@@ -665,6 +669,65 @@ public struct VideoBlok: Decodable, Identifiable {
 
     public var externalURL: URL? {
         videoURL.flatMap(URL.init(string:))
+    }
+}
+
+public struct MusicPlayerBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    /// `"mp3"`, `"custom"`, `"spotify"` or `"soundcloud"`.
+    public let source: String
+    public let sourceURL: String?
+    public let title: String?
+    public let artist: String?
+    public let artworkURL: String?
+    public let showsArtwork: Bool
+    public let showsInfo: Bool
+    public let decoration: String
+    public let headerText: String?
+    public let footerText: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case source, src, title, artist, artwork, showArtwork, showInfo
+        case decoration, headerText, footerText
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        source = container.cmsString(forKey: .source) ?? "mp3"
+        sourceURL = container.cmsString(forKey: .src)
+        title = container.cmsString(forKey: .title)
+        artist = container.cmsString(forKey: .artist)
+        artworkURL = container.cmsString(forKey: .artwork)
+        showsArtwork = container.cmsBool(forKey: .showArtwork, default: true)
+        showsInfo = container.cmsBool(forKey: .showInfo, default: true)
+        decoration = container.cmsString(forKey: .decoration) ?? Ascii.dividerMusic
+        headerText = container.cmsString(forKey: .headerText)
+        footerText = container.cmsString(forKey: .footerText)
+    }
+
+    /// The playable track, when this blok is an uploaded file rather than a
+    /// streaming embed. Spotify and SoundCloud never hand out raw streams, so
+    /// those sources render a hand-off card instead.
+    public var track: AudioTrack? {
+        guard source == "mp3" || source == "custom",
+              let sourceURL, let url = URL(string: sourceURL),
+              url.scheme == "https" || url.scheme == "http"
+        else { return nil }
+        return AudioTrack(
+            id: id,
+            title: title ?? "untitled",
+            artist: artist,
+            streamURL: url,
+            artworkURL: artworkURL.flatMap(URL.init(string:))
+        )
+    }
+
+    public var externalURL: URL? {
+        sourceURL.flatMap(URL.init(string:))
     }
 }
 

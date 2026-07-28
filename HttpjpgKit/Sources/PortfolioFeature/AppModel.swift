@@ -42,6 +42,9 @@ public final class AppModel {
     /// The work tab's navigation stack, hoisted out of the screen so a widget
     /// tap can push onto it before the screen has even appeared.
     public var workPath: [WorkRoute] = []
+    /// The external preview link of the story currently on screen, if it has
+    /// one. The detail screen sets it, the tab bar shows it as an extra pill.
+    public var previewURL: URL?
     public private(set) var config: SiteConfig = .fallback
     /// Public because the footer's widget flags are meaningless until the real
     /// config lands — reading them off `.fallback` would report every widget as

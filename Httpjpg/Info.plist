@@ -10,6 +10,10 @@
 	<string>$(STORYBLOK_REGION)</string>
 	<key>SITE_ORIGIN</key>
 	<string>$(SITE_ORIGIN)</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
