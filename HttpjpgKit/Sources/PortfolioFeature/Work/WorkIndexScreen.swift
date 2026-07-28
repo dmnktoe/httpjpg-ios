@@ -22,8 +22,14 @@ struct WorkIndexScreen: View {
                     LoadingState()
                 }
             }
-            .navigationTitle(app.siteName)
-            .navigationBarTitleDisplayMode(.large)
+            // The site name is drawn in the scroll content instead of as a
+            // large title: it is long enough to need two lines, and the large
+            // title is single-line by construction, so it truncated mid-word
+            // and reserved a whole bar's worth of height to do it. The bar
+            // itself stays — it carries the scroll-edge glass and the
+            // interactive pop gesture — just without a title of its own.
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: WorkRoute.self) { route in
                 WorkDetailScreen(route: route)
             }
@@ -52,20 +58,8 @@ struct WorkIndexScreen: View {
 
     private func list(_ model: WorkIndexModel) -> some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: Spacing.s10) {
-                VariantPicker(
-                    links: app.config.headerMenu,
-                    selection: model.variant,
-                    onSelect: { model.select(variant: $0) }
-                )
-
-                if !model.availableTags.isEmpty {
-                    TagChipRow(
-                        tags: model.availableTags,
-                        selected: model.selectedTags,
-                        onSelect: { model.toggle(tag: $0) }
-                    )
-                }
+            LazyVStack(alignment: .leading, spacing: Spacing.s8) {
+                masthead(model)
 
                 if model.visibleItems.isEmpty {
                     AsciiState(art: Ascii.empty, label: "Nothing here yet")
@@ -77,9 +71,34 @@ struct WorkIndexScreen: View {
                 }
             }
             .padding(.horizontal, PageLayout.gutter)
-            .padding(.vertical, Spacing.s6)
+            .padding(.bottom, Spacing.s8)
         }
         .refreshable { await model.load(force: true) }
+    }
+
+    /// Title and slice switch, kept as one tight group so the gap between them
+    /// reads as one header rather than two floating rows.
+    private func masthead(_ model: WorkIndexModel) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.s4) {
+            Headline(app.siteName, level: .two)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+
+            VariantPicker(
+                links: app.config.headerMenu,
+                selection: model.variant,
+                onSelect: { model.select(variant: $0) }
+            )
+
+            if !model.availableTags.isEmpty {
+                TagChipRow(
+                    tags: model.availableTags,
+                    selected: model.selectedTags,
+                    onSelect: { model.toggle(tag: $0) }
+                )
+            }
+        }
+        .padding(.top, Spacing.s2)
     }
 
     /// External-only entries link straight out, exactly as they do on the web.

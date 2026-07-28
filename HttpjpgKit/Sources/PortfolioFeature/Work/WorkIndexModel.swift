@@ -33,14 +33,21 @@ final class WorkIndexModel {
 
     /// Every tag present in the active slice, so the filter bar only ever
     /// offers tags that can actually match something.
+    ///
+    /// Tags that just restate the slice — `projects` on the projects page — are
+    /// dropped. They sit on every single item, so tapping one filters nothing,
+    /// and the variant picker directly above already says the same word.
     var availableTags: [String] {
         guard case .loaded(let collection) = state else { return [] }
         var seen = Set<String>()
         return collection.items(for: variant)
             .flatMap(\.tags)
+            .filter { !Self.sliceTagNames.contains($0.lowercased()) }
             .filter { seen.insert($0).inserted }
             .sorted()
     }
+
+    private static let sliceTagNames = Set(MenuLink.Variant.allVariants.map(\.rawValue))
 
     var isLoading: Bool {
         if case .loading = state { return true }
