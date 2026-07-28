@@ -9,8 +9,10 @@ import SwiftUI
 /// and turned bold runs into headline-sized text. Rendering it here is what
 /// puts the page back in the site's voice.
 ///
-/// Sizes follow the web: `<Paragraph size="sm">` is `0.75rem` with
-/// `line-height: 1.75`, so 12pt with 9pt of leading.
+/// Sizes follow the web's `<Paragraph size="sm">` at 12pt. The leading does
+/// not: the web's 1.75 line height is scaled for 65–100ch desktop measures,
+/// and at a phone's ~45ch it read as loose lines rather than paragraphs — so
+/// body copy runs at the same 1.35 the work-card summaries use.
 public struct StoryRichText: View {
     private let document: RichTextNode?
     private let size: CGFloat
@@ -135,7 +137,7 @@ public struct StoryRichText: View {
     private func paragraph(_ content: [RichTextNode], alignment: RichTextAlignment?) -> some View {
         Text(RichTextInline.attributed(content, size: size, linkColor: theme.link))
             .font(Typography.sans(size))
-            .lineSpacing(size * 0.75)
+            .lineSpacing(size * 0.35)
             .multilineTextAlignment(TextAlignment(richText: alignment))
             .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
     }

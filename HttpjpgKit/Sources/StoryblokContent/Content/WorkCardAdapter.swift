@@ -31,7 +31,8 @@ public enum WorkCardAdapter {
                 alt: item.title,
                 targetWidth: targetWidth,
                 scale: scale
-            )
+            ),
+            externalURL: item.externalURL
         )
     }
 
@@ -54,7 +55,8 @@ public enum WorkCardAdapter {
                     focus: asset.focus,
                     alt: asset.accessibilityText(fallback: detail.title),
                     targetWidth: targetWidth,
-                    scale: scale
+                    scale: scale,
+                    copyright: asset.copyright
                 )
             }
         )
@@ -82,7 +84,8 @@ public enum WorkCardAdapter {
                     focus: asset.focus,
                     alt: asset.accessibilityText(fallback: title),
                     targetWidth: targetWidth,
-                    scale: scale
+                    scale: scale,
+                    copyright: asset.copyright
                 )
             }
         )
@@ -105,14 +108,16 @@ public enum WorkCardAdapter {
         focus: String?,
         alt: String,
         targetWidth: CGFloat,
-        scale: CGFloat
+        scale: CGFloat,
+        copyright: String? = nil
     ) -> WorkCardImage {
         WorkCardImage(
             id: filename ?? UUID().uuidString,
             url: URL(string: ImageService.Preset.width(filename, targetWidth, scale: scale, focus: focus ?? "")),
             placeholderURL: URL(string: ImageService.Preset.blur(filename, focus: focus ?? "")),
             aspectRatio: ImageService.aspectRatio(of: filename),
-            accessibilityText: alt
+            accessibilityText: alt,
+            copyright: copyright
         )
     }
 }

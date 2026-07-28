@@ -9,6 +9,10 @@ import SwiftUI
 /// the ✕ tears playback down entirely.
 struct MiniPlayerBar: View {
     let player: AudioPlayerModel
+    /// The tab pill cluster's width, so the bar sits flush over the pills —
+    /// growing with them when the preview pill joins. Zero (nothing measured
+    /// yet) falls back to the page gutter.
+    let width: CGFloat
 
     @Environment(\.pageTheme) private var theme
 
@@ -51,6 +55,7 @@ struct MiniPlayerBar: View {
             .foregroundStyle(theme.foreground)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
+            .frame(width: width > 0 ? width : nil)
             .glassBackground(in: .capsule)
             .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.6), lineWidth: 1))
             .contentShape(Capsule())
@@ -62,7 +67,7 @@ struct MiniPlayerBar: View {
                     }
                 }
             )
-            .padding(.horizontal, PageLayout.gutter)
+            .padding(.horizontal, width > 0 ? 0 : PageLayout.gutter)
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Opens the full player")
         }

@@ -15,7 +15,8 @@ public struct SbImageView: View {
                 AssetImage(
                     asset: asset,
                     fallbackAlt: blok.alt ?? "",
-                    aspectRatio: ratio
+                    aspectRatio: ratio,
+                    copyrightPosition: blok.copyrightPosition
                 )
             }
             if blok.caption != nil {

@@ -436,9 +436,10 @@ public struct ImageBlok: Decodable, Identifiable {
     public let alt: String?
     public let caption: RichTextNode?
     public let aspectRatio: String?
+    public let copyrightPosition: String?
 
     private enum CodingKeys: String, CodingKey {
-        case image, alt, caption, aspectRatio
+        case image, alt, caption, aspectRatio, copyrightPosition
     }
 
     public init(from decoder: any Decoder) throws {
@@ -450,6 +451,7 @@ public struct ImageBlok: Decodable, Identifiable {
         alt = container.cmsString(forKey: .alt)
         caption = container.cmsValue(RichTextNode.self, forKey: .caption)
         aspectRatio = container.cmsString(forKey: .aspectRatio)
+        copyrightPosition = container.cmsString(forKey: .copyrightPosition)
     }
 }
 

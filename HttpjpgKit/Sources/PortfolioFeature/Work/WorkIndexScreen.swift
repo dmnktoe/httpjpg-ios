@@ -85,7 +85,10 @@ struct WorkIndexScreen: View {
     /// reads as one header rather than two floating rows.
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Headline(app.siteName, level: .two)
+            // Tighter than even the Headline default: Anton at this size
+            // carries so much built-in leading that the two lines only read as
+            // one title once most of it is subtracted back out.
+            Headline(app.siteName, level: .two, lineSpacing: -0.45)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
 
@@ -140,14 +143,15 @@ private struct VariantPicker: View {
 
     @Environment(\.pageTheme) private var theme
 
+    // No GlassEffectContainer: chips this close together sit inside the
+    // container's blend distance and their shapes half-merge — same flash the
+    // tab bar had.
     var body: some View {
-        GlassGroup(spacing: Spacing.s2) {
-            HStack(spacing: Spacing.s2) {
-                ForEach(entries) { link in
-                    chip(for: link.variant)
-                }
-                Spacer(minLength: 0)
+        HStack(spacing: Spacing.s2) {
+            ForEach(entries) { link in
+                chip(for: link.variant)
             }
+            Spacer(minLength: 0)
         }
     }
 

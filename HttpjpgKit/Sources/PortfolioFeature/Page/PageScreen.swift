@@ -28,7 +28,12 @@ struct PageScreen: View {
                 model = PageModel(client: app.client, slug: slug)
                 await model?.load()
             }
+            // A dark page flips the floating chrome too, same as WorkDetail.
+            if !Task.isCancelled, case .loaded(let page) = model?.state {
+                app.storyTheme = page.isDark ? .dark : nil
+            }
         }
+        .onDisappear { app.storyTheme = nil }
     }
 
     @ViewBuilder

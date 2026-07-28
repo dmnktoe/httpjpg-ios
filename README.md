@@ -290,12 +290,14 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   instead of embedding. Neither hands out a playable stream, and embedding their
   web player would drag its tracking into the app past the consent choice the
   web already asks for. Uploaded assets play inline.
-- The slideshow honours `autoplayDelay`, `speed`, `showNavigation` and
-  `showCounter`, but not `effect`: cube, coverflow, flip and cards are Swiper's
-  own 3-D transitions, and every slideshow renders as the paged `slide`.
-  Autoplay also stops permanently at the first swipe, which Swiper's
-  `disableOnInteraction: false` does not do — on a phone the carousel is under
-  your thumb, not across the room.
+- Carousels — the work-card strip and the `slideshow` blok — share one
+  `ImageCarousel` in `DesignSystem`: glass arrows, optional counter, autoplay
+  on a task loop. The slideshow honours `autoplayDelay`, `speed`,
+  `showNavigation` and `showCounter`, but not `effect`: cube, coverflow, flip
+  and cards are Swiper's own 3-D transitions, and everything renders as the
+  paged `slide`. Autoplay also stops permanently at the first swipe, which
+  Swiper's `disableOnInteraction: false` does not do — on a phone the carousel
+  is under your thumb, not across the room.
 - The app icon is the site's `icon.png` upscaled to 1024 and flattened onto
   white, because iOS rejects icons with an alpha channel. The source art is only
   254px, so it is soft — a crisp icon needs the original at 1024 or larger. It

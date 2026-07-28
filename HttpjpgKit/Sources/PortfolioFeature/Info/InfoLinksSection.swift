@@ -24,7 +24,8 @@ struct InfoLinksSection: View {
                     Button {
                         openURL(entry.url)
                     } label: {
-                        HStack {
+                        HStack(spacing: Spacing.s2) {
+                            Favicon(for: entry.url)
                             MonoText(entry.link.label.lowercased(), size: Typography.Size.sm)
                             Spacer(minLength: 0)
                             MonoText("↗", size: Typography.Size.sm)

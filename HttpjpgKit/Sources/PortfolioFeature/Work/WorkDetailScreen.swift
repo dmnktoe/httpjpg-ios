@@ -46,9 +46,13 @@ struct WorkDetailScreen: View {
             // resurrecting the pill after `onDisappear` already cleared it.
             if !Task.isCancelled {
                 app.previewURL = externalPreviewURL
+                app.storyTheme = loadedDetail?.isDark == true ? .dark : nil
             }
         }
-        .onDisappear { app.previewURL = nil }
+        .onDisappear {
+            app.previewURL = nil
+            app.storyTheme = nil
+        }
     }
 
     /// What the web's floating preview badge points at: the story's own link,

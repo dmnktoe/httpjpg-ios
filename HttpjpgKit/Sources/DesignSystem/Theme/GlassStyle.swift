@@ -30,16 +30,6 @@ public extension View {
         modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
     }
 
-    /// Tags a view so Liquid Glass can morph it into its neighbours as it
-    /// moves. A no-op below iOS 26, and outside a ``GlassGroup``.
-    @ViewBuilder
-    func glassMorphID(_ id: some Hashable, in namespace: Namespace.ID) -> some View {
-        if #available(iOS 26.0, *) {
-            glassEffectID(id, in: namespace)
-        } else {
-            self
-        }
-    }
 }
 
 private struct GlassBackgroundModifier<S: Shape>: ViewModifier {

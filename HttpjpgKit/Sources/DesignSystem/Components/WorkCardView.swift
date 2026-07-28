@@ -84,9 +84,12 @@ public struct WorkCardView: View {
     }
 
     private var slugLine: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: Spacing.s1) {
             Text("↳↳↳")
                 .accessibilityHidden(true)
+            // External entries carry their destination's favicon, pixelated
+            // through the same proxy the web uses.
+            Favicon(for: model.externalURL)
             Text(model.slug)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -113,6 +116,8 @@ public struct WorkCardModel: Identifiable, Hashable, Sendable {
     public let dateEnd: Date?
     public let tags: [String]
     public let images: [WorkCardImage]
+    /// Where an external entry leads — drives the favicon on the slug line.
+    public let externalURL: URL?
 
     public init(
         id: String,
@@ -122,7 +127,8 @@ public struct WorkCardModel: Identifiable, Hashable, Sendable {
         date: Date? = nil,
         dateEnd: Date? = nil,
         tags: [String] = [],
-        images: [WorkCardImage] = []
+        images: [WorkCardImage] = [],
+        externalURL: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -132,6 +138,7 @@ public struct WorkCardModel: Identifiable, Hashable, Sendable {
         self.dateEnd = dateEnd
         self.tags = tags
         self.images = images
+        self.externalURL = externalURL
     }
 }
 
@@ -143,49 +150,39 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     /// before the image lands.
     public let aspectRatio: CGFloat?
     public let accessibilityText: String?
+    public let copyright: String?
 
     public init(
         id: String,
         url: URL?,
         placeholderURL: URL? = nil,
         aspectRatio: CGFloat? = nil,
-        accessibilityText: String? = nil
+        accessibilityText: String? = nil,
+        copyright: String? = nil
     ) {
         self.id = id
         self.url = url
         self.placeholderURL = placeholderURL
         self.aspectRatio = aspectRatio
         self.accessibilityText = accessibilityText
+        self.copyright = copyright
     }
 }
 
-/// The card's image strip. One image renders flat; several become a paging
-/// carousel, which is the phone-native reading of the web's `<Slideshow>`.
+/// The card's image strip, on the shared ``ImageCarousel`` — arrows and the
+/// web's 7-second autoplay included, which is what `<WorkCard>` gets from
+/// `<Slideshow>` on the site.
 private struct WorkCardImages: View {
     let images: [WorkCardImage]
     let accessibilityText: String
 
-    @Environment(\.viewportWidth) private var viewportWidth
-
-    /// One fixed ratio for every card, not the first asset's own.
-    ///
-    /// The library is a mix of 5000×2400 panoramas, 4:3 phone photos and 16:9
-    /// screenshots. Sizing each card to its own image made the index scroll in
-    /// lurches; a single ratio makes it a rhythm, and cropping to it is what the
-    /// web's `objectFit: cover` does anyway.
-    private var aspectRatio: CGFloat { PageLayout.mediaAspectRatio }
-
     var body: some View {
-        if images.count == 1, let image = images.first {
-            slide(image)
-        } else {
-            TabView {
-                ForEach(images) { image in
-                    slide(image)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .automatic))
-            .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
+        ImageCarousel(
+            count: images.count,
+            aspectRatio: PageLayout.mediaAspectRatio,
+            autoplayInterval: 7
+        ) { position in
+            slide(images[position])
         }
     }
 
@@ -193,8 +190,17 @@ private struct WorkCardImages: View {
         RemoteImage(
             url: image.url,
             placeholderURL: image.placeholderURL,
-            aspectRatio: aspectRatio,
+            // One fixed ratio for every card, not the asset's own: the library
+            // mixes panoramas, phone photos and screenshots, and sizing each
+            // card to its file made the index scroll in lurches.
+            aspectRatio: PageLayout.mediaAspectRatio,
             accessibilityText: image.accessibilityText ?? accessibilityText
         )
+        .overlay(alignment: .bottomTrailing) {
+            if let copyright = image.copyright, !copyright.isEmpty {
+                CopyrightLabel(copyright, position: .inlineWhite)
+                    .padding(Spacing.s2)
+            }
+        }
     }
 }
