@@ -165,7 +165,7 @@ private struct TabBar: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(height: Self.labelHeight)
-            .foregroundStyle(SelectionPill.labelColor(isSelected: isSelected, theme: theme))
+            .foregroundStyle(SelectionPill.labelColor(isSelected: isSelected))
     }
 
     private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {

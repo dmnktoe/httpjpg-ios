@@ -77,6 +77,10 @@ struct WorkIndexScreen: View {
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, TabBarClearance.bottomPadding)
+            // Switching slice or tags crossfades the list instead of snapping
+            // it — quiet enough to read as the same page rearranging.
+            .animation(.easeInOut(duration: 0.25), value: model.variant)
+            .animation(.easeInOut(duration: 0.25), value: model.selectedTags)
         }
         .refreshable { await model.load(force: true) }
     }

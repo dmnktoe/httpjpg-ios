@@ -24,6 +24,9 @@ public struct ImageCarousel<Slide: View>: View {
 
     @State private var index = 0
     @State private var hasInteracted = false
+    /// The index autoplay is about to land on, so `onChange` can tell an
+    /// automatic page turn from a swipe.
+    @State private var pendingAutoAdvance: Int?
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -58,7 +61,18 @@ public struct ImageCarousel<Slide: View>: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
-            .simultaneousGesture(DragGesture().onChanged { _ in hasInteracted = true })
+            // Interaction is detected from the selection, not from a gesture:
+            // any DragGesture on the carousel — even a simultaneous one — put
+            // a recognizer between the reader's thumb and the page, and a
+            // vertical scroll that started on a carousel went nowhere. A page
+            // change autoplay did not announce is, by elimination, a swipe.
+            .onChange(of: index) { _, newValue in
+                if newValue == pendingAutoAdvance {
+                    pendingAutoAdvance = nil
+                } else {
+                    hasInteracted = true
+                }
+            }
             .overlay(alignment: .bottomLeading) { counter }
             .overlay(alignment: .topTrailing) { navigation }
             .task(id: effectiveInterval) { await autoplay() }
@@ -132,14 +146,16 @@ public struct ImageCarousel<Slide: View>: View {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(interval))
             guard !Task.isCancelled, !hasInteracted else { return }
-            advance(by: 1)
+            advance(by: 1, isAutomatic: true)
         }
     }
 
     /// Wraps in both directions, matching Swiper's `loop`.
-    private func advance(by step: Int) {
+    private func advance(by step: Int, isAutomatic: Bool = false) {
+        let next = (index + step + count) % count
+        pendingAutoAdvance = isAutomatic ? next : nil
         withAnimation(.easeInOut(duration: transitionDuration)) {
-            index = (index + step + count) % count
+            index = next
         }
     }
 

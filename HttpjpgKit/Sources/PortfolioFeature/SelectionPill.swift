@@ -12,28 +12,30 @@ import SwiftUI
 struct SelectionPill: ViewModifier {
     let isSelected: Bool
 
-    @Environment(\.pageTheme) private var theme
-
     func body(content: Content) -> some View {
         content
             .glassBackground(
                 in: .capsule,
-                tint: SelectionPill.tint(isSelected: isSelected, theme: theme),
+                tint: SelectionPill.tint(isSelected: isSelected),
                 interactive: true
             )
     }
 
-    static func tint(isSelected: Bool, theme: PageTheme) -> Color {
+    /// Fixed colours, not theme-derived: following the page theme made the
+    /// unselected pill flip *light* on `isDark` stories, which read as it
+    /// changing state. Black glass is legible on both surfaces — the material
+    /// underneath does the adapting — so the pill's identity stays put.
+    static func tint(isSelected: Bool) -> Color {
         isSelected
             ? BrutalButtonStyle.Variant.accent.fill
-            : theme.foreground.opacity(0.72)
+            : Palette.black.opacity(0.72)
     }
 
-    /// The label colour that stays legible on ``tint(isSelected:theme:)`` — the
-    /// same pairing the button style uses, so the two cannot drift apart.
-    static func labelColor(isSelected: Bool, theme: PageTheme) -> Color {
+    /// The label colour that stays legible on ``tint(isSelected:)`` — the same
+    /// pairing the button style uses, so the two cannot drift apart.
+    static func labelColor(isSelected: Bool) -> Color {
         isSelected
             ? BrutalButtonStyle.Variant.accent.label
-            : theme.background.opacity(0.9)
+            : Palette.white.opacity(0.9)
     }
 }

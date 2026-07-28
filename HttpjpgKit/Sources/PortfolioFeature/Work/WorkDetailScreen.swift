@@ -97,15 +97,17 @@ struct WorkDetailScreen: View {
         }
     }
 
+    /// The page is the body, full stop — no date row, no tape, no appended
+    /// visit button. The date lived in the nav-bar-adjacent meta and repeated
+    /// what most stories put in their own marquee; the visit button doubled
+    /// the CMS `button` blok most stories already end with, and the preview
+    /// pill in the tab rail covers the rest.
     private func loaded(_ detail: WorkDetail) -> some View {
         // A story can opt into the dark page theme via `isDark`, exactly as
         // `page-theme.ts` resolves it on the web.
         let theme = detail.isDark ? PageTheme.dark : PageTheme.light
         return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.s6) {
-                Meta(detail: detail)
-                    .padding(.horizontal, PageLayout.gutter)
-
                 // The body carries its own headlines, so the story title is
                 // left to the navigation bar rather than repeated here. It
                 // also carries its own gutter when it starts with a container.
@@ -114,15 +116,6 @@ struct WorkDetailScreen: View {
                 if detail.body.isEmpty {
                     fallbackBody(detail)
                         .padding(.horizontal, PageLayout.gutter)
-                }
-
-                if let link = detail.link,
-                   let url = link.resolvedURL(siteOrigin: app.configuration.siteOrigin) {
-                    Link(destination: url) {
-                        Text("visit ↗")
-                    }
-                    .buttonStyle(.brutal(variant: .primary, size: .md))
-                    .padding(.horizontal, PageLayout.gutter)
                 }
             }
             .padding(.top, Spacing.s6)
@@ -144,17 +137,3 @@ struct WorkDetailScreen: View {
     }
 }
 
-/// Date and tape. No tag chips: every project carries the same tag, so the row
-/// said nothing and cost a line at the top of every story.
-private struct Meta: View {
-    let detail: WorkDetail
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.s2) {
-            if let date = detail.date {
-                WorkCardDateView(date: date, dateEnd: detail.dateEnd)
-            }
-            AsciiTape()
-        }
-    }
-}
