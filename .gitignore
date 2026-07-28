@@ -1,0 +1,17 @@
+# Secrets — copy Config/Secrets.example.xcconfig and fill in your token.
+Config/Secrets.xcconfig
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+HttpjpgKit/.build/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration/

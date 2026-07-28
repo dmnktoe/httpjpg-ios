@@ -1,0 +1,60 @@
+// swift-tools-version: 6.2
+import PackageDescription
+
+/// Mirrors the workspace layering of the web monorepo:
+///
+/// | Swift target        | Web package(s)                                                    |
+/// | ------------------- | ----------------------------------------------------------------- |
+/// | `DesignSystem`      | `@httpjpg/tokens` + `@httpjpg/ui`                                  |
+/// | `StoryblokContent`  | `storyblok-utils` + `storyblok-api` + `storyblok-richtext` + `-ui` |
+/// | `PortfolioFeature`  | `apps/portfolio`                                                   |
+///
+/// Dependency direction is the same as on the web: `DesignSystem` is a leaf,
+/// `StoryblokContent` may depend on it, and the feature layer may depend on both.
+let package = Package(
+    name: "HttpjpgKit",
+    platforms: [.iOS(.v17)],
+    products: [
+        .library(name: "DesignSystem", targets: ["DesignSystem"]),
+        .library(name: "StoryblokContent", targets: ["StoryblokContent"]),
+        .library(name: "PortfolioFeature", targets: ["PortfolioFeature"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
+    ],
+    targets: [
+        .target(
+            name: "DesignSystem",
+            dependencies: [
+                .product(name: "MarqueeLabel", package: "MarqueeLabel"),
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
+            name: "StoryblokContent",
+            dependencies: [
+                "DesignSystem",
+                .product(name: "StoryblokClient", package: "storyblok-swift"),
+                .product(name: "URLSessionExtension", package: "storyblok-swift"),
+                .product(name: "RichTextView", package: "storyblok-swift"),
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
+            name: "PortfolioFeature",
+            dependencies: ["DesignSystem", "StoryblokContent"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "DesignSystemTests",
+            dependencies: ["DesignSystem"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "StoryblokContentTests",
+            dependencies: ["StoryblokContent"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+    ]
+)

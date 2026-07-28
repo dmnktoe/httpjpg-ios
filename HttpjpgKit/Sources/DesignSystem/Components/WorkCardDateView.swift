@@ -1,0 +1,90 @@
+import SwiftUI
+
+/// The date stamp on a work card: `╱╱ 15. ☀ M 24 ⌘ρτ`.
+/// Port of `work-card-date.tsx`, month glyphs and all.
+public struct WorkCardDateView: View {
+    private let date: Date
+    private let dateEnd: Date?
+
+    public init(date: Date, dateEnd: Date? = nil) {
+        self.date = date
+        self.dateEnd = dateEnd
+    }
+
+    public var body: some View {
+        HStack(spacing: Spacing.s2) {
+            MonoText("╱╱", size: Typography.Size.sm, opacity: Opacities.subtle)
+            stamp
+            MonoText("⌘ρτ", size: Typography.Size.xxs, opacity: Opacities.dimmed)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var stamp: some View {
+        let start = WorkCardDate.parts(of: date)
+        let end = dateEnd.map(WorkCardDate.parts(of:))
+        return Text(render(start) + (end.map { " → " + render($0) } ?? ""))
+            .font(Typography.mono(Typography.Size.sm))
+            .tracking(Typography.Size.sm * 0.05)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+    }
+
+    private func render(_ parts: WorkCardDate.Parts) -> String {
+        "\(parts.day). \(parts.monthSymbol) \(parts.month)\(parts.year)"
+    }
+
+    private var accessibilityLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        guard let dateEnd else { return formatter.string(from: date) }
+        return "\(formatter.string(from: date)) to \(formatter.string(from: dateEnd))"
+    }
+}
+
+/// Date formatting for work cards.
+///
+/// The web renders these with `Intl.DateTimeFormat("de-DE", …)`; `de_DE` is
+/// pinned here for the same reason — the site's stamps are German, regardless
+/// of the reader's locale.
+public enum WorkCardDate {
+    public struct Parts: Equatable, Sendable {
+        public let day: String
+        public let month: String
+        public let year: String
+        public let monthSymbol: String
+    }
+
+    /// The per-month glyphs from `MONTH_SYMBOLS` in `work-card-date.tsx`.
+    private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
+
+    nonisolated(unsafe) private static let dayFormatter = formatter("dd")
+    nonisolated(unsafe) private static let narrowMonthFormatter = formatter("MMMMM")
+    nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
+    nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
+
+    private static func formatter(_ format: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.locale = Locale(identifier: "de_DE")
+        return formatter
+    }
+
+    public static func parts(of date: Date) -> Parts {
+        let month = Calendar(identifier: .gregorian).component(.month, from: date)
+        let symbol = (1...12).contains(month) ? monthSymbols[month - 1] : "●"
+        return Parts(
+            day: dayFormatter.string(from: date),
+            month: narrowMonthFormatter.string(from: date),
+            year: shortYearFormatter.string(from: date),
+            monthSymbol: symbol
+        )
+    }
+
+    /// Four-digit year, used for the work list's section headers.
+    public static func year(of date: Date) -> String {
+        fullYearFormatter.string(from: date)
+    }
+}

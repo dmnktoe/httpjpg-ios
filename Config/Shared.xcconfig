@@ -1,0 +1,32 @@
+// Shared build settings for the Httpjpg app target.
+//
+// Secrets live in Config/Secrets.xcconfig, which is git-ignored. The include
+// is optional so the project still opens (and fails with a readable message)
+// before anyone has created it.
+#include? "Secrets.xcconfig"
+
+PRODUCT_NAME = $(TARGET_NAME)
+PRODUCT_BUNDLE_IDENTIFIER = com.httpjpg.portfolio
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+TARGETED_DEVICE_FAMILY = 1,2
+SWIFT_VERSION = 5.0
+
+INFOPLIST_FILE = Httpjpg/Info.plist
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_KEY_CFBundleDisplayName = httpjpg
+INFOPLIST_KEY_UILaunchScreen_Generation = YES
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES
+INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+CODE_SIGN_STYLE = Automatic
+
+// Defaults; override any of these in Config/Secrets.xcconfig.
+STORYBLOK_VERSION = published
+STORYBLOK_REGION = eu
+SITE_ORIGIN = https:/$()/www.httpjpg.com
