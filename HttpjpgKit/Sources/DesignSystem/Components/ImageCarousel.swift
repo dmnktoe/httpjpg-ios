@@ -66,10 +66,15 @@ public struct ImageCarousel<Slide: View>: View {
             // a recognizer between the reader's thumb and the page, and a
             // vertical scroll that started on a carousel went nowhere. A page
             // change autoplay did not announce is, by elimination, a swipe.
+            //
+            // Both branches guard their writes: the TabView reports selection
+            // repeatedly during an interactive swipe, and unconditionally
+            // re-setting state here is what tripped SwiftUI's "onChange tried
+            // to update multiple times per frame" warning.
             .onChange(of: index) { _, newValue in
-                if newValue == pendingAutoAdvance {
+                if pendingAutoAdvance == newValue {
                     pendingAutoAdvance = nil
-                } else {
+                } else if !hasInteracted {
                     hasInteracted = true
                 }
             }

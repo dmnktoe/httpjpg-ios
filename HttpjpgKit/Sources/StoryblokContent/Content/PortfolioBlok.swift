@@ -624,7 +624,11 @@ public struct SlideshowBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         spacing = envelope.spacing
-        images = container.cmsArray(StoryblokAsset.self, forKey: .images).images
+        // Videos stay in. The multiasset field mixes clips and stills, and the
+        // web renders clip slides inline (`<video autoplay muted loop>`) —
+        // filtering them out here collapsed video-heavy slideshows to a single
+        // slide, which is a carousel with no arrows, no counter, no autoplay.
+        images = container.cmsArray(StoryblokAsset.self, forKey: .images).filter { !$0.isEmpty }
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
         showsCounter = container.cmsBool(forKey: .showCounter)
         // Defaults match `slideshow.tsx`, including the boolean: the CMS field

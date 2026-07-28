@@ -181,6 +181,20 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.decoration, Ascii.dividerMusic)
     }
 
+    /// Clips stay in the slide list. Filtering them out collapsed video-heavy
+    /// slideshows to one slide — and a one-slide carousel draws no arrows, no
+    /// counter and never autoplays, which read as the whole feature missing.
+    func testSlideshowKeepsVideoAssetsAsSlides() throws {
+        let blok = try decode(SlideshowBlok.self, """
+        {"_uid":"s4","component":"slideshow","images":[
+          {"filename":"https://a.storyblok.com/f/1/x/clip.mp4","content_type":"video/mp4"},
+          {"filename":"https://a.storyblok.com/f/1/1200x900/x/still.jpg"},
+          {"id":null,"filename":null,"fieldtype":"asset"}]}
+        """)
+        XCTAssertEqual(blok.images.count, 2, "the cleared asset goes, the clip stays")
+        XCTAssertTrue(blok.images[0].isVideo)
+    }
+
     /// `0` is how an editor switches autoplay off in a number field.
     func testZeroAutoplayDelayDisablesAutoplay() throws {
         let blok = try decode(SlideshowBlok.self, """

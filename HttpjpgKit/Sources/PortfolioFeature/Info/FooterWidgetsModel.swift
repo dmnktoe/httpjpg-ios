@@ -29,16 +29,22 @@ final class FooterWidgetsModel {
 
     func load() async {
         // Concurrently, because four sequential round trips to four unrelated
-        // services is three round trips of dead time.
+        // services is three round trips of dead time — but assigned in one
+        // batch at the end. Assigning each result as its await settled gave
+        // the footer up to four height changes in quick succession, and a
+        // footer with a cover background visibly flickers every time it
+        // resizes.
         async let presence = loadDiscord()
         async let latestFilm = loadFilm()
         async let latestTrophy = loadTrophy()
         async let now = api.weather()
+        let (loadedPresence, loadedFilm, loadedTrophy, loadedWeather) =
+            await (presence, latestFilm, latestTrophy, now)
 
-        discord = await presence
-        film = await latestFilm
-        trophy = await latestTrophy
-        weather = await now
+        discord = loadedPresence
+        film = loadedFilm
+        trophy = loadedTrophy
+        weather = loadedWeather
     }
 
     private func loadDiscord() async -> DiscordPresence? {

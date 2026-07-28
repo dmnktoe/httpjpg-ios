@@ -26,6 +26,15 @@ struct FooterWidgets: View {
             ClockLine(weather: model.weather)
         }
         .frame(maxWidth: .infinity)
+        // The one growth spurt left — the batch of rows landing — eases
+        // instead of snapping, so the background image scales smoothly.
+        .animation(.easeOut(duration: 0.25), value: visibleRowCount)
+    }
+
+    private var visibleRowCount: Int {
+        [model.discord != nil, model.film != nil, model.trophy != nil]
+            .filter { $0 }
+            .count
     }
 }
 

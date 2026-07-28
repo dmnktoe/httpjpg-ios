@@ -97,9 +97,12 @@ struct InfoScreen: View {
 
 /// A page destination. Carries the title so the pushed screen has something to
 /// show in its navigation bar before the story arrives.
-struct PageRoute: Hashable {
-    let slug: String
-    let title: String
+///
+/// Public because `AppModel.infoPath` is — a public property cannot carry an
+/// internal element type.
+public struct PageRoute: Hashable, Sendable {
+    public let slug: String
+    public let title: String
 
     init(page: PageSummary) {
         slug = page.slug
