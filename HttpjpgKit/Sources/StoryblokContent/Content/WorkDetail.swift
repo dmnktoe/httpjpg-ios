@@ -11,7 +11,7 @@ public struct WorkDetail: Identifiable {
     public let slug: String
     public let fullSlug: String
     public let title: String
-    public let details: RichText<PortfolioBlok>?
+    public let details: RichTextNode?
     /// Flattened `details`, for share sheets and accessibility summaries.
     public let summary: String
     public let images: [StoryblokAsset]

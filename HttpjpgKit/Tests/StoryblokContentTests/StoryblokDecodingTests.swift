@@ -129,6 +129,78 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(extractPlainText(blok.details), "Hello")
     }
 
+    // MARK: - Rich text
+
+    /// The whole reason rich text is decoded here rather than by the SDK: one
+    /// malformed node must not cost the document. A heading with no `attrs`,
+    /// an emoji with no `attrs` and an unknown node type all occur in content
+    /// edited over years, and each of them throws out of the SDK's model.
+    func testMalformedNodesDoNotDiscardTheDocument() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"paragraph","content":[{"type":"text","text":"First"}]},
+          {"type":"heading"},
+          {"type":"emoji"},
+          {"type":"time_machine","content":[]},
+          {"type":"paragraph","content":[{"type":"text","text":"Last"}]}
+        ]}
+        """)
+        XCTAssertTrue(extractPlainText(document).hasPrefix("First"))
+        XCTAssertTrue(extractPlainText(document).hasSuffix("Last"))
+        XCTAssertEqual(document.children.count, 5)
+    }
+
+    func testDecodesTheNodeTypesTheSiteActuallyUses() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"paragraph","attrs":{"textAlign":"center"},"content":[
+            {"type":"text","text":"plain "},
+            {"type":"text","text":"bold","marks":[{"type":"bold"}]},
+            {"type":"hard_break"},
+            {"type":"text","text":"link","marks":[
+              {"type":"link","attrs":{"href":"https://example.com","linktype":"url"}}]}]},
+          {"type":"horizontal_rule"},
+          {"type":"ordered_list","content":[
+            {"type":"list_item","content":[
+              {"type":"paragraph","content":[{"type":"text","text":"one"}]}]}]}
+        ]}
+        """)
+
+        guard case .document(let children) = document, children.count == 3 else {
+            return XCTFail("expected a three-node document")
+        }
+        guard case .paragraph(let alignment, let inline) = children[0] else {
+            return XCTFail("expected a paragraph")
+        }
+        XCTAssertEqual(alignment, .center)
+        XCTAssertEqual(inline.count, 4)
+
+        guard case .text(_, let marks) = inline[1] else {
+            return XCTFail("expected a marked text run")
+        }
+        XCTAssertEqual(marks.first?.kind, .bold)
+
+        guard case .text(_, let linkMarks) = inline[3] else {
+            return XCTFail("expected a linked text run")
+        }
+        XCTAssertEqual(linkMarks.first?.href, "https://example.com")
+
+        guard case .horizontalRule = children[1] else {
+            return XCTFail("expected a rule")
+        }
+        guard case .orderedList(let items) = children[2], items.count == 1 else {
+            return XCTFail("expected a one-item ordered list")
+        }
+    }
+
+    func testHeadingLevelFallsBackWhenAttrsAreMissing() throws {
+        let node = try decode(RichTextNode.self, #"{"type":"heading","content":[]}"#)
+        guard case .heading(let level, _) = node else {
+            return XCTFail("expected a heading")
+        }
+        XCTAssertEqual(level, 2, "an attrs-less heading reads as h2, not a decoding failure")
+    }
+
     // MARK: - Config
 
     func testConfigDecodesMenuAndFooter() throws {

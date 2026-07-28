@@ -2,9 +2,7 @@ import DesignSystem
 import StoryblokClient
 import SwiftUI
 
-/// Makes every decoded blok renderable, which is also what lets
-/// `RichText<PortfolioBlok>` conform to `View` — the SDK provides that
-/// conformance whenever the block library is itself a `View`.
+/// Makes every decoded blok renderable.
 ///
 /// This is the registry from `apps/portfolio/lib/storyblok.ts`, expressed as a
 /// switch instead of a dictionary.
@@ -29,6 +27,10 @@ extension PortfolioBlok: View {
             return AnyView(SbGridItemView(blok: blok))
         case .marquee(let blok):
             return AnyView(SbMarqueeView(blok: blok))
+        case .slideshow(let blok):
+            return AnyView(SbSlideshowView(blok: blok))
+        case .video(let blok):
+            return AnyView(SbVideoView(blok: blok))
         case .headline(let blok):
             return AnyView(SbHeadlineView(blok: blok))
         case .paragraph(let blok):
@@ -77,38 +79,33 @@ public struct BlokListView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, gutter)
-    }
-
-    /// Zero as soon as any top-level blok is a layout container: those carry
-    /// the CMS's own `pl`/`pr`, and adding to it doubles the inset.
-    private var gutter: CGFloat {
-        guard appliesPageGutter, !bloks.contains(where: \.providesPageGutter) else { return 0 }
-        return PageLayout.gutter
+        .padding(.horizontal, appliesPageGutter ? PageLayout.gutter : 0)
     }
 }
 
 /// Applies the base row of the CMS spacing matrix.
 struct BlokSpacingModifier: ViewModifier {
     let spacing: BlokSpacing
+    /// Layout containers pass `false`: their CMS `pl`/`pr` *is* the web's page
+    /// gutter, and the app already applies its own at the screen edge. Honouring
+    /// both is what put body content 32pt in instead of 16.
+    let appliesHorizontal: Bool
 
     func body(content: Content) -> some View {
         content
-            .padding(.top, spacing.paddingTop ?? 0)
-            .padding(.bottom, spacing.paddingBottom ?? 0)
-            .padding(.leading, spacing.paddingLeading ?? 0)
-            .padding(.trailing, spacing.paddingTrailing ?? 0)
-            .padding(.top, spacing.marginTop ?? 0)
-            .padding(.bottom, spacing.marginBottom ?? 0)
-            .padding(.leading, spacing.marginLeading ?? 0)
-            .padding(.trailing, spacing.marginTrailing ?? 0)
+            .padding(.top, (spacing.paddingTop ?? 0) + (spacing.marginTop ?? 0))
+            .padding(.bottom, (spacing.paddingBottom ?? 0) + (spacing.marginBottom ?? 0))
+            .padding(.leading, appliesHorizontal ? leading : 0)
+            .padding(.trailing, appliesHorizontal ? trailing : 0)
     }
+
+    private var leading: CGFloat { (spacing.paddingLeading ?? 0) + (spacing.marginLeading ?? 0) }
+    private var trailing: CGFloat { (spacing.paddingTrailing ?? 0) + (spacing.marginTrailing ?? 0) }
 }
 
 extension View {
-    /// SwiftUI has no margin/padding distinction, so both collapse onto
-    /// padding. The order above keeps padding inside margin.
-    func blokSpacing(_ spacing: BlokSpacing) -> some View {
-        modifier(BlokSpacingModifier(spacing: spacing))
+    /// SwiftUI has no margin/padding distinction, so both collapse onto padding.
+    func blokSpacing(_ spacing: BlokSpacing, appliesHorizontal: Bool = true) -> some View {
+        modifier(BlokSpacingModifier(spacing: spacing, appliesHorizontal: appliesHorizontal))
     }
 }

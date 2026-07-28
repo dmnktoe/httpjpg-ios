@@ -77,9 +77,10 @@ the seam visible: `Client/`, `Content/` and `Utils/` are the data half,
 
 ### Why the SDK's networking is not used
 
-`storyblok-swift` is a dependency for its **types** — `Story`, `RichText`,
-`BlockLibrary` — and for `RichTextView`, which renders rich text natively. Its
-typed `StoryblokClient` is not used, and neither is `URLSessionExtension`.
+`storyblok-swift` is a dependency for the `Story` envelope and little else. Its
+typed `StoryblokClient` is not used, neither is `URLSessionExtension`, and
+neither are its `RichText` model or `RichTextView` — see "Why rich text is
+decoded here" below.
 
 That client can only be built on a `URLSession` whose delegate is the SDK's own
 `Storyblok` rate limiter, and as of v0.3.0 that delegate keeps three pieces of
@@ -98,6 +99,26 @@ SDK's relation store is internal to its client, so nested `Story` fields arrive
 as UUID strings and decode to an empty array. Only `work_list.work` uses
 relations. If the SDK adds a lock — or exposes the relation store — this can go
 back to the typed client.
+
+### Why rich text is decoded here
+
+`RichTextNode` in `Content/` is a second, deliberately tolerant model of the
+same JSON the SDK's `RichText` describes. Two problems made the SDK's version
+unusable for content that has been edited for years:
+
+- **It is strict.** `Heading.attrs`, `Image.id`, `Emoji.attrs` and
+  `Mark.Link.href` are all required. A single heading saved without `attrs`
+  throws out of the *whole document*, so a page loses its entire body rather
+  than one node. `RichTextNode` gives every field a default and turns unknown
+  node types into `.unknown`, so a malformed node costs exactly itself.
+- **It styles itself.** `RichTextView` sets a system font on every node, which
+  overrides anything the container asks for. The site's body copy is 12pt at a
+  1.75 line height in its own faces; there was no way to get there from
+  outside.
+
+`StoryRichText` renders `RichTextNode` in the house typography, and
+`RichTextInline` flattens inline runs into an `AttributedString` so links stay
+tappable and bold/italic stay the same size as the text around them.
 
 ## Design language
 
@@ -248,3 +269,7 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   needs an `AVPlayer` and transport controls, which is its own piece of work.
 - `work_list` relations do not resolve — see "Why the SDK's networking is not
   used" above. The blok renders an empty list rather than the linked stories.
+- `video` bloks that point at Vimeo or YouTube hand off to the system browser
+  instead of embedding. Neither hands out a playable stream, and embedding their
+  web player would drag its tracking into the app past the consent choice the
+  web already asks for. Uploaded assets play inline.

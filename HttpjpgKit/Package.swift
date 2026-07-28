@@ -41,12 +41,11 @@ let package = Package(
             name: "StoryblokContent",
             dependencies: [
                 "DesignSystem",
-                // `StoryblokClient` is used for its *types* — `Story`,
-                // `RichText`, `BlockLibrary` — and `RichTextView` renders
-                // them. The SDK's networking is deliberately not used; see
-                // the note on `ContentClient`.
+                // Only the `Story` envelope is used from the SDK. Its
+                // networking is unsafe under concurrency (see `ContentClient`)
+                // and its `RichTextView` styles every node with system fonts,
+                // which cannot be overridden from outside (see `StoryRichText`).
                 .product(name: "StoryblokClient", package: "storyblok-swift"),
-                .product(name: "RichTextView", package: "storyblok-swift"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

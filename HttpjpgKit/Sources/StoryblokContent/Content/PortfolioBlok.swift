@@ -6,14 +6,13 @@ import StoryblokClient
 /// The set of Storyblok components the app decodes — the Swift counterpart of
 /// the `components` registry in `apps/portfolio/lib/storyblok.ts`.
 ///
-/// Conformance to `BlockLibrary` is written by hand rather than through the
-/// `@BlockLibrary` macro: the space's technical names are `snake_case`, and
-/// spelling the dispatch out keeps the public surface auditable against the
-/// CMS component list the same way `storyblok-ui/src/index.ts` does on the web.
+/// The dispatch is spelled out by hand rather than generated: it keeps the
+/// public surface auditable against the CMS component list the same way
+/// `storyblok-ui/src/index.ts` does on the web.
 ///
 /// Unrecognised components decode to ``unknown`` instead of throwing, matching
 /// the `_fallback: SbMissing` slot the web registers in development.
-public enum PortfolioBlok: BlockLibrary, Identifiable {
+public enum PortfolioBlok: Decodable, Identifiable {
     // Root content types
     case page(PageBlok)
     case work(WorkBlok)
@@ -35,6 +34,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
     case codeBlock(CodeBlok)
     case workList(WorkListBlok)
     case marquee(MarqueeBlok)
+    case slideshow(SlideshowBlok)
+    case video(VideoBlok)
 
     case unknown(component: String, id: String)
 
@@ -61,6 +62,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .codeBlock(let blok): return blok.id
         case .workList(let blok): return blok.id
         case .marquee(let blok): return blok.id
+        case .slideshow(let blok): return blok.id
+        case .video(let blok): return blok.id
         case .unknown(_, let id): return id
         }
     }
@@ -84,20 +87,9 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case .codeBlock: return "code_block"
         case .workList: return "work_list"
         case .marquee: return "marquee"
+        case .slideshow: return "slideshow"
+        case .video: return "video"
         case .unknown(let component, _): return component
-        }
-    }
-
-    /// `true` when the blok already carries the page gutter from the CMS.
-    ///
-    /// `section` and `container` are where the web sets its horizontal page
-    /// padding (`pl`/`pr` on the container blok). A screen that adds its own
-    /// gutter on top of one of these ends up with double the inset, which is
-    /// what made body content sit ~32pt in instead of 16.
-    public var providesPageGutter: Bool {
-        switch self {
-        case .section, .container: return true
-        default: return false
         }
     }
 
@@ -116,6 +108,8 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         case "grid": self = .grid(try GridBlok(from: decoder))
         case "grid_item": self = .gridItem(try GridItemBlok(from: decoder))
         case "marquee": self = .marquee(try MarqueeBlok(from: decoder))
+        case "slideshow": self = .slideshow(try SlideshowBlok(from: decoder))
+        case "video": self = .video(try VideoBlok(from: decoder))
         case "headline": self = .headline(try HeadlineBlok(from: decoder))
         case "paragraph": self = .paragraph(try ParagraphBlok(from: decoder))
         case "richtext": self = .richText(try RichTextBlok(from: decoder))
@@ -208,7 +202,7 @@ public struct WorkBlok: Decodable, Identifiable {
     public let title: String?
     /// The CMS field is `description`; renamed to avoid shadowing
     /// `CustomStringConvertible.description`.
-    public let details: RichText<PortfolioBlok>?
+    public let details: RichTextNode?
     public let images: [StoryblokAsset]
     public let date: String?
     public let dateEnd: String?
@@ -234,7 +228,7 @@ public struct WorkBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         title = container.cmsString(forKey: .title)
-        details = container.cmsValue(RichText<PortfolioBlok>.self, forKey: .description)
+        details = container.cmsValue(RichTextNode.self, forKey: .description)
         images = container.cmsArray(StoryblokAsset.self, forKey: .images)
         date = container.cmsString(forKey: .date)
         dateEnd = container.cmsString(forKey: .dateEnd)
@@ -410,7 +404,7 @@ public struct ParagraphBlok: Decodable, Identifiable {
 public struct RichTextBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
-    public let content: RichText<PortfolioBlok>?
+    public let content: RichTextNode?
     public let color: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -422,7 +416,7 @@ public struct RichTextBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         spacing = envelope.spacing
-        content = container.cmsValue(RichText<PortfolioBlok>.self, forKey: .content)
+        content = container.cmsValue(RichTextNode.self, forKey: .content)
         color = container.cmsString(forKey: .color)
     }
 }
@@ -432,7 +426,7 @@ public struct ImageBlok: Decodable, Identifiable {
     public let spacing: BlokSpacing
     public let image: StoryblokAsset?
     public let alt: String?
-    public let caption: RichText<PortfolioBlok>?
+    public let caption: RichTextNode?
     public let aspectRatio: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -446,7 +440,7 @@ public struct ImageBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         image = container.cmsValue(StoryblokAsset.self, forKey: .image)
         alt = container.cmsString(forKey: .alt)
-        caption = container.cmsValue(RichText<PortfolioBlok>.self, forKey: .caption)
+        caption = container.cmsValue(RichTextNode.self, forKey: .caption)
         aspectRatio = container.cmsString(forKey: .aspectRatio)
     }
 }
@@ -592,5 +586,82 @@ public struct WorkListBlok: Decodable, Identifiable {
         dividerVariant = container.cmsString(forKey: .dividerVariant) ?? "solid"
         dividerPattern = container.cmsString(forKey: .dividerPattern)
         showsTagFilter = container.cmsBool(forKey: .enableTagFilter)
+    }
+}
+
+// MARK: - Media bloks
+
+public struct SlideshowBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let images: [StoryblokAsset]
+    /// The CMS stores ratios as `"16/9"`; `nil` means "let the images decide".
+    public let aspectRatio: CGFloat?
+    public let showsCounter: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case images, aspectRatio, showCounter
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        images = container.cmsArray(StoryblokAsset.self, forKey: .images).images
+        aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+        showsCounter = container.cmsBool(forKey: .showCounter)
+    }
+}
+
+public struct VideoBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    /// An uploaded file, playable inline.
+    public let asset: StoryblokAsset?
+    /// A Vimeo or YouTube page — not a playable stream.
+    public let videoURL: String?
+    public let poster: StoryblokAsset?
+    public let caption: RichTextNode?
+    public let aspectRatio: CGFloat?
+
+    private enum CodingKeys: String, CodingKey {
+        case videoAsset, videoUrl, poster, caption, aspectRatio
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        let uploaded = container.cmsValue(StoryblokAsset.self, forKey: .videoAsset)
+        asset = uploaded?.isEmpty == false ? uploaded : nil
+        videoURL = container.cmsString(forKey: .videoUrl)
+        let posterAsset = container.cmsValue(StoryblokAsset.self, forKey: .poster)
+        poster = posterAsset?.isEmpty == false ? posterAsset : nil
+        caption = container.cmsValue(RichTextNode.self, forKey: .caption)
+        aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+    }
+
+    public var assetURL: URL? {
+        asset?.filename.flatMap(URL.init(string:))
+    }
+
+    public var externalURL: URL? {
+        videoURL.flatMap(URL.init(string:))
+    }
+}
+
+/// Parses the CMS `aspectRatio` option (`"16/9"`, `"4/3"`, `"1/1"`, `"auto"`).
+enum AspectRatio {
+    static func parse(_ raw: String?) -> CGFloat? {
+        guard let raw, raw != "auto" else { return nil }
+        let parts = raw.split(separator: "/")
+        guard parts.count == 2,
+              let width = Double(parts[0]),
+              let height = Double(parts[1]),
+              height != 0
+        else { return nil }
+        return CGFloat(width / height)
     }
 }

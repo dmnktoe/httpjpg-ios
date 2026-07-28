@@ -13,6 +13,6 @@ public struct SbSectionView: View {
         BlokListView(blok.content)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Palette.named(blok.backgroundColor) ?? .clear)
-            .blokSpacing(blok.spacing)
+            .blokSpacing(blok.spacing, appliesHorizontal: false)
     }
 }

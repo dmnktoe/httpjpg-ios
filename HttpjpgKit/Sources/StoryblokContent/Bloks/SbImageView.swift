@@ -26,16 +26,9 @@ public struct SbImageView: View {
         .blokSpacing(blok.spacing)
     }
 
-    /// Storyblok stores aspect ratios as `"16/9"`, `"4/3"`, `"1/1"`, … or
-    /// `"auto"`, which means "let the image decide".
+    /// `nil` means "let the image decide", which is what `auto` and an empty
+    /// field both mean in the CMS.
     private var ratio: CGFloat? {
-        guard let raw = blok.aspectRatio, raw != "auto" else { return nil }
-        let parts = raw.split(separator: "/")
-        guard parts.count == 2,
-              let width = Double(parts[0]),
-              let height = Double(parts[1]),
-              height != 0
-        else { return nil }
-        return CGFloat(width / height)
+        AspectRatio.parse(blok.aspectRatio)
     }
 }

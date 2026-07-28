@@ -20,8 +20,9 @@ import StoryblokClient
 /// page index concurrently, so it hit that reliably.
 ///
 /// The transport is therefore ours: a plain `URLSession`, URLs built here. The
-/// SDK is still what decodes the payload — `Story`, `RichText` and the
-/// `RichTextView` renderer are the reason it is a dependency at all.
+/// SDK still supplies the `Story` envelope the payload is decoded into, which
+/// is most of what is left of it as a dependency — rich text is decoded by
+/// ``RichTextNode`` rather than the SDK's model, for reasons documented there.
 ///
 /// The one thing lost with the typed client is automatic relation resolution:
 /// `resolve_relations` is still sent, but nested `Story` fields arrive as UUID
