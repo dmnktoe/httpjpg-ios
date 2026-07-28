@@ -2,12 +2,10 @@ import AVKit
 import DesignSystem
 import SwiftUI
 
-/// Renders the `slideshow` blok on the shared ``ImageCarousel``.
-///
-/// The CMS config comes across field for field: `autoplayDelay` drives the
-/// loop, `speed` the transition, `showNavigation` the arrows, `showCounter`
-/// the `01/04` strip. The carousel itself — including why autoplay is a task
-/// and not a timer — lives in `DesignSystem`, shared with the work cards.
+/// Renders the `slideshow` blok on the shared ``ImageCarousel`` — with the
+/// exact same playback the work cards use. Arrows always on, the same 7-second
+/// autoplay, the same transition; only `showCounter` and the aspect ratio come
+/// from the CMS. One carousel, one behaviour, everywhere.
 ///
 /// Video assets become chromeless muted loops, the same thing the web's
 /// `<video autoplay muted loop>` slide is.
@@ -23,9 +21,7 @@ public struct SbSlideshowView: View {
             ImageCarousel(
                 count: blok.images.count,
                 aspectRatio: aspectRatio,
-                autoplayInterval: blok.autoplayInterval,
-                transitionDuration: blok.transitionDuration,
-                showsArrows: blok.showsNavigation,
+                autoplayInterval: 7,
                 showsCounter: blok.showsCounter
             ) { position in
                 slide(blok.images[position])

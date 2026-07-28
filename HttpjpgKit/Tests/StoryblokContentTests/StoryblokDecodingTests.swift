@@ -127,29 +127,18 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.spacing.paddingBottom, 0)
     }
 
-    func testSlideshowCarriesThePlaybackSettingsFromTheCMS() throws {
+    /// Only presentation fields come from the CMS — the playback fields are
+    /// deliberately ignored so every carousel runs the work cards' cadence.
+    func testSlideshowDecodesPresentationFieldsOnly() throws {
         let blok = try decode(SlideshowBlok.self, """
-        {"_uid":"s1","component":"slideshow","aspectRatio":"4/3",
-         "autoplayDelay":"4500","speed":200,"showNavigation":"false","showCounter":true,
+        {"_uid":"s1","component":"slideshow","aspectRatio":"4/3","showCounter":true,
+         "autoplayDelay":"5","speed":200,"showNavigation":"false",
          "images":[{"filename":"https://a.storyblok.com/f/1/1200x900/x/a.jpg"},
                    {"filename":"https://a.storyblok.com/f/1/1200x900/x/b.jpg"}]}
         """)
-        XCTAssertEqual(blok.autoplayInterval, 4.5)
-        XCTAssertEqual(blok.transitionDuration, 0.2)
-        XCTAssertFalse(blok.showsNavigation)
+        XCTAssertEqual(blok.images.count, 2)
         XCTAssertTrue(blok.showsCounter)
         XCTAssertEqual(blok.aspectRatio ?? 0, 4.0 / 3.0, accuracy: 0.001)
-    }
-
-    /// Everything unset must land on the web component's defaults, not on zero.
-    func testSlideshowDefaultsMatchTheWebComponent() throws {
-        let blok = try decode(SlideshowBlok.self, """
-        {"_uid":"s2","component":"slideshow","images":[]}
-        """)
-        XCTAssertEqual(blok.autoplayInterval, 7)
-        XCTAssertEqual(blok.transitionDuration, 0.3)
-        XCTAssertTrue(blok.showsNavigation)
-        XCTAssertFalse(blok.showsCounter)
     }
 
     func testMusicPlayerMp3BecomesAPlayableTrack() throws {
@@ -193,14 +182,6 @@ final class StoryblokDecodingTests: XCTestCase {
         """)
         XCTAssertEqual(blok.images.count, 2, "the cleared asset goes, the clip stays")
         XCTAssertTrue(blok.images[0].isVideo)
-    }
-
-    /// `0` is how an editor switches autoplay off in a number field.
-    func testZeroAutoplayDelayDisablesAutoplay() throws {
-        let blok = try decode(SlideshowBlok.self, """
-        {"_uid":"s3","component":"slideshow","autoplayDelay":0,"images":[]}
-        """)
-        XCTAssertNil(blok.autoplayInterval)
     }
 
     func testWorkBlokDecodesEveryField() throws {

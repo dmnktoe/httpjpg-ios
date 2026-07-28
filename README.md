@@ -293,13 +293,16 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   web player would drag its tracking into the app past the consent choice the
   web already asks for. Uploaded assets play inline.
 - Carousels — the work-card strip and the `slideshow` blok — share one
-  `ImageCarousel` in `DesignSystem`: glass arrows, optional counter, autoplay
-  on a task loop. The slideshow honours `autoplayDelay`, `speed`,
-  `showNavigation` and `showCounter`, but not `effect`: cube, coverflow, flip
-  and cards are Swiper's own 3-D transitions, and everything renders as the
-  paged `slide`. Autoplay matches Swiper's `disableOnInteraction: false`: a
-  swipe re-arms the timer instead of killing it. Video assets in a slideshow
-  play as chromeless muted loops, like the web's `<video autoplay muted loop>`.
+  `ImageCarousel` in `DesignSystem` with one fixed cadence: glass arrows,
+  7-second autoplay that a swipe re-arms rather than kills (Swiper's
+  `disableOnInteraction: false`). The slideshow blok reads only `showCounter`
+  and the aspect ratio from the CMS; the playback fields are deliberately
+  ignored — `autoplayDelay` is a raw milliseconds number field, and a story
+  carrying a seconds-scale value turned into millisecond autoplay, slides
+  racing and swipes appearing to skip items. `effect` is ignored too: cube,
+  coverflow, flip and cards are Swiper's own 3-D transitions, and everything
+  renders as the paged `slide`. Video assets in a slideshow play as chromeless
+  muted loops, like the web's `<video autoplay muted loop>`.
 - The app icon is the site's `icon.png` upscaled to 1024 and flattened onto
   white, because iOS rejects icons with an alpha channel. The source art is only
   254px, so it is soft — a crisp icon needs the original at 1024 or larger. It
