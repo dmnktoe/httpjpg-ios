@@ -101,6 +101,9 @@ struct PlayerScreen: View {
                     .font(Typography.mono(28, weight: .bold))
                     .frame(width: 64, height: 64)
                     .contentShape(Rectangle())
+                    // Same fast glyph swap as the bar's button.
+                    .contentTransition(.opacity)
+                    .animation(.easeOut(duration: 0.1), value: player.isPlaying)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(player.isPlaying ? "Pause" : "Play")

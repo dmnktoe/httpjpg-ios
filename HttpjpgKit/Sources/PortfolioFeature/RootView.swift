@@ -52,8 +52,11 @@ public struct RootView: View {
                     onRowWidthChange: { pillRowWidth = $0 }
                 )
             }
-            .animation(.smooth(duration: 0.35), value: player.track)
-            .animation(.smooth(duration: 0.35), value: pillRowWidth)
+            // Quicker than the tab pills' own transitions: the bar reacts to
+            // taps (play, ✕), and a reaction that trails the finger by a third
+            // of a second reads as lag rather than motion.
+            .animation(.smooth(duration: 0.2), value: player.track)
+            .animation(.smooth(duration: 0.2), value: pillRowWidth)
         }
         .pageTheme(theme)
         .pageSurface(theme)

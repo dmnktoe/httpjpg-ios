@@ -44,6 +44,10 @@ struct MiniPlayerBar: View {
                         .font(Typography.mono(Typography.Size.md, weight: .bold))
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
+                        // A fast glyph swap — anything slower makes the pause
+                        // feel like it happened after the tap, not on it.
+                        .contentTransition(.opacity)
+                        .animation(.easeOut(duration: 0.1), value: player.isPlaying)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
