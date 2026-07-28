@@ -65,7 +65,8 @@ struct PageScreen: View {
         } else {
             ScrollView {
                 BlokListView(page.body, appliesPageGutter: true)
-                    .padding(.vertical, Spacing.s6)
+                    .padding(.top, Spacing.s6)
+                    .padding(.bottom, TabBarClearance.bottomPadding)
             }
             .pageTheme(theme)
             .pageSurface(theme)

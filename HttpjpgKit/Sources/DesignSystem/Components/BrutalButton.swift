@@ -71,20 +71,20 @@ public struct BrutalButtonStyle: ButtonStyle {
 
     /// The pill is Liquid Glass tinted by the variant rather than a solid fill.
     /// `interactive: true` is what makes it flex under a finger — a button is
-    /// exactly the kind of control that behaviour was written for. With glass
-    /// switched off it falls back to the variant's own colour, so the button
-    /// still reads as primary or danger.
+    /// exactly the kind of control that behaviour was written for.
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Typography.sans(size.font).weight(.medium))
+            // The bold *face*, not `.weight(.medium)` on the regular one:
+            // bundled families have no weight axis, so asking a custom `Font`
+            // to get heavier does nothing at all.
+            .font(Typography.sansBold(size.font))
             .foregroundStyle(variant.label)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .glassBackground(
                 in: .capsule,
                 tint: variant.fill.opacity(configuration.isPressed ? 1 : 0.9),
-                interactive: true,
-                fallback: variant.fill.opacity(configuration.isPressed ? 1 : 0.9)
+                interactive: true
             )
             .shadow(color: variant.fill.opacity(0.3), radius: 10)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)

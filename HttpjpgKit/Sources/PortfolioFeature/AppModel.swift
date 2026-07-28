@@ -11,20 +11,28 @@ import WidgetFeature
 @MainActor
 @Observable
 public final class AppModel {
-    /// Two tabs. Preferences live at the bottom of `info` rather than in a tab
-    /// of their own — an appearance switch and a glass toggle do not earn a
-    /// third of the tab bar.
+    /// Two tabs. There is no third for settings — the app has no settings.
     public enum Tab: String, CaseIterable, Identifiable, Sendable {
         case work
         case info
 
         public var id: String { rawValue }
 
-        /// Tab labels are set in the site's own voice, lowercase and mono.
+        /// Tab labels are set in the site's own voice — which is to say, in
+        /// whatever Unicode the site feels like that day.
         public var label: String {
             switch self {
-            case .work: return "work"
-            case .info: return "info"
+            case .work: return "🎀 ୧ꔛꗃ˖ աօʀӄ"
+            case .info: return "👊🐯  ᶤⓝƒ𝓸  💀☟"
+            }
+        }
+
+        /// What VoiceOver says, since the label above does not survive being
+        /// read aloud.
+        public var accessibilityLabel: String {
+            switch self {
+            case .work: return "Work"
+            case .info: return "Info"
             }
         }
     }
@@ -35,8 +43,10 @@ public final class AppModel {
     /// tap can push onto it before the screen has even appeared.
     public var workPath: [WorkRoute] = []
     public private(set) var config: SiteConfig = .fallback
-
-    private var hasLoadedConfig = false
+    /// Public because the footer's widget flags are meaningless until the real
+    /// config lands — reading them off `.fallback` would report every widget as
+    /// disabled and never retry.
+    public private(set) var hasLoadedConfig = false
 
     public init(configuration: StoryblokConfiguration) {
         self.client = ContentClient(configuration: configuration)
@@ -66,29 +76,17 @@ public final class AppModel {
         selectedTab = .work
         workPath = [WorkRoute(slug: slug, title: slug)]
     }
-}
 
-/// How the app picks between the light and dark page themes.
-public enum AppearancePreference: String, CaseIterable, Identifiable, Sendable {
-    case system
-    case light
-    case dark
-
-    public var id: String { rawValue }
-
-    public var label: String {
-        switch self {
-        case .system: return "system"
-        case .light: return "light"
-        case .dark: return "dark"
+    /// Selects a tab, or — when it is already selected — pops it back to its
+    /// root. Tapping the current tab to get home is how every iOS tab bar
+    /// behaves, and it is the only way back that does not depend on the swipe.
+    public func select(tab: Tab) {
+        guard tab == selectedTab else {
+            selectedTab = tab
+            return
         }
-    }
-
-    public func theme(systemScheme: ColorScheme) -> PageTheme {
-        switch self {
-        case .system: return systemScheme == .dark ? .dark : .light
-        case .light: return .light
-        case .dark: return .dark
+        if tab == .work {
+            workPath.removeAll()
         }
     }
 }

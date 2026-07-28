@@ -2,9 +2,9 @@ import Foundation
 
 /// The `config` root story — the Swift counterpart of `SbConfigStory`.
 ///
-/// Only the fields the app actually consumes are decoded. The web-only widget
-/// toggles (Spotify, PSN, cursor trails, …) are deliberately left out: they
-/// describe browser chrome that has no iOS equivalent.
+/// Only the fields the app actually consumes are decoded. The browser-only
+/// toggles (cursor trails, the nostalgia slideshow) stay out; the widget flags
+/// do not, because the footer honours them exactly as the web does.
 public struct SiteConfig: Decodable, Sendable {
     public let headerMenu: [MenuLink]
     public let footer: FooterConfig?
@@ -12,6 +12,7 @@ public struct SiteConfig: Decodable, Sendable {
     public let seoDescription: String?
     public let authorName: String?
     public let authorURL: String?
+    public let widgets: WidgetFlags
 
     private enum CodingKeys: String, CodingKey {
         case headerMenu = "header_menu"
@@ -30,6 +31,8 @@ public struct SiteConfig: Decodable, Sendable {
         seoDescription = container.cmsString(forKey: .seoDescription)
         authorName = container.cmsString(forKey: .authorName)
         authorURL = container.cmsString(forKey: .authorURL)
+        // Flat on the same story, so they decode from the same decoder.
+        widgets = try WidgetFlags(from: decoder)
     }
 
     /// Used before the network settles, and whenever the config story is
@@ -43,7 +46,8 @@ public struct SiteConfig: Decodable, Sendable {
         seoTitle: nil,
         seoDescription: nil,
         authorName: nil,
-        authorURL: nil
+        authorURL: nil,
+        widgets: .allOff
     )
 
     public init(
@@ -52,7 +56,8 @@ public struct SiteConfig: Decodable, Sendable {
         seoTitle: String?,
         seoDescription: String?,
         authorName: String?,
-        authorURL: String?
+        authorURL: String?,
+        widgets: WidgetFlags = .allOff
     ) {
         self.headerMenu = headerMenu
         self.footer = footer
@@ -60,7 +65,59 @@ public struct SiteConfig: Decodable, Sendable {
         self.seoDescription = seoDescription
         self.authorName = authorName
         self.authorURL = authorURL
+        self.widgets = widgets
     }
+}
+
+/// The server-side switches that decide which footer widgets exist at all.
+///
+/// The defaults are `getWidgetConfig()`'s, field for field — Discord and
+/// Letterboxd default on, PSN off — so a config story that predates a flag
+/// behaves the same in the app as it does on the web. The fallback config is
+/// the exception: nothing is on until the real config arrives, so the footer
+/// does not flash four widgets and then retract three of them.
+public struct WidgetFlags: Decodable, Sendable {
+    public let isDiscordEnabled: Bool
+    public let isLetterboxdEnabled: Bool
+    public let isPsnEnabled: Bool
+    public let isPsnTrophyEnabled: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case discordEnabled = "discord_enabled"
+        case letterboxdEnabled = "letterboxd_enabled"
+        case psnEnabled = "psn_enabled"
+        case psnTrophyEnabled = "psn_trophy_enabled"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        isDiscordEnabled = container.cmsBool(forKey: .discordEnabled, default: true)
+        isLetterboxdEnabled = container.cmsBool(forKey: .letterboxdEnabled, default: true)
+        isPsnEnabled = container.cmsBool(forKey: .psnEnabled)
+        isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
+    }
+
+    public init(
+        isDiscordEnabled: Bool,
+        isLetterboxdEnabled: Bool,
+        isPsnEnabled: Bool,
+        isPsnTrophyEnabled: Bool
+    ) {
+        self.isDiscordEnabled = isDiscordEnabled
+        self.isLetterboxdEnabled = isLetterboxdEnabled
+        self.isPsnEnabled = isPsnEnabled
+        self.isPsnTrophyEnabled = isPsnTrophyEnabled
+    }
+
+    public static let allOff = WidgetFlags(
+        isDiscordEnabled: false,
+        isLetterboxdEnabled: false,
+        isPsnEnabled: false,
+        isPsnTrophyEnabled: false
+    )
+
+    /// PSN needs both its own switch and the trophy switch, same as the web.
+    public var isTrophyEnabled: Bool { isPsnEnabled && isPsnTrophyEnabled }
 }
 
 /// A `menu_link` blok.

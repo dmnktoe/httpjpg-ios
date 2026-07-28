@@ -12,12 +12,10 @@ import SwiftUI
 /// the pages are discovered: every story outside `work/`, listed, opened
 /// through the same blok registry the web uses.
 struct InfoScreen: View {
-    @Binding var appearance: AppearancePreference
-    @Binding var isGlassEnabled: Bool
-
     @Environment(AppModel.self) private var app
 
     @State private var model: InfoModel?
+    @State private var widgets: FooterWidgetsModel?
     @State private var path: [PageRoute] = []
 
     var body: some View {
@@ -26,16 +24,21 @@ struct InfoScreen: View {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
                     pages
                     InfoLinksSection(links: app.config.headerMenu)
-                    InfoPreferencesSection(
-                        appearance: $appearance,
-                        isGlassEnabled: $isGlassEnabled
-                    )
-                    InfoColophon(config: app.config, siteName: app.siteName)
                 }
                 .padding(.horizontal, PageLayout.gutter)
-                .padding(.vertical, Spacing.s6)
+                .padding(.top, Spacing.s6)
+
+                // Full-bleed: the footer is centred and has its own gutter, so
+                // it sits outside the column above rather than inside it.
+                if let widgets {
+                    InfoFooter(config: app.config, widgets: widgets)
+                }
             }
-            .refreshable { await model?.load() }
+            .padding(.bottom, TabBarClearance.bottomPadding)
+            .refreshable {
+                await model?.load()
+                await widgets?.load()
+            }
             .navigationTitle("info")
             .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: PageRoute.self) { route in
@@ -47,6 +50,17 @@ struct InfoScreen: View {
                 model = InfoModel(client: app.client)
                 await model?.load()
             }
+        }
+        // Separate from the pages task: the widget flags only exist once the
+        // config story lands, and starting before then would read them as off.
+        .task(id: app.hasLoadedConfig) {
+            guard app.hasLoadedConfig, widgets == nil else { return }
+            let model = FooterWidgetsModel(
+                origin: app.configuration.siteOrigin,
+                flags: app.config.widgets
+            )
+            widgets = model
+            await model.load()
         }
     }
 

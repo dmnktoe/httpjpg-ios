@@ -35,15 +35,15 @@ public struct Headline: View {
     @Environment(\.viewportWidth) private var viewportWidth
 
     /// - Parameter lineSpacing: Leading adjustment as a fraction of the font
-    ///   size, on top of the face's own. Negative tightens — display faces set
-    ///   at headline sizes carry far more line gap than a two-line title wants,
-    ///   which is the web's `line-height: 0.9` on `<Headline>` expressed the
-    ///   only way SwiftUI offers.
+    ///   size, on top of the face's own. The default pulls a display face back
+    ///   towards the web's `line-height: 1` — SwiftUI's `lineSpacing` only ever
+    ///   *adds* to the font's natural leading, so reaching a 1.0 line box means
+    ///   subtracting the gap Anton builds in.
     public init(
         _ text: String,
         level: Level = .one,
         alignment: TextAlignment = .leading,
-        lineSpacing: CGFloat = 0
+        lineSpacing: CGFloat = -0.25
     ) {
         self.text = text
         self.level = level

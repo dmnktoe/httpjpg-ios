@@ -49,4 +49,13 @@ public enum PageLayout {
     public static func cardWidth(viewport: CGFloat) -> CGFloat {
         max(viewport - gutter * 2, 0)
     }
+
+    /// The one aspect ratio every piece of story media falls back to.
+    ///
+    /// The CMS sets `16/9` on most images and leaves the rest empty. Honouring
+    /// each asset's own proportions instead made the page scroll in lurches —
+    /// a 5000×2400 panorama followed by a 4:3 phone photo followed by a
+    /// screenshot. A fixed box is the same thing the web gets from
+    /// `objectFit: cover` on a declared `aspectRatio`.
+    public static let mediaAspectRatio: CGFloat = 16.0 / 9.0
 }

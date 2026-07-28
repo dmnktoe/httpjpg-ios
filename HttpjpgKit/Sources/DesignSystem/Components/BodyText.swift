@@ -50,14 +50,20 @@ public struct BodyText: View {
     private let weight: Font.Weight
     private let alignment: TextAlignment
     private let lineLimit: Int?
+    private let lineHeight: CGFloat?
 
+    /// - Parameter lineHeight: Overrides the size's own leading, as a multiple
+    ///   of the font size. Running copy wants the web's airy 1.75; a card
+    ///   summary sitting under a headline wants far less, or the block reads as
+    ///   five loose lines instead of one paragraph.
     public init(
         _ text: String,
         size: Size = .sm,
         emphasis: Emphasis = .default,
         weight: Font.Weight = .regular,
         alignment: TextAlignment = .leading,
-        lineLimit: Int? = nil
+        lineLimit: Int? = nil,
+        lineHeight: CGFloat? = nil
     ) {
         self.text = text
         self.size = size
@@ -65,12 +71,13 @@ public struct BodyText: View {
         self.weight = weight
         self.alignment = alignment
         self.lineLimit = lineLimit
+        self.lineHeight = lineHeight
     }
 
     public var body: some View {
         Text(text)
             .font(Typography.sans(size.points).weight(weight))
-            .lineSpacing(size.lineSpacing)
+            .lineSpacing(lineHeight.map { size.points * ($0 - 1) } ?? size.lineSpacing)
             .multilineTextAlignment(alignment)
             .opacity(emphasis.opacity)
             .lineLimit(lineLimit)

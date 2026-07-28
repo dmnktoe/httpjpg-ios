@@ -183,17 +183,21 @@ text never are.
 in settings. That last one is a setting rather than a fallback, which is what
 makes the split above testable by eye.
 
-Tint survives all three. `.ultraThinMaterial` has no tint of its own, so the
-middle step washes the shape with the colour in front of the blur; the flat step
-takes a `fallback` colour, because a `danger` button that goes grey when a
-setting is off has lost the only thing it was saying. `BrutalButtonStyle` and
-the tab pill both read their colour from `BrutalButtonStyle.Variant`, so
-"secondary" means one thing in the app.
+Tint survives both. `.ultraThinMaterial` has no tint of its own, so the older
+path washes the shape with the colour in front of the blur — without it a
+`danger` button would lose the only thing it was saying. `BrutalButtonStyle` and
+the tab pill read their colour from the same `BrutalButtonStyle.Variant` table,
+so "accent" means one thing in the app.
 
-In the tab bar every tab wears a pill: the selected one in `secondary`, the rest
-in the page foreground. Selection reads as a colour change across a steady row,
-so each pill keeps its own `glassEffectID` rather than sharing a travelling one.
+In the tab bar every tab wears a pill: the selected one in the page foreground,
+the rest in `accent`. Selection reads as a colour change across a steady row, so
+each pill keeps its own `glassEffectID` rather than sharing a travelling one.
 Glass is never nested inside glass, per Apple's guidance.
+
+There is no setting for any of this, and no light/dark override either. Both
+existed and both were removed: the system already owns appearance, and a second
+way of drawing the navigation was a second thing to keep working for no one's
+benefit.
 
 ## Screens
 
@@ -287,3 +291,13 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   Autoplay also stops permanently at the first swipe, which Swiper's
   `disableOnInteraction: false` does not do — on a phone the carousel is under
   your thumb, not across the room.
+- The app icon is the site's `icon.png` upscaled to 1024 and flattened onto
+  white, because iOS rejects icons with an alpha channel. The source art is only
+  254px, so it is soft — a crisp icon needs the original at 1024 or larger. It
+  is also *not* a Liquid Glass icon: those are an `.icon` bundle of separate
+  layers authored in Icon Composer, not something that can be derived from a
+  flat PNG. Both want the layered source file.
+- The footer widgets read the website's own `/api/*` routes rather than talking
+  to Lanyard, Letterboxd and PSN directly. Those need a Lanyard user id, a
+  Letterboxd handle and a PSN NPSSO token, and an app bundle is not a place to
+  keep credentials.

@@ -23,12 +23,17 @@ public struct SbImageView: View {
                     .opacity(Opacities.muted)
             }
         }
+        // `SbImage` on the web carries `mb: "4"` before its spacing matrix is
+        // applied — the one default gap in the whole blok system. The CMS still
+        // wins: an explicit `mb` overrides it, including `mb: 0`.
+        .padding(.bottom, blok.spacing.marginBottom == nil ? Spacing.s4 : 0)
         .blokSpacing(blok.spacing)
     }
 
-    /// `nil` means "let the image decide", which is what `auto` and an empty
-    /// field both mean in the CMS.
-    private var ratio: CGFloat? {
-        AspectRatio.parse(blok.aspectRatio)
+    /// A declared ratio, never the asset's own. The CMS sets `16/9` on most
+    /// images and leaves the rest empty; sizing those to whatever the file
+    /// happens to be made the page scroll in lurches.
+    private var ratio: CGFloat {
+        AspectRatio.parse(blok.aspectRatio) ?? PageLayout.mediaAspectRatio
     }
 }

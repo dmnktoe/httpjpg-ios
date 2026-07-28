@@ -76,7 +76,7 @@ struct WorkIndexScreen: View {
                 }
             }
             .padding(.horizontal, PageLayout.gutter)
-            .padding(.bottom, Spacing.s8)
+            .padding(.bottom, TabBarClearance.bottomPadding)
         }
         .refreshable { await model.load(force: true) }
     }
@@ -85,7 +85,7 @@ struct WorkIndexScreen: View {
     /// reads as one header rather than two floating rows.
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Headline(app.siteName, level: .two, lineSpacing: -0.14)
+            Headline(app.siteName, level: .two)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
 

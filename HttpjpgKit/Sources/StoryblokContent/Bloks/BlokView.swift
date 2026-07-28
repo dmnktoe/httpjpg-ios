@@ -62,11 +62,16 @@ public struct BlokListView: View {
     private let spacing: CGFloat
     private let appliesPageGutter: Bool
 
-    /// - Parameter appliesPageGutter: Adds the horizontal page inset, but only
-    ///   when the content does not already bring its own. Pass `true` for a
-    ///   story body; leave it off for nested lists, whose parent has padded
-    ///   them already.
-    public init(_ bloks: [PortfolioBlok], spacing: CGFloat = Spacing.s6, appliesPageGutter: Bool = false) {
+    /// - Parameter spacing: Gap between bloks. **Zero by default, and that is
+    ///   the point.** The web stacks bloks flush and takes every gap from the
+    ///   CMS spacing matrix — `SbSection`, `SbContainer` and `SbHeadline` add no
+    ///   margin of their own. A default gap here quietly added 24pt between
+    ///   every pair of bloks on top of whatever the editor had configured,
+    ///   which is why the app's pages read so much airier than the site.
+    /// - Parameter appliesPageGutter: Adds the horizontal page inset. Pass
+    ///   `true` for a story body; leave it off for nested lists, whose parent
+    ///   has padded them already.
+    public init(_ bloks: [PortfolioBlok], spacing: CGFloat = 0, appliesPageGutter: Bool = false) {
         self.bloks = bloks
         self.spacing = spacing
         self.appliesPageGutter = appliesPageGutter

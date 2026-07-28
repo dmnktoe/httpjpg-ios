@@ -269,6 +269,55 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
     }
 
+    /// The widget switches live flat on the config story, and their defaults
+    /// are `getWidgetConfig()`'s: Discord and Letterboxd on, PSN off.
+    func testWidgetFlagsDefaultTheSameWayTheWebDoes() throws {
+        let config = try decode(SiteConfig.self, #"{"seo_title":"httpjpg"}"#)
+        XCTAssertTrue(config.widgets.isDiscordEnabled)
+        XCTAssertTrue(config.widgets.isLetterboxdEnabled)
+        XCTAssertFalse(config.widgets.isPsnEnabled)
+        XCTAssertFalse(config.widgets.isTrophyEnabled)
+    }
+
+    func testWidgetFlagsReadBothBooleansAndStrings() throws {
+        let config = try decode(SiteConfig.self, """
+        {"discord_enabled":false,"letterboxd_enabled":"false",
+         "psn_enabled":true,"psn_trophy_enabled":"true"}
+        """)
+        XCTAssertFalse(config.widgets.isDiscordEnabled)
+        XCTAssertFalse(config.widgets.isLetterboxdEnabled)
+        XCTAssertTrue(config.widgets.isTrophyEnabled)
+    }
+
+    /// Trophies need both switches — `psn_enabled` alone is not enough, same as
+    /// the web's two separate flags.
+    func testTrophiesNeedBothPsnSwitches() throws {
+        let config = try decode(SiteConfig.self, #"{"psn_enabled":true}"#)
+        XCTAssertTrue(config.widgets.isPsnEnabled)
+        XCTAssertFalse(config.widgets.isTrophyEnabled)
+    }
+
+    // MARK: - Marquee
+
+    func testMarqueeCarriesSpeedDirectionAndRepeat() throws {
+        let blok = try decode(MarqueeBlok.self, """
+        {"_uid":"m1","component":"marquee","text":"+++ON AIR+++",
+         "speed":"5","direction":"right","repeat":"12"}
+        """)
+        XCTAssertEqual(blok.secondsPerCopy, 5)
+        XCTAssertTrue(blok.isReversed)
+        XCTAssertEqual(blok.repeatCount, 12)
+    }
+
+    /// A marquee with one copy cannot scroll — `MarqueeLabel` refuses to move a
+    /// label that fits — so the repeat count never falls below the web's 3.
+    func testMarqueeDefaultsToThreeCopies() throws {
+        let blok = try decode(MarqueeBlok.self, #"{"_uid":"m2","component":"marquee","text":"hi"}"#)
+        XCTAssertEqual(blok.repeatCount, 3)
+        XCTAssertEqual(blok.secondsPerCopy, 20)
+        XCTAssertFalse(blok.isReversed)
+    }
+
     // MARK: - Configuration
 
     func testRegionsMapToTheirCDNHosts() {

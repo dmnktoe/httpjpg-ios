@@ -104,7 +104,8 @@ struct WorkDetailScreen: View {
                     .padding(.horizontal, PageLayout.gutter)
                 }
             }
-            .padding(.vertical, Spacing.s6)
+            .padding(.top, Spacing.s6)
+            .padding(.bottom, TabBarClearance.bottomPadding)
         }
         .pageTheme(theme)
         .pageSurface(theme)
@@ -122,6 +123,8 @@ struct WorkDetailScreen: View {
     }
 }
 
+/// Date and tape. No tag chips: every project carries the same tag, so the row
+/// said nothing and cost a line at the top of every story.
 private struct Meta: View {
     let detail: WorkDetail
 
@@ -131,9 +134,6 @@ private struct Meta: View {
                 WorkCardDateView(date: date, dateEnd: detail.dateEnd)
             }
             AsciiTape()
-            if !detail.tags.isEmpty {
-                TagChipRow(tags: detail.tags)
-            }
         }
     }
 }

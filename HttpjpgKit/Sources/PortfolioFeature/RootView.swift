@@ -5,14 +5,17 @@ import SwiftUI
 /// The app shell.
 ///
 /// There is no custom masthead: each tab owns a `NavigationStack` and titles
-/// itself, so the system navigation bar provides the header — large title,
-/// collapse-on-scroll, and the iOS 26 scroll-edge effect. The only chrome this
-/// view draws is the tab bar, as a `safeAreaInset` so content rests clear of it
-/// but scrolls underneath, which is what gives the glass something to refract.
+/// itself, so the system navigation bar provides the header. The only chrome
+/// this view draws is the tab bar, as a `safeAreaInset` so content rests clear
+/// of it but scrolls underneath, which is what gives the glass something to
+/// refract.
+///
+/// It follows the system appearance. There used to be a light/dark override and
+/// a Liquid Glass switch in settings; both are gone. The system already owns
+/// appearance, and a second way of drawing the navigation was a second thing to
+/// keep working for no one's benefit.
 public struct RootView: View {
     @State private var model: AppModel
-    @AppStorage("appearance") private var appearance: AppearancePreference = .system
-    @AppStorage("liquidGlass") private var isGlassEnabled = true
     @Environment(\.colorScheme) private var systemScheme
 
     public init(configuration: StoryblokConfiguration) {
@@ -25,12 +28,11 @@ public struct RootView: View {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    TabBar(selection: $model.selectedTab)
+                    TabBar(selection: model.selectedTab) { model.select(tab: $0) }
                 }
         }
         .pageTheme(theme)
         .pageSurface(theme)
-        .environment(\.isLiquidGlassEnabled, isGlassEnabled)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
         .onOpenURL { model.open($0) }
@@ -43,44 +45,34 @@ public struct RootView: View {
         case .work:
             WorkIndexScreen()
         case .info:
-            InfoScreen(appearance: $appearance, isGlassEnabled: $isGlassEnabled)
+            InfoScreen()
         }
     }
 
     private var theme: PageTheme {
-        appearance.theme(systemScheme: systemScheme)
+        systemScheme == .dark ? .dark : .light
     }
 }
 
-/// Tab bar in two dialects.
+/// A floating rail of glass pills, one per tab.
 ///
-/// Glass on: a floating rail whose selection pill morphs from tab to tab — the
-/// one gesture Liquid Glass is actually for. Glass off: the flat inverse-block
-/// row with a hard rule on top, which is what the site would do.
+/// There is no rail behind the row — Apple's guidance is not to nest glass in
+/// glass, so the pills sit directly over the content they refract.
 private struct TabBar: View {
-    @Binding var selection: AppModel.Tab
+    let selection: AppModel.Tab
+    /// Not a binding: tapping the *current* tab is a meaningful action — it
+    /// pops that tab's stack — and a binding can only express a change.
+    let onSelect: (AppModel.Tab) -> Void
 
     @Environment(\.pageTheme) private var theme
-    @Environment(\.isLiquidGlassEnabled) private var isGlass
     @Namespace private var glassNamespace
 
     var body: some View {
-        if isGlass {
-            glassRail
-        } else {
-            flatRow
-        }
-    }
-
-    /// Every tab is a glass pill; only the tint distinguishes them. There is no
-    /// rail behind the row — Apple's guidance is not to nest glass in glass, so
-    /// the pills sit directly over the content they refract.
-    private var glassRail: some View {
         GlassGroup(spacing: Spacing.s3) {
             HStack(spacing: Spacing.s2) {
                 ForEach(AppModel.Tab.allCases) { tab in
                     Button {
-                        withAnimation(.smooth(duration: 0.35)) { selection = tab }
+                        withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
                     } label: {
                         label(for: tab)
                             .padding(.horizontal, Spacing.s4)
@@ -93,6 +85,7 @@ private struct TabBar: View {
                             ))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(tab.accessibilityLabel)
                     .accessibilityAddTraits(traits(for: tab))
                 }
             }
@@ -101,44 +94,27 @@ private struct TabBar: View {
         .padding(.bottom, Spacing.s2)
     }
 
-    private var flatRow: some View {
-        HStack(spacing: 0) {
-            ForEach(AppModel.Tab.allCases) { tab in
-                Button {
-                    selection = tab
-                } label: {
-                    label(for: tab)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.s3)
-                        .background(selection == tab ? theme.foreground : .clear)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(traits(for: tab))
-            }
-        }
-        .background(theme.background)
-        .overlay(alignment: .top) {
-            Rectangle().fill(theme.foreground).frame(height: 1)
-        }
-    }
-
-    /// Two different contrast problems. On the flat row only the selected tab
-    /// has a fill behind it, so the label inverts on selection. In the rail
-    /// every tab sits on a tinted pill, so the label follows the pill it is on.
+    /// Every tab sits on a tinted pill, so the label follows the pill it is on.
     private func label(for tab: AppModel.Tab) -> some View {
         let isSelected = selection == tab
         return Text(tab.label)
-            .font(Typography.mono(Typography.Size.sm, weight: isSelected ? .bold : .regular))
-            .tracking(Typography.Size.sm * 0.1)
-            .foregroundStyle(
-                isGlass
-                    ? SelectionPill.labelColor(isSelected: isSelected, theme: theme)
-                    : (isSelected ? theme.background : theme.foreground)
-            )
+            .font(Typography.mono(Typography.Size.xs, weight: isSelected ? .bold : .regular))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .foregroundStyle(SelectionPill.labelColor(isSelected: isSelected, theme: theme))
     }
 
     private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {
         selection == tab ? [.isSelected, .isButton] : .isButton
     }
+}
+
+/// How much room a scrolling screen leaves under its content so the tab bar's
+/// glass pills never come to rest on top of the last line of it.
+///
+/// `safeAreaInset` already reserves the pills' own height; this is the breathing
+/// room on top of that, because a pill *touching* the final row reads as
+/// overlapping it even when it technically is not.
+public enum TabBarClearance {
+    public static let bottomPadding: CGFloat = Spacing.s16
 }

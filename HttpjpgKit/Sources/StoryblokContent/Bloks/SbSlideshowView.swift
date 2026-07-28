@@ -46,21 +46,23 @@ public struct SbSlideshowView: View {
         .simultaneousGesture(DragGesture().onChanged { _ in hasInteracted = true })
     }
 
-    /// Arrows in the web's position — top right, barely there until you look
-    /// for them. Glass rather than the web's bare SVG: over arbitrary
-    /// photography a translucent chip is the only thing that stays legible
-    /// against both a white sky and a black shadow.
+    /// Arrows in the web's position — top right. Glass rather than the web's
+    /// bare SVG: over arbitrary photography a translucent chip is the only
+    /// thing that stays legible against both a white sky and a black shadow.
+    ///
+    /// They are deliberately larger and more opaque than the web's 0.35 — a
+    /// desktop reveals them on hover, a phone has no hover, so anything that
+    /// faint is simply invisible.
     @ViewBuilder
     private var navigation: some View {
         if blok.showsNavigation, blok.images.count > 1 {
             GlassGroup(spacing: Spacing.s2) {
-                HStack(spacing: Spacing.s1) {
-                    arrow("arrow.left", step: -1)
-                    arrow("arrow.right", step: 1)
+                HStack(spacing: Spacing.s2) {
+                    arrow("chevron.left", step: -1)
+                    arrow("chevron.right", step: 1)
                 }
             }
-            .padding(.top, Spacing.s4)
-            .padding(.trailing, Spacing.s4)
+            .padding(Spacing.s3)
         }
     }
 
@@ -70,19 +72,14 @@ public struct SbSlideshowView: View {
             advance(by: step, isAutomatic: false)
         } label: {
             Image(systemName: symbol)
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 34, height: 34)
+                .frame(width: 44, height: 44)
                 .contentShape(Circle())
-                .glassBackground(
-                    in: .circle,
-                    tint: .black.opacity(0.25),
-                    interactive: true,
-                    fallback: .black.opacity(0.35)
-                )
+                .glassBackground(in: .circle, tint: .black.opacity(0.55), interactive: true)
         }
         .buttonStyle(.plain)
-        .opacity(0.75)
+        .shadow(color: .black.opacity(0.35), radius: 6)
         .accessibilityLabel(step < 0 ? "Previous slide" : "Next slide")
     }
 
@@ -128,13 +125,11 @@ public struct SbSlideshowView: View {
         blok.images.count > 1 && !reduceMotion && blok.autoplayInterval != nil
     }
 
-    /// One carousel needs one height. The CMS ratio wins; otherwise the first
-    /// image's own proportions do, so the common case of a uniform set looks
-    /// right without anyone configuring it.
+    /// One carousel needs one height, and it is a declared one — the CMS ratio
+    /// if set, the house ratio otherwise. Reading it off the first asset made
+    /// the box change from slideshow to slideshow down a page.
     private var aspectRatio: CGFloat {
-        blok.aspectRatio
-            ?? ImageService.aspectRatio(of: blok.images.first?.filename)
-            ?? 16.0 / 9.0
+        blok.aspectRatio ?? PageLayout.mediaAspectRatio
     }
 
     private var height: CGFloat {

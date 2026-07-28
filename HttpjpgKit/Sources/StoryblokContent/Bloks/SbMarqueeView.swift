@@ -10,7 +10,16 @@ public struct SbMarqueeView: View {
     }
 
     public var body: some View {
-        Marquee(blok.text, rate: blok.rate)
-            .blokSpacing(blok.spacing)
+        if !blok.text.isEmpty {
+            Marquee(
+                // The web joins its repeats with a space; without one the last
+                // `+++` of a copy runs straight into the first of the next.
+                blok.text + " ",
+                speed: .secondsPerCopy(blok.secondsPerCopy),
+                direction: blok.isReversed ? .right : .left,
+                repeatCount: blok.repeatCount
+            )
+            .blokSpacing(blok.spacing, appliesHorizontal: false)
+        }
     }
 }

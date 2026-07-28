@@ -330,16 +330,17 @@ public struct MarqueeBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
     public let text: String
-    /// Scroll speed in points per second.
-    ///
-    /// The CMS stores `speed` as the number of *seconds* per loop, which only
-    /// means something once you know the text width. `MarqueeLabel` wants a
-    /// rate, so the seconds value is inverted against a nominal loop width —
-    /// the same motion, expressed the way the platform asks for it.
-    public let rate: CGFloat
+    /// Seconds for one copy of the text to travel its own width. The CMS field
+    /// is a CSS animation duration, so it means the same thing here.
+    public let secondsPerCopy: CGFloat
+    public let isReversed: Bool
+    /// How many copies form the strip. The web's default is 3; the CMS raises
+    /// it per blok.
+    public let repeatCount: Int
 
     private enum CodingKeys: String, CodingKey {
-        case text, speed
+        case text, speed, direction
+        case repeatCount = "repeat"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -348,9 +349,9 @@ public struct MarqueeBlok: Decodable, Identifiable {
         id = envelope.uid
         spacing = envelope.spacing
         text = container.cmsString(forKey: .text) ?? ""
-
-        let seconds = CGFloat(container.cmsInt(forKey: .speed) ?? 20)
-        rate = seconds > 0 ? max(600 / seconds, 10) : 30
+        secondsPerCopy = CGFloat(container.cmsInt(forKey: .speed) ?? 20)
+        isReversed = container.cmsString(forKey: .direction) == "right"
+        repeatCount = max(container.cmsInt(forKey: .repeatCount) ?? 3, 1)
     }
 }
 

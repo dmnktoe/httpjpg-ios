@@ -43,9 +43,13 @@ public struct WorkCardView: View {
             title
             meta
             if variant.showsDescription, let description = model.description, !description.isEmpty {
-                BodyText(description, size: .sm, lineLimit: 5)
+                BodyText(description, size: .sm, lineLimit: 5, lineHeight: 1.35)
                     .padding(.top, Spacing.s2)
             }
+            // After the summary, not before it: the slug is where the card
+            // *goes*, which is the last thing you want to read, not the first.
+            slugLine
+                .padding(.top, Spacing.s1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -68,17 +72,14 @@ public struct WorkCardView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
+    /// Date and tape only. Tags used to sit here, but every project carries the
+    /// same one, so the chip row said nothing and cost a line on every card.
     private var meta: some View {
         VStack(alignment: .leading, spacing: Spacing.s1) {
             if let date = model.date {
                 WorkCardDateView(date: date, dateEnd: model.dateEnd)
             }
-            slugLine
             AsciiTape()
-            if !model.tags.isEmpty {
-                TagChipRow(tags: model.tags)
-                    .padding(.top, Spacing.s1)
-            }
         }
     }
 
@@ -166,12 +167,13 @@ private struct WorkCardImages: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
 
-    /// One carousel needs one height, so every slide is shown in the first
-    /// image's box. Letting each page size itself makes the card resize as you
-    /// swipe, which reads as a layout bug rather than a design.
-    private var aspectRatio: CGFloat {
-        images.first?.aspectRatio ?? 3.0 / 2.0
-    }
+    /// One fixed ratio for every card, not the first asset's own.
+    ///
+    /// The library is a mix of 5000×2400 panoramas, 4:3 phone photos and 16:9
+    /// screenshots. Sizing each card to its own image made the index scroll in
+    /// lurches; a single ratio makes it a rhythm, and cropping to it is what the
+    /// web's `objectFit: cover` does anyway.
+    private var aspectRatio: CGFloat { PageLayout.mediaAspectRatio }
 
     var body: some View {
         if images.count == 1, let image = images.first {
