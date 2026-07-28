@@ -42,6 +42,10 @@ public final class AppModel {
     /// The work tab's navigation stack, hoisted out of the screen so a widget
     /// tap can push onto it before the screen has even appeared.
     public var workPath: [WorkRoute] = []
+    /// The info tab's stack, hoisted for the same reason the work one is:
+    /// tapping the current tab pops to root, and the model can only pop a
+    /// path it owns.
+    public var infoPath: [PageRoute] = []
     /// The external preview link of the story currently on screen, if it has
     /// one. The detail screen sets it, the tab bar shows it as an extra pill.
     public var previewURL: URL?
@@ -93,8 +97,9 @@ public final class AppModel {
             selectedTab = tab
             return
         }
-        if tab == .work {
-            workPath.removeAll()
+        switch tab {
+        case .work: workPath.removeAll()
+        case .info: infoPath.removeAll()
         }
     }
 }

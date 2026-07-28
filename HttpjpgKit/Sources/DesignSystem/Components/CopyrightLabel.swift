@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Photo credit — the Swift port of `@httpjpg/ui`'s `<CopyrightLabel>`.
 ///
@@ -61,20 +62,34 @@ public struct CopyrightLabel: View {
         }
     }
 
-    /// The vertical strip. SwiftUI has no writing mode, so this is plain text
-    /// rotated 90° about its bottom-trailing corner — which leaves it running
-    /// up the inside of the right edge — then pulled back in by one line
-    /// height, since rotation moves pixels but not the layout frame.
+    /// The vertical strip, reading bottom-to-top like the web's
+    /// `writing-mode: vertical-rl` + `rotate(180deg)`.
+    ///
+    /// SwiftUI has no writing mode, so this is plain text rotated −90° about
+    /// its centre — and because rotation moves pixels but not the layout
+    /// frame, the view is then given an explicit frame of the *rotated*
+    /// dimensions (line height wide, text width tall). That measured frame is
+    /// what lets a plain `.bottomTrailing` overlay alignment pin it to the
+    /// corner; without it the alignment would place the unrotated box.
     private func inline(_ color: Color) -> some View {
         Text(label)
             .font(Typography.sans(Self.inlineFontSize))
             .foregroundStyle(color)
             .opacity(Opacities.muted)
             .fixedSize()
-            .rotationEffect(.degrees(90), anchor: .bottomTrailing)
-            .offset(x: -Self.inlineLineHeight)
+            .rotationEffect(.degrees(-90))
+            .frame(width: Self.inlineLineHeight, height: measuredTextWidth)
             .allowsHitTesting(false)
             .accessibilityLabel("Copyright \(text)")
+    }
+
+    /// The unrotated text width, measured with the same face the view sets, so
+    /// the frame swap above is exact rather than guessed.
+    private var measuredTextWidth: CGFloat {
+        (label as NSString)
+            .size(withAttributes: [.font: Typography.uiSans(Self.inlineFontSize)])
+            .width
+            .rounded(.up)
     }
 
     private var label: String { "© \(text)" }

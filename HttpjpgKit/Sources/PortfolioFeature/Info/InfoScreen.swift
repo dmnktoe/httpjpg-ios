@@ -16,10 +16,11 @@ struct InfoScreen: View {
 
     @State private var model: InfoModel?
     @State private var widgets: FooterWidgetsModel?
-    @State private var path: [PageRoute] = []
 
     var body: some View {
-        NavigationStack(path: $path) {
+        // The path lives on `AppModel` so tapping the info pill can pop it.
+        @Bindable var app = app
+        return NavigationStack(path: $app.infoPath) {
             ScrollView {
                 // The clearance lives on the *content*, not the scroll view —
                 // padding the scroll view would end it above the tab pills and
