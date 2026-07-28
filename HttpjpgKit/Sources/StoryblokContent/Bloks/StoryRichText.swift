@@ -31,11 +31,15 @@ public struct StoryRichText: View {
         }
     }
 
-    @ViewBuilder
-    private func blocks(of node: RichTextNode) -> some View {
-        ForEach(Array(nodesToRender(node).enumerated()), id: \.offset) { entry in
-            block(entry.element)
-        }
+    /// Erased, like `BlokView`: rich text nests into itself — a list item holds
+    /// paragraphs, a blockquote holds a list — so `block` and `blocks` call each
+    /// other and `some View` has no fixed point to infer.
+    private func blocks(of node: RichTextNode) -> AnyView {
+        AnyView(
+            ForEach(Array(nodesToRender(node).enumerated()), id: \.offset) { entry in
+                block(entry.element)
+            }
+        )
     }
 
     /// A document renders its children; anything else renders itself.
@@ -44,75 +48,87 @@ public struct StoryRichText: View {
         return [node]
     }
 
-    @ViewBuilder
-    private func block(_ node: RichTextNode) -> some View {
+    private func block(_ node: RichTextNode) -> AnyView {
         switch node {
         case .paragraph(let alignment, let content):
-            paragraph(content, alignment: alignment)
+            return AnyView(paragraph(content, alignment: alignment))
 
         case .heading(let level, let content):
-            Headline(
-                RichTextInline.plainText(content),
-                level: Headline.Level(rawValue: level) ?? .three
+            return AnyView(
+                Headline(
+                    RichTextInline.plainText(content),
+                    level: Headline.Level(rawValue: level) ?? .three
+                )
             )
 
         case .bulletList(let items):
-            list(items) { _ in "—" }
+            return AnyView(list(items) { _ in "—" })
 
         case .orderedList(let items):
-            list(items) { "\($0 + 1)." }
+            return AnyView(list(items) { "\($0 + 1)." })
 
         case .listItem(let content):
-            VStack(alignment: .leading, spacing: Spacing.s2) {
-                blocks(of: .document(content))
-            }
+            return AnyView(
+                VStack(alignment: .leading, spacing: Spacing.s2) {
+                    blocks(of: .document(content))
+                }
+            )
 
         case .blockquote(let content):
-            VStack(alignment: .leading, spacing: Spacing.s2) {
-                blocks(of: .document(content))
-            }
-            .padding(.leading, Spacing.s4)
-            .overlay(alignment: .leading) {
-                Rectangle().fill(theme.border).frame(width: 2)
-            }
+            return AnyView(
+                VStack(alignment: .leading, spacing: Spacing.s2) {
+                    blocks(of: .document(content))
+                }
+                .padding(.leading, Spacing.s4)
+                .overlay(alignment: .leading) {
+                    Rectangle().fill(theme.border).frame(width: 2)
+                }
+            )
 
         case .codeBlock(_, let content):
-            ScrollView(.horizontal, showsIndicators: false) {
-                Text(RichTextInline.plainText(content))
-                    .font(Typography.mono(size))
-                    .textSelection(.enabled)
-                    .padding(Spacing.s3)
-            }
-            .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
+            return AnyView(
+                ScrollView(.horizontal, showsIndicators: false) {
+                    Text(RichTextInline.plainText(content))
+                        .font(Typography.mono(size))
+                        .textSelection(.enabled)
+                        .padding(Spacing.s3)
+                }
+                .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
+            )
 
         case .horizontalRule:
-            BrutalDivider(variant: .ascii)
-                .padding(.vertical, Spacing.s4)
+            return AnyView(
+                BrutalDivider(variant: .ascii)
+                    .padding(.vertical, Spacing.s4)
+            )
 
         case .image(let source, let alt):
-            if let source, !source.isEmpty {
+            guard let source, !source.isEmpty else { return AnyView(EmptyView()) }
+            return AnyView(
                 RemoteImage(
                     url: URL(string: source),
                     aspectRatio: ImageService.aspectRatio(of: source),
                     accessibilityText: alt
                 )
-            }
+            )
 
         case .blok(let bloks):
-            BlokListView(bloks)
+            return AnyView(BlokListView(bloks))
 
         // Inline nodes reaching block position happen with malformed documents;
         // wrapping them in a paragraph is closer to the intent than dropping them.
         case .text, .emoji, .hardBreak:
-            paragraph([node], alignment: nil)
+            return AnyView(paragraph([node], alignment: nil))
 
         case .document(let children):
-            VStack(alignment: .leading, spacing: Spacing.s4) {
-                blocks(of: .document(children))
-            }
+            return AnyView(
+                VStack(alignment: .leading, spacing: Spacing.s4) {
+                    blocks(of: .document(children))
+                }
+            )
 
         case .unknown:
-            EmptyView()
+            return AnyView(EmptyView())
         }
     }
 
