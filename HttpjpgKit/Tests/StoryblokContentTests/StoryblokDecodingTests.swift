@@ -170,6 +170,28 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.decoration, Ascii.dividerMusic)
     }
 
+    /// The image blok's width option scales the box — a 5% logo must not
+    /// render full-bleed. Unset, `auto` and malformed values mean full width.
+    func testImageWidthOptionParsesToAFraction() throws {
+        let scaled = try decode(ImageBlok.self, """
+        {"_uid":"i2","component":"image","width":"5%",
+         "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
+        """)
+        XCTAssertEqual(scaled.widthFraction ?? 0, 0.05, accuracy: 0.0001)
+
+        let full = try decode(ImageBlok.self, """
+        {"_uid":"i3","component":"image","width":"100%",
+         "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
+        """)
+        XCTAssertNil(full.widthFraction)
+
+        let unset = try decode(ImageBlok.self, """
+        {"_uid":"i4","component":"image","width":"",
+         "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
+        """)
+        XCTAssertNil(unset.widthFraction)
+    }
+
     /// External clips count as videos too — the site hosts card loops on
     /// Dropbox, and their URLs end in `.mp4?rlkey=…`, extension before query.
     func testExternalDropboxClipIsDetectedAsVideo() throws {

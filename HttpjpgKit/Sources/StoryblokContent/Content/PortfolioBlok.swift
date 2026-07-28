@@ -437,9 +437,12 @@ public struct ImageBlok: Decodable, Identifiable {
     public let caption: RichTextNode?
     public let aspectRatio: String?
     public let copyrightPosition: String?
+    /// The CMS width option at the base breakpoint — `"5%"`, `"50%"`,
+    /// `"100%"`. A logo blok set to 5% must not render full-bleed.
+    public let width: String?
 
     private enum CodingKeys: String, CodingKey {
-        case image, alt, caption, aspectRatio, copyrightPosition
+        case image, alt, caption, aspectRatio, copyrightPosition, width
     }
 
     public init(from decoder: any Decoder) throws {
@@ -452,6 +455,15 @@ public struct ImageBlok: Decodable, Identifiable {
         caption = container.cmsValue(RichTextNode.self, forKey: .caption)
         aspectRatio = container.cmsString(forKey: .aspectRatio)
         copyrightPosition = container.cmsString(forKey: .copyrightPosition)
+        width = container.cmsString(forKey: .width)
+    }
+
+    /// `"5%"` → `0.05`. `nil` for full width, `auto`, or anything unparsable.
+    public var widthFraction: CGFloat? {
+        guard let width, width.hasSuffix("%"),
+              let value = Double(width.dropLast()), value > 0, value < 100
+        else { return nil }
+        return CGFloat(value) / 100
     }
 }
 
