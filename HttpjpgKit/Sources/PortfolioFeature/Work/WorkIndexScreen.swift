@@ -60,29 +60,43 @@ struct WorkIndexScreen: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.s8) {
                 masthead(model)
-
-                if model.visibleItems.isEmpty {
-                    AsciiState(art: Ascii.empty, label: "Nothing here yet")
-                        .frame(minHeight: 240)
-                } else {
-                    // The web's `<WorkList showDividers>`: a star rule between
-                    // cards, never after the last one.
-                    ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
-                        row(for: entry.element)
-                        if entry.offset < model.visibleItems.count - 1 {
-                            BrutalDivider(variant: .ascii)
-                        }
-                    }
-                }
+                rows(model)
+                    // A pure crossfade on filter changes. The animation hangs
+                    // on the *transition*, not on the layout — animating the
+                    // layout made the whole page's height change ride along,
+                    // and the page visibly rushed upward on every switch.
+                    .id(filterFingerprint(model))
+                    .transition(.opacity.animation(.easeInOut(duration: 0.25)))
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, TabBarClearance.bottomPadding)
-            // Switching slice or tags crossfades the list instead of snapping
-            // it — quiet enough to read as the same page rearranging.
-            .animation(.easeInOut(duration: 0.25), value: model.variant)
-            .animation(.easeInOut(duration: 0.25), value: model.selectedTags)
         }
         .refreshable { await model.load(force: true) }
+    }
+
+    @ViewBuilder
+    private func rows(_ model: WorkIndexModel) -> some View {
+        // A real container, not a `Group`: `id` and `transition` must apply to
+        // the list as one unit, and `Group` forwards them to every child.
+        VStack(alignment: .leading, spacing: Spacing.s8) {
+            if model.visibleItems.isEmpty {
+                AsciiState(art: Ascii.empty, label: "Nothing here yet")
+                    .frame(minHeight: 240)
+            } else {
+                // The web's `<WorkList showDividers>`: a star rule between
+                // cards, never after the last one.
+                ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
+                    row(for: entry.element)
+                    if entry.offset < model.visibleItems.count - 1 {
+                        BrutalDivider(variant: .ascii)
+                    }
+                }
+            }
+        }
+    }
+
+    private func filterFingerprint(_ model: WorkIndexModel) -> String {
+        model.variant.rawValue + model.selectedTags.sorted().joined(separator: ",")
     }
 
     /// Title and slice switch, kept as one tight group so the gap between them
@@ -176,6 +190,9 @@ private struct VariantPicker: View {
                 .padding(.vertical, Spacing.s2)
                 .contentShape(Capsule())
                 .glassBackground(in: .capsule, interactive: true)
+                // Clipped before the stroke: interactive glass blooms past its
+                // shape, and the wash was sliding out from under the border.
+                .clipShape(Capsule())
                 .overlay(
                     Capsule().stroke(
                         Palette.neutral.s400.opacity(isSelected ? 0.9 : 0.45),

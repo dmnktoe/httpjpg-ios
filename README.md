@@ -280,10 +280,12 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
 - `music_player` plays uploaded mp3s natively: the blok renders the web's card,
   play hands an `AudioTrack` through the `\.playAudioTrack` environment seam to
   the app's one `AVPlayer`, and a glass now-playing bar above the tab pills
-  expands into a full-screen player. Spotify and SoundCloud sources hand off to
-  the browser — no raw streams, and their embeds bring their tracking.
-  Lock-screen / Control-Center metadata (`MPNowPlayingInfoCenter`) is not wired
-  up yet.
+  expands into a full-screen player. Playback registers with the system —
+  `MPNowPlayingInfoCenter` carries title, artist, artwork and progress to the
+  lock screen and Control Center, and `MPRemoteCommandCenter` routes their
+  transport buttons back into the same intents the on-screen controls use.
+  Spotify and SoundCloud sources hand off to the browser — no raw streams, and
+  their embeds bring their tracking.
 - `work_list` relations do not resolve — see "Why the SDK's networking is not
   used" above. The blok renders an empty list rather than the linked stories.
 - `video` bloks that point at Vimeo or YouTube hand off to the system browser
@@ -295,9 +297,9 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   on a task loop. The slideshow honours `autoplayDelay`, `speed`,
   `showNavigation` and `showCounter`, but not `effect`: cube, coverflow, flip
   and cards are Swiper's own 3-D transitions, and everything renders as the
-  paged `slide`. Autoplay also stops permanently at the first swipe, which
-  Swiper's `disableOnInteraction: false` does not do — on a phone the carousel
-  is under your thumb, not across the room.
+  paged `slide`. Autoplay matches Swiper's `disableOnInteraction: false`: a
+  swipe re-arms the timer instead of killing it. Video assets in a slideshow
+  play as chromeless muted loops, like the web's `<video autoplay muted loop>`.
 - The app icon is the site's `icon.png` upscaled to 1024 and flattened onto
   white, because iOS rejects icons with an alpha channel. The source art is only
   254px, so it is soft — a crisp icon needs the original at 1024 or larger. It

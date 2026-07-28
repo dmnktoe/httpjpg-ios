@@ -23,10 +23,6 @@ public struct ImageCarousel<Slide: View>: View {
     private let slide: (Int) -> Slide
 
     @State private var index = 0
-    @State private var hasInteracted = false
-    /// The index autoplay is about to land on, so `onChange` can tell an
-    /// automatic page turn from a swipe.
-    @State private var pendingAutoAdvance: Int?
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -61,26 +57,16 @@ public struct ImageCarousel<Slide: View>: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
-            // Interaction is detected from the selection, not from a gesture:
-            // any DragGesture on the carousel — even a simultaneous one — put
-            // a recognizer between the reader's thumb and the page, and a
-            // vertical scroll that started on a carousel went nowhere. A page
-            // change autoplay did not announce is, by elimination, a swipe.
-            //
-            // Both branches guard their writes: the TabView reports selection
-            // repeatedly during an interactive swipe, and unconditionally
-            // re-setting state here is what tripped SwiftUI's "onChange tried
-            // to update multiple times per frame" warning.
-            .onChange(of: index) { _, newValue in
-                if pendingAutoAdvance == newValue {
-                    pendingAutoAdvance = nil
-                } else if !hasInteracted {
-                    hasInteracted = true
-                }
-            }
             .overlay(alignment: .bottomLeading) { counter }
             .overlay(alignment: .topTrailing) { navigation }
-            .task(id: effectiveInterval) { await autoplay() }
+            // One armed timer per page: the task is keyed on the index, so
+            // *any* page change — swipe, arrow or the timer itself — cancels
+            // the pending sleep and arms a fresh one. That is Swiper's
+            // `disableOnInteraction: false`: a swipe delays the next advance,
+            // it never kills autoplay. It also needs no gesture recognizer
+            // (which broke page scrolling) and no `onChange` bookkeeping
+            // (which spammed per-frame update warnings).
+            .task(id: autoplayTick) { await autoplayStep() }
         }
     }
 
@@ -103,7 +89,6 @@ public struct ImageCarousel<Slide: View>: View {
 
     private func arrow(_ symbol: String, step: Int) -> some View {
         Button {
-            hasInteracted = true
             advance(by: step)
         } label: {
             Image(systemName: symbol)
@@ -138,29 +123,30 @@ public struct ImageCarousel<Slide: View>: View {
         }
     }
 
-    /// `nil` whenever autoplay must not run — one slide, Reduce Motion, the
-    /// reader has touched the carousel, or it was never requested. Doubles as
-    /// the task identity, so any change tears the loop down.
-    private var effectiveInterval: TimeInterval? {
-        guard count > 1, !reduceMotion, !hasInteracted else { return nil }
-        return autoplayInterval
+    private var isAutoplayEnabled: Bool {
+        count > 1 && !reduceMotion && autoplayInterval != nil
     }
 
-    private func autoplay() async {
-        guard let interval = effectiveInterval else { return }
-        while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(interval))
-            guard !Task.isCancelled, !hasInteracted else { return }
-            advance(by: 1, isAutomatic: true)
-        }
+    /// The task identity: the current page while autoplay runs, a constant
+    /// when it does not — so every page turn re-arms the timer, and disabling
+    /// autoplay cancels it.
+    private var autoplayTick: Int {
+        isAutoplayEnabled ? index : -1
+    }
+
+    /// One sleep, one advance. The advance changes `autoplayTick`, which
+    /// starts the next step — the loop lives in the task identity.
+    private func autoplayStep() async {
+        guard isAutoplayEnabled, let interval = autoplayInterval else { return }
+        try? await Task.sleep(for: .seconds(interval))
+        guard !Task.isCancelled else { return }
+        advance(by: 1)
     }
 
     /// Wraps in both directions, matching Swiper's `loop`.
-    private func advance(by step: Int, isAutomatic: Bool = false) {
-        let next = (index + step + count) % count
-        pendingAutoAdvance = isAutomatic ? next : nil
+    private func advance(by step: Int) {
         withAnimation(.easeInOut(duration: transitionDuration)) {
-            index = next
+            index = (index + step + count) % count
         }
     }
 

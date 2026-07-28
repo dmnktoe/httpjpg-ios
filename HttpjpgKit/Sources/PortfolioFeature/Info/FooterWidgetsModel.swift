@@ -57,8 +57,11 @@ final class FooterWidgetsModel {
         return await api.latestFilm()
     }
 
+    /// No flag gate: the web footer renders `TrophyStatus` unconditionally —
+    /// `psn_enabled` belongs to the PSN card elsewhere on the site — and the
+    /// endpoint self-gates by erroring when the server has no PSN credentials,
+    /// which comes back as `nil` and an absent row.
     private func loadTrophy() async -> PsnTrophy? {
-        guard flags.isTrophyEnabled else { return nil }
-        return await api.latestTrophy()
+        await api.latestTrophy()
     }
 }

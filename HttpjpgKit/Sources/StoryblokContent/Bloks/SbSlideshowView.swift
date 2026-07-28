@@ -37,7 +37,7 @@ public struct SbSlideshowView: View {
     @ViewBuilder
     private func slide(_ asset: StoryblokAsset) -> some View {
         if asset.isVideo {
-            SlideshowVideoSlide(asset: asset)
+            SlideshowVideoSlide(asset: asset, aspectRatio: aspectRatio)
         } else {
             AssetImage(asset: asset, aspectRatio: aspectRatio)
         }
@@ -59,22 +59,26 @@ public struct SbSlideshowView: View {
 /// keeps playing over it.
 private struct SlideshowVideoSlide: View {
     let asset: StoryblokAsset
+    /// A player view has no intrinsic size — without this box a lone video
+    /// slide laid out at zero height and simply never appeared.
+    let aspectRatio: CGFloat
 
     @State private var player: AVQueuePlayer?
     @State private var looper: AVPlayerLooper?
 
     var body: some View {
-        Group {
-            if let player {
-                VideoPlayer(player: player)
-                    .allowsHitTesting(false)
-            } else {
-                Color.black
+        Color.black
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .overlay {
+                if let player {
+                    VideoPlayer(player: player)
+                        .allowsHitTesting(false)
+                }
             }
-        }
-        .onAppear(perform: start)
-        .onDisappear { player?.pause() }
-        .accessibilityHidden(true)
+            .clipped()
+            .onAppear(perform: start)
+            .onDisappear { player?.pause() }
+            .accessibilityHidden(true)
     }
 
     private func start() {

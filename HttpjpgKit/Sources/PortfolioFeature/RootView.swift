@@ -33,27 +33,27 @@ public struct RootView: View {
         return ViewportReader {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    // The now-playing bar stacks above the pills so both stay
-                    // visible; content clearance follows automatically because
-                    // the whole stack is the inset.
-                    VStack(spacing: Spacing.s2) {
-                        MiniPlayerBar(player: player, width: pillRowWidth)
-                        TabBar(
-                            selection: model.selectedTab,
-                            previewURL: model.previewURL,
-                            onSelect: { model.select(tab: $0) },
-                            onRowWidthChange: { pillRowWidth = $0 }
-                        )
-                    }
-                    .animation(.smooth(duration: 0.35), value: player.track)
-                    .animation(.smooth(duration: 0.35), value: pillRowWidth)
-                    // The floating chrome follows the *story's* theme when one
-                    // is up: a dark `isDark` page flips `data-theme` for the
-                    // whole viewport on the web, and black pills over a black
-                    // page is what it looks like not to.
-                    .pageTheme(model.storyTheme ?? theme)
-                }
+        }
+        // The inset hangs off the ViewportReader, NOT off the tab switch
+        // inside it. Attached to the switch, the chrome's identity died with
+        // every tab change — the marquee snapped back to its start and the
+        // artwork view was rebuilt. The reader is structurally stable, so the
+        // bar and pills live through navigation.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // The now-playing bar stacks above the pills so both stay
+            // visible; content clearance follows automatically because the
+            // whole stack is the inset.
+            VStack(spacing: Spacing.s2) {
+                MiniPlayerBar(player: player, width: pillRowWidth)
+                TabBar(
+                    selection: model.selectedTab,
+                    previewURL: model.previewURL,
+                    onSelect: { model.select(tab: $0) },
+                    onRowWidthChange: { pillRowWidth = $0 }
+                )
+            }
+            .animation(.smooth(duration: 0.35), value: player.track)
+            .animation(.smooth(duration: 0.35), value: pillRowWidth)
         }
         .pageTheme(theme)
         .pageSurface(theme)
@@ -103,7 +103,6 @@ private struct TabBar: View {
     /// though the preview arrow is set larger than the tab titles.
     private static let labelHeight: CGFloat = 16
 
-    @Environment(\.pageTheme) private var theme
     @Environment(\.openURL) private var openURL
 
     // No GlassEffectContainer around the row: the pills sit closer together
@@ -137,20 +136,25 @@ private struct TabBar: View {
         .padding(.bottom, Spacing.s2)
     }
 
-    /// Lighter than the tab pills on purpose — untinted glass with a hairline
+    /// Lighter than the tab pills on purpose — light glass with a hairline
     /// gray border, so it reads as an annotation to the row, not a third tab.
+    /// Fixed colours like every other piece of floating chrome: the pill sits
+    /// over arbitrary content, so no page theme can be right for it.
     private func previewPill(_ url: URL) -> some View {
         Button {
             openURL(url)
         } label: {
             Text("↗")
                 .font(Typography.mono(Typography.Size.md, weight: .bold))
-                .foregroundStyle(theme.foreground)
+                .foregroundStyle(Palette.black)
                 .frame(height: Self.labelHeight)
                 .padding(.horizontal, Spacing.s4)
                 .padding(.vertical, Spacing.s3)
                 .contentShape(Capsule())
-                .glassBackground(in: .capsule, interactive: true)
+                .glassBackground(in: .capsule, tint: Palette.white.opacity(0.65), interactive: true)
+                // Same clip as the filter chips: glass blooms past its shape,
+                // and a bordered pill needs the fill to stop at the border.
+                .clipShape(Capsule())
                 .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.7), lineWidth: 1))
         }
         .buttonStyle(.plain)
@@ -158,14 +162,15 @@ private struct TabBar: View {
     }
 
     /// Every tab sits on a tinted pill, so the label follows the pill it is on.
+    /// The weight never changes — a bold selected label was wider than its
+    /// regular self, and the whole row breathed with every tab switch.
     private func label(for tab: AppModel.Tab) -> some View {
-        let isSelected = selection == tab
-        return Text(tab.label)
-            .font(Typography.mono(Typography.Size.xs, weight: isSelected ? .bold : .regular))
+        Text(tab.label)
+            .font(Typography.mono(Typography.Size.xs))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(height: Self.labelHeight)
-            .foregroundStyle(SelectionPill.labelColor(isSelected: isSelected))
+            .foregroundStyle(SelectionPill.labelColor(isSelected: selection == tab))
     }
 
     private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {

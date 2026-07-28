@@ -314,31 +314,20 @@ final class StoryblokDecodingTests: XCTestCase {
     }
 
     /// The widget switches live flat on the config story, and their defaults
-    /// are `getWidgetConfig()`'s: Discord and Letterboxd on, PSN off.
+    /// are `getWidgetConfig()`'s: Discord and Letterboxd on. PSN has no flag
+    /// here at all — the web footer renders its trophy line unconditionally.
     func testWidgetFlagsDefaultTheSameWayTheWebDoes() throws {
         let config = try decode(SiteConfig.self, #"{"seo_title":"httpjpg"}"#)
         XCTAssertTrue(config.widgets.isDiscordEnabled)
         XCTAssertTrue(config.widgets.isLetterboxdEnabled)
-        XCTAssertFalse(config.widgets.isPsnEnabled)
-        XCTAssertFalse(config.widgets.isTrophyEnabled)
     }
 
     func testWidgetFlagsReadBothBooleansAndStrings() throws {
         let config = try decode(SiteConfig.self, """
-        {"discord_enabled":false,"letterboxd_enabled":"false",
-         "psn_enabled":true,"psn_trophy_enabled":"true"}
+        {"discord_enabled":false,"letterboxd_enabled":"false"}
         """)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
-        XCTAssertTrue(config.widgets.isTrophyEnabled)
-    }
-
-    /// Trophies need both switches — `psn_enabled` alone is not enough, same as
-    /// the web's two separate flags.
-    func testTrophiesNeedBothPsnSwitches() throws {
-        let config = try decode(SiteConfig.self, #"{"psn_enabled":true}"#)
-        XCTAssertTrue(config.widgets.isPsnEnabled)
-        XCTAssertFalse(config.widgets.isTrophyEnabled)
     }
 
     // MARK: - Marquee

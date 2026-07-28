@@ -69,55 +69,36 @@ public struct SiteConfig: Decodable, Sendable {
     }
 }
 
-/// The server-side switches that decide which footer widgets exist at all.
+/// The server-side switches the footer honours.
 ///
-/// The defaults are `getWidgetConfig()`'s, field for field — Discord and
-/// Letterboxd default on, PSN off — so a config story that predates a flag
-/// behaves the same in the app as it does on the web. The fallback config is
-/// the exception: nothing is on until the real config arrives, so the footer
-/// does not flash four widgets and then retract three of them.
+/// Only Discord and Letterboxd: those are the two `getWidgetConfig()` flags
+/// that default on, and the two the footer can meaningfully turn off. The PSN
+/// flags are deliberately *not* here — the web footer renders its trophy line
+/// unconditionally (`psn_enabled` gates the PSN card elsewhere), and the app
+/// gating on them was what made the trophy row vanish. The fallback config
+/// keeps everything off until the real config arrives, so the footer does not
+/// flash widgets and then retract them.
 public struct WidgetFlags: Decodable, Sendable {
     public let isDiscordEnabled: Bool
     public let isLetterboxdEnabled: Bool
-    public let isPsnEnabled: Bool
-    public let isPsnTrophyEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
         case discordEnabled = "discord_enabled"
         case letterboxdEnabled = "letterboxd_enabled"
-        case psnEnabled = "psn_enabled"
-        case psnTrophyEnabled = "psn_trophy_enabled"
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         isDiscordEnabled = container.cmsBool(forKey: .discordEnabled, default: true)
         isLetterboxdEnabled = container.cmsBool(forKey: .letterboxdEnabled, default: true)
-        isPsnEnabled = container.cmsBool(forKey: .psnEnabled)
-        isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
     }
 
-    public init(
-        isDiscordEnabled: Bool,
-        isLetterboxdEnabled: Bool,
-        isPsnEnabled: Bool,
-        isPsnTrophyEnabled: Bool
-    ) {
+    public init(isDiscordEnabled: Bool, isLetterboxdEnabled: Bool) {
         self.isDiscordEnabled = isDiscordEnabled
         self.isLetterboxdEnabled = isLetterboxdEnabled
-        self.isPsnEnabled = isPsnEnabled
-        self.isPsnTrophyEnabled = isPsnTrophyEnabled
     }
 
-    public static let allOff = WidgetFlags(
-        isDiscordEnabled: false,
-        isLetterboxdEnabled: false,
-        isPsnEnabled: false,
-        isPsnTrophyEnabled: false
-    )
-
-    /// PSN needs both its own switch and the trophy switch, same as the web.
-    public var isTrophyEnabled: Bool { isPsnEnabled && isPsnTrophyEnabled }
+    public static let allOff = WidgetFlags(isDiscordEnabled: false, isLetterboxdEnabled: false)
 }
 
 /// A `menu_link` blok.

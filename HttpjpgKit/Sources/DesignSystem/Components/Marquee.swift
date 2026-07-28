@@ -30,6 +30,10 @@ public struct Marquee: View {
     private let repeatCount: Int
     private let fadeLength: CGFloat
     private let trailingBuffer: CGFloat
+    /// Explicit text colour; `nil` follows the page theme. Chrome that floats
+    /// over arbitrary content passes its own, because no page theme can be
+    /// right for a strip that sits above a photograph.
+    private let color: Color?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
@@ -53,7 +57,8 @@ public struct Marquee: View {
         direction: Direction = .left,
         repeatCount: Int = 3,
         fadeLength: CGFloat = 12,
-        trailingBuffer: CGFloat = 32
+        trailingBuffer: CGFloat = 32,
+        color: Color? = nil
     ) {
         self.text = text
         self.font = font
@@ -62,13 +67,14 @@ public struct Marquee: View {
         self.repeatCount = max(repeatCount, 1)
         self.fadeLength = fadeLength
         self.trailingBuffer = trailingBuffer
+        self.color = color
     }
 
     public var body: some View {
         MarqueeLabelView(
             text: String(repeating: text, count: repeatCount),
             font: font,
-            color: UIColor(theme.foreground),
+            color: UIColor(color ?? theme.foreground),
             rate: resolvedRate,
             isReversed: direction == .right,
             fadeLength: fadeLength,

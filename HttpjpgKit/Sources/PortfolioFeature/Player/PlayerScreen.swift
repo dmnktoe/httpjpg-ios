@@ -48,10 +48,19 @@ struct PlayerScreen: View {
         .presentationDragIndicator(.visible)
     }
 
+    /// Same source as the mini bar and the lock screen: the model's one
+    /// downloaded image.
     private func artwork(_ track: AudioTrack, theme: PageTheme) -> some View {
         Group {
-            if let artworkURL = track.artworkURL {
-                RemoteImage(url: artworkURL, aspectRatio: 1)
+            if let image = player.artwork {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .clipped()
             } else {
                 MonoText(Ascii.dividerMusic, size: Typography.Size.lg, opacity: Opacities.dimmed)
                     .frame(maxWidth: .infinity)

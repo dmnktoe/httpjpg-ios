@@ -49,11 +49,6 @@ public final class AppModel {
     /// The external preview link of the story currently on screen, if it has
     /// one. The detail screen sets it, the tab bar shows it as an extra pill.
     public var previewURL: URL?
-    /// The page theme of the story currently on screen, when it overrides the
-    /// system one — a dark `isDark` story flips the whole chrome on the web
-    /// (`data-theme` sits on `<html>`), so the floating bar and pills follow it
-    /// here too instead of staying black-on-dark.
-    public var storyTheme: PageTheme?
     public private(set) var config: SiteConfig = .fallback
     /// Public because the footer's widget flags are meaningless until the real
     /// config lands — reading them off `.fallback` would report every widget as

@@ -7,6 +7,12 @@ import SwiftUI
 /// A glass capsule that appears above the tab pills the moment a track starts
 /// and stays across navigation. Tap or swipe up for the full-screen player;
 /// the ✕ tears playback down entirely.
+///
+/// Fixed dark glass with white type, like the unselected tab pill — not the
+/// page theme's colours. The bar floats over whatever is scrolling underneath,
+/// and a theme-derived foreground turned black over dark imagery on light
+/// pages. Chrome that cannot know its background picks colours that survive
+/// any background.
 struct MiniPlayerBar: View {
     let player: AudioPlayerModel
     /// The tab pill cluster's width, so the bar sits flush over the pills —
@@ -14,7 +20,8 @@ struct MiniPlayerBar: View {
     /// yet) falls back to the page gutter.
     let width: CGFloat
 
-    @Environment(\.pageTheme) private var theme
+    private static let tint = Palette.black.opacity(0.72)
+    private static let labelColor = Palette.white.opacity(0.9)
 
     var body: some View {
         if let track = player.track {
@@ -25,7 +32,8 @@ struct MiniPlayerBar: View {
                 Marquee(
                     marqueeText(track),
                     font: Typography.uiMono(Typography.Size.xs),
-                    speed: .rate(20)
+                    speed: .rate(20),
+                    color: Self.labelColor
                 )
                 .frame(maxWidth: .infinity)
 
@@ -52,11 +60,14 @@ struct MiniPlayerBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Stop playback")
             }
-            .foregroundStyle(theme.foreground)
+            .foregroundStyle(Self.labelColor)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)
-            .glassBackground(in: .capsule)
+            .glassBackground(in: .capsule, tint: Self.tint)
+            // Same clip as the other bordered glass: the material must stop
+            // at the border, not bloom past it.
+            .clipShape(Capsule())
             .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.6), lineWidth: 1))
             .contentShape(Capsule())
             .onTapGesture { player.isExpanded = true }
@@ -73,17 +84,23 @@ struct MiniPlayerBar: View {
         }
     }
 
+    /// The cover comes from the model, which downloaded it once for the lock
+    /// screen — not from a URL-loading view, which refetched (and flashed)
+    /// every time the bar re-rendered.
     @ViewBuilder
     private func artwork(_ track: AudioTrack) -> some View {
-        if let artworkURL = track.artworkURL {
-            RemoteImage(url: artworkURL, aspectRatio: 1)
-                .frame(width: 32, height: 32)
-                .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
-        } else {
-            MonoText("♫", size: Typography.Size.md)
-                .frame(width: 32, height: 32)
-                .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
+        Group {
+            if let image = player.artwork {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                MonoText("♫", size: Typography.Size.md)
+            }
         }
+        .frame(width: 32, height: 32)
+        .clipped()
+        .overlay(Rectangle().stroke(Palette.white.opacity(0.35), lineWidth: 1))
     }
 
     private func marqueeText(_ track: AudioTrack) -> String {
