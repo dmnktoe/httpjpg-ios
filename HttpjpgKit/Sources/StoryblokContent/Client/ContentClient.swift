@@ -1,22 +1,37 @@
-import Combine
 import Foundation
 import StoryblokClient
-import URLSessionExtension
 
 /// The app's single door onto the Storyblok Content Delivery API — the Swift
 /// counterpart of `@httpjpg/storyblok-api` plus the query layer in
 /// `apps/portfolio/lib/queries`.
 ///
-/// Single stories go through `StoryblokClient`, which handles relation
-/// resolution and the URL cache. The list endpoint (`cdn/stories`) has no
-/// equivalent on the typed client yet, so it is issued directly against the
-/// same `URLSession` — the session still supplies auth, region, rate limiting
-/// and cache-version handling.
+/// ## Why this does not use `StoryblokClient`
+///
+/// The SDK's typed client can only be built on a `URLSession` whose delegate
+/// is its own `Storyblok` rate limiter, and that delegate keeps three pieces
+/// of mutable state — `observers`, `backoffUntil`, `failedRequestCount` — with
+/// no synchronisation, on a class marked `@unchecked Sendable`. `observers` is
+/// written from `urlSession(_:didCreateTask:)` on the delegate queue and
+/// mutated again inside a KVO block that fires on whichever thread changed the
+/// task's state. Two requests in flight at once is enough to corrupt the
+/// dictionary; the app then dies with
+/// `-[__NSCFNumber count]: unrecognized selector sent to instance 0x8000…`
+/// somewhere inside the SDK. This app loads the config, the work index and the
+/// page index concurrently, so it hit that reliably.
+///
+/// The transport is therefore ours: a plain `URLSession`, URLs built here. The
+/// SDK is still what decodes the payload — `Story`, `RichText` and the
+/// `RichTextView` renderer are the reason it is a dependency at all.
+///
+/// The one thing lost with the typed client is automatic relation resolution:
+/// `resolve_relations` is still sent, but nested `Story` fields arrive as UUID
+/// strings and decode to an empty array, because the SDK's relation store is
+/// internal to it. Only `work_list.work` uses relations, and only inside page
+/// bodies. See ``WorkListBlok/work``.
 public final class ContentClient: @unchecked Sendable {
     public let configuration: StoryblokConfiguration
 
     private let session: URLSession
-    private let client: StoryblokClient<PortfolioBlok>
 
     public init(configuration: StoryblokConfiguration) {
         self.configuration = configuration
@@ -27,17 +42,8 @@ public final class ContentClient: @unchecked Sendable {
             diskCapacity: 64 * 1024 * 1024
         )
         sessionConfiguration.waitsForConnectivity = true
-
-        let session = URLSession(
-            storyblok: .cdn(
-                accessToken: configuration.accessToken,
-                version: configuration.version,
-                region: configuration.region
-            ),
-            configuration: sessionConfiguration
-        )
-        self.session = session
-        self.client = StoryblokClient(library: PortfolioBlok.self, session: session)
+        sessionConfiguration.requestCachePolicy = .useProtocolCachePolicy
+        self.session = URLSession(configuration: sessionConfiguration)
     }
 
     deinit {
@@ -113,32 +119,17 @@ public final class ContentClient: @unchecked Sendable {
 
     // MARK: - Transport
 
-    /// Awaits the freshest value from the SDK's cache-then-network publisher.
-    ///
-    /// `StoryblokClient` emits the cached payload first and the network
-    /// payload second (deduplicated), so draining the sequence and keeping the
-    /// last element yields the freshest story the request could produce.
     private func story<Content: Decodable>(at slug: String) async throws -> Story<Content> {
-        // The generic parameter is pinned explicitly: `story(_:)` infers its
-        // content type from context, and a `for await` body is too late for
-        // that inference to land.
-        let publisher: AnyPublisher<Story<Content>, StoryblokClient<PortfolioBlok>.Error> =
-            client.story(slug)
-
-        var latest: Story<Content>?
+        let request = buildRequest(
+            path: "stories/\(slug)",
+            queryItems: [URLQueryItem(name: "resolve_relations", value: PortfolioBlok.relations)]
+        )
+        let data = try await load(request)
         do {
-            for try await value in publisher.values {
-                latest = value
-            }
-        } catch let error as StoryblokClient<PortfolioBlok>.Error {
-            throw ContentError.transport(error.errorDescription ?? "Storyblok request failed.")
+            return try Self.decoder().decode(StoryResponse<Content>.self, from: data).story
         } catch {
-            throw ContentError.transport(error.localizedDescription)
+            throw ContentError.decoding(String(describing: error))
         }
-        guard let latest else {
-            throw ContentError.notFound(slug: slug)
-        }
-        return latest
     }
 
     private func stories<Content: Decodable>(
@@ -147,7 +138,6 @@ public final class ContentClient: @unchecked Sendable {
         perPage: Int,
         sortBy: String?
     ) async throws -> [Story<Content>] {
-        var request = URLRequest(storyblok: session, path: "stories")
         var queryItems = [
             URLQueryItem(name: "per_page", value: String(perPage)),
             URLQueryItem(name: "page", value: "1"),
@@ -161,11 +151,25 @@ public final class ContentClient: @unchecked Sendable {
         if let sortBy {
             queryItems.append(URLQueryItem(name: "sort_by", value: sortBy))
         }
-        if var url = request.url {
-            url.append(queryItems: queryItems)
-            request.url = url
-        }
 
+        let data = try await load(buildRequest(path: "stories", queryItems: queryItems))
+        do {
+            return try Self.decoder().decode(StoriesResponse<Content>.self, from: data).stories
+        } catch {
+            throw ContentError.decoding(String(describing: error))
+        }
+    }
+
+    private func buildRequest(path: String, queryItems: [URLQueryItem]) -> URLRequest {
+        var url = configuration.region.baseURL.appending(path: path)
+        url.append(queryItems: queryItems + [
+            URLQueryItem(name: "token", value: configuration.accessToken),
+            URLQueryItem(name: "version", value: configuration.version.rawValue),
+        ])
+        return URLRequest(url: url, timeoutInterval: 30)
+    }
+
+    private func load(_ request: URLRequest) async throws -> Data {
         let data: Data
         let response: URLResponse
         do {
@@ -174,14 +178,14 @@ public final class ContentClient: @unchecked Sendable {
             throw ContentError.transport(error.localizedDescription)
         }
 
-        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+        guard let http = response as? HTTPURLResponse else { return data }
+        switch http.statusCode {
+        case 200..<300:
+            return data
+        case 404:
+            throw ContentError.notFound(slug: request.url?.path ?? "")
+        default:
             throw ContentError.badResponse(statusCode: http.statusCode)
-        }
-
-        do {
-            return try Self.decoder().decode(StoriesResponse<Content>.self, from: data).stories
-        } catch {
-            throw ContentError.decoding(String(describing: error))
         }
     }
 
@@ -201,6 +205,11 @@ public final class ContentClient: @unchecked Sendable {
         }
         return decoder
     }
+}
+
+/// The `cdn/stories/<slug>` envelope.
+struct StoryResponse<Content: Decodable>: Decodable {
+    let story: Story<Content>
 }
 
 /// The `cdn/stories` envelope. Only the stories are of interest — pagination

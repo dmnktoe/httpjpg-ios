@@ -149,4 +149,19 @@ final class StoryblokDecodingTests: XCTestCase {
     func testFallbackConfigOffersBothVariants() {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
     }
+
+    // MARK: - Configuration
+
+    func testRegionsMapToTheirCDNHosts() {
+        XCTAssertEqual(ContentRegion.eu.baseURL.host, "api.storyblok.com")
+        XCTAssertEqual(ContentRegion.usa.baseURL.host, "api-us.storyblok.com")
+        XCTAssertEqual(ContentRegion.can.baseURL.host, "api-ca.storyblok.com")
+        XCTAssertEqual(ContentRegion.aus.baseURL.host, "api-ap.storyblok.com")
+        for region in ContentRegion.allCases {
+            XCTAssertTrue(
+                region.baseURL.path.hasSuffix("/v2/cdn/"),
+                "\(region) must point at the v2 CDN root"
+            )
+        }
+    }
 }

@@ -1,5 +1,29 @@
 import Foundation
-import URLSessionExtension
+
+/// Which version of the content to read.
+public enum ContentVersion: String, Sendable {
+    case draft
+    case published
+}
+
+/// The space's server location.
+public enum ContentRegion: String, Sendable, CaseIterable {
+    case eu
+    case usa
+    case can
+    case aus
+    case chn
+
+    var baseURL: URL {
+        switch self {
+        case .eu: return URL(string: "https://api.storyblok.com/v2/cdn/")!
+        case .usa: return URL(string: "https://api-us.storyblok.com/v2/cdn/")!
+        case .can: return URL(string: "https://api-ca.storyblok.com/v2/cdn/")!
+        case .aus: return URL(string: "https://api-ap.storyblok.com/v2/cdn/")!
+        case .chn: return URL(string: "https://app.storyblokchina.cn/v2/cdn/")!
+        }
+    }
+}
 
 /// Everything ``ContentClient`` needs to talk to a Storyblok space.
 ///
@@ -8,15 +32,15 @@ import URLSessionExtension
 /// `STORYBLOK_*` stays in `.env` on the web.
 public struct StoryblokConfiguration: Sendable {
     public var accessToken: String
-    public var version: Api.Version
-    public var region: Api.Region
+    public var version: ContentVersion
+    public var region: ContentRegion
     /// Origin used to resolve internal Storyblok links to real URLs.
     public var siteOrigin: URL
 
     public init(
         accessToken: String,
-        version: Api.Version = .published,
-        region: Api.Region = .eu,
+        version: ContentVersion = .published,
+        region: ContentRegion = .eu,
         siteOrigin: URL = URL(string: "https://www.httpjpg.com")!
     ) {
         self.accessToken = accessToken
@@ -47,25 +71,14 @@ public struct StoryblokConfiguration: Sendable {
             throw ContentError.missingAccessToken
         }
 
-        let version: Api.Version = string(InfoPlistKey.version) == "draft" ? .draft : .published
         let origin = string(InfoPlistKey.siteOrigin)
             .flatMap(URL.init(string:)) ?? URL(string: "https://www.httpjpg.com")!
 
         return StoryblokConfiguration(
             accessToken: token,
-            version: version,
-            region: region(from: string(InfoPlistKey.region)),
+            version: string(InfoPlistKey.version).flatMap(ContentVersion.init(rawValue:)) ?? .published,
+            region: string(InfoPlistKey.region).flatMap(ContentRegion.init(rawValue:)) ?? .eu,
             siteOrigin: origin
         )
-    }
-
-    static func region(from raw: String?) -> Api.Region {
-        switch raw?.lowercased() {
-        case "usa", "us": return .usa
-        case "can", "ca": return .can
-        case "aus", "ap": return .aus
-        case "chn", "cn": return .chn
-        default: return .eu
-        }
     }
 }

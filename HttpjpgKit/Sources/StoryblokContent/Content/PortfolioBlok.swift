@@ -562,8 +562,12 @@ public struct CodeBlok: Decodable, Identifiable {
 public struct WorkListBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
-    /// Resolved via `resolve_relations=work_list.work`. Stays empty when the
-    /// relation cannot be resolved, rather than failing the whole story.
+    /// Resolved via `resolve_relations=work_list.work`.
+    ///
+    /// Currently always empty: resolution needs the SDK's internal relation
+    /// store, which is only reachable through its typed client — and that
+    /// client's session delegate is not thread-safe, so this app does its own
+    /// transport. See the note on `ContentClient`.
     public let work: [Story<PortfolioBlok>]
     public let columns: Int
     public let variant: String

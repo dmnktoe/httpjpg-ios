@@ -75,6 +75,30 @@ runtime, so those four collapse into `StoryblokContent` — the file layout keep
 the seam visible: `Client/`, `Content/` and `Utils/` are the data half,
 `Bloks/` is the `storyblok-ui` half.
 
+### Why the SDK's networking is not used
+
+`storyblok-swift` is a dependency for its **types** — `Story`, `RichText`,
+`BlockLibrary` — and for `RichTextView`, which renders rich text natively. Its
+typed `StoryblokClient` is not used, and neither is `URLSessionExtension`.
+
+That client can only be built on a `URLSession` whose delegate is the SDK's own
+`Storyblok` rate limiter, and as of v0.3.0 that delegate keeps three pieces of
+mutable state (`observers`, `backoffUntil`, `failedRequestCount`) with no
+synchronisation, on a class marked `@unchecked Sendable`. `observers` is written
+from `urlSession(_:didCreateTask:)` on the delegate queue and mutated again
+inside a KVO block that fires on whichever thread changed the task's state. Two
+requests in flight is enough to corrupt the dictionary, and the app dies with
+`-[__NSCFNumber count]: unrecognized selector sent to instance 0x8000…` inside
+the SDK. This app loads the config, the work index and the page index
+concurrently, so it hit that on every launch.
+
+`ContentClient` therefore builds its own requests against a plain `URLSession`.
+The cost is relation resolution: `resolve_relations` is still sent, but the
+SDK's relation store is internal to its client, so nested `Story` fields arrive
+as UUID strings and decode to an empty array. Only `work_list.work` uses
+relations. If the SDK adds a lock — or exposes the relation store — this can go
+back to the typed client.
+
 ## Design language
 
 The port is literal where it can be and deliberate where it cannot:
@@ -222,3 +246,5 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   renders below its `md` breakpoint anyway.
 - `music_player` has no native renderer yet, so it shows as `SbMissingView`. It
   needs an `AVPlayer` and transport controls, which is its own piece of work.
+- `work_list` relations do not resolve — see "Why the SDK's networking is not
+  used" above. The blok renders an empty list rather than the linked stories.
