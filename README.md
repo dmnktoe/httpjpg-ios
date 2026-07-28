@@ -26,6 +26,12 @@ bundle is readable by anyone who downloads it.
 `Config/Secrets.xcconfig` is git-ignored. Without it the app still launches and
 tells you which key is missing instead of showing a blank screen.
 
+On the first build Xcode reports *“Macro ‘StoryblokClientMacros’ from package
+‘storyblok-swift’ must be enabled before it can be used.”* Click the warning and
+choose **Trust & Enable** — Xcode requires explicit consent before running a
+third-party macro plugin. This app does not use the `@BlockLibrary` macro itself,
+but `StoryblokClient` links against the plugin, so it has to be enabled once.
+
 Running the package tests without the app shell:
 
 ```bash
@@ -82,18 +88,42 @@ The port is literal where it can be and deliberate where it cannot:
 | `srcSet` / `sizes`                             | `ImageService.Preset.width(_:_:scale:)` at the real pixel width |
 | ASCII banners                                  | `Ascii`, byte-identical strings                                |
 
-Fonts are the one place a substitution was unavoidable — Impact, Trattatello and
-SF Mono are not all installed on iOS:
+### Fonts
 
-| Token      | Web stack                              | iOS face                       |
-| ---------- | -------------------------------------- | ------------------------------ |
-| `headline` | Impact, Haettenschweiler, Arial Narrow | `HelveticaNeue-CondensedBlack` |
-| `sans`     | Arial, Helvetica                       | `Helvetica`                    |
-| `accent`   | Trattatello, Snell Roundhand           | `SnellRoundhand-Black`         |
-| `mono`     | ui-monospace, SF Mono, Menlo           | SF Mono (`.monospaced`)        |
+Each family resolves at runtime through an ordered stack, the same way a
+browser walks a `font-family` list. `FontRegistry` registers the bundled faces
+with Core Text and picks the first name iOS can actually instantiate:
+
+| Token      | Web stack                              | iOS resolution                                              |
+| ---------- | -------------------------------------- | ----------------------------------------------------------- |
+| `headline` | Impact, Haettenschweiler, Arial Narrow | Impact → **Anton** (bundled) → `HelveticaNeue-CondensedBlack` |
+| `sans`     | Arial, Helvetica                       | `Helvetica` → `ArialMT`                                      |
+| `accent`   | Trattatello, Snell Roundhand           | Trattatello → `SnellRoundhand-Black`                         |
+| `mono`     | ui-monospace, SF Mono, Menlo           | SF Mono (`.monospaced`)                                      |
 
 Everything routes through `Font.custom(_:size:relativeTo:)`, so Dynamic Type
 still scales the app.
+
+**About Impact.** iOS ships none of the three faces in the web headline stack —
+not Impact, not Haettenschweiler, not Arial Narrow Bold. Mobile Safari therefore
+already renders the site's headlines in a generic sans, which means the app is
+*closer* to the design intent than the website is on a phone.
+
+Impact is a Monotype face redistributed with macOS, Windows and Office. Those
+licences do not cover embedding the `.ttf` in an app bundle, so what ships here
+is **Anton** (SIL OFL 1.1) — the standard open Impact substitute, same condensed
+heavy grotesque. Its licence is checked in next to it.
+
+If you hold a licence that permits embedding Impact, drop `Impact.ttf` into
+`HttpjpgKit/Sources/DesignSystem/Resources/Fonts/`. It is already first in
+`FontRegistry.headlineCandidates` and the registry enumerates the directory, so
+it is picked up with no code or build-setting change. The settings colophon
+prints whichever face won, and `TokensTests` fails if the stack falls through to
+the system fallback.
+
+SwiftPM resources land in `Bundle.module`, not the app bundle, so the `UIAppFonts`
+Info.plist key cannot see them — registration goes through
+`CTFontManagerRegisterFontsForURL` with `.process` scope instead.
 
 ## Screens
 

@@ -54,7 +54,7 @@ struct PageScreen: View {
                 Headline(page.title, level: .two)
                 BlokListView(page.body)
             }
-            .padding(.horizontal, Layout.gutter)
+            .padding(.horizontal, PageLayout.gutter)
             .padding(.vertical, Spacing.s6)
         }
         .pageTheme(theme)

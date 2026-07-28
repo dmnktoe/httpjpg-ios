@@ -23,7 +23,7 @@ struct SettingsScreen: View {
                 }
                 colophon
             }
-            .padding(.horizontal, Layout.gutter)
+            .padding(.horizontal, PageLayout.gutter)
             .padding(.vertical, Spacing.s6)
         }
     }
@@ -85,6 +85,14 @@ struct SettingsScreen: View {
             if let author = app.config.authorName {
                 MonoText(author, size: Typography.Size.sm, opacity: Opacities.muted)
             }
+            // Names the face that actually resolved. Anton is SIL OFL 1.1, and
+            // seeing "HelveticaNeue-CondensedBlack" here means the bundled font
+            // failed to register.
+            MonoText(
+                "set in \(Typography.Family.headline)",
+                size: Typography.Size.xs,
+                opacity: Opacities.subtle
+            )
             Marquee(Ascii.tape + "  " + app.siteName + "  ")
                 .padding(.top, Spacing.s2)
             AsciiArt(Ascii.ghost, label: "Ghost", size: Typography.Size.sm, opacity: Opacities.dimmed)

@@ -38,7 +38,7 @@ public struct SbWorkListView: View {
         blok.work.compactMap {
             WorkCardAdapter.model(
                 for: $0,
-                targetWidth: Layout.cardWidth(viewport: viewportWidth),
+                targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
                 scale: displayScale
             )
         }

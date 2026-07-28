@@ -75,6 +75,6 @@ public struct Headline: View {
         Headline("selected work", level: .two)
         Headline("about", level: .three)
     }
-    .padding(Layout.gutter)
+    .padding(PageLayout.gutter)
     .pageSurface(.light)
 }

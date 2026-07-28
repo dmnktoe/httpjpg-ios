@@ -3,26 +3,41 @@ import UIKit
 
 /// Typography ported from `packages/tokens/src/typography.ts`.
 ///
-/// The web font stacks don't exist verbatim on iOS, so each family maps to the
-/// closest system-installed face rather than shipping licensed binaries:
+/// The web font stacks don't exist verbatim on iOS, so each family resolves at
+/// runtime through the same kind of ordered stack a browser walks — see
+/// ``FontRegistry``:
 ///
-/// | Token      | Web stack                              | iOS face                      |
-/// | ---------- | -------------------------------------- | ----------------------------- |
-/// | `headline` | Impact, Haettenschweiler, Arial Narrow  | `HelveticaNeue-CondensedBlack` |
-/// | `sans`     | Arial, Helvetica                        | `Helvetica`                   |
-/// | `accent`   | Trattatello, Snell Roundhand, …         | `SnellRoundhand-Black`        |
-/// | `mono`     | ui-monospace, SF Mono, Menlo            | SF Mono (`.monospaced`)       |
+/// | Token      | Web stack                              | iOS resolution                       |
+/// | ---------- | -------------------------------------- | ------------------------------------ |
+/// | `headline` | Impact, Haettenschweiler, Arial Narrow | Impact → **Anton** (bundled) → HelveticaNeue-CondensedBlack |
+/// | `sans`     | Arial, Helvetica                       | Helvetica → Arial                    |
+/// | `accent`   | Trattatello, Snell Roundhand, …        | Trattatello → SnellRoundhand-Black   |
+/// | `mono`     | ui-monospace, SF Mono, Menlo           | SF Mono (`.monospaced`)              |
 ///
 /// Every family goes through `Font.custom(_:size:relativeTo:)` so Dynamic Type
-/// still scales the app; SwiftUI falls back to the system face if a name is
-/// ever missing on a given device.
+/// still scales the app.
 public enum Typography {
     public enum Family {
-        public static let headline = "HelveticaNeue-CondensedBlack"
-        public static let headlineBold = "HelveticaNeue-CondensedBold"
-        public static let sans = "Helvetica"
-        public static let sansBold = "Helvetica-Bold"
-        public static let accent = "SnellRoundhand-Black"
+        /// Impact if you bundle it, otherwise Anton — see ``FontRegistry``.
+        public static var headline: String {
+            FontRegistry.resolve(FontRegistry.headlineCandidates, fallback: "HelveticaNeue-CondensedBlack")
+        }
+
+        /// Anton ships in a single weight, so the "bold" headline is the same
+        /// face; only the system fallback has a lighter cut.
+        public static var headlineBold: String { headline }
+
+        public static var sans: String {
+            FontRegistry.resolve(FontRegistry.sansCandidates, fallback: "Helvetica")
+        }
+
+        public static var sansBold: String {
+            FontRegistry.resolve(FontRegistry.sansBoldCandidates, fallback: "Helvetica-Bold")
+        }
+
+        public static var accent: String {
+            FontRegistry.resolve(FontRegistry.accentCandidates, fallback: "SnellRoundhand-Black")
+        }
     }
 
     /// Font sizes from the `fontSize` token family (`rem` → points, 1rem = 16pt).

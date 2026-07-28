@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import XCTest
 
 @testable import DesignSystem
@@ -55,6 +56,28 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(PageTheme.light.border, Palette.neutral.s300)
         XCTAssertEqual(PageTheme.dark.border, Palette.neutral.s700)
         XCTAssertEqual(PageTheme.dark.colorScheme, .dark)
+    }
+
+    /// Guards the font bundling: if `Resources/Fonts` stops being copied, or
+    /// Core Text registration breaks, the headline silently degrades to the
+    /// system fallback and nobody notices from a screenshot.
+    func testHeadlineResolvesToABundledCondensedFace() {
+        let resolved = Typography.Family.headline
+        XCTAssertNotNil(
+            UIFont(name: resolved, size: 32),
+            "\(resolved) did not instantiate — the font stack resolved to a name iOS cannot load"
+        )
+        XCTAssertNotEqual(
+            resolved,
+            "HelveticaNeue-CondensedBlack",
+            "fell through to the system fallback; Anton-Regular.ttf is not reaching Bundle.module"
+        )
+    }
+
+    func testEveryTokenFamilyResolvesToALoadableFace() {
+        for (token, name) in FontRegistry.resolvedFamilies {
+            XCTAssertNotNil(UIFont(name: name, size: 16), "\(token) resolved to unloadable \(name)")
+        }
     }
 
     func testAsciiFurnitureIsUnchangedFromTheWeb() {

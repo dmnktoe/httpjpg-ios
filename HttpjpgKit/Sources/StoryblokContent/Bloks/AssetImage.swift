@@ -31,7 +31,7 @@ public struct AssetImage: View {
         RemoteImage(
             url: URL(string: ImageService.Preset.width(
                 asset.filename,
-                Layout.cardWidth(viewport: viewportWidth),
+                PageLayout.cardWidth(viewport: viewportWidth),
                 scale: displayScale,
                 focus: asset.focus ?? ""
             )),

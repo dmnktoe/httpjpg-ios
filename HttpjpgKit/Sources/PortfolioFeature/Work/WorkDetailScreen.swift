@@ -80,7 +80,7 @@ struct WorkDetailScreen: View {
                         .buttonStyle(.brutal(variant: .primary, size: .md))
                     }
                 }
-                .padding(.horizontal, Layout.gutter)
+                .padding(.horizontal, PageLayout.gutter)
                 .padding(.vertical, Spacing.s6)
             }
         }
@@ -118,7 +118,7 @@ private struct DetailBar: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, Layout.gutter)
+        .padding(.horizontal, PageLayout.gutter)
         .padding(.vertical, Spacing.s3)
         .overlay(alignment: .bottom) {
             Rectangle().fill(theme.foreground).frame(height: 1)

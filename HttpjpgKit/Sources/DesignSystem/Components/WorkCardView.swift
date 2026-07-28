@@ -57,7 +57,7 @@ public struct WorkCardView: View {
             slope: clamp.slope,
             intercept: 0,
             max: clamp.max,
-            width: Layout.cardWidth(viewport: viewportWidth)
+            width: PageLayout.cardWidth(viewport: viewportWidth)
         )
         return Text(model.title)
             .font(Typography.headline(size))

@@ -73,7 +73,7 @@ struct WorkIndexScreen: View {
                     }
                 }
             }
-            .padding(.horizontal, Layout.gutter)
+            .padding(.horizontal, PageLayout.gutter)
             .padding(.vertical, Spacing.s6)
         }
         .refreshable { await model.load(force: true) }
@@ -84,7 +84,7 @@ struct WorkIndexScreen: View {
     private func row(for item: WorkItem) -> some View {
         let card = WorkCardAdapter.model(
             for: item,
-            targetWidth: Layout.cardWidth(viewport: viewportWidth),
+            targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
             scale: displayScale
         )
         if item.isExternal, let url = item.externalURL {

@@ -38,7 +38,10 @@ public struct ViewportReader<Content: View>: View {
 }
 
 /// Layout constants shared by the portfolio screens.
-public enum Layout {
+///
+/// Named `PageLayout`, not `Layout`: SwiftUI's `Layout` protocol is what
+/// `FlowLayout` conforms to, and a same-module type of that name shadows it.
+public enum PageLayout {
     /// Horizontal page gutter. Matches the `Container` padding on the web.
     public static let gutter: CGFloat = Spacing.s4
 

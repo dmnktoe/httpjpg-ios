@@ -29,6 +29,11 @@ let package = Package(
             dependencies: [
                 .product(name: "MarqueeLabel", package: "MarqueeLabel"),
             ],
+            // `.copy` keeps the `Fonts/` subdirectory intact so FontRegistry
+            // can enumerate it — `.process` would flatten it into the bundle
+            // root. Registration happens through Core Text at runtime; the
+            // `UIAppFonts` Info.plist key only sees the app bundle.
+            resources: [.copy("Resources/Fonts")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(

@@ -63,7 +63,7 @@ private struct Masthead: View {
             Spacer(minLength: 0)
             MonoText(Ascii.sparkles, size: Typography.Size.xxs, opacity: Opacities.dimmed)
         }
-        .padding(.horizontal, Layout.gutter)
+        .padding(.horizontal, PageLayout.gutter)
         .padding(.vertical, Spacing.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .bottom) {

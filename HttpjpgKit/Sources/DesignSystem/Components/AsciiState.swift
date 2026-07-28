@@ -26,7 +26,7 @@ public struct AsciiState: View {
                     .buttonStyle(.brutal(variant: .secondary, size: .sm))
             }
         }
-        .padding(Layout.gutter)
+        .padding(PageLayout.gutter)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
