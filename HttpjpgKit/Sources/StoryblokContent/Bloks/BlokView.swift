@@ -58,10 +58,16 @@ extension PortfolioBlok: View {
 public struct BlokListView: View {
     private let bloks: [PortfolioBlok]
     private let spacing: CGFloat
+    private let appliesPageGutter: Bool
 
-    public init(_ bloks: [PortfolioBlok], spacing: CGFloat = Spacing.s6) {
+    /// - Parameter appliesPageGutter: Adds the horizontal page inset, but only
+    ///   when the content does not already bring its own. Pass `true` for a
+    ///   story body; leave it off for nested lists, whose parent has padded
+    ///   them already.
+    public init(_ bloks: [PortfolioBlok], spacing: CGFloat = Spacing.s6, appliesPageGutter: Bool = false) {
         self.bloks = bloks
         self.spacing = spacing
+        self.appliesPageGutter = appliesPageGutter
     }
 
     public var body: some View {
@@ -71,6 +77,14 @@ public struct BlokListView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, gutter)
+    }
+
+    /// Zero as soon as any top-level blok is a layout container: those carry
+    /// the CMS's own `pl`/`pr`, and adding to it doubles the inset.
+    private var gutter: CGFloat {
+        guard appliesPageGutter, !bloks.contains(where: \.providesPageGutter) else { return 0 }
+        return PageLayout.gutter
     }
 }
 

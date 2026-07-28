@@ -2,11 +2,13 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The app shell — masthead, tab content, tab bar.
+/// The app shell.
 ///
-/// Both bars are `safeAreaInset`s rather than stack siblings: that keeps
-/// content clear of them at rest while letting it scroll underneath, which is
-/// the only way Liquid Glass has anything to refract.
+/// There is no custom masthead: each tab owns a `NavigationStack` and titles
+/// itself, so the system navigation bar provides the header — large title,
+/// collapse-on-scroll, and the iOS 26 scroll-edge effect. The only chrome this
+/// view draws is the tab bar, as a `safeAreaInset` so content rests clear of it
+/// but scrolls underneath, which is what gives the glass something to refract.
 public struct RootView: View {
     @State private var model: AppModel
     @AppStorage("appearance") private var appearance: AppearancePreference = .system
@@ -15,15 +17,13 @@ public struct RootView: View {
 
     public init(configuration: StoryblokConfiguration) {
         _model = State(initialValue: AppModel(configuration: configuration))
+        NavigationBarStyle.install()
     }
 
     public var body: some View {
         ViewportReader {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    Masthead(title: model.siteName)
-                }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     TabBar(selection: $model.selectedTab)
                 }
@@ -33,6 +33,7 @@ public struct RootView: View {
         .environment(\.isLiquidGlassEnabled, isGlassEnabled)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
+        .onOpenURL { model.open($0) }
         .task { await model.loadConfig() }
     }
 
@@ -42,9 +43,7 @@ public struct RootView: View {
         case .work:
             WorkIndexScreen()
         case .info:
-            InfoScreen()
-        case .settings:
-            SettingsScreen(appearance: $appearance, isGlassEnabled: $isGlassEnabled)
+            InfoScreen(appearance: $appearance, isGlassEnabled: $isGlassEnabled)
         }
     }
 
@@ -53,40 +52,11 @@ public struct RootView: View {
     }
 }
 
-/// The site name, set like the web header. Glass panel when Liquid Glass is on,
-/// the original hairline rule when it isn't.
-private struct Masthead: View {
-    let title: String
-
-    @Environment(\.pageTheme) private var theme
-    @Environment(\.isLiquidGlassEnabled) private var isGlass
-
-    var body: some View {
-        HStack(spacing: Spacing.s2) {
-            Text(title)
-                .font(Typography.headline(Typography.Size.xl))
-                .tracking(Typography.Size.xl * -0.025)
-            Spacer(minLength: 0)
-            MonoText(Ascii.sparkles, size: Typography.Size.xxs, opacity: Opacities.dimmed)
-        }
-        .padding(.horizontal, PageLayout.gutter)
-        .padding(.vertical, Spacing.s3)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassBackground(in: .rect)
-        .overlay(alignment: .bottom) {
-            if !isGlass {
-                Rectangle().fill(theme.foreground).frame(height: 1)
-            }
-        }
-        .accessibilityAddTraits(.isHeader)
-    }
-}
-
 /// Tab bar in two dialects.
 ///
-/// Glass on: a floating capsule rail whose selection pill morphs from tab to
-/// tab — the one gesture Liquid Glass is actually for. Glass off: the flat
-/// inverse-block row, hard rule on top, which is what the site would do.
+/// Glass on: a floating rail whose selection pill morphs from tab to tab — the
+/// one gesture Liquid Glass is actually for. Glass off: the flat inverse-block
+/// row with a hard rule on top, which is what the site would do.
 private struct TabBar: View {
     @Binding var selection: AppModel.Tab
 

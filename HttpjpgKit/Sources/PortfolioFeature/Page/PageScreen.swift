@@ -64,8 +64,7 @@ struct PageScreen: View {
             .pageSurface(theme)
         } else {
             ScrollView {
-                BlokListView(page.body)
-                    .padding(.horizontal, PageLayout.gutter)
+                BlokListView(page.body, appliesPageGutter: true)
                     .padding(.vertical, Spacing.s6)
             }
             .pageTheme(theme)

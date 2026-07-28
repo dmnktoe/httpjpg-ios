@@ -12,6 +12,12 @@
 		AA0000000000000000000032 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000041 /* DesignSystem */; };
 		AA0000000000000000000033 /* StoryblokContent in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000042 /* StoryblokContent */; };
 		AA0000000000000000000034 /* PortfolioFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000043 /* PortfolioFeature */; };
+		AA0000000000000000000035 /* WidgetFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000044 /* WidgetFeature */; };
+		AA0000000000000000000036 /* HttpjpgWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */; };
+		AA0000000000000000000037 /* WidgetFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000045 /* WidgetFeature */; };
+		AA0000000000000000000038 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000046 /* DesignSystem */; };
+		AA0000000000000000000039 /* StoryblokContent in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000047 /* StoryblokContent */; };
+		AA000000000000000000003A /* HttpjpgWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* HttpjpgWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +27,10 @@
 		AA0000000000000000000022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000023 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000024 /* Secrets.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.example.xcconfig; sourceTree = "<group>"; };
+		AA0000000000000000000019 /* HttpjpgWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HttpjpgWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWidgetsBundle.swift; sourceTree = "<group>"; };
+		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +41,17 @@
 				AA0000000000000000000032 /* DesignSystem in Frameworks */,
 				AA0000000000000000000033 /* StoryblokContent in Frameworks */,
 				AA0000000000000000000034 /* PortfolioFeature in Frameworks */,
+				AA0000000000000000000035 /* WidgetFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA000000000000000000001A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000038 /* DesignSystem in Frameworks */,
+				AA0000000000000000000039 /* StoryblokContent in Frameworks */,
+				AA0000000000000000000037 /* WidgetFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,6 +63,7 @@
 			children = (
 				AA0000000000000000000005 /* Config */,
 				AA0000000000000000000004 /* Httpjpg */,
+				AA0000000000000000000006 /* HttpjpgWidgets */,
 				AA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -50,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000011 /* Httpjpg.app */,
+				AA0000000000000000000019 /* HttpjpgWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,9 +91,19 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000023 /* Shared.xcconfig */,
+				AA0000000000000000000027 /* Widgets.xcconfig */,
 				AA0000000000000000000024 /* Secrets.example.xcconfig */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000006 /* HttpjpgWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */,
+				AA0000000000000000000026 /* Info.plist */,
+			);
+			path = HttpjpgWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,20 +116,44 @@
 				AA0000000000000000000012 /* Sources */,
 				AA0000000000000000000013 /* Frameworks */,
 				AA0000000000000000000014 /* Resources */,
+				AA000000000000000000001B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AA000000000000000000001D /* PBXTargetDependency */,
 			);
 			name = Httpjpg;
 			packageProductDependencies = (
 				AA0000000000000000000041 /* DesignSystem */,
 				AA0000000000000000000042 /* StoryblokContent */,
 				AA0000000000000000000043 /* PortfolioFeature */,
+				AA0000000000000000000044 /* WidgetFeature */,
 			);
 			productName = Httpjpg;
 			productReference = AA0000000000000000000011 /* Httpjpg.app */;
 			productType = "com.apple.product-type.application";
+		};
+		AA0000000000000000000018 /* HttpjpgWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "HttpjpgWidgets" */;
+			buildPhases = (
+				AA000000000000000000001C /* Sources */,
+				AA000000000000000000001A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HttpjpgWidgets;
+			packageProductDependencies = (
+				AA0000000000000000000046 /* DesignSystem */,
+				AA0000000000000000000047 /* StoryblokContent */,
+				AA0000000000000000000045 /* WidgetFeature */,
+			);
+			productName = HttpjpgWidgets;
+			productReference = AA0000000000000000000019 /* HttpjpgWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -109,6 +166,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					AA0000000000000000000010 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA0000000000000000000018 = {
 						CreatedOnToolsVersion = 26.0;
 					};
 				};
@@ -130,9 +190,24 @@
 			projectRoot = "";
 			targets = (
 				AA0000000000000000000010 /* Httpjpg */,
+				AA0000000000000000000018 /* HttpjpgWidgets */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA000000000000000000001B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA000000000000000000003A /* HttpjpgWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXResourcesBuildPhase section */
 		AA0000000000000000000014 /* Resources */ = {
@@ -154,7 +229,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA000000000000000000001C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000036 /* HttpjpgWidgetsBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA000000000000000000001D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000018 /* HttpjpgWidgets */;
+			targetProxy = AA000000000000000000001E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		AA000000000000000000001E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000018;
+			remoteInfo = HttpjpgWidgets;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin XCBuildConfiguration section */
 		AA0000000000000000000051 /* Debug */ = {
@@ -227,6 +328,34 @@
 			};
 			name = Release;
 		};
+		AA0000000000000000000057 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000027 /* Widgets.xcconfig */;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000058 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000027 /* Widgets.xcconfig */;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -244,6 +373,15 @@
 			buildConfigurations = (
 				AA0000000000000000000054 /* Debug */,
 				AA0000000000000000000055 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "HttpjpgWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000057 /* Debug */,
+				AA0000000000000000000058 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -269,6 +407,22 @@
 		AA0000000000000000000043 /* PortfolioFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PortfolioFeature;
+		};
+		AA0000000000000000000044 /* WidgetFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WidgetFeature;
+		};
+		AA0000000000000000000045 /* WidgetFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WidgetFeature;
+		};
+		AA0000000000000000000046 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DesignSystem;
+		};
+		AA0000000000000000000047 /* StoryblokContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StoryblokContent;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

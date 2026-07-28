@@ -153,10 +153,27 @@ of blinking. Glass is never nested inside glass, per Apple's guidance.
   bloks in the body — the web makes the same split. A story with `isDark` set
   flips its own screen to the dark page theme.
 - **info** — every story outside `work/`, discovered rather than hardcoded, each
-  opening through the blok registry. (`home` is excluded: on the web it *is* the
-  work index, so pointing the tab at it made it a duplicate of the first tab.)
-- **settings** — appearance preference, the Liquid Glass switch, CMS links,
-  colophon.
+  opening through the blok registry (`home` is excluded: on the web it *is* the
+  work index). Then the CMS header menu's external links, the appearance and
+  Liquid Glass preferences, and the colophon. Two switches do not earn a tab of
+  their own, so there is no settings tab.
+
+## Widget
+
+`WidgetFeature` provides a home-screen widget showing the newest piece. The
+small family is what it was designed around: the featured image full-bleed, an
+ASCII tape strip, and the title on a gradient scrim — `contentMarginsDisabled()`
+plus a container background is what lets the photo reach the edges. Medium and
+large add the recent list beside it, because people resize widgets.
+
+A widget cannot load anything while it draws, so the timeline provider resolves
+everything up front, image included, and refreshes hourly — the same interval
+the web uses to revalidate its cached Storyblok reads.
+
+Tapping it opens `httpjpg://work/<slug>`. Both halves of that contract live in
+`WidgetDeepLink`, in the module the app and the extension both link, so the
+scheme cannot drift. The extension reads the same token from its own
+`Info.plist`, populated from the same `Config/Secrets.xcconfig`.
 
 ## Images
 

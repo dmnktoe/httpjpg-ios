@@ -16,11 +16,12 @@ public enum WorkCardAdapter {
         targetWidth: CGFloat,
         scale: CGFloat
     ) -> WorkCardModel {
-        WorkCardModel(
+        let excerpt = description ?? item.summary
+        return WorkCardModel(
             id: item.id,
             title: item.title,
             slug: item.slug,
-            description: description,
+            description: excerpt.isEmpty ? nil : excerpt,
             date: item.date,
             dateEnd: nil,
             tags: item.tags,

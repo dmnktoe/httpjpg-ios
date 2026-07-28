@@ -99,16 +99,21 @@ public enum Palette {
         0xDC2626, 0xB91C1C, 0x991B1B, 0x7F1D1D, 0x450A0A
     )
 
-    /// Resolves a Storyblok `color-options` datasource value such as `"primary.500"`.
+    /// Resolves a Storyblok `color-options` datasource value.
     ///
-    /// Storyblok hands these strings over verbatim, so blok renderers need the
-    /// same lookup the Panda `staticCss` pass gives the web build.
+    /// The datasource stores *resolved* values, so what arrives over the wire
+    /// is usually a hex string (`"#D4D4D4"`) rather than a token path — the
+    /// sync script writes the token's value, not its name. Both spellings are
+    /// accepted, plus the two bare keywords.
     public static func named(_ value: String?) -> Color? {
         guard let value, !value.isEmpty else { return nil }
         switch value {
         case "black": return black
         case "white": return white
         default: break
+        }
+        if let hex = hexValue(value) {
+            return Color(hex: hex)
         }
         let parts = value.split(separator: ".")
         guard parts.count == 2, let step = Int(parts[1]) else { return nil }
@@ -121,6 +126,22 @@ public enum Palette {
         case "danger": return danger.step(step)
         default: return nil
         }
+    }
+
+    /// Parses `#RRGGBB` / `RRGGBB` / `#RGB`, or `nil` if the string is not hex.
+    static func hexValue(_ value: String) -> UInt32? {
+        var digits = Substring(value)
+        if digits.hasPrefix("#") {
+            digits = digits.dropFirst()
+        }
+        guard digits.count == 6 || digits.count == 3 else { return nil }
+        guard digits.allSatisfy(\.isHexDigit) else { return nil }
+
+        // `#abc` is shorthand for `#aabbcc`.
+        let expanded = digits.count == 3
+            ? digits.map { String(repeating: $0, count: 2) }.joined()
+            : String(digits)
+        return UInt32(expanded, radix: 16)
     }
 }
 

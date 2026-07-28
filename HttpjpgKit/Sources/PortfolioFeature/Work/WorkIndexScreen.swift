@@ -9,10 +9,12 @@ struct WorkIndexScreen: View {
     @Environment(\.displayScale) private var displayScale
 
     @State private var model: WorkIndexModel?
-    @State private var path: [WorkRoute] = []
 
     var body: some View {
-        NavigationStack(path: $path) {
+        // The path lives on `AppModel` so a widget tap can push a story before
+        // this screen has appeared.
+        @Bindable var app = app
+        return NavigationStack(path: $app.workPath) {
             Group {
                 if let model {
                     content(model)
@@ -20,10 +22,11 @@ struct WorkIndexScreen: View {
                     LoadingState()
                 }
             }
+            .navigationTitle(app.siteName)
+            .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: WorkRoute.self) { route in
                 WorkDetailScreen(route: route)
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
         .task {
             if model == nil {

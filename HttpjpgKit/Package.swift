@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
         .library(name: "StoryblokContent", targets: ["StoryblokContent"]),
         .library(name: "PortfolioFeature", targets: ["PortfolioFeature"]),
+        .library(name: "WidgetFeature", targets: ["WidgetFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
@@ -48,6 +49,14 @@ let package = Package(
         ),
         .target(
             name: "PortfolioFeature",
+            dependencies: ["DesignSystem", "StoryblokContent", "WidgetFeature"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The app links this too — not for the widget views, but for the
+        // deep-link contract, so both halves of the URL scheme come from one
+        // definition.
+        .target(
+            name: "WidgetFeature",
             dependencies: ["DesignSystem", "StoryblokContent"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

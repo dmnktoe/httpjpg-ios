@@ -8,6 +8,9 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let slug: String
     public let fullSlug: String
     public let title: String
+    /// The story's `description` rich text, flattened. Card excerpts need
+    /// plain text, and carrying it on the item saves a second fetch per row.
+    public let summary: String
     /// Already run through ``ImageService/Preset`` — a thumbnail, not the original.
     public let thumbnailURL: URL?
     /// Raw asset URLs, still untransformed, so the card can size them to the
@@ -24,6 +27,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         slug: String,
         fullSlug: String,
         title: String,
+        summary: String = "",
         thumbnailURL: URL?,
         imageFilenames: [String],
         isDraft: Bool,
@@ -36,6 +40,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.slug = slug
         self.fullSlug = fullSlug
         self.title = title
+        self.summary = summary
         self.thumbnailURL = thumbnailURL
         self.imageFilenames = imageFilenames
         self.isDraft = isDraft
@@ -58,6 +63,7 @@ public extension WorkItem {
             slug: story.slug,
             fullSlug: story.fullSlug,
             title: content.title ?? story.name,
+            summary: extractPlainText(content.details, maxLength: 280),
             thumbnailURL: URL(string: ImageService.Preset.thumb(filenames.first)),
             imageFilenames: filenames,
             isDraft: story.firstPublishedAt == nil,

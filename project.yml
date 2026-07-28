@@ -36,6 +36,10 @@ targets:
         product: StoryblokContent
       - package: HttpjpgKit
         product: PortfolioFeature
+      - package: HttpjpgKit
+        product: WidgetFeature
+      - target: HttpjpgWidgets
+        embed: true
     configFiles:
       Debug: Config/Shared.xcconfig
       Release: Config/Shared.xcconfig
@@ -44,3 +48,22 @@ targets:
         INFOPLIST_FILE: Httpjpg/Info.plist
         GENERATE_INFOPLIST_FILE: true
         ENABLE_PREVIEWS: true
+
+  HttpjpgWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: HttpjpgWidgets
+    dependencies:
+      - package: HttpjpgKit
+        product: DesignSystem
+      - package: HttpjpgKit
+        product: StoryblokContent
+      - package: HttpjpgKit
+        product: WidgetFeature
+    configFiles:
+      Debug: Config/Widgets.xcconfig
+      Release: Config/Widgets.xcconfig
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true

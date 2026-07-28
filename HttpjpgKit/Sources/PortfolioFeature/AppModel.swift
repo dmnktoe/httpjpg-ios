@@ -2,6 +2,7 @@ import DesignSystem
 import Observation
 import StoryblokContent
 import SwiftUI
+import WidgetFeature
 
 /// App-wide state: the content client, the CMS config, and which tab is up.
 ///
@@ -10,10 +11,12 @@ import SwiftUI
 @MainActor
 @Observable
 public final class AppModel {
+    /// Two tabs. Preferences live at the bottom of `info` rather than in a tab
+    /// of their own — an appearance switch and a glass toggle do not earn a
+    /// third of the tab bar.
     public enum Tab: String, CaseIterable, Identifiable, Sendable {
         case work
         case info
-        case settings
 
         public var id: String { rawValue }
 
@@ -22,13 +25,15 @@ public final class AppModel {
             switch self {
             case .work: return "work"
             case .info: return "info"
-            case .settings: return "settings"
             }
         }
     }
 
     public let client: ContentClient
     public var selectedTab: Tab = .work
+    /// The work tab's navigation stack, hoisted out of the screen so a widget
+    /// tap can push onto it before the screen has even appeared.
+    public var workPath: [WorkRoute] = []
     public private(set) var config: SiteConfig = .fallback
 
     private var hasLoadedConfig = false
@@ -49,6 +54,17 @@ public final class AppModel {
         guard !hasLoadedConfig else { return }
         config = await client.siteConfig()
         hasLoadedConfig = true
+    }
+
+    /// Handles a `httpjpg://work/<slug>` URL from the home-screen widget.
+    ///
+    /// The title is the slug until the story loads — the widget knows the
+    /// title, but passing it through the URL would make the link brittle for
+    /// no benefit, since the detail screen replaces it a moment later anyway.
+    public func open(_ url: URL) {
+        guard let slug = WidgetDeepLink.workSlug(from: url) else { return }
+        selectedTab = .work
+        workPath = [WorkRoute(slug: slug, title: slug)]
     }
 }
 

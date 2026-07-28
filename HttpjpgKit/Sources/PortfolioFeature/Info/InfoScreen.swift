@@ -1,0 +1,115 @@
+import DesignSystem
+import Observation
+import StoryblokContent
+import SwiftUI
+
+/// The info tab: everything on the site that isn't work, plus the links and
+/// preferences that used to sit in a tab of their own.
+///
+/// It used to point at the `home` story, which was a mistake — on the web
+/// `home` *is* the work index, so the tab either duplicated the first one or
+/// rendered blank. There is no canonical "about" slug to point at instead, so
+/// the pages are discovered: every story outside `work/`, listed, opened
+/// through the same blok registry the web uses.
+struct InfoScreen: View {
+    @Binding var appearance: AppearancePreference
+    @Binding var isGlassEnabled: Bool
+
+    @Environment(AppModel.self) private var app
+
+    @State private var model: InfoModel?
+    @State private var path: [PageRoute] = []
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.s8) {
+                    pages
+                    InfoLinksSection(links: app.config.headerMenu)
+                    InfoPreferencesSection(
+                        appearance: $appearance,
+                        isGlassEnabled: $isGlassEnabled
+                    )
+                    InfoColophon(config: app.config, siteName: app.siteName)
+                }
+                .padding(.horizontal, PageLayout.gutter)
+                .padding(.vertical, Spacing.s6)
+            }
+            .refreshable { await model?.load() }
+            .navigationTitle("info")
+            .navigationBarTitleDisplayMode(.large)
+            .navigationDestination(for: PageRoute.self) { route in
+                PageScreen(slug: route.slug, title: route.title)
+            }
+        }
+        .task {
+            if model == nil {
+                model = InfoModel(client: app.client)
+                await model?.load()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var pages: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            InfoSectionLabel("pages")
+                .padding(.bottom, Spacing.s3)
+
+            switch model?.state {
+            case .loaded(let summaries) where !summaries.isEmpty:
+                ForEach(summaries) { page in
+                    NavigationLink(value: PageRoute(page: page)) {
+                        InfoPageRow(page: page)
+                    }
+                    .buttonStyle(.plain)
+                    BrutalDivider(variant: .dotted)
+                }
+            case .failed(let message):
+                BodyText(message, size: .sm, emphasis: .muted)
+            case .loaded, .none, .loading:
+                MonoText("loading …", size: Typography.Size.sm, opacity: Opacities.subtle)
+                    .padding(.vertical, Spacing.s3)
+            }
+        }
+    }
+}
+
+/// A page destination. Carries the title so the pushed screen has something to
+/// show in its navigation bar before the story arrives.
+struct PageRoute: Hashable {
+    let slug: String
+    let title: String
+
+    init(page: PageSummary) {
+        slug = page.slug
+        title = page.title
+    }
+}
+
+@MainActor
+@Observable
+final class InfoModel {
+    enum LoadState {
+        case loading
+        case loaded([PageSummary])
+        case failed(String)
+    }
+
+    private let client: ContentClient
+
+    private(set) var state: LoadState = .loading
+
+    init(client: ContentClient) {
+        self.client = client
+    }
+
+    func load() async {
+        state = .loading
+        do {
+            state = .loaded(try await client.pageIndex())
+        } catch {
+            state = .failed(error.localizedDescription)
+        }
+    }
+}

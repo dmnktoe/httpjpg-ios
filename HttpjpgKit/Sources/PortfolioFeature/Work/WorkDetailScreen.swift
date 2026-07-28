@@ -83,13 +83,16 @@ struct WorkDetailScreen: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.s6) {
                 Meta(detail: detail)
+                    .padding(.horizontal, PageLayout.gutter)
 
                 // The body carries its own headlines, so the story title is
-                // left to the navigation bar rather than repeated here.
-                BlokListView(detail.body)
+                // left to the navigation bar rather than repeated here. It
+                // also carries its own gutter when it starts with a container.
+                BlokListView(detail.body, appliesPageGutter: true)
 
                 if detail.body.isEmpty {
                     fallbackBody(detail)
+                        .padding(.horizontal, PageLayout.gutter)
                 }
 
                 if let link = detail.link,
@@ -98,9 +101,9 @@ struct WorkDetailScreen: View {
                         Text("visit ↗")
                     }
                     .buttonStyle(.brutal(variant: .primary, size: .md))
+                    .padding(.horizontal, PageLayout.gutter)
                 }
             }
-            .padding(.horizontal, PageLayout.gutter)
             .padding(.vertical, Spacing.s6)
         }
         .pageTheme(theme)

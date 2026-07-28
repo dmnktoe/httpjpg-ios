@@ -88,6 +88,19 @@ public enum PortfolioBlok: BlockLibrary, Identifiable {
         }
     }
 
+    /// `true` when the blok already carries the page gutter from the CMS.
+    ///
+    /// `section` and `container` are where the web sets its horizontal page
+    /// padding (`pl`/`pr` on the container blok). A screen that adds its own
+    /// gutter on top of one of these ends up with double the inset, which is
+    /// what made body content sit ~32pt in instead of 16.
+    public var providesPageGutter: Bool {
+        switch self {
+        case .section, .container: return true
+        default: return false
+        }
+    }
+
     private enum DispatchKeys: String, CodingKey {
         case component
     }
