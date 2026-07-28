@@ -21,6 +21,10 @@ final class FooterWidgetsModel {
     private(set) var film: LetterboxdFilm?
     private(set) var trophy: PsnTrophy?
     private(set) var weather: WeatherNow?
+    /// `true` once the first batch has landed. The view holds the whole block
+    /// back until then — the clock needs no network and rendered instantly,
+    /// and the rows loading in above it shoved it down a line after the fact.
+    private(set) var isLoaded = false
 
     init(origin: URL, flags: WidgetFlags) {
         self.api = SiteAPI(origin: origin)
@@ -45,6 +49,7 @@ final class FooterWidgetsModel {
         film = loadedFilm
         trophy = loadedTrophy
         weather = loadedWeather
+        isLoaded = true
     }
 
     private func loadDiscord() async -> DiscordPresence? {

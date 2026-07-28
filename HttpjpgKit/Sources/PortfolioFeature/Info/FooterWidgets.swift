@@ -12,29 +12,27 @@ import SwiftUI
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
 
+    // The whole block waits for the batch, clock included. The clock could
+    // render instantly, but then the rows landing above it shoved it down a
+    // line a moment later — every row appearing at once means every row
+    // appears where it stays.
     var body: some View {
-        VStack(spacing: Spacing.s1) {
-            if let discord = model.discord {
-                DiscordLine(presence: discord)
+        if model.isLoaded {
+            VStack(spacing: Spacing.s1) {
+                if let discord = model.discord {
+                    DiscordLine(presence: discord)
+                }
+                if let film = model.film {
+                    LetterboxdLine(film: film)
+                }
+                if let trophy = model.trophy {
+                    TrophyLine(trophy: trophy)
+                }
+                ClockLine(weather: model.weather)
             }
-            if let film = model.film {
-                LetterboxdLine(film: film)
-            }
-            if let trophy = model.trophy {
-                TrophyLine(trophy: trophy)
-            }
-            ClockLine(weather: model.weather)
+            .frame(maxWidth: .infinity)
+            .transition(.opacity.animation(.easeOut(duration: 0.25)))
         }
-        .frame(maxWidth: .infinity)
-        // The one growth spurt left — the batch of rows landing — eases
-        // instead of snapping, so the background image scales smoothly.
-        .animation(.easeOut(duration: 0.25), value: visibleRowCount)
-    }
-
-    private var visibleRowCount: Int {
-        [model.discord != nil, model.film != nil, model.trophy != nil]
-            .filter { $0 }
-            .count
     }
 }
 
@@ -175,6 +173,9 @@ private struct FooterStatusLine<Content: View>: View {
             content
         }
         .font(Typography.mono(Typography.Size.xs))
+        // One line, always: without the limit a squeezed fragment wrapped
+        // inside its own Text and the row broke onto a second line.
+        .lineLimit(1)
         .opacity(0.8)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, PageLayout.gutter)
