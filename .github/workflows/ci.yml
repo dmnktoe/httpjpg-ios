@@ -60,7 +60,7 @@ jobs:
       # so the token resolves empty and the app compiles fine. Signing is off —
       # the associated-domains entitlement would otherwise demand a profile.
       # `-skipMacroValidation` stands in for the "Trust & Enable" click Xcode
-      # asks for on `StoryblokClientMacros` (see README): without it the graph
+      # asks for on `StoryblokClientMacros` (see DECISIONS.md): without it the graph
       # phase refuses to run a third-party macro plugin and the build dies
       # before compiling a single file.
       # `shell: bash` is deliberate: it brings `-o pipefail`, without which the
