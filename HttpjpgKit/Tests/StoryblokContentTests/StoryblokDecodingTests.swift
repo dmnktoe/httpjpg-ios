@@ -127,6 +127,20 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.spacing.paddingBottom, 0)
     }
 
+    /// Unresolved relations arrive as bare UUID strings; they must land in
+    /// `workUUIDs` so `SbWorkListView` can run the second fetch, while the
+    /// resolved-story array stays empty instead of throwing.
+    func testWorkListKeepsRelationUUIDsForTheSecondFetch() throws {
+        let blok = try decode(WorkListBlok.self, """
+        {"_uid":"w1","component":"work_list","work":["uuid-a","uuid-b"],
+         "variant":"compact","showDividers":true,"dividerVariant":"ascii"}
+        """)
+        XCTAssertEqual(blok.workUUIDs, ["uuid-a", "uuid-b"])
+        XCTAssertTrue(blok.work.isEmpty)
+        XCTAssertTrue(blok.showsDividers)
+        XCTAssertEqual(blok.dividerVariant, "ascii")
+    }
+
     /// Only presentation fields come from the CMS — the playback fields are
     /// deliberately ignored so every carousel runs the work cards' cadence.
     func testSlideshowDecodesPresentationFieldsOnly() throws {

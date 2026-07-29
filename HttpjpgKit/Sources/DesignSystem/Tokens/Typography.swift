@@ -88,9 +88,19 @@ public enum Typography {
         .custom(Family.accent, size: size, relativeTo: style)
     }
 
+    /// Scaled by Dynamic Type like every other family — the custom faces get
+    /// it from `relativeTo`, the system mono needs the metrics pass spelled
+    /// out — but clamped at 1.6×: mono is mostly chrome (counters, tab pills,
+    /// footer rows), and chrome that doubles blows its capsules apart. The
+    /// accessibility sizes still grow real body text through the other
+    /// families.
     public static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+        let scaled = UIFontMetrics(forTextStyle: .footnote).scaledValue(for: size)
+        return .system(size: min(scaled, size * monoScaleCap), weight: weight, design: .monospaced)
     }
+
+    /// The most Dynamic Type may inflate the mono face.
+    static let monoScaleCap: CGFloat = 1.6
 
     // MARK: - UIKit interop
     //
@@ -110,9 +120,14 @@ public enum Typography {
         return UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font)
     }
 
+    /// Same clamp as the SwiftUI `mono` — the marquee sits inside the same
+    /// capsules the clamp exists to protect.
     public static func uiMono(_ size: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
-        UIFontMetrics(forTextStyle: .footnote)
-            .scaledFont(for: .monospacedSystemFont(ofSize: size, weight: weight))
+        let scaled = min(
+            UIFontMetrics(forTextStyle: .footnote).scaledValue(for: size),
+            size * monoScaleCap
+        )
+        return .monospacedSystemFont(ofSize: scaled, weight: weight)
     }
 
     /// The CSS `clamp()` the web headline recipe uses, evaluated against a

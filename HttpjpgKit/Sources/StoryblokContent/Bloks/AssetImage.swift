@@ -17,6 +17,8 @@ public struct AssetImage: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
 
+    @State private var isZoomed = false
+
     /// - Parameters:
     ///   - aspectRatio: Overrides the asset's own proportions. Leave `nil`
     ///     unless the CMS explicitly asks for a crop — the natural ratio read
@@ -38,18 +40,35 @@ public struct AssetImage: View {
     }
 
     public var body: some View {
-        if let copyright, copyrightPosition == .below {
-            VStack(alignment: .leading, spacing: Spacing.s1) {
-                image
-                CopyrightLabel(copyright, position: .below)
-            }
-        } else {
-            image.overlay(alignment: overlayAlignment) {
-                if let copyright {
-                    CopyrightLabel(copyright, position: copyrightPosition)
-                        .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
+        Group {
+            if let copyright, copyrightPosition == .below {
+                VStack(alignment: .leading, spacing: Spacing.s1) {
+                    image
+                    CopyrightLabel(copyright, position: .below)
+                }
+            } else {
+                image.overlay(alignment: overlayAlignment) {
+                    if let copyright {
+                        CopyrightLabel(copyright, position: copyrightPosition)
+                            .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
+                    }
                 }
             }
+        }
+        // Every content image doubles as its own loupe: tap for the black
+        // room, pinch from there. Cards are untouched — they render through
+        // `WorkCardImage`, where a tap already means "open the story".
+        .onTapGesture { isZoomed = true }
+        .fullScreenCover(isPresented: $isZoomed) {
+            ImageZoomViewer(
+                url: URL(string: ImageService.Preset.width(
+                    asset.filename,
+                    viewportWidth * 2,
+                    scale: displayScale,
+                    focus: ""
+                )),
+                accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
+            )
         }
     }
 

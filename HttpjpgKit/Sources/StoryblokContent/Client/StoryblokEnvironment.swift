@@ -13,6 +13,20 @@ public extension EnvironmentValues {
     }
 }
 
+/// The live client, for the rare blok that has to fetch for itself —
+/// `work_list` resolving its relation UUIDs. Optional so previews and tests
+/// can render bloks without standing up networking.
+private struct ContentClientKey: EnvironmentKey {
+    static let defaultValue: ContentClient? = nil
+}
+
+public extension EnvironmentValues {
+    var contentClient: ContentClient? {
+        get { self[ContentClientKey.self] }
+        set { self[ContentClientKey.self] = newValue }
+    }
+}
+
 /// A destination inside the work section.
 ///
 /// Declared here rather than in the feature layer so blok renderers — which

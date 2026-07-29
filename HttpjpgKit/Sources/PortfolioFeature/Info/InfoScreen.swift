@@ -117,6 +117,12 @@ public struct PageRoute: Hashable, Sendable {
         slug = page.slug
         title = page.title
     }
+
+    /// For universal links, where all that exists is the path.
+    public init(slug: String, title: String) {
+        self.slug = slug
+        self.title = title
+    }
 }
 
 @MainActor

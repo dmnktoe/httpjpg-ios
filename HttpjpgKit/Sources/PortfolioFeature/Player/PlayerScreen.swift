@@ -14,6 +14,8 @@ struct PlayerScreen: View {
 
     @Environment(\.colorScheme) private var systemScheme
 
+    @State private var playPauseTaps = 0
+
     var body: some View {
         let theme: PageTheme = systemScheme == .dark ? .dark : .light
         VStack(spacing: Spacing.s6) {
@@ -34,6 +36,12 @@ struct PlayerScreen: View {
 
                 scrubber(theme: theme)
                 transport
+
+                // Below the transport, where Apple Music keeps it: the same
+                // system picker, wearing the page's foreground instead of blue.
+                AirPlayPicker(tint: theme.foreground)
+                    .frame(width: 44, height: 44)
+                    .accessibilityLabel("AirPlay")
             }
 
             Spacer(minLength: 0)
@@ -95,6 +103,7 @@ struct PlayerScreen: View {
         HStack(spacing: Spacing.s8) {
             skipButton(by: -15, label: "↺15", accessibility: "Back 15 seconds")
             Button {
+                playPauseTaps += 1
                 player.togglePlayPause()
             } label: {
                 Text(player.isPlaying ? "▮▮" : "▸")
@@ -106,6 +115,9 @@ struct PlayerScreen: View {
                     .animation(.easeOut(duration: 0.1), value: player.isPlaying)
             }
             .buttonStyle(.plain)
+            // Tap-counted like the bar's button: lock-screen toggles flip
+            // `isPlaying` too, and those are not this button's taps.
+            .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
             .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
             skipButton(by: 15, label: "↻15", accessibility: "Forward 15 seconds")
         }

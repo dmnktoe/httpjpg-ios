@@ -580,11 +580,16 @@ public struct WorkListBlok: Decodable, Identifiable {
     public let spacing: BlokSpacing
     /// Resolved via `resolve_relations=work_list.work`.
     ///
-    /// Currently always empty: resolution needs the SDK's internal relation
+    /// Always empty in practice: resolution needs the SDK's internal relation
     /// store, which is only reachable through its typed client — and that
     /// client's session delegate is not thread-safe, so this app does its own
-    /// transport. See the note on `ContentClient`.
+    /// transport. See the note on `ContentClient`. What actually renders is
+    /// ``workUUIDs`` plus a second fetch.
     public let work: [Story<PortfolioBlok>]
+    /// The raw relation field: without the SDK's relation store the entries
+    /// stay UUID strings, which `ContentClient.workStories(byUUIDs:)` turns
+    /// back into stories with one extra request.
+    public let workUUIDs: [String]
     public let columns: Int
     public let variant: String
     public let showsDividers: Bool
@@ -602,6 +607,7 @@ public struct WorkListBlok: Decodable, Identifiable {
         id = envelope.uid
         spacing = envelope.spacing
         work = container.cmsArray(Story<PortfolioBlok>.self, forKey: .work)
+        workUUIDs = container.cmsArray(String.self, forKey: .work)
         columns = container.cmsInt(forKey: .columns) ?? 1
         variant = container.cmsString(forKey: .variant) ?? "default"
         showsDividers = container.cmsBool(forKey: .showDividers)

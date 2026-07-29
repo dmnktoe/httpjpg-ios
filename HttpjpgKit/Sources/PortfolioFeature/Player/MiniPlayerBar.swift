@@ -23,6 +23,11 @@ struct MiniPlayerBar: View {
     private static let tint = Palette.black.opacity(0.72)
     private static let labelColor = Palette.white.opacity(0.9)
 
+    // Counted taps rather than `player.isPlaying`: playback also toggles from
+    // the lock screen and Control Center, and those taps are not this bar's
+    // to answer with a buzz.
+    @State private var playPauseTaps = 0
+
     var body: some View {
         if let track = player.track {
             HStack(spacing: Spacing.s3) {
@@ -38,6 +43,7 @@ struct MiniPlayerBar: View {
                 .frame(maxWidth: .infinity)
 
                 Button {
+                    playPauseTaps += 1
                     player.togglePlayPause()
                 } label: {
                     Text(player.isPlaying ? "▮▮" : "▸")
@@ -50,6 +56,7 @@ struct MiniPlayerBar: View {
                         .animation(.easeOut(duration: 0.1), value: player.isPlaying)
                 }
                 .buttonStyle(.plain)
+                .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
                 .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
 
                 Button {

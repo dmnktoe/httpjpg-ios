@@ -37,6 +37,7 @@ struct WorkIndexScreen: View {
         .task {
             if model == nil {
                 model = WorkIndexModel(client: app.client)
+                Telemetry.signal("work.index.viewed")
             }
             await model?.load()
         }
@@ -102,6 +103,56 @@ struct WorkIndexScreen: View {
     private func filterFingerprint(_ model: WorkIndexModel) -> String {
         model.variant.rawValue + model.selectedTags.sorted().joined(separator: ",")
     }
+
+    /// Title and slice switch, kept as one tight group so the gap between them
+    /// reads as one header rather than two floating rows.
+    private func masthead(_ model: WorkIndexModel) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.s4) {
+            // Tighter than even the Headline default: Anton at this size
+            // carries so much built-in leading that the two lines only read as
+            // one title once most of it is subtracted back out.
+            Headline(app.siteName, level: .two, lineSpacing: -0.45)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+
+            VariantPicker(
+                links: app.config.headerMenu,
+                selection: model.variant,
+                onSelect: { model.select(variant: $0) }
+            )
+
+            if !model.availableTags.isEmpty {
+                TagChipRow(
+                    tags: model.availableTags,
+                    selected: model.selectedTags,
+                    onSelect: { model.toggle(tag: $0) }
+                )
+                .sensoryFeedback(.selection, trigger: model.selectedTags)
+            }
+        }
+        .padding(.top, Spacing.s2)
+    }
+
+    /// External-only entries link straight out, exactly as they do on the web.
+    @ViewBuilder
+    private func row(for item: WorkItem) -> some View {
+        let card = WorkCardAdapter.model(
+            for: item,
+            targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
+            scale: displayScale
+        )
+        if item.isExternal, let url = item.externalURL {
+            Link(destination: url) {
+                WorkCardView(card)
+            }
+            .buttonStyle(.plain)
+        } else {
+            NavigationLink(value: WorkRoute(item: item)) {
+                WorkCardView(card)
+            }
+            .buttonStyle(.plain)
+        }
+    }
 }
 
 /// Fades its content in with a slight upward drift, once, on appearance.
@@ -131,55 +182,6 @@ private struct FadeInUp<Content: View>: View {
                 }
             }
     }
-
-    /// Title and slice switch, kept as one tight group so the gap between them
-    /// reads as one header rather than two floating rows.
-    private func masthead(_ model: WorkIndexModel) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.s4) {
-            // Tighter than even the Headline default: Anton at this size
-            // carries so much built-in leading that the two lines only read as
-            // one title once most of it is subtracted back out.
-            Headline(app.siteName, level: .two, lineSpacing: -0.45)
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-
-            VariantPicker(
-                links: app.config.headerMenu,
-                selection: model.variant,
-                onSelect: { model.select(variant: $0) }
-            )
-
-            if !model.availableTags.isEmpty {
-                TagChipRow(
-                    tags: model.availableTags,
-                    selected: model.selectedTags,
-                    onSelect: { model.toggle(tag: $0) }
-                )
-            }
-        }
-        .padding(.top, Spacing.s2)
-    }
-
-    /// External-only entries link straight out, exactly as they do on the web.
-    @ViewBuilder
-    private func row(for item: WorkItem) -> some View {
-        let card = WorkCardAdapter.model(
-            for: item,
-            targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
-            scale: displayScale
-        )
-        if item.isExternal, let url = item.externalURL {
-            Link(destination: url) {
-                WorkCardView(card)
-            }
-            .buttonStyle(.plain)
-        } else {
-            NavigationLink(value: WorkRoute(item: item)) {
-                WorkCardView(card)
-            }
-            .buttonStyle(.plain)
-        }
-    }
 }
 
 /// The Projects / Websites switch, built from the CMS header menu.
@@ -204,6 +206,9 @@ private struct VariantPicker: View {
             }
             Spacer(minLength: 0)
         }
+        // On the selection itself, not a tap counter: re-tapping the active
+        // filter changes nothing, so it should feel like nothing.
+        .sensoryFeedback(.selection, trigger: selection)
     }
 
     /// Selection is colour, not weight: the active chip wears the design

@@ -17,6 +17,7 @@ struct WorkDetailScreen: View {
     let route: WorkRoute
 
     @Environment(AppModel.self) private var app
+    @Environment(TransmissionController.self) private var transmission
 
     @State private var model: WorkDetailModel?
 
@@ -31,15 +32,35 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // ㋡ pins the story to the Dynamic Island as a "transmission" —
+            // an on-air lamp for the piece you're into right now.
+            if transmission.isAvailable {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        transmission.toggle(title: navigationTitle, slug: route.slug)
+                    } label: {
+                        Text("㋡")
+                            .font(Typography.mono(Typography.Size.md, weight: .bold))
+                            .opacity(transmission.isTransmitting(slug: route.slug) ? 1 : Opacities.muted)
+                    }
+                    .accessibilityLabel(
+                        transmission.isTransmitting(slug: route.slug)
+                            ? "End transmission"
+                            : "Pin to Dynamic Island"
+                    )
+                }
+            }
             if let shareURL {
                 ToolbarItem(placement: .topBarTrailing) {
                     ShareLink(item: shareURL)
                 }
             }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: transmission.activeSlug)
         .task {
             if model == nil {
                 model = WorkDetailModel(client: app.client, slug: route.slug)
+                Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
                 await model?.load()
             }
             // The cancellation check keeps a swipe-back during loading from

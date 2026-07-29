@@ -17,6 +17,7 @@ import SwiftUI
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
+    @State private var transmission = TransmissionController()
     /// Width of the pill cluster, reported from the tab bar so the now-playing
     /// bar can match it — the two read as one piece of chrome only when their
     /// edges line up, preview pill included.
@@ -26,6 +27,7 @@ public struct RootView: View {
     public init(configuration: StoryblokConfiguration) {
         _model = State(initialValue: AppModel(configuration: configuration))
         NavigationBarStyle.install()
+        Telemetry.start()
     }
 
     public var body: some View {
@@ -61,8 +63,13 @@ public struct RootView: View {
         .pageTheme(theme)
         .pageSurface(theme)
         .environment(model)
+        .environment(transmission)
         .environment(\.storyblokConfiguration, model.configuration)
-        .environment(\.playAudioTrack) { player.play($0) }
+        .environment(\.contentClient, model.client)
+        .environment(\.playAudioTrack) {
+            Telemetry.signal("player.played")
+            player.play($0)
+        }
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player)
         }
@@ -108,6 +115,11 @@ private struct TabBar: View {
 
     @Environment(\.openURL) private var openURL
 
+    // Counted taps, not the selection: tapping the current pill pops its
+    // stack — a real action that deserves the same tick — and a selection
+    // trigger would stay silent for it.
+    @State private var tapCount = 0
+
     // No GlassEffectContainer around the row: the pills sit closer together
     // than the container's blend distance, so their glass shapes kept
     // half-merging and flashed mixed colours over dark content. Standalone
@@ -116,6 +128,7 @@ private struct TabBar: View {
         HStack(spacing: Spacing.s2) {
             ForEach(AppModel.Tab.allCases) { tab in
                 Button {
+                    tapCount += 1
                     withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
                 } label: {
                     label(for: tab)
@@ -134,6 +147,7 @@ private struct TabBar: View {
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { onRowWidthChange($0) }
+        .sensoryFeedback(.selection, trigger: tapCount)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2)

@@ -73,15 +73,51 @@ public final class AppModel {
         hasLoadedConfig = true
     }
 
-    /// Handles a `httpjpg://work/<slug>` URL from the home-screen widget.
+    /// Handles both URL front doors: `httpjpg://work/<slug>` from the widgets
+    /// and `https://…httpjpg.com/…` universal links from anywhere else.
     ///
     /// The title is the slug until the story loads — the widget knows the
     /// title, but passing it through the URL would make the link brittle for
     /// no benefit, since the detail screen replaces it a moment later anyway.
     public func open(_ url: URL) {
-        guard let slug = WidgetDeepLink.workSlug(from: url) else { return }
-        selectedTab = .work
-        workPath = [WorkRoute(slug: slug, title: slug)]
+        if let slug = WidgetDeepLink.workSlug(from: url) {
+            selectedTab = .work
+            workPath = [WorkRoute(slug: slug, title: slug)]
+            return
+        }
+        openUniversalLink(url)
+    }
+
+    /// Site URLs map exactly like the web router: `/` is the work index,
+    /// `/work/<slug>` a story, and any other path a page on the info tab.
+    /// Off-site URLs are ignored — the system should never hand those over,
+    /// and pretending to open them would drop the person somewhere random.
+    private func openUniversalLink(_ url: URL) {
+        guard url.scheme == "https" || url.scheme == "http",
+              let host = url.host,
+              isSiteHost(host)
+        else { return }
+
+        let parts = url.path.split(separator: "/").map(String.init)
+        if parts.first == "work", parts.count > 1 {
+            selectedTab = .work
+            workPath = [WorkRoute(slug: parts[1], title: parts[1])]
+        } else if parts.isEmpty || parts == [StorySlug.home] {
+            selectedTab = .work
+            workPath.removeAll()
+        } else {
+            let slug = parts.joined(separator: "/")
+            selectedTab = .info
+            infoPath = [PageRoute(slug: slug, title: parts.last ?? slug)]
+        }
+    }
+
+    /// Accepts the configured origin with and without the `www.` — the AASA
+    /// file registers both, and which one a shared link carries is luck.
+    private func isSiteHost(_ host: String) -> Bool {
+        guard let siteHost = configuration.siteOrigin.host else { return false }
+        let bare = siteHost.hasPrefix("www.") ? String(siteHost.dropFirst(4)) : siteHost
+        return host == siteHost || host == bare || host == "www." + bare
     }
 
     /// Selects a tab, or — when it is already selected — pops it back to its

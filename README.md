@@ -147,7 +147,12 @@ with Core Text and picks the first name iOS can actually instantiate:
 | `mono`     | ui-monospace, SF Mono, Menlo           | SF Mono (`.monospaced`)                                      |
 
 Everything routes through `Font.custom(_:size:relativeTo:)`, so Dynamic Type
-still scales the app.
+still scales the app. The system mono can't take that path — `.system(size:)`
+is fixed — so `Typography.mono` runs the size through
+`UIFontMetrics(forTextStyle: .footnote)` itself, **clamped at 1.6×**: mono is
+mostly chrome (tab pills, counters, footer rows), and chrome that doubles blows
+its capsules apart, while real reading text keeps growing through the other
+families. `uiMono` (the marquee's `UIFont` twin) carries the same clamp.
 
 **About Impact.** iOS ships none of the three faces in the web headline stack —
 not Impact, not Haettenschweiler, not Arial Narrow Bold. Mobile Safari therefore
@@ -211,9 +216,50 @@ benefit.
   flips its own screen to the dark page theme.
 - **info** — every story outside `work/`, discovered rather than hardcoded, each
   opening through the blok registry (`home` is excluded: on the web it *is* the
-  work index). Then the CMS header menu's external links, the appearance and
-  Liquid Glass preferences, and the colophon. Two switches do not earn a tab of
-  their own, so there is no settings tab.
+  work index). Then the CMS header menu's external links and the web footer,
+  rebuilt native: footer links, the live status lines (Discord, Letterboxd, PSN,
+  clock + weather) read from the site's own `/api/*` routes, the background
+  image, and the version line.
+
+Content images — `image` bloks, slideshow slides, legacy story assets — all
+open a full-screen viewer on tap: black room, pinch and double-tap zoom on a
+`UIScrollView` (the canonical photo-zoom since the first iPhone), a mono ✕ to
+leave. Chrome taps (tab pills, filter chips, carousel arrows, play/pause, the
+transmission button) answer with haptics via `sensoryFeedback` — always keyed
+on counted taps or user-held selection, never on state that timers or the lock
+screen can flip, so the phone never buzzes by itself.
+
+### Transmission (Dynamic Island)
+
+The ㋡ button on a work story pins it as a *transmission*: a Live Activity in
+the site's mono/ASCII voice — glyph, title, star tape, an elapsed-time counter
+— on the lock screen and in the Dynamic Island. Nothing to do with the music
+player on purpose; playback already has the system's now-playing surfaces. The
+whole activity is static plus a system-driven `Text(timerInterval:)`, so it
+never needs an update (or a push token) once started. One transmission at a
+time: starting a second retunes, ending from the island deep-links back into
+the story. `TransmissionAttributes` lives in `WidgetFeature` because ActivityKit
+matches the app's request with the extension's renderer by that type's identity.
+
+### Universal links
+
+`https://httpjpg.com/work/<slug>` (with or without `www.`) opens the story in
+the app; `/` is the work index; any other path opens as a page on the info tab
+— the same routing table the web router has. The app side is
+`Httpjpg.entitlements` (`applinks:` for both hosts) plus `AppModel.open`; the
+site side is `apps/portfolio/public/.well-known/apple-app-site-association`,
+served as JSON via a `headers()` entry in `next.config.ts`. The AASA ships with
+a `TEAMID.` placeholder — swap in the real Apple team ID and redeploy the site
+before testing, and note Apple's CDN caches the file for hours.
+
+### Analytics
+
+TelemetryDeck, the iOS stand-in for the web's Umami: privacy-first, no cookies,
+no fingerprinting, no consent banner needed (the web gates only Google Analytics
+behind consent for the same reason). Three signals — index viewed, story viewed
+(slug), track played — and nothing else. Without `TELEMETRYDECK_APP_ID` in
+`Secrets.xcconfig` the SDK never initialises and every signal is a no-op, so
+forks build silent by default.
 
 ## Widget
 
@@ -226,6 +272,14 @@ large add the recent list beside it, because people resize widgets.
 A widget cannot load anything while it draws, so the timeline provider resolves
 everything up front, image included, and refreshes hourly — the same interval
 the web uses to revalidate its cached Storyblok reads.
+
+The same widget also serves the lock screen and the Watch: `accessoryInline`
+(㋡ plus the title next to the clock), `accessoryRectangular` (tape, title,
+slug — the small card's text block without its photo), and `accessoryCircular`
+(the glyph on the system's accessory material). Accessory families skip the
+container background — the lock screen brings its own vibrant material, and
+painting a page colour under it only dims the text. StandBy needs nothing extra:
+it runs the small family full-screen.
 
 Tapping it opens `httpjpg://work/<slug>`. Both halves of that contract live in
 `WidgetDeepLink`, in the module the app and the extension both link, so the
@@ -259,6 +313,11 @@ Until step 5 happens, the blok renders as `SbMissingView` — a dashed placehold
 in debug builds, nothing at all in release. That mirrors the `_fallback: SbMissing`
 slot the web registers in development.
 
+`pnpm check:ios-bloks` (CI-friendly, plain Node) diffs the schema folder
+against the Swift decoder's dispatch switch, with an allowlist naming every
+consciously-unrendered blok and why — so forgetting step 5 fails loudly instead
+of shipping placeholders.
+
 ## Conventions
 
 `CLAUDE.md` at the repo root is a TypeScript guide. Swift code here follows the
@@ -286,8 +345,12 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   transport buttons back into the same intents the on-screen controls use.
   Spotify and SoundCloud sources hand off to the browser — no raw streams, and
   their embeds bring their tracking.
-- `work_list` relations do not resolve — see "Why the SDK's networking is not
-  used" above. The blok renders an empty list rather than the linked stories.
+- `work_list` relations resolve app-side: the field arrives as bare UUID
+  strings (the SDK's relation store is unreachable from our own transport — see
+  "Why the SDK's networking is not used"), so `WorkListBlok` keeps them as
+  `workUUIDs` and `SbWorkListView` turns them back into stories with one
+  `by_uuids_ordered` request through the `\.contentClient` environment,
+  rendering in the order the editor picked.
 - `video` bloks that point at Vimeo or YouTube hand off to the system browser
   instead of embedding. Neither hands out a playable stream, and embedding their
   web player would drag its tracking into the app past the consent choice the
@@ -303,12 +366,18 @@ only where the web already uses them, and `Sb`-prefixed blok renderers that map
   coverflow, flip and cards are Swiper's own 3-D transitions, and everything
   renders as the paged `slide`. Video assets in a slideshow play as chromeless
   muted loops, like the web's `<video autoplay muted loop>`.
-- The app icon is the site's `icon.png` upscaled to 1024 and flattened onto
-  white, because iOS rejects icons with an alpha channel. The source art is only
-  254px, so it is soft — a crisp icon needs the original at 1024 or larger. It
-  is also *not* a Liquid Glass icon: those are an `.icon` bundle of separate
-  layers authored in Icon Composer, not something that can be derived from a
-  flat PNG. Both want the layered source file.
+- The app icon ships two ways. `Assets.xcassets/AppIcon.appiconset/icon-1024.png`
+  is the flat fallback: the globe-and-monitor art composited on white (iOS
+  rejects icons with alpha). For the Liquid Glass icon, the two overlapping
+  objects were separated out of the flat source — `Design/icon-layers/` holds
+  `background-globe.png` (the globe, with the monitor's silhouette cut out bar
+  a hairline tuck so no seam can show) and `foreground-monitor.png` (the whole
+  monitor: head, bezel, neck, base — segmented with a marker-based watershed,
+  since the white bezel meets the white card and no colour threshold separates
+  them). Assembling the actual `.icon` bundle needs Icon Composer on a Mac:
+  drop the globe in a back group, the monitor in a front group, give each a
+  touch of specular, and the parallax between them is the Liquid Glass effect.
+  This container has no macOS tooling, so that last step stays manual.
 - The footer widgets read the website's own `/api/*` routes rather than talking
   to Lanyard, Letterboxd and PSN directly. Those need a Lanyard user id, a
   Letterboxd handle and a PSN NPSSO token, and an app bundle is not a place to

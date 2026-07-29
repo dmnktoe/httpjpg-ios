@@ -19,7 +19,12 @@ public struct LatestWorkWidget: Widget {
         }
         .configurationDisplayName("Latest work")
         .description("The newest piece from httpjpg.com.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        // The accessory families put the newest piece on the lock screen and
+        // Apple Watch; StandBy just runs the small family fullscreen.
+        .supportedFamilies([
+            .systemSmall, .systemMedium, .systemLarge,
+            .accessoryInline, .accessoryRectangular, .accessoryCircular,
+        ])
         .contentMarginsDisabled()
     }
 }
@@ -40,13 +45,19 @@ struct LatestWorkWidgetView: View {
             .pageTheme(theme)
             .widgetURL(deepLink)
             .containerBackground(for: .widget) {
-                theme.background
+                // The lock screen supplies its own vibrant material; painting
+                // a page colour under it would just dim the text.
+                if !isAccessory {
+                    theme.background
+                }
             }
     }
 
     @ViewBuilder
     private var content: some View {
         switch family {
+        case .accessoryInline, .accessoryRectangular, .accessoryCircular:
+            LatestWorkAccessoryView(entry: entry)
         case .systemSmall:
             LatestWorkSmallView(entry: entry)
         case .systemLarge:
@@ -55,6 +66,13 @@ struct LatestWorkWidgetView: View {
         default:
             LatestWorkListView(entry: entry, isLarge: false)
                 .padding(14)
+        }
+    }
+
+    private var isAccessory: Bool {
+        switch family {
+        case .accessoryInline, .accessoryRectangular, .accessoryCircular: return true
+        default: return false
         }
     }
 

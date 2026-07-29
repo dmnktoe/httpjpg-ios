@@ -23,6 +23,10 @@ public struct ImageCarousel<Slide: View>: View {
     private let slide: (Int) -> Slide
 
     @State private var index = 0
+    // Counted arrow taps, deliberately not `index`: the autoplay timer moves
+    // the index too, and a phone that buzzes by itself every seven seconds is
+    // a defect, not a feature.
+    @State private var arrowTaps = 0
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -67,6 +71,7 @@ public struct ImageCarousel<Slide: View>: View {
             // (which broke page scrolling) and no `onChange` bookkeeping
             // (which spammed per-frame update warnings).
             .task(id: autoplayTick) { await autoplayStep() }
+            .sensoryFeedback(.impact(weight: .light), trigger: arrowTaps)
         }
     }
 
@@ -89,6 +94,7 @@ public struct ImageCarousel<Slide: View>: View {
 
     private func arrow(_ symbol: String, step: Int) -> some View {
         Button {
+            arrowTaps += 1
             advance(by: step)
         } label: {
             Image(systemName: symbol)

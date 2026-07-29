@@ -118,6 +118,25 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
+    /// Work stories by UUID, in the order asked for — the app-side answer to
+    /// relation resolution. `work_list.work` arrives as bare UUID strings
+    /// because the hand-rolled transport cannot reach the SDK's relation
+    /// store (see the note up top); one extra request turns them back into
+    /// stories.
+    public func workStories(byUUIDs uuids: [String]) async throws -> [Story<WorkBlok>] {
+        guard !uuids.isEmpty else { return [] }
+        let request = buildRequest(path: "stories", queryItems: [
+            URLQueryItem(name: "by_uuids_ordered", value: uuids.joined(separator: ",")),
+            URLQueryItem(name: "per_page", value: String(min(uuids.count, 100))),
+        ])
+        let data = try await load(request)
+        do {
+            return try Self.decoder().decode(StoriesResponse<WorkBlok>.self, from: data).stories
+        } catch {
+            throw ContentError.decoding(String(describing: error))
+        }
+    }
+
     // MARK: - Transport
 
     private func story<Content: Decodable>(at slug: String) async throws -> Story<Content> {

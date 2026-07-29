@@ -23,6 +23,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
         .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
+        .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.0.0")),
     ],
     targets: [
         .target(
@@ -51,7 +52,12 @@ let package = Package(
         ),
         .target(
             name: "PortfolioFeature",
-            dependencies: ["DesignSystem", "StoryblokContent", "WidgetFeature"],
+            dependencies: [
+                "DesignSystem",
+                "StoryblokContent",
+                "WidgetFeature",
+                .product(name: "TelemetryDeck", package: "SwiftSDK"),
+            ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // The app links this too — not for the widget views, but for the

@@ -25,8 +25,13 @@ INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPort
 ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
 ENABLE_USER_SCRIPT_SANDBOXING = YES
 CODE_SIGN_STYLE = Automatic
+// Universal links (applinks:httpjpg.com). Requires a real signing team; the
+// AASA counterpart lives at apps/portfolio/public/.well-known/.
+CODE_SIGN_ENTITLEMENTS = Httpjpg/Httpjpg.entitlements
 
 // Defaults; override any of these in Config/Secrets.xcconfig.
 STORYBLOK_VERSION = published
 STORYBLOK_REGION = eu
 SITE_ORIGIN = https:/$()/www.httpjpg.com
+// Empty disables analytics entirely — see Telemetry.swift.
+TELEMETRYDECK_APP_ID =
