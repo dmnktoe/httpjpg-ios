@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A single Storyblok/Panda colour ramp, keyed the same way as `@httpjpg/tokens`
-/// (`primary.500` on the web reads as `Palette.primary.s500` here).
 public struct ColorRamp: Sendable {
     public let s50: Color
     public let s100: Color
@@ -41,7 +39,6 @@ public struct ColorRamp: Sendable {
         self.s950 = Color(hex: s950)
     }
 
-    /// Returns the step for a Panda-style numeric key, or `nil` for an unknown key.
     public func step(_ key: Int) -> Color? {
         switch key {
         case 50: return s50
@@ -60,11 +57,6 @@ public struct ColorRamp: Sendable {
     }
 }
 
-/// Raw palette — a 1:1 port of `packages/tokens/src/colors.ts`.
-///
-/// These are the *raw* scales. Anything that has to survive a light/dark flip
-/// should go through ``PageTheme`` instead, the way the web uses the
-/// `pageBg` / `pageFg` / `pageMuted` / `pageBorder` semantic tokens.
 public enum Palette {
     public static let black = Color(hex: 0x000000)
     public static let white = Color(hex: 0xFFFFFF)
@@ -99,12 +91,6 @@ public enum Palette {
         0xDC2626, 0xB91C1C, 0x991B1B, 0x7F1D1D, 0x450A0A
     )
 
-    /// Resolves a Storyblok `color-options` datasource value.
-    ///
-    /// The datasource stores *resolved* values, so what arrives over the wire
-    /// is usually a hex string (`"#D4D4D4"`) rather than a token path — the
-    /// sync script writes the token's value, not its name. Both spellings are
-    /// accepted, plus the two bare keywords.
     public static func named(_ value: String?) -> Color? {
         guard let value, !value.isEmpty else { return nil }
         switch value {
@@ -128,7 +114,6 @@ public enum Palette {
         }
     }
 
-    /// Parses `#RRGGBB` / `RRGGBB` / `#RGB`, or `nil` if the string is not hex.
     static func hexValue(_ value: String) -> UInt32? {
         var digits = Substring(value)
         if digits.hasPrefix("#") {
@@ -137,7 +122,6 @@ public enum Palette {
         guard digits.count == 6 || digits.count == 3 else { return nil }
         guard digits.allSatisfy(\.isHexDigit) else { return nil }
 
-        // `#abc` is shorthand for `#aabbcc`.
         let expanded = digits.count == 3
             ? digits.map { String(repeating: $0, count: 2) }.joined()
             : String(digits)
@@ -146,7 +130,6 @@ public enum Palette {
 }
 
 public extension Color {
-    /// Builds a colour from a `0xRRGGBB` literal, matching the hex tokens on the web.
     init(hex: UInt32, opacity: Double = 1) {
         self.init(
             .sRGB,

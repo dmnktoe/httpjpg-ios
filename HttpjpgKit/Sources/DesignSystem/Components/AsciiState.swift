@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Empty and error states, drawn from the ASCII banners the site already uses
-/// for its 404 and 500 pages.
 public struct AsciiState: View {
     private let art: String
     private let label: String

@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `paragraph` blok.
 public struct SbParagraphView: View {
     private let blok: ParagraphBlok
 

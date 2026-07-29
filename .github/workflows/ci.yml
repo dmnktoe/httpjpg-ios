@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-  # The blok contract can break from the *other* repo's side, so allow a
-  # manual run (and a repository_dispatch from the web repo later on).
   workflow_dispatch:
 
 concurrency:
@@ -13,9 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Cheap and Linux-only: does the Swift decoder still cover every blok the
-  # CMS schema folder defines? Runs first so a missing blok fails in seconds
-  # rather than after a full Xcode build.
   bloks:
     name: Blok registry
     runs-on: ubuntu-latest
@@ -24,8 +19,6 @@ jobs:
         with:
           path: httpjpg-ios
 
-      # The website repo is public, so CI can compare against the real
-      # schemas instead of a vendored snapshot that would drift.
       - uses: actions/checkout@v4
         with:
           repository: dmnktoe/httpjpg
@@ -44,10 +37,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pick the newest Xcode the runner image has. The project declares
-      # swift-tools-version 6.2, so this needs Xcode 26 — if the step below
-      # prints something older, the build will say so plainly rather than
-      # failing somewhere confusing.
       - name: Select Xcode
         run: |
           ls /Applications | grep -i '^Xcode' || true
@@ -56,24 +45,12 @@ jobs:
           sudo xcode-select -s "$latest/Contents/Developer"
           xcodebuild -version
 
-      # No Secrets.xcconfig in CI: Shared.xcconfig includes it with `#include?`,
-      # so the token resolves empty and the app compiles fine. Signing is off —
-      # the associated-domains entitlement would otherwise demand a profile.
-      # `-skipMacroValidation` stands in for the "Trust & Enable" click Xcode
-      # asks for on `StoryblokClientMacros` (see DECISIONS.md): without it the graph
-      # phase refuses to run a third-party macro plugin and the build dies
-      # before compiling a single file.
-      # `shell: bash` is deliberate: it brings `-o pipefail`, without which the
-      # pipe below would report the formatter's exit code and a failing build
-      # would pass CI. The formatter itself is optional — `cat` if it's absent.
-      # `tee` keeps the unformatted log, because xcbeautify swallows the errors
-      # xcodebuild reports outside a target (macro trust, signing, the PIF).
       - name: Build app
         shell: bash
         run: |
           xcodebuild build \
-            -project Httpjpg.xcodeproj \
-            -scheme Httpjpg \
+            -project httpjpg.xcodeproj \
+            -scheme httpjpg \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
@@ -87,10 +64,6 @@ jobs:
         if: failure()
         run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
 
-      # The app scheme carries no testables — the tests live in the local
-      # package, whose aggregate scheme Xcode generates from Package.swift.
-      # `swift test` can't stand in: the package declares iOS only, so it has
-      # no macOS slice to run on the host.
       - name: Test package
         shell: bash
         working-directory: HttpjpgKit

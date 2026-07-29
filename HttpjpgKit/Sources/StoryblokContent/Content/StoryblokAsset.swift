@@ -1,11 +1,5 @@
 import Foundation
 
-/// A Storyblok asset field — the Swift counterpart of `StoryblokImage` /
-/// `StoryblokVideoAsset` in `storyblok-utils/src/types.ts`.
-///
-/// `filename` is modelled as optional even though the web type declares it
-/// required: an emptied asset field still serialises as an object with every
-/// value set to `null`, which would otherwise fail to decode.
 public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
     public let id: Int?
     public let alt: String?
@@ -42,14 +36,12 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
         isExternalURL = try container.decodeIfPresent(Bool.self, forKey: .isExternalURL) ?? false
     }
 
-    /// `true` when the asset is empty — Storyblok keeps the object around.
     public var isEmpty: Bool { filename?.isEmpty ?? true }
 
     public var isVideo: Bool {
         ImageService.isVideo(filename: filename, contentType: contentType)
     }
 
-    /// Best available alternative text, falling back through the CMS fields.
     public func accessibilityText(fallback: String) -> String {
         for candidate in [alt, title, name] {
             if let candidate, !candidate.isEmpty { return candidate }
@@ -59,7 +51,6 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
 }
 
 public extension Array where Element == StoryblokAsset {
-    /// First non-video asset filename — the web's `firstImageFilename`.
     var firstImageFilename: String? {
         first { !$0.isEmpty && !$0.isVideo }?.filename
     }

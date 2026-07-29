@@ -1,18 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders a Storyblok rich-text document in the site's own typography.
-///
-/// The SDK ships a `RichTextView`, but it styles every node with system fonts
-/// at system sizes, and those styles win over anything set on the container —
-/// which made body copy render as 17pt San Francisco instead of 12pt Helvetica,
-/// and turned bold runs into headline-sized text. Rendering it here is what
-/// puts the page back in the site's voice.
-///
-/// Sizes follow the web's `<Paragraph size="sm">` at 12pt. The leading does
-/// not: the web's 1.75 line height is scaled for 65–100ch desktop measures,
-/// and at a phone's ~45ch it read as loose lines rather than paragraphs — so
-/// body copy runs at the same 1.35 the work-card summaries use.
 public struct StoryRichText: View {
     private let document: RichTextNode?
     private let size: CGFloat
@@ -33,9 +21,6 @@ public struct StoryRichText: View {
         }
     }
 
-    /// Erased, like `BlokView`: rich text nests into itself — a list item holds
-    /// paragraphs, a blockquote holds a list — so `block` and `blocks` call each
-    /// other and `some View` has no fixed point to infer.
     private func blocks(of node: RichTextNode) -> AnyView {
         AnyView(
             ForEach(Array(nodesToRender(node).enumerated()), id: \.offset) { entry in
@@ -44,7 +29,6 @@ public struct StoryRichText: View {
         )
     }
 
-    /// A document renders its children; anything else renders itself.
     private func nodesToRender(_ node: RichTextNode) -> [RichTextNode] {
         if case .document(let children) = node { return children }
         return [node]
@@ -117,8 +101,6 @@ public struct StoryRichText: View {
         case .blok(let bloks):
             return AnyView(BlokListView(bloks))
 
-        // Inline nodes reaching block position happen with malformed documents;
-        // wrapping them in a paragraph is closer to the intent than dropping them.
         case .text, .emoji, .hardBreak:
             return AnyView(paragraph([node], alignment: nil))
 

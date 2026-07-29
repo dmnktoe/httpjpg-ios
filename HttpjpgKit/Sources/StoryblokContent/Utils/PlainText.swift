@@ -1,10 +1,5 @@
 import Foundation
 
-/// Walks a rich-text document and returns the concatenated text, optionally
-/// truncated. Port of `extractPlainText` from `storyblok-utils`.
-///
-/// Used for card excerpts, share sheets and accessibility labels — anywhere a
-/// rendered document would be the wrong shape.
 public func extractPlainText(_ node: RichTextNode?, maxLength: Int? = nil) -> String {
     guard let node else { return "" }
     let text = walk(node)

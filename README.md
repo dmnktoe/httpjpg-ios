@@ -11,10 +11,10 @@ Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on t
 
 ```bash
 cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig   # fill in STORYBLOK_ACCESS_TOKEN
-open Httpjpg.xcodeproj
+open httpjpg.xcodeproj
 ```
 
-The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg) — this app used to sit inside it at `apps/ios/`. Why things are the way they are: [`DECISIONS.md`](DECISIONS.md). For agents: [`CLAUDE.md`](CLAUDE.md).
+The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg) — this app used to sit inside it at `apps/ios/`. For agents: [`CLAUDE.md`](CLAUDE.md).
 
 *ੈ✩‧₊˚༺☆༻*ੈ✩‧₊˚
 

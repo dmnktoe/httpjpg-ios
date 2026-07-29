@@ -1,11 +1,6 @@
 import AVKit
 import SwiftUI
 
-/// `AVRoutePickerView` in SwiftUI clothing — the system AirPlay button, tinted
-/// to the page theme instead of Apple's default blue.
-///
-/// The system view is the whole feature: it owns route discovery, the picker
-/// sheet, and the active-route state. All the app supplies is colour.
 struct AirPlayPicker: UIViewRepresentable {
     let tint: Color
 

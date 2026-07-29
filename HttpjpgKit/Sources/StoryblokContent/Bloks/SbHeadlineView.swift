@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `headline` blok.
 public struct SbHeadlineView: View {
     private let blok: HeadlineBlok
 
@@ -23,8 +22,6 @@ public struct SbHeadlineView: View {
 }
 
 extension TextAlignment {
-    /// Maps a Storyblok `textAlign` option. `justify` has no SwiftUI
-    /// equivalent, so it reads as leading.
     init(cmsAlign: String?) {
         switch cmsAlign {
         case "center": self = .center

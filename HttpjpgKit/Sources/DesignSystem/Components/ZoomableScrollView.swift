@@ -1,14 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// A `UIScrollView` wrapper that gives any SwiftUI content real pinch-to-zoom:
-/// the scroll view's own two-finger zoom, pan while zoomed, and double-tap to
-/// zoom in on the tapped point (or back out).
-///
-/// UIKit rather than a `MagnificationGesture`: the gesture version has to
-/// re-implement rubber-banding, anchor math, pan clamping and deceleration by
-/// hand, and every hand-rolled attempt reads as slightly wrong. UIScrollView
-/// has been the canonical photo-zoom since the first iPhone.
 public struct ZoomableScrollView<Content: View>: UIViewRepresentable {
     private let content: Content
 
@@ -36,8 +28,7 @@ public struct ZoomableScrollView<Content: View>: UIViewRepresentable {
             hosted.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
             hosted.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             hosted.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-            // Unzoomed content fills the viewport exactly; zooming scales the
-            // hosted view's transform, not these constraints.
+
             hosted.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             hosted.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor),
         ])

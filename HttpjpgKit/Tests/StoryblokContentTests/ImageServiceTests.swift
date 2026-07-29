@@ -2,8 +2,6 @@ import XCTest
 
 @testable import StoryblokContent
 
-/// Mirrors `packages/storyblok-utils/src/image-processing.test.ts` — the two
-/// implementations must produce byte-identical URLs, or the CDN caches diverge.
 final class ImageServiceTests: XCTestCase {
     private let asset = "https://a.storyblok.com/f/1/2000x1000/abc/photo.jpg"
 
@@ -54,8 +52,6 @@ final class ImageServiceTests: XCTestCase {
         XCTAssertFalse(ImageService.isStoryblokAsset("https://cdn.example.com/photo.jpg"))
     }
 
-    // MARK: - Presets
-
     func testOgPresetUsesSmartCrop() {
         XCTAssertEqual(
             ImageService.Preset.og(asset),
@@ -80,8 +76,6 @@ final class ImageServiceTests: XCTestCase {
         XCTAssertEqual(ImageService.pixelWidth(for: 2000, scale: 3), 2560)
     }
 
-    // MARK: - Natural dimensions
-
     func testReadsDimensionsOutOfTheAssetPath() throws {
         let size = try XCTUnwrap(ImageService.dimensions(of: asset))
         XCTAssertEqual(size.width, 2000)
@@ -100,8 +94,6 @@ final class ImageServiceTests: XCTestCase {
         XCTAssertNil(ImageService.dimensions(of: nil))
         XCTAssertNil(ImageService.aspectRatio(of: "https://a.storyblok.com/f/1/0x0/photo.jpg"))
     }
-
-    // MARK: - Video detection
 
     func testDetectsVideoByContentType() {
         XCTAssertTrue(ImageService.isVideo(filename: "clip.bin", contentType: "video/mp4"))

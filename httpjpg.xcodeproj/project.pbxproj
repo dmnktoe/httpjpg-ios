@@ -17,17 +17,17 @@
 		AA0000000000000000000037 /* WidgetFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000045 /* WidgetFeature */; };
 		AA0000000000000000000038 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000046 /* DesignSystem */; };
 		AA0000000000000000000039 /* StoryblokContent in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000047 /* StoryblokContent */; };
-		AA000000000000000000003A /* HttpjpgWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* HttpjpgWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* httpjpg-widgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AA0000000000000000000011 /* Httpjpg.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Httpjpg.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000011 /* httpjpg.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = httpjpg.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000020 /* HttpjpgApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgApp.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0000000000000000000022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000023 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000024 /* Secrets.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.example.xcconfig; sourceTree = "<group>"; };
-		AA0000000000000000000019 /* HttpjpgWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HttpjpgWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000019 /* httpjpg-widgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = httpjpg-widgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWidgetsBundle.swift; sourceTree = "<group>"; };
 		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
@@ -62,8 +62,8 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000005 /* Config */,
-				AA0000000000000000000004 /* Httpjpg */,
-				AA0000000000000000000006 /* HttpjpgWidgets */,
+				AA0000000000000000000004 /* httpjpg */,
+				AA0000000000000000000006 /* httpjpg-widgets */,
 				AA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,20 +71,20 @@
 		AA0000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA0000000000000000000011 /* Httpjpg.app */,
-				AA0000000000000000000019 /* HttpjpgWidgets.appex */,
+				AA0000000000000000000011 /* httpjpg.app */,
+				AA0000000000000000000019 /* httpjpg-widgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		AA0000000000000000000004 /* Httpjpg */ = {
+		AA0000000000000000000004 /* httpjpg */ = {
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000020 /* HttpjpgApp.swift */,
 				AA0000000000000000000021 /* Assets.xcassets */,
 				AA0000000000000000000022 /* Info.plist */,
 			);
-			path = Httpjpg;
+			path = httpjpg;
 			sourceTree = "<group>";
 		};
 		AA0000000000000000000005 /* Config */ = {
@@ -97,21 +97,21 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
-		AA0000000000000000000006 /* HttpjpgWidgets */ = {
+		AA0000000000000000000006 /* httpjpg-widgets */ = {
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */,
 				AA0000000000000000000026 /* Info.plist */,
 			);
-			path = HttpjpgWidgets;
+			path = httpjpg-widgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA0000000000000000000010 /* Httpjpg */ = {
+		AA0000000000000000000010 /* httpjpg */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "Httpjpg" */;
+			buildConfigurationList = AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "httpjpg" */;
 			buildPhases = (
 				AA0000000000000000000012 /* Sources */,
 				AA0000000000000000000013 /* Frameworks */,
@@ -123,20 +123,20 @@
 			dependencies = (
 				AA000000000000000000001D /* PBXTargetDependency */,
 			);
-			name = Httpjpg;
+			name = httpjpg;
 			packageProductDependencies = (
 				AA0000000000000000000041 /* DesignSystem */,
 				AA0000000000000000000042 /* StoryblokContent */,
 				AA0000000000000000000043 /* PortfolioFeature */,
 				AA0000000000000000000044 /* WidgetFeature */,
 			);
-			productName = Httpjpg;
-			productReference = AA0000000000000000000011 /* Httpjpg.app */;
+			productName = httpjpg;
+			productReference = AA0000000000000000000011 /* httpjpg.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AA0000000000000000000018 /* HttpjpgWidgets */ = {
+		AA0000000000000000000018 /* httpjpg-widgets */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "HttpjpgWidgets" */;
+			buildConfigurationList = AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "httpjpg-widgets" */;
 			buildPhases = (
 				AA000000000000000000001C /* Sources */,
 				AA000000000000000000001A /* Frameworks */,
@@ -145,14 +145,14 @@
 			);
 			dependencies = (
 			);
-			name = HttpjpgWidgets;
+			name = httpjpg-widgets;
 			packageProductDependencies = (
 				AA0000000000000000000046 /* DesignSystem */,
 				AA0000000000000000000047 /* StoryblokContent */,
 				AA0000000000000000000045 /* WidgetFeature */,
 			);
-			productName = HttpjpgWidgets;
-			productReference = AA0000000000000000000019 /* HttpjpgWidgets.appex */;
+			productName = httpjpg-widgets;
+			productReference = AA0000000000000000000019 /* httpjpg-widgets.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -173,7 +173,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AA0000000000000000000050 /* Build configuration list for PBXProject "Httpjpg" */;
+			buildConfigurationList = AA0000000000000000000050 /* Build configuration list for PBXProject "httpjpg" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -189,8 +189,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA0000000000000000000010 /* Httpjpg */,
-				AA0000000000000000000018 /* HttpjpgWidgets */,
+				AA0000000000000000000010 /* httpjpg */,
+				AA0000000000000000000018 /* httpjpg-widgets */,
 			);
 		};
 /* End PBXProject section */
@@ -202,7 +202,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				AA000000000000000000003A /* HttpjpgWidgets.appex in Embed Foundation Extensions */,
+				AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -242,7 +242,7 @@
 /* Begin PBXTargetDependency section */
 		AA000000000000000000001D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = AA0000000000000000000018 /* HttpjpgWidgets */;
+			target = AA0000000000000000000018 /* httpjpg-widgets */;
 			targetProxy = AA000000000000000000001E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -253,7 +253,7 @@
 			containerPortal = AA0000000000000000000001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = AA0000000000000000000018;
-			remoteInfo = HttpjpgWidgets;
+			remoteInfo = httpjpg-widgets;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -359,7 +359,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA0000000000000000000050 /* Build configuration list for PBXProject "Httpjpg" */ = {
+		AA0000000000000000000050 /* Build configuration list for PBXProject "httpjpg" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000051 /* Debug */,
@@ -368,7 +368,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "Httpjpg" */ = {
+		AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "httpjpg" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000054 /* Debug */,
@@ -377,7 +377,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "HttpjpgWidgets" */ = {
+		AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "httpjpg-widgets" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000057 /* Debug */,

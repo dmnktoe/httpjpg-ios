@@ -4,8 +4,6 @@ import XCTest
 
 @testable import DesignSystem
 
-/// The tokens are a port, not a redesign — these tests pin the values that
-/// have to keep matching `packages/tokens`.
 final class TokensTests: XCTestCase {
     func testResolvesPandaColorKeys() {
         XCTAssertEqual(Palette.named("primary.500"), Palette.primary.s500)
@@ -23,7 +21,6 @@ final class TokensTests: XCTestCase {
     }
 
     func testSpacingScaleMatchesRemValues() {
-        // 1rem == 16pt, so step 4 (`1rem`) is 16 and step 12 (`3rem`) is 48.
         XCTAssertEqual(Spacing.step(4), 16)
         XCTAssertEqual(Spacing.step(12), 48)
         XCTAssertEqual(Spacing.named("8"), 32)
@@ -32,7 +29,6 @@ final class TokensTests: XCTestCase {
     }
 
     func testClampMatchesCSSClamp() {
-        // clamp(2.25rem, 5vw + 1rem, 3.75rem) — Headline level 1.
         let narrow = Typography.clamp(min: 36, slope: 0.05, intercept: 16, max: 60, width: 320)
         let wide = Typography.clamp(min: 36, slope: 0.05, intercept: 16, max: 60, width: 1400)
         let middle = Typography.clamp(min: 36, slope: 0.05, intercept: 16, max: 60, width: 600)
@@ -58,9 +54,6 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(PageTheme.dark.colorScheme, .dark)
     }
 
-    /// Guards the font bundling: if `Resources/Fonts` stops being copied, or
-    /// Core Text registration breaks, the headline silently degrades to the
-    /// system fallback and nobody notices from a screenshot.
     func testHeadlineResolvesToABundledCondensedFace() {
         let resolved = Typography.Family.headline
         XCTAssertNotNil(
@@ -87,8 +80,6 @@ final class TokensTests: XCTestCase {
     }
 }
 
-/// The work-card date stamp is locale-pinned on purpose — see the note on
-/// ``WorkCardDate``.
 final class WorkCardDateTests: XCTestCase {
     private func date(_ iso: String) throws -> Date {
         let formatter = ISO8601DateFormatter()

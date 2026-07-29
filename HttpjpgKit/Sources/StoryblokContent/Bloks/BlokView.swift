@@ -2,14 +2,6 @@ import DesignSystem
 import StoryblokClient
 import SwiftUI
 
-/// Makes every decoded blok renderable.
-///
-/// This is the registry from `apps/portfolio/lib/storyblok.ts`, expressed as a
-/// switch instead of a dictionary.
-///
-/// The body is erased to `AnyView` on purpose: bloks nest into each other
-/// (`section` → `container` → `work_list` → …), and erasure keeps that
-/// recursion out of the type checker.
 extension PortfolioBlok: View {
     public var body: AnyView {
         switch self {
@@ -57,22 +49,11 @@ extension PortfolioBlok: View {
     }
 }
 
-/// Renders a `bloks` field in order — the counterpart of mapping
-/// `<StoryblokComponent>` over a body array on the web.
 public struct BlokListView: View {
     private let bloks: [PortfolioBlok]
     private let spacing: CGFloat
     private let appliesPageGutter: Bool
 
-    /// - Parameter spacing: Gap between bloks. **Zero by default, and that is
-    ///   the point.** The web stacks bloks flush and takes every gap from the
-    ///   CMS spacing matrix — `SbSection`, `SbContainer` and `SbHeadline` add no
-    ///   margin of their own. A default gap here quietly added 24pt between
-    ///   every pair of bloks on top of whatever the editor had configured,
-    ///   which is why the app's pages read so much airier than the site.
-    /// - Parameter appliesPageGutter: Adds the horizontal page inset. Pass
-    ///   `true` for a story body; leave it off for nested lists, whose parent
-    ///   has padded them already.
     public init(_ bloks: [PortfolioBlok], spacing: CGFloat = 0, appliesPageGutter: Bool = false) {
         self.bloks = bloks
         self.spacing = spacing
@@ -90,12 +71,9 @@ public struct BlokListView: View {
     }
 }
 
-/// Applies the base row of the CMS spacing matrix.
 struct BlokSpacingModifier: ViewModifier {
     let spacing: BlokSpacing
-    /// Layout containers pass `false`: their CMS `pl`/`pr` *is* the web's page
-    /// gutter, and the app already applies its own at the screen edge. Honouring
-    /// both is what put body content 32pt in instead of 16.
+
     let appliesHorizontal: Bool
 
     func body(content: Content) -> some View {
@@ -111,7 +89,6 @@ struct BlokSpacingModifier: ViewModifier {
 }
 
 extension View {
-    /// SwiftUI has no margin/padding distinction, so both collapse onto padding.
     func blokSpacing(_ spacing: BlokSpacing, appliesHorizontal: Bool = true) -> some View {
         modifier(BlokSpacingModifier(spacing: spacing, appliesHorizontal: appliesHorizontal))
     }

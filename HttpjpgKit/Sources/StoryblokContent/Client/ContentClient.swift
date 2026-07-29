@@ -1,34 +1,6 @@
 import Foundation
 import StoryblokClient
 
-/// The app's single door onto the Storyblok Content Delivery API — the Swift
-/// counterpart of `@httpjpg/storyblok-api` plus the query layer in
-/// `apps/portfolio/lib/queries`.
-///
-/// ## Why this does not use `StoryblokClient`
-///
-/// The SDK's typed client can only be built on a `URLSession` whose delegate
-/// is its own `Storyblok` rate limiter, and that delegate keeps three pieces
-/// of mutable state — `observers`, `backoffUntil`, `failedRequestCount` — with
-/// no synchronisation, on a class marked `@unchecked Sendable`. `observers` is
-/// written from `urlSession(_:didCreateTask:)` on the delegate queue and
-/// mutated again inside a KVO block that fires on whichever thread changed the
-/// task's state. Two requests in flight at once is enough to corrupt the
-/// dictionary; the app then dies with
-/// `-[__NSCFNumber count]: unrecognized selector sent to instance 0x8000…`
-/// somewhere inside the SDK. This app loads the config, the work index and the
-/// page index concurrently, so it hit that reliably.
-///
-/// The transport is therefore ours: a plain `URLSession`, URLs built here. The
-/// SDK still supplies the `Story` envelope the payload is decoded into, which
-/// is most of what is left of it as a dependency — rich text is decoded by
-/// ``RichTextNode`` rather than the SDK's model, for reasons documented there.
-///
-/// The one thing lost with the typed client is automatic relation resolution:
-/// `resolve_relations` is still sent, but nested `Story` fields arrive as UUID
-/// strings and decode to an empty array, because the SDK's relation store is
-/// internal to it. Only `work_list.work` uses relations, and only inside page
-/// bodies. See ``WorkListBlok/work``.
 public final class ContentClient: @unchecked Sendable {
     public let configuration: StoryblokConfiguration
 
@@ -51,12 +23,6 @@ public final class ContentClient: @unchecked Sendable {
         session.finishTasksAndInvalidate()
     }
 
-    // MARK: - Work
-
-    /// The work index, split into the two slices the header menu exposes.
-    ///
-    /// Mirrors `getRecentWork`: `work/*` stories only (no folder indexes, no
-    /// nested pages), newest first, untagged stories counting as Projects.
     public func workIndex(perPage: Int = 100) async throws -> WorkCollection {
         let stories: [Story<WorkBlok>] = try await stories(
             startingWith: StorySlug.workPrefix,
@@ -73,27 +39,16 @@ public final class ContentClient: @unchecked Sendable {
         )
     }
 
-    /// A single `work/<slug>` story.
     public func workDetail(slug: String) async throws -> WorkDetail {
         let story: Story<WorkBlok> = try await story(at: StorySlug.workPrefix + slug)
         return WorkDetail(story: story)
     }
 
-    // MARK: - Pages
-
-    /// A `page` story such as `home` or `cv`.
     public func page(slug: String) async throws -> PageDocument {
         let story: Story<PageBlok> = try await story(at: slug)
         return PageDocument(story: story)
     }
 
-    /// Every story that is not a work entry — the pages the site's own header
-    /// menu links to (`cv`, `feed-xml_html`, the legal pages, …).
-    ///
-    /// The space has no manifest of these, so they are discovered rather than
-    /// hardcoded: fetch everything outside `work/`, then drop the two stories
-    /// that are not pages. `config` is settings, and `home` is the work index
-    /// the first tab already shows.
     public func pageIndex(perPage: Int = 100) async throws -> [PageSummary] {
         let stories: [Story<StoryOverview>] = try await stories(
             startingWith: nil,
@@ -107,8 +62,6 @@ public final class ContentClient: @unchecked Sendable {
             .map(PageSummary.init(story:))
     }
 
-    /// The `config` story. Falls back to ``SiteConfig/fallback`` rather than
-    /// throwing — navigation should never be the reason a screen fails.
     public func siteConfig() async -> SiteConfig {
         do {
             let story: Story<SiteConfig> = try await story(at: StorySlug.config)
@@ -118,11 +71,6 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
-    /// Work stories by UUID, in the order asked for — the app-side answer to
-    /// relation resolution. `work_list.work` arrives as bare UUID strings
-    /// because the hand-rolled transport cannot reach the SDK's relation
-    /// store (see the note up top); one extra request turns them back into
-    /// stories.
     public func workStories(byUUIDs uuids: [String]) async throws -> [Story<WorkBlok>] {
         guard !uuids.isEmpty else { return [] }
         let request = buildRequest(path: "stories", queryItems: [
@@ -136,8 +84,6 @@ public final class ContentClient: @unchecked Sendable {
             throw ContentError.decoding(String(describing: error))
         }
     }
-
-    // MARK: - Transport
 
     private func story<Content: Decodable>(at slug: String) async throws -> Story<Content> {
         let request = buildRequest(
@@ -209,8 +155,6 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
-    /// Matches the date handling `StoryblokClient` applies internally — the
-    /// story envelope mixes ISO-8601 timestamps with `yyyy-MM-dd HH:mm`.
     static func decoder() -> JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
@@ -227,13 +171,10 @@ public final class ContentClient: @unchecked Sendable {
     }
 }
 
-/// The `cdn/stories/<slug>` envelope.
 struct StoryResponse<Content: Decodable>: Decodable {
     let story: Story<Content>
 }
 
-/// The `cdn/stories` envelope. Only the stories are of interest — pagination
-/// totals arrive in response headers, and the app never pages past 100.
 struct StoriesResponse<Content: Decodable>: Decodable {
     let stories: [Story<Content>]
 }

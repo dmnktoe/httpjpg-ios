@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A `#tag` chip — hairline box, mono, lowercase.
-/// Port of `work-card-tags.tsx`.
 public struct TagChip: View {
     private let tag: String
     private let isSelected: Bool
@@ -28,14 +26,12 @@ public struct TagChip: View {
     }
 }
 
-/// A row of `#tag` chips that wraps onto as many lines as it needs.
 public struct TagChipRow: View {
     private let tags: [String]
     private let selected: Set<String>
     private let onSelect: ((String) -> Void)?
 
     public init(tags: [String], selected: Set<String> = [], onSelect: ((String) -> Void)? = nil) {
-        // Storyblok's tag_list isn't enforced unique — dedupe while keeping order.
         var seen = Set<String>()
         self.tags = tags.filter { seen.insert($0).inserted }
         self.selected = selected
@@ -58,8 +54,6 @@ public struct TagChipRow: View {
     }
 }
 
-/// Minimal wrapping stack — SwiftUI has no `flex-wrap`, and `LazyVGrid` can't
-/// size columns to their content.
 public struct FlowLayout: Layout {
     private let spacing: CGFloat
 

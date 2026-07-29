@@ -1,11 +1,6 @@
 import Foundation
 import SwiftUI
 
-/// One playable piece of audio, flattened out of a `music_player` blok.
-///
-/// Deliberately free of blok vocabulary — the player screens work with this,
-/// not with `MusicPlayerBlok`, so the playback stack never has to know where a
-/// track came from.
 public struct AudioTrack: Identifiable, Hashable, Sendable {
     public let id: String
     public let title: String
@@ -22,13 +17,6 @@ public struct AudioTrack: Identifiable, Hashable, Sendable {
     }
 }
 
-/// How a blok asks the app to start playing.
-///
-/// The blok renderers live in `StoryblokContent`, but the audio player is app
-/// state in `PortfolioFeature` — a lower layer cannot import it back. This
-/// environment closure is the seam: `SbMusicPlayerView` calls it, `RootView`
-/// supplies it. The default is a no-op so previews and tests render without a
-/// player attached.
 private struct PlayAudioTrackKey: EnvironmentKey {
     static let defaultValue: @MainActor (AudioTrack) -> Void = { _ in }
 }

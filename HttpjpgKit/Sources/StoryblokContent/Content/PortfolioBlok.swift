@@ -3,27 +3,15 @@ import DesignSystem
 import Foundation
 import StoryblokClient
 
-/// The set of Storyblok components the app decodes — the Swift counterpart of
-/// the `components` registry in `apps/portfolio/lib/storyblok.ts`.
-///
-/// The dispatch is spelled out by hand rather than generated: it keeps the
-/// public surface auditable against the CMS component list the same way
-/// `storyblok-ui/src/index.ts` does on the web.
-///
-/// Unrecognised components decode to ``unknown`` instead of throwing, matching
-/// the `_fallback: SbMissing` slot the web registers in development.
 public enum PortfolioBlok: Decodable, Identifiable {
-    // Root content types
     case page(PageBlok)
     case work(WorkBlok)
 
-    // Layout
     case section(SectionBlok)
     case container(ContainerBlok)
     case grid(GridBlok)
     case gridItem(GridItemBlok)
 
-    // Content
     case headline(HeadlineBlok)
     case paragraph(ParagraphBlok)
     case richText(RichTextBlok)
@@ -40,11 +28,8 @@ public enum PortfolioBlok: Decodable, Identifiable {
 
     case unknown(component: String, id: String)
 
-    /// `resolve_relations` pairs — kept in lock-step with `STORYBLOK_RELATIONS`
-    /// in `storyblok-utils`.
     public static let relations = "work_list.work"
 
-    /// The blok's `_uid`, which Storyblok guarantees unique within a story.
     public var id: String {
         switch self {
         case .page(let blok): return blok.id
@@ -70,7 +55,6 @@ public enum PortfolioBlok: Decodable, Identifiable {
         }
     }
 
-    /// The component's technical name, as Storyblok reports it.
     public var component: String {
         switch self {
         case .page: return "page"
@@ -129,9 +113,6 @@ public enum PortfolioBlok: Decodable, Identifiable {
     }
 }
 
-// MARK: - Shared decoding
-
-/// Every blok carries `_uid` plus the flattened spacing matrix.
 struct BlokEnvelope {
     let uid: String
     let spacing: BlokSpacing
@@ -147,10 +128,6 @@ struct BlokEnvelope {
     }
 }
 
-/// Storyblok is loose about field shapes: `options` fields serialise as
-/// strings even when they hold numbers, cleared fields come back as `""`, and
-/// an unresolved relation can be a bare UUID. These helpers absorb that so a
-/// single odd field never costs the whole story.
 extension KeyedDecodingContainer {
     func cmsValue<T: Decodable>(_ type: T.Type, forKey key: Key) -> T? {
         ((try? decodeIfPresent(T.self, forKey: key)) ?? nil)
@@ -160,7 +137,6 @@ extension KeyedDecodingContainer {
         cmsValue([T].self, forKey: key) ?? []
     }
 
-    /// Reads an optional string, collapsing `""` to `nil`.
     func cmsString(forKey key: Key) -> String? {
         guard let value = cmsValue(String.self, forKey: key), !value.isEmpty else { return nil }
         return value
@@ -171,17 +147,12 @@ extension KeyedDecodingContainer {
         return cmsString(forKey: key).flatMap(Int.init)
     }
 
-    /// - Parameter fallback: What an absent or cleared field means. Most CMS
-    ///   booleans default to off, but a few — `showNavigation` — ship `true`
-    ///   and must stay on when the editor never touched them.
     func cmsBool(forKey key: Key, default fallback: Bool = false) -> Bool {
         if let value = cmsValue(Bool.self, forKey: key) { return value }
         guard let raw = cmsString(forKey: key) else { return fallback }
         return raw == "true" || raw == "1"
     }
 }
-
-// MARK: - Root content types
 
 public struct PageBlok: Decodable, Identifiable {
     public let id: String
@@ -203,12 +174,10 @@ public struct PageBlok: Decodable, Identifiable {
     }
 }
 
-/// The `work` content type — the shape behind every `work/*` story.
 public struct WorkBlok: Decodable, Identifiable {
     public let id: String
     public let title: String?
-    /// The CMS field is `description`; renamed to avoid shadowing
-    /// `CustomStringConvertible.description`.
+
     public let details: RichTextNode?
     public let images: [StoryblokAsset]
     public let date: String?
@@ -245,8 +214,6 @@ public struct WorkBlok: Decodable, Identifiable {
         body = container.cmsArray(PortfolioBlok.self, forKey: .body)
     }
 }
-
-// MARK: - Layout bloks
 
 public struct SectionBlok: Decodable, Identifiable {
     public let id: String
@@ -292,8 +259,7 @@ public struct GridBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
     public let items: [PortfolioBlok]
-    /// The base breakpoint's column count. `auto` and the tablet/desktop
-    /// variants describe layouts a phone never reaches.
+
     public let columns: Int
     public let gap: CGFloat
 
@@ -328,18 +294,14 @@ public struct GridItemBlok: Decodable, Identifiable {
     }
 }
 
-// MARK: - Content bloks
-
 public struct MarqueeBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
     public let text: String
-    /// Seconds for one copy of the text to travel its own width. The CMS field
-    /// is a CSS animation duration, so it means the same thing here.
+
     public let secondsPerCopy: CGFloat
     public let isReversed: Bool
-    /// How many copies form the strip. The web's default is 3; the CMS raises
-    /// it per blok.
+
     public let repeatCount: Int
 
     private enum CodingKeys: String, CodingKey {
@@ -437,8 +399,7 @@ public struct ImageBlok: Decodable, Identifiable {
     public let caption: RichTextNode?
     public let aspectRatio: String?
     public let copyrightPosition: String?
-    /// The CMS width option at the base breakpoint — `"5%"`, `"50%"`,
-    /// `"100%"`. A logo blok set to 5% must not render full-bleed.
+
     public let width: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -458,7 +419,6 @@ public struct ImageBlok: Decodable, Identifiable {
         width = container.cmsString(forKey: .width)
     }
 
-    /// `"5%"` → `0.05`. `nil` for full width, `auto`, or anything unparsable.
     public var widthFraction: CGFloat? {
         guard let width, width.hasSuffix("%"),
               let value = Double(width.dropLast()), value > 0, value < 100
@@ -475,8 +435,7 @@ public struct DividerBlok: Decodable, Identifiable {
     public let pattern: String?
     public let label: String?
     public let color: String?
-    /// The blok's own `spacing` datasource field — distinct from the flattened
-    /// spacing matrix, hence the rename.
+
     public let gap: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -578,17 +537,9 @@ public struct CodeBlok: Decodable, Identifiable {
 public struct WorkListBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
-    /// Resolved via `resolve_relations=work_list.work`.
-    ///
-    /// Always empty in practice: resolution needs the SDK's internal relation
-    /// store, which is only reachable through its typed client — and that
-    /// client's session delegate is not thread-safe, so this app does its own
-    /// transport. See the note on `ContentClient`. What actually renders is
-    /// ``workUUIDs`` plus a second fetch.
+
     public let work: [Story<PortfolioBlok>]
-    /// The raw relation field: without the SDK's relation store the entries
-    /// stay UUID strings, which `ContentClient.workStories(byUUIDs:)` turns
-    /// back into stories with one extra request.
+
     public let workUUIDs: [String]
     public let columns: Int
     public let variant: String
@@ -617,13 +568,11 @@ public struct WorkListBlok: Decodable, Identifiable {
     }
 }
 
-// MARK: - Media bloks
-
 public struct SlideshowBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
     public let images: [StoryblokAsset]
-    /// The CMS stores ratios as `"16/9"`; `nil` means "let the images decide".
+
     public let aspectRatio: CGFloat?
     public let showsCounter: Bool
 
@@ -636,28 +585,19 @@ public struct SlideshowBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         spacing = envelope.spacing
-        // Videos stay in. The multiasset field mixes clips and stills, and the
-        // web renders clip slides inline (`<video autoplay muted loop>`) —
-        // filtering them out here collapsed video-heavy slideshows to a single
-        // slide, which is a carousel with no arrows, no counter, no autoplay.
+
         images = container.cmsArray(StoryblokAsset.self, forKey: .images).filter { !$0.isEmpty }
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
         showsCounter = container.cmsBool(forKey: .showCounter)
-        // The playback fields — autoplayDelay, speed, showNavigation — are
-        // deliberately NOT read. autoplayDelay is a raw milliseconds number
-        // field, and a story that carries a small value (an editor typing
-        // seconds) turned into millisecond autoplay: slides racing, swipes
-        // "skipping" items, arrows lost in the blur. Every carousel in the
-        // app runs the fixed cadence the work cards run.
     }
 }
 
 public struct VideoBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
-    /// An uploaded file, playable inline.
+
     public let asset: StoryblokAsset?
-    /// A Vimeo or YouTube page — not a playable stream.
+
     public let videoURL: String?
     public let poster: StoryblokAsset?
     public let caption: RichTextNode?
@@ -693,7 +633,7 @@ public struct VideoBlok: Decodable, Identifiable {
 public struct MusicPlayerBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
-    /// `"mp3"`, `"custom"`, `"spotify"` or `"soundcloud"`.
+
     public let source: String
     public let sourceURL: String?
     public let title: String?
@@ -727,9 +667,6 @@ public struct MusicPlayerBlok: Decodable, Identifiable {
         footerText = container.cmsString(forKey: .footerText)
     }
 
-    /// The playable track, when this blok is an uploaded file rather than a
-    /// streaming embed. Spotify and SoundCloud never hand out raw streams, so
-    /// those sources render a hand-off card instead.
     public var track: AudioTrack? {
         guard source == "mp3" || source == "custom",
               let sourceURL, let url = URL(string: sourceURL),
@@ -749,7 +686,6 @@ public struct MusicPlayerBlok: Decodable, Identifiable {
     }
 }
 
-/// Parses the CMS `aspectRatio` option (`"16/9"`, `"4/3"`, `"1/1"`, `"auto"`).
 enum AspectRatio {
     static func parse(_ raw: String?) -> CGFloat? {
         guard let raw, raw != "auto" else { return nil }

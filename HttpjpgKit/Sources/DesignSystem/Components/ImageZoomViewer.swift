@@ -1,10 +1,5 @@
 import SwiftUI
 
-/// The full-screen image inspector: black room, the image fit to the screen,
-/// pinch and double-tap to zoom. Presented from any content image.
-///
-/// Chrome stays in the house voice — a mono ✕, no toolbar, no share sheet.
-/// This is a loupe, not a browser.
 public struct ImageZoomViewer: View {
     private let url: URL?
     private let accessibilityText: String?

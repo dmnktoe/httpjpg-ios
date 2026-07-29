@@ -1,17 +1,5 @@
 import Foundation
 
-/// A Storyblok rich-text document, decoded so that nothing can throw.
-///
-/// The SDK ships its own `RichText` model, but several of its nodes have
-/// required fields — `Heading.attrs`, `Image.id`, `Emoji.attrs`, `Mark.link.href`
-/// — and a single node missing one throws out of the *whole* document. Storyblok
-/// content is edited by humans over years; documents with an attrs-less heading
-/// or a legacy emoji node exist, and losing an entire page essay to one of them
-/// is not a trade worth making.
-///
-/// Every field here is optional with a default, and an unrecognised node becomes
-/// ``unknown`` rather than an error. The worst case is one node rendering as
-/// nothing; it is never the page.
 public indirect enum RichTextNode: Decodable {
     case document([RichTextNode])
     case paragraph(alignment: RichTextAlignment?, content: [RichTextNode])
@@ -26,7 +14,7 @@ public indirect enum RichTextNode: Decodable {
     case text(String, marks: [RichTextMark])
     case image(source: String?, alt: String?)
     case emoji(String)
-    /// An embedded component — the CMS's `blok` node.
+
     case blok([PortfolioBlok])
     case unknown(type: String)
 
@@ -107,7 +95,6 @@ public indirect enum RichTextNode: Decodable {
         }
     }
 
-    /// Child nodes, for walkers that do not care what kind of node this is.
     public var children: [RichTextNode] {
         switch self {
         case .document(let nodes),
@@ -132,7 +119,6 @@ public enum RichTextAlignment: String, Sendable {
     case right
 }
 
-/// An inline mark on a text run.
 public struct RichTextMark: Decodable {
     public enum Kind: String, Sendable {
         case bold
@@ -147,9 +133,9 @@ public struct RichTextMark: Decodable {
     }
 
     public let kind: Kind
-    /// Set for `link` marks.
+
     public let href: String?
-    /// Set for `textStyle` and `highlight` marks — a hex string.
+
     public let color: String?
 
     private enum CodingKeys: String, CodingKey {

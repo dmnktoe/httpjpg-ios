@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Section heading in the info tab: mono, uppercase, widely tracked.
 struct InfoSectionLabel: View {
     private let text: String
 

@@ -1,6 +1,5 @@
 import Foundation
 
-/// A Storyblok multilink field — the Swift counterpart of `StoryblokLink`.
 public struct StoryblokLink: Decodable, Hashable, Sendable {
     public enum Kind: String, Decodable, Sendable {
         case url
@@ -39,7 +38,6 @@ public struct StoryblokLink: Decodable, Hashable, Sendable {
         linkType = rawLinkType.flatMap(Kind.init(rawValue:)) ?? .url
     }
 
-    /// The href the web's `storyblokHref` would produce.
     public var href: String? {
         switch linkType {
         case .email:
@@ -53,7 +51,6 @@ public struct StoryblokLink: Decodable, Hashable, Sendable {
         }
     }
 
-    /// An absolute `URL`, resolved against the site origin for internal links.
     public func resolvedURL(siteOrigin: URL) -> URL? {
         guard let href else { return nil }
         if href.hasPrefix("http://") || href.hasPrefix("https://") || href.hasPrefix("mailto:") {

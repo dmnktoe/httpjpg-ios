@@ -1,13 +1,9 @@
-# Secrets — copy Config/Secrets.example.xcconfig and fill in your token.
 Config/Secrets.xcconfig
 
-# Node (repo tooling only — scripts/check-blok-registry.mjs)
 node_modules/
 
-# macOS
 .DS_Store
 
-# Xcode
 build/
 DerivedData/
 *.xcuserstate
@@ -15,7 +11,6 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
-# Swift Package Manager
 .build/
 .swiftpm/
 Packages/

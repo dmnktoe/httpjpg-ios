@@ -1,17 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `music_player` blok — the inline card, not the player.
-///
-/// Playback is app state: tapping play hands an ``AudioTrack`` to whatever the
-/// app registered under `\.playAudioTrack`, and the mini bar takes it from
-/// there. The card itself mirrors the web's mp3 player frame — decoration line,
-/// header text, artwork beside title and artist, footer text — minus the inline
-/// transport, which the bar and the full-screen player own on iOS.
-///
-/// Spotify and SoundCloud sources hand off to the browser, same reasoning as
-/// `SbVideoView`: no raw stream, and embedding their web player would drag its
-/// tracking into the app.
 public struct SbMusicPlayerView: View {
     private let blok: MusicPlayerBlok
 

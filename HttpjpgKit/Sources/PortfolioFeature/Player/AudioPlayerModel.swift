@@ -5,18 +5,6 @@ import Observation
 import StoryblokContent
 import UIKit
 
-/// The app's one audio player.
-///
-/// Owns a single `AVPlayer` for the lifetime of the app, so a track keeps
-/// playing while the reader navigates — which is the entire point of having a
-/// mini bar instead of an inline transport. Views never touch `AVPlayer`;
-/// they read the published state and call the intent methods.
-///
-/// The model is also the app's face to the system: it feeds
-/// `MPNowPlayingInfoCenter` (lock screen, Control Center, AirPods labels) and
-/// answers `MPRemoteCommandCenter` (the buttons on all of those). Artwork is
-/// downloaded once here and shared by the bar, the full-screen player and the
-/// lock screen — three views, one fetch.
 @MainActor
 @Observable
 public final class AudioPlayerModel {
@@ -24,10 +12,9 @@ public final class AudioPlayerModel {
     public private(set) var isPlaying = false
     public private(set) var currentTime: TimeInterval = 0
     public private(set) var duration: TimeInterval = 0
-    /// The track's cover, downloaded once per track.
+
     public private(set) var artwork: UIImage?
-    /// Whether the full-screen player is up. Settable because the sheet's
-    /// dismissal writes it back through a binding.
+
     public var isExpanded = false
 
     @ObservationIgnored private let player = AVPlayer()
@@ -36,14 +23,10 @@ public final class AudioPlayerModel {
     @ObservationIgnored private var artworkTask: Task<Void, Never>?
 
     public init() {
-        // `.playback` is what makes audio survive the silent switch — a music
-        // player that mutes with the ringer reads as broken.
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         registerRemoteCommands()
     }
 
-    /// Starts a track, or — for the track already loaded — just resumes it, so
-    /// tapping PLAY on the same blok twice does not restart the song.
     public func play(_ newTrack: AudioTrack) {
         if track != newTrack {
             track = newTrack
@@ -83,8 +66,6 @@ public final class AudioPlayerModel {
         publishPlaybackState()
     }
 
-    /// Tears the whole thing down — bar, lock screen entry, everything. The
-    /// full-screen player's close is `isExpanded = false`; this is the ✕.
     public func stop() {
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -99,11 +80,6 @@ public final class AudioPlayerModel {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
-    // MARK: - System integration
-
-    /// The lock screen's transport calls straight back into the same intents
-    /// the on-screen buttons use. Handlers arrive on the main thread, so the
-    /// isolation hop is a statement of fact.
     private func registerRemoteCommands() {
         let center = MPRemoteCommandCenter.shared()
 
@@ -155,8 +131,6 @@ public final class AudioPlayerModel {
         }
     }
 
-    /// Full rebuild of the now-playing entry — on track change, artwork
-    /// arrival, and the first resolved duration.
     private func publishNowPlaying() {
         guard let track else {
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -179,8 +153,6 @@ public final class AudioPlayerModel {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
-    /// Cheap update for pause/seek — the system extrapolates elapsed time from
-    /// the rate, so only those two fields need refreshing.
     private func publishPlaybackState() {
         var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
@@ -202,8 +174,6 @@ public final class AudioPlayerModel {
         }
     }
 
-    // MARK: - Player observation
-
     private func installObservers() {
         removeObservers()
 
@@ -211,8 +181,7 @@ public final class AudioPlayerModel {
             forInterval: CMTime(seconds: 0.5, preferredTimescale: 600),
             queue: .main
         ) { [weak self] time in
-            // The observer queue is main, so this hop is a statement of fact,
-            // not a wish.
+
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.currentTime = time.seconds

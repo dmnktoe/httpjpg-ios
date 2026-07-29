@@ -2,7 +2,6 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// One page in the info tab's list.
 struct InfoPageRow: View {
     let page: PageSummary
 

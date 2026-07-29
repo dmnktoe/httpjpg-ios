@@ -1,16 +1,11 @@
 import SwiftUI
 
-/// Display type — the Swift port of `@httpjpg/ui`'s `<Headline>`.
-///
-/// Levels keep the web's clamped sizes, evaluated against
-/// ``EnvironmentValues/viewportWidth`` instead of the browser's `vw` unit.
 public struct Headline: View {
     public enum Level: Int, Sendable, CaseIterable {
         case one = 1
         case two = 2
         case three = 3
 
-        /// `clamp(min, slope·vw + intercept, max)` per level, from `headline.tsx`.
         var clamp: (min: CGFloat, slope: CGFloat, intercept: CGFloat, max: CGFloat) {
             switch self {
             case .one: return (36, 0.05, 16, 60)
@@ -34,11 +29,6 @@ public struct Headline: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
 
-    /// - Parameter lineSpacing: Leading adjustment as a fraction of the font
-    ///   size, on top of the face's own. The default pulls a display face back
-    ///   towards the web's `line-height: 1` — SwiftUI's `lineSpacing` only ever
-    ///   *adds* to the font's natural leading, so reaching a 1.0 line box means
-    ///   subtracting the gap Anton builds in.
     public init(
         _ text: String,
         level: Level = .one,

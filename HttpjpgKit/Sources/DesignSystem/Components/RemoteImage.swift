@@ -1,16 +1,5 @@
 import SwiftUI
 
-/// Async image with a low-res blur placeholder — the Swift counterpart of
-/// `@httpjpg/ui`'s `<Image>` with `blurOnLoad`.
-///
-/// The layout is driven by a transparent spacer at the target aspect ratio,
-/// with the image drawn as an overlay on top. That keeps the view's height
-/// deterministic before the image arrives — the alternative, letting a loaded
-/// `Image` size itself, makes rows jump as each asset lands and stacks them
-/// unpredictably inside a `ScrollView`.
-///
-/// Callers pass URLs already transformed by the Storyblok image service; this
-/// view knows nothing about Storyblok itself.
 public struct RemoteImage: View {
     private let url: URL?
     private let placeholderURL: URL?
@@ -20,9 +9,6 @@ public struct RemoteImage: View {
 
     @Environment(\.pageTheme) private var theme
 
-    /// - Parameter aspectRatio: Width ÷ height. Pass the asset's real ratio —
-    ///   `ImageService.aspectRatio(of:)` reads it out of the Storyblok URL —
-    ///   rather than relying on the 3:2 default.
     public init(
         url: URL?,
         placeholderURL: URL? = nil,
@@ -42,11 +28,7 @@ public struct RemoteImage: View {
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay { image }
             .clipped()
-            // `clipped()` trims pixels, not hit testing: a filled image
-            // overflows its box, and the invisible overflow stole taps from
-            // whatever sat above or below the card — tapping the work filter
-            // opened the first story. The contentShape pins the tappable
-            // region to the visible box.
+
             .contentShape(Rectangle())
             .accessibilityLabel(accessibilityText ?? "")
             .accessibilityHidden(accessibilityText == nil)

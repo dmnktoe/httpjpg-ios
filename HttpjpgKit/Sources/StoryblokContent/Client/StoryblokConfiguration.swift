@@ -1,12 +1,10 @@
 import Foundation
 
-/// Which version of the content to read.
 public enum ContentVersion: String, Sendable {
     case draft
     case published
 }
 
-/// The space's server location.
 public enum ContentRegion: String, Sendable, CaseIterable {
     case eu
     case usa
@@ -25,16 +23,11 @@ public enum ContentRegion: String, Sendable, CaseIterable {
     }
 }
 
-/// Everything ``ContentClient`` needs to talk to a Storyblok space.
-///
-/// The access token is read from the app bundle rather than compiled in, so
-/// `Config/Secrets.xcconfig` stays out of version control the same way
-/// `STORYBLOK_*` stays in `.env` on the web.
 public struct StoryblokConfiguration: Sendable {
     public var accessToken: String
     public var version: ContentVersion
     public var region: ContentRegion
-    /// Origin used to resolve internal Storyblok links to real URLs.
+
     public var siteOrigin: URL
 
     public init(
@@ -56,10 +49,6 @@ public struct StoryblokConfiguration: Sendable {
         public static let siteOrigin = "SITE_ORIGIN"
     }
 
-    /// Builds a configuration from the app's `Info.plist`.
-    ///
-    /// - Throws: ``ContentError/missingAccessToken`` when the token key is
-    ///   absent or still holds the placeholder from `Secrets.example.xcconfig`.
     public static func fromBundle(_ bundle: Bundle = .main) throws -> StoryblokConfiguration {
         func string(_ key: String) -> String? {
             guard let value = bundle.object(forInfoDictionaryKey: key) as? String else { return nil }

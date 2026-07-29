@@ -1,18 +1,5 @@
 import Foundation
 
-/// Reads the site's own public JSON endpoints — `/api/discord`,
-/// `/api/letterboxd`, `/api/psn-trophies`, `/api/weather`.
-///
-/// These are not Storyblok. They are the same routes the website's footer
-/// widgets call, and the app calls them for the same reason the browser does:
-/// the credentials behind them (a Lanyard user id, a PSN NPSSO token, a
-/// Letterboxd handle) live on the server and must stay there. Reimplementing
-/// them in the app would mean shipping those secrets inside a bundle anyone can
-/// unzip. Reading the public route instead costs one hop and keeps the app
-/// holding nothing worth stealing.
-///
-/// Every method returns `nil` rather than throwing. A footer widget that cannot
-/// reach its endpoint should disappear, not take the screen down with it.
 public actor SiteAPI {
     private let origin: URL
     private let session: URLSession
@@ -55,7 +42,6 @@ public actor SiteAPI {
     }
 }
 
-/// The subset of `DiscordPresenceSummary` the footer line uses.
 public struct DiscordPresence: Decodable, Sendable {
     public enum Status: String, Decodable, Sendable {
         case online, idle, dnd, offline
@@ -78,7 +64,7 @@ public struct DiscordPresence: Decodable, Sendable {
 public struct LetterboxdFilm: Decodable, Sendable {
     public let title: String
     public let year: String?
-    /// 0.5–5 in half steps, or `nil` when the entry was logged without one.
+
     public let rating: Double?
     public let liked: Bool
     public let url: String?
@@ -96,7 +82,6 @@ public struct LetterboxdFilm: Decodable, Sendable {
         url = container.cmsString(forKey: .url)
     }
 
-    /// `★★★★½` — the web's `formatRating`, glyph for glyph.
     public var stars: String? {
         guard let rating else { return nil }
         let full = Int(rating.rounded(.down))
@@ -127,8 +112,6 @@ public struct PsnTrophy: Decodable, Sendable {
         url = container.cmsString(forKey: .url)
     }
 
-    /// Trophy tiers have colours everywhere they appear; here they are emoji so
-    /// the line stays one string of text like the rest of the footer.
     public var badge: String {
         switch type {
         case "platinum": return "🏆"

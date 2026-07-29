@@ -2,11 +2,6 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The site's own links, straight from the CMS header menu — GitHub,
-/// SoundCloud, Instagram, Bandcamp, Spotify and whatever gets added next.
-///
-/// Internal links are skipped: those are stories, and they are already listed
-/// above as pages.
 struct InfoLinksSection: View {
     let links: [MenuLink]
 

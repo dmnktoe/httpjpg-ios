@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `callout` blok, CTA included.
 public struct SbCalloutView: View {
     private let blok: CalloutBlok
 
@@ -51,7 +50,6 @@ public struct SbCalloutView: View {
         blok.align == "center" ? .center : .leading
     }
 
-    /// `brutalist` is the site's house tone: no fill, a heavy black rule.
     private var isBrutalist: Bool { blok.tone == "brutalist" }
 
     private var strokeWidth: CGFloat { isBrutalist ? 3 : 1 }

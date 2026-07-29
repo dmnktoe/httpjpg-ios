@@ -1,14 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `work_list` blok.
-///
-/// The CMS column settings describe a desktop grid; a phone always reads as
-/// the stacked variant, which is what `columns: 1` produces on the web too.
-///
-/// The relation field arrives as bare UUID strings (see the transport note on
-/// `ContentClient`), so the cards are fetched here: one `by_uuids_ordered`
-/// request when the blok appears, rendered in the order the editor picked.
 public struct SbWorkListView: View {
     private let blok: WorkListBlok
 

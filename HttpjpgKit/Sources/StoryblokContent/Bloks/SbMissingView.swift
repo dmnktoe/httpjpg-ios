@@ -1,10 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Placeholder for a component the app does not know how to render.
-///
-/// Mirrors the `_fallback: SbMissing` slot the web registers in development:
-/// visible while debugging, silent in release, and never a crash.
 public struct SbMissingView: View {
     private let component: String
 

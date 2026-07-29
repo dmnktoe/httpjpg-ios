@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Pill button — the Swift port of the `button` Panda recipe.
-///
-/// The web draws its fill on a blurred `::before` pseudo-element to get the
-/// soft glow; iOS gets the same read from a tinted shadow under a solid pill.
 public struct BrutalButtonStyle: ButtonStyle {
     public enum Variant: String, Sendable, CaseIterable {
         case primary
@@ -11,8 +7,6 @@ public struct BrutalButtonStyle: ButtonStyle {
         case accent
         case danger
 
-        /// Public because the tab bar's selection pill tints itself from the
-        /// same table — one definition of what "secondary" looks like.
         public var fill: Color {
             switch self {
             case .primary: return Palette.primary.s500
@@ -22,7 +16,6 @@ public struct BrutalButtonStyle: ButtonStyle {
             }
         }
 
-        /// The text colour that stays legible on ``fill``.
         public var label: Color {
             switch self {
             case .primary, .danger: return Palette.white
@@ -69,14 +62,9 @@ public struct BrutalButtonStyle: ButtonStyle {
         self.size = size
     }
 
-    /// The pill is Liquid Glass tinted by the variant rather than a solid fill.
-    /// `interactive: true` is what makes it flex under a finger — a button is
-    /// exactly the kind of control that behaviour was written for.
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            // The bold *face*, not `.weight(.medium)` on the regular one:
-            // bundled families have no weight axis, so asking a custom `Font`
-            // to get heavier does nothing at all.
+
             .font(Typography.sansBold(size.font))
             .foregroundStyle(variant.label)
             .padding(.horizontal, size.horizontalPadding)

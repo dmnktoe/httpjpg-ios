@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `richtext` blok.
 public struct SbRichTextView: View {
     private let blok: RichTextBlok
 

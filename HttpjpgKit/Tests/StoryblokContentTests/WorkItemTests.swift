@@ -3,7 +3,6 @@ import XCTest
 
 @testable import StoryblokContent
 
-/// Covers the mapping in `toWorkItem` and the slug rules `getRecentWork` uses.
 final class WorkItemTests: XCTestCase {
     private func story(
         slug: String,
@@ -91,8 +90,6 @@ final class WorkItemTests: XCTestCase {
         XCTAssertEqual(calendar.dateComponents([.year, .month, .day], from: date).day, 15)
     }
 
-    // MARK: - Slug rules
-
     func testOnlyDirectWorkSlugsCount() {
         XCTAssertTrue(StorySlug.isDirectWork("work/atlas"))
         XCTAssertFalse(StorySlug.isDirectWork("work"))
@@ -100,8 +97,6 @@ final class WorkItemTests: XCTestCase {
         XCTAssertFalse(StorySlug.isDirectWork("home"))
     }
 
-    /// `home` is the work index on the web and `config` is settings; neither
-    /// belongs in the info tab's page list.
     func testPageIndexHidesTheIndexAndSettingsStories() {
         XCTAssertTrue(StorySlug.isHiddenFromPageIndex("home", component: "page"))
         XCTAssertTrue(StorySlug.isHiddenFromPageIndex("config", component: "config"))
@@ -109,8 +104,6 @@ final class WorkItemTests: XCTestCase {
         XCTAssertFalse(StorySlug.isHiddenFromPageIndex("cv", component: "page"))
         XCTAssertFalse(StorySlug.isHiddenFromPageIndex("legal-notice", component: "page"))
     }
-
-    // MARK: - Collection split
 
     func testUntaggedStoriesCountAsProjects() throws {
         let untagged = WorkItem(story: try story(slug: "a", fullSlug: "work/a", content: workContent))
@@ -127,8 +120,6 @@ final class WorkItemTests: XCTestCase {
     }
 }
 
-/// Storyblok's `datetime` fields and the story envelope use different shapes;
-/// both have to land on the same parser.
 final class StoryblokDateTests: XCTestCase {
     func testParsesEveryShapeStoryblokEmits() {
         XCTAssertNotNil(StoryblokDate.parse("2024-06-15 00:00"))

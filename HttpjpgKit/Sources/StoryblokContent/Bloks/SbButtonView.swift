@@ -1,7 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `button` blok.
 public struct SbButtonView: View {
     private let blok: ButtonBlok
 
