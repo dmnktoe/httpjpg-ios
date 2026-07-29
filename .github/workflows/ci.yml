@@ -59,9 +59,15 @@ jobs:
       # No Secrets.xcconfig in CI: Shared.xcconfig includes it with `#include?`,
       # so the token resolves empty and the app compiles fine. Signing is off —
       # the associated-domains entitlement would otherwise demand a profile.
+      # `-skipMacroValidation` stands in for the "Trust & Enable" click Xcode
+      # asks for on `StoryblokClientMacros` (see README): without it the graph
+      # phase refuses to run a third-party macro plugin and the build dies
+      # before compiling a single file.
       # `shell: bash` is deliberate: it brings `-o pipefail`, without which the
       # pipe below would report the formatter's exit code and a failing build
       # would pass CI. The formatter itself is optional — `cat` if it's absent.
+      # `tee` keeps the unformatted log, because xcbeautify swallows the errors
+      # xcodebuild reports outside a target (macro trust, signing, the PIF).
       - name: Build app
         shell: bash
         run: |
@@ -69,11 +75,17 @@ jobs:
             -project Httpjpg.xcodeproj \
             -scheme Httpjpg \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            | tee build.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
+
+      - name: Raw build log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
 
       # The app scheme carries no testables — the tests live in the local
       # package, whose aggregate scheme Xcode generates from Package.swift.
@@ -86,7 +98,13 @@ jobs:
           xcodebuild test \
             -scheme HttpjpgKit-Package \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
+            | tee test.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
+
+      - name: Raw test log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' HttpjpgKit/test.log | tail -100 || tail -100 HttpjpgKit/test.log
