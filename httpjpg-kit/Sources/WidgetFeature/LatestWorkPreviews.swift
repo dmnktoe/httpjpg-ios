@@ -106,6 +106,7 @@ private enum LatestWorkSample {
     LatestWorkEntry.sample
     LatestWorkEntry.sampleWithoutArtwork
     LatestWorkEntry.placeholder
+    LatestWorkEntry.sampleFailure
 }
 
 #Preview("inline", as: .accessoryInline) {
