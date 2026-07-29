@@ -3,8 +3,6 @@ import Observation
 import StoryblokContent
 import SwiftUI
 
-/// Renders any `page` story through the blok registry — the app's answer to
-/// `app/(portfolio)/[...slug]/page.tsx`.
 struct PageScreen: View {
     let slug: String
     let title: String
@@ -53,8 +51,6 @@ struct PageScreen: View {
     private func document(_ page: PageDocument) -> some View {
         let theme = page.isDark ? PageTheme.dark : PageTheme.light
         if page.body.isEmpty {
-            // A story whose body holds nothing this app renders would otherwise
-            // be an empty white screen with no way to tell why.
             AsciiState(
                 art: Ascii.ghost,
                 label: "Nothing to render",

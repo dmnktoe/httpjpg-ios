@@ -1,11 +1,6 @@
-# XcodeGen spec for Httpjpg.xcodeproj.
-#
-# The generated project is checked in, so you do NOT need XcodeGen to build.
-# Regenerate with `xcodegen generate` after changing target structure, so the
-# project file stays reviewable instead of accumulating Xcode's churn.
-name: Httpjpg
+name: httpjpg
 options:
-  bundleIdPrefix: com.httpjpg
+  bundleIdPrefix: com.yl33ly
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -24,11 +19,11 @@ fileGroups:
   - README.md
 
 targets:
-  Httpjpg:
+  httpjpg:
     type: application
     platform: iOS
     sources:
-      - path: Httpjpg
+      - path: httpjpg
     dependencies:
       - package: HttpjpgKit
         product: DesignSystem
@@ -38,22 +33,22 @@ targets:
         product: PortfolioFeature
       - package: HttpjpgKit
         product: WidgetFeature
-      - target: HttpjpgWidgets
+      - target: httpjpg-widgets
         embed: true
     configFiles:
       Debug: Config/Shared.xcconfig
       Release: Config/Shared.xcconfig
     settings:
       base:
-        INFOPLIST_FILE: Httpjpg/Info.plist
+        INFOPLIST_FILE: httpjpg/Info.plist
         GENERATE_INFOPLIST_FILE: true
         ENABLE_PREVIEWS: true
 
-  HttpjpgWidgets:
+  httpjpg-widgets:
     type: app-extension
     platform: iOS
     sources:
-      - path: HttpjpgWidgets
+      - path: httpjpg-widgets
     dependencies:
       - package: HttpjpgKit
         product: DesignSystem

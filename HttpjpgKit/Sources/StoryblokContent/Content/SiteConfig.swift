@@ -1,10 +1,5 @@
 import Foundation
 
-/// The `config` root story — the Swift counterpart of `SbConfigStory`.
-///
-/// Only the fields the app actually consumes are decoded. The browser-only
-/// toggles (cursor trails, the nostalgia slideshow) stay out; the widget flags
-/// do not, because the footer honours them exactly as the web does.
 public struct SiteConfig: Decodable, Sendable {
     public let headerMenu: [MenuLink]
     public let footer: FooterConfig?
@@ -31,12 +26,10 @@ public struct SiteConfig: Decodable, Sendable {
         seoDescription = container.cmsString(forKey: .seoDescription)
         authorName = container.cmsString(forKey: .authorName)
         authorURL = container.cmsString(forKey: .authorURL)
-        // Flat on the same story, so they decode from the same decoder.
+
         widgets = try WidgetFlags(from: decoder)
     }
 
-    /// Used before the network settles, and whenever the config story is
-    /// unreachable — mirrors `FALLBACK_NAVIGATION` in `lib/queries/config.ts`.
     public static let fallback = SiteConfig(
         headerMenu: [
             MenuLink(id: "projects", label: "Projects", variant: .projects, link: nil),
@@ -69,15 +62,6 @@ public struct SiteConfig: Decodable, Sendable {
     }
 }
 
-/// The server-side switches the footer honours.
-///
-/// Only Discord and Letterboxd: those are the two `getWidgetConfig()` flags
-/// that default on, and the two the footer can meaningfully turn off. The PSN
-/// flags are deliberately *not* here — the web footer renders its trophy line
-/// unconditionally (`psn_enabled` gates the PSN card elsewhere), and the app
-/// gating on them was what made the trophy row vanish. The fallback config
-/// keeps everything off until the real config arrives, so the footer does not
-/// flash widgets and then retract them.
 public struct WidgetFlags: Decodable, Sendable {
     public let isDiscordEnabled: Bool
     public let isLetterboxdEnabled: Bool
@@ -101,10 +85,7 @@ public struct WidgetFlags: Decodable, Sendable {
     public static let allOff = WidgetFlags(isDiscordEnabled: false, isLetterboxdEnabled: false)
 }
 
-/// A `menu_link` blok.
 public struct MenuLink: Decodable, Identifiable, Sendable, Hashable {
-    /// Which slice of the work index the entry points at. On the web these are
-    /// separate routes; in the app they become the segmented filter.
     public enum Variant: String, Decodable, Sendable {
         case projects
         case websites
@@ -142,7 +123,6 @@ public struct MenuLink: Decodable, Identifiable, Sendable, Hashable {
     }
 }
 
-/// The `footer_config` blok.
 public struct FooterConfig: Decodable, Sendable {
     public let copyrightText: String?
     public let links: [MenuLink]

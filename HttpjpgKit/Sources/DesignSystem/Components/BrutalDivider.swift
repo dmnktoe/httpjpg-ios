@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Horizontal rule — the Swift port of `@httpjpg/ui`'s `<Divider>`.
-///
-/// Named `BrutalDivider` because SwiftUI already owns `Divider`.
 public struct BrutalDivider: View {
     public enum Variant: String, Sendable, CaseIterable {
         case solid

@@ -3,21 +3,9 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The footer's live status lines: Discord, Letterboxd, PSN, and the clock with
-/// the weather beside it.
-///
-/// Each is one centred mono line at `xs`, the same shape the web uses — a dim
-/// label, then the value. They are read-only; nothing here is tappable, because
-/// on the site none of it is either.
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
 
-    // All four rows exist from the first frame: the three network rows hold
-    // their line with a dim "loading …" (the same thing the web's SSR pass
-    // renders) and swap to their content in place, so nothing appears late
-    // and nothing gets shoved. Only a row that comes back *empty* collapses,
-    // eased — an integration with nothing to say loses its line, same as on
-    // the web.
     var body: some View {
         VStack(spacing: Spacing.s1) {
             if model.isLoaded {
@@ -125,8 +113,6 @@ private struct TrophyLine: View {
     }
 }
 
-/// The clock ticks locally once a second; the weather is fetched once and left
-/// alone, which is as often as it changes.
 private struct ClockLine: View {
     let weather: WeatherNow?
 
@@ -159,7 +145,6 @@ private struct ClockLine: View {
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now = $0 }
     }
 
-    /// `UTC+2`, the same way the web renders `shortOffset`.
     private var offset: String {
         let seconds = TimeZone.current.secondsFromGMT(for: now)
         if seconds == 0 { return "UTC" }
@@ -172,7 +157,6 @@ private struct ClockLine: View {
     }
 }
 
-/// One centred mono row: an optional dim label, then whatever the widget says.
 private struct FooterStatusLine<Content: View>: View {
     let label: String?
     @ViewBuilder let content: Content
@@ -185,8 +169,7 @@ private struct FooterStatusLine<Content: View>: View {
             content
         }
         .font(Typography.mono(Typography.Size.xs))
-        // One line, always: without the limit a squeezed fragment wrapped
-        // inside its own Text and the row broke onto a second line.
+
         .lineLimit(1)
         .opacity(0.8)
         .frame(maxWidth: .infinity)

@@ -1,14 +1,8 @@
 import SwiftUI
 
-/// The tiny site icon next to external links — the web fetches these through
-/// Google's favicon proxy at 16px and lets them upscale, and the chunky pixels
-/// are part of the look. `interpolation(.none)` is `image-rendering: pixelated`
-/// spelled in SwiftUI.
 public struct Favicon: View {
     private let host: String?
 
-    /// Takes the *site* URL, not an icon URL — the proxy address is built here
-    /// so callers never repeat it.
     public init(for url: URL?) {
         host = url?.host
     }

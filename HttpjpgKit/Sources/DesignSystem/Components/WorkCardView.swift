@@ -1,18 +1,11 @@
 import SwiftUI
 
-/// A work card — the Swift port of `@httpjpg/ui`'s `<WorkCard>`.
-///
-/// The web lays the title and the meta column side by side from `md` up; a
-/// phone is always below that breakpoint, so the stacked order is the only one
-/// implemented here.
 public struct WorkCardView: View {
     public enum Variant: String, Sendable, CaseIterable {
         case `default`
         case compact
         case featured
 
-        /// `clamp(min, slope·containerWidth, max)` from `work-card-title.tsx`,
-        /// where the web uses `cqi` (1% of the card's inline size).
         var titleClamp: (min: CGFloat, slope: CGFloat, max: CGFloat) {
             switch self {
             case .default: return (24, 0.07, 48)
@@ -46,8 +39,7 @@ public struct WorkCardView: View {
                 BodyText(description, size: .sm, lineLimit: 5, lineHeight: 1.35)
                     .padding(.top, Spacing.s2)
             }
-            // After the summary, not before it: the slug is where the card
-            // *goes*, which is the last thing you want to read, not the first.
+
             slugLine
                 .padding(.top, Spacing.s1)
         }
@@ -72,8 +64,6 @@ public struct WorkCardView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    /// Date and tape only. Tags used to sit here, but every project carries the
-    /// same one, so the chip row said nothing and cost a line on every card.
     private var meta: some View {
         VStack(alignment: .leading, spacing: Spacing.s1) {
             if let date = model.date {
@@ -87,8 +77,7 @@ public struct WorkCardView: View {
         HStack(spacing: Spacing.s1) {
             Text("↳↳↳")
                 .accessibilityHidden(true)
-            // External entries carry their destination's favicon, pixelated
-            // through the same proxy the web uses.
+
             Favicon(for: model.externalURL)
             Text(model.slug)
                 .lineLimit(1)
@@ -102,11 +91,6 @@ public struct WorkCardView: View {
     }
 }
 
-/// The plain, CMS-agnostic shape a work card renders.
-///
-/// Keeping this free of Storyblok types is deliberate: it is the same contract
-/// `WorkCardProps` has on the web, so the card stays usable from previews,
-/// tests and any future data source.
 public struct WorkCardModel: Identifiable, Hashable, Sendable {
     public let id: String
     public let title: String
@@ -116,7 +100,7 @@ public struct WorkCardModel: Identifiable, Hashable, Sendable {
     public let dateEnd: Date?
     public let tags: [String]
     public let images: [WorkCardImage]
-    /// Where an external entry leads — drives the favicon on the slug line.
+
     public let externalURL: URL?
 
     public init(
@@ -146,13 +130,11 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     public let id: String
     public let url: URL?
     public let placeholderURL: URL?
-    /// The asset's real width ÷ height, so the card reserves the right box
-    /// before the image lands.
+
     public let aspectRatio: CGFloat?
     public let accessibilityText: String?
     public let copyright: String?
-    /// Set when the slide is a clip; it renders as a muted loop instead of an
-    /// image, exactly like the web card's video slides.
+
     public let videoURL: URL?
 
     public init(
@@ -174,9 +156,6 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     }
 }
 
-/// The card's image strip, on the shared ``ImageCarousel`` — arrows and the
-/// web's 7-second autoplay included, which is what `<WorkCard>` gets from
-/// `<Slideshow>` on the site.
 private struct WorkCardImages: View {
     let images: [WorkCardImage]
     let accessibilityText: String
@@ -200,10 +179,7 @@ private struct WorkCardImages: View {
                 RemoteImage(
                     url: image.url,
                     placeholderURL: image.placeholderURL,
-                    // One fixed ratio for every card, not the asset's own: the
-                    // library mixes panoramas, phone photos and screenshots,
-                    // and sizing each card to its file made the index scroll
-                    // in lurches.
+
                     aspectRatio: PageLayout.mediaAspectRatio,
                     accessibilityText: image.accessibilityText ?? accessibilityText
                 )

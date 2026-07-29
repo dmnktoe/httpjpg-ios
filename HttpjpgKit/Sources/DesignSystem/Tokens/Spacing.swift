@@ -1,9 +1,5 @@
 import CoreGraphics
 
-/// Spacing scale ported from `packages/tokens/src/spacing.ts`.
-///
-/// The web scale is expressed in `rem`; here `1rem == 16pt`, which keeps the
-/// 4pt rhythm iOS layout expects and the web's step names identical.
 public enum Spacing {
     public static let s0: CGFloat = 0
     public static let s1: CGFloat = 4
@@ -25,13 +21,11 @@ public enum Spacing {
     public static let s28: CGFloat = 112
     public static let s32: CGFloat = 128
 
-    /// Resolves a Storyblok `spacing-options` datasource value (`"4"`, `"12"`, …).
     public static func named(_ value: String?) -> CGFloat? {
         guard let value, let key = Int(value) else { return nil }
         return step(key)
     }
 
-    /// Resolves a numeric Panda spacing key to points.
     public static func step(_ key: Int) -> CGFloat? {
         switch key {
         case 0: return s0
@@ -58,10 +52,6 @@ public enum Spacing {
     }
 }
 
-/// Corner radii from `packages/tokens/src/border-radius.ts`.
-///
-/// The portfolio is brutalist: almost everything uses ``none``. The rest of the
-/// scale exists so CMS-driven values keep resolving.
 public enum Radii {
     public static let none: CGFloat = 0
     public static let sm: CGFloat = 2
@@ -74,7 +64,6 @@ public enum Radii {
     public static let full: CGFloat = 9999
 }
 
-/// Opacity steps used by the ASCII furniture and muted meta rows.
 public enum Opacities {
     public static let tape: Double = 0.25
     public static let dimmed: Double = 0.3

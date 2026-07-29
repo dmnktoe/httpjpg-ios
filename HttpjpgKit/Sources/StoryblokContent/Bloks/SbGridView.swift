@@ -1,12 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `grid` blok.
-///
-/// The CMS column counts describe desktop layouts. A phone is always below the
-/// web's `md` breakpoint, where the grid collapses to a single column — so the
-/// base `columns` value is honoured and the `…Md` / `…Lg` variants are ignored
-/// rather than squeezed onto a 390pt screen.
 public struct SbGridView: View {
     private let blok: GridBlok
 

@@ -2,13 +2,6 @@ import AVKit
 import DesignSystem
 import SwiftUI
 
-/// Renders the `video` blok.
-///
-/// Direct asset URLs play inline with `AVPlayer`. Vimeo and YouTube do not
-/// hand out playable streams, and embedding their web players inside a
-/// `WKWebView` would drag their tracking into the app — those become a card
-/// that hands off to the system player or browser, which is also where the
-/// user's cookie choice on the web already points.
 public struct SbVideoView: View {
     private let blok: VideoBlok
 

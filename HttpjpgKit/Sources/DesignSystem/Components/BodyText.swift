@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Running text — the Swift port of `@httpjpg/ui`'s `<Paragraph>`.
-///
-/// Named `BodyText` rather than `Paragraph` so it can't be confused with
-/// `RichText.Paragraph` from the Storyblok SDK, which the blok renderers use.
 public struct BodyText: View {
     public enum Size: Sendable {
         case sm
@@ -20,8 +16,6 @@ public struct BodyText: View {
             }
         }
 
-        /// The web uses `line-height: 1.75` (1.8 at lg/xl); SwiftUI's
-        /// `lineSpacing` is the *gap*, so subtract the font size back out.
         var lineSpacing: CGFloat {
             switch self {
             case .sm, .md: return points * 0.75
@@ -52,10 +46,6 @@ public struct BodyText: View {
     private let lineLimit: Int?
     private let lineHeight: CGFloat?
 
-    /// - Parameter lineHeight: Overrides the size's own leading, as a multiple
-    ///   of the font size. Running copy wants the web's airy 1.75; a card
-    ///   summary sitting under a headline wants far less, or the block reads as
-    ///   five loose lines instead of one paragraph.
     public init(
         _ text: String,
         size: Size = .sm,
@@ -85,8 +75,6 @@ public struct BodyText: View {
     }
 }
 
-/// Monospaced meta text — the `fontFamily: "mono"` rows that carry dates,
-/// slugs and ASCII furniture on work cards.
 public struct MonoText: View {
     private let text: String
     private let size: CGFloat

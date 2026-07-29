@@ -1,23 +1,18 @@
 import Foundation
 import StoryblokClient
 
-/// A row in the work index — the Swift port of `WorkItem` in
-/// `apps/portfolio/lib/queries/work.ts`.
 public struct WorkItem: Identifiable, Hashable, Sendable {
     public let id: String
     public let slug: String
     public let fullSlug: String
     public let title: String
-    /// The story's `description` rich text, flattened. Card excerpts need
-    /// plain text, and carrying it on the item saves a second fetch per row.
+
     public let summary: String
-    /// Already run through ``ImageService/Preset`` — a thumbnail, not the original.
+
     public let thumbnailURL: URL?
-    /// Raw *image* asset URLs, untransformed. Kept image-only for the widget
-    /// and the thumbnail, which cannot show a clip.
+
     public let imageFilenames: [String]
-    /// Every media asset in CMS order, clips included — the card carousel
-    /// renders this, the same list the web card feeds its slideshow.
+
     public let media: [WorkMedia]
     public let isDraft: Bool
     public let isExternal: Bool
@@ -56,7 +51,6 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     }
 }
 
-/// One entry in a story's media strip — a still or a clip, in CMS order.
 public struct WorkMedia: Hashable, Sendable {
     public let filename: String
     public let isVideo: Bool
@@ -68,13 +62,11 @@ public struct WorkMedia: Hashable, Sendable {
 }
 
 public extension WorkItem {
-    /// Maps a story straight off the CDN, mirroring `toWorkItem`.
     init(story: Story<WorkBlok>) {
         let content = story.content
         let externalURL = content.link?.href.flatMap(URL.init(string:))
         let filenames = content.images.images.compactMap(\.filename)
-        // Clips stay in, in CMS order — the web card's slideshow plays them,
-        // and dropping them here was why card videos never appeared.
+
         let media = content.images
             .filter { !$0.isEmpty }
             .compactMap { asset in
@@ -99,7 +91,6 @@ public extension WorkItem {
     }
 }
 
-/// The two slices the header menu exposes, mirroring `getRecentWork`.
 public struct WorkCollection: Sendable {
     public let projects: [WorkItem]
     public let websites: [WorkItem]
@@ -119,20 +110,16 @@ public struct WorkCollection: Sendable {
     }
 }
 
-/// Slug conventions shared with `apps/portfolio/lib/storyblok-slugs.ts`.
 public enum StorySlug {
     public static let config = "config"
     public static let home = "home"
     public static let workPrefix = "work/"
 
-    /// `true` for `work/<slug>` and nothing deeper — folder index pages and
-    /// nested stories don't belong in the work list.
     public static func isDirectWork(_ fullSlug: String) -> Bool {
         fullSlug.hasPrefix(workPrefix) && fullSlug.split(separator: "/").count == 2
     }
 }
 
-/// Tag names Storyblok uses to split the index.
 enum WorkTag {
     static let projects = "Projects"
     static let websites = "Websites"

@@ -2,15 +2,7 @@ import DesignSystem
 import Foundation
 import SwiftUI
 
-/// Flattens a run of inline rich-text nodes into an `AttributedString`.
-///
-/// Going through `AttributedString` rather than concatenating `Text` values is
-/// what makes links tappable and keeps bold/italic *inline* — the site's
-/// `<strong>` runs sit inside sentences and must stay the same size as the text
-/// around them.
 public enum RichTextInline {
-    /// Builds styled text. `size` and `linkColor` come from the caller so the
-    /// same run can render at body or caption scale.
     public static func attributed(
         _ nodes: [RichTextNode],
         size: CGFloat,
@@ -23,8 +15,6 @@ public enum RichTextInline {
         return result
     }
 
-    /// The same run with every mark stripped — for headlines, code blocks and
-    /// anywhere else that styles the whole string itself.
     public static func plainText(_ nodes: [RichTextNode]) -> String {
         nodes.map(text(of:)).joined()
     }
@@ -42,7 +32,7 @@ public enum RichTextInline {
         case .hardBreak:
             return AttributedString("\n")
         default:
-            // Nested inline containers are rare but legal.
+
             return attributed(node.children, size: size, linkColor: linkColor)
         }
     }
@@ -54,8 +44,7 @@ public enum RichTextInline {
         linkColor: Color
     ) -> AttributedString {
         var fragment = AttributedString(value)
-        // Accumulated rather than assigned: bold *and* italic on the same run
-        // is common, and assigning twice would keep only the second.
+
         var intent: InlinePresentationIntent = []
 
         for mark in marks {

@@ -1,10 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `code_block` blok.
-///
-/// The web labels the language without highlighting it; this does the same,
-/// and lets long lines scroll horizontally rather than wrap.
 public struct SbCodeBlockView: View {
     private let blok: CodeBlok
 

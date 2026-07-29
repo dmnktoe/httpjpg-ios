@@ -1,12 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// A Storyblok asset rendered at the size the device will actually draw it,
-/// and at the proportions the asset actually has.
-///
-/// This is the app's answer to `srcSet`/`sizes` on the web: the request width
-/// is the layout width times the display scale, so a 3× phone never downloads
-/// a 1× image and never a desktop-sized one either.
 public struct AssetImage: View {
     private let asset: StoryblokAsset
     private let fallbackAlt: String
@@ -19,12 +13,6 @@ public struct AssetImage: View {
 
     @State private var isZoomed = false
 
-    /// - Parameters:
-    ///   - aspectRatio: Overrides the asset's own proportions. Leave `nil`
-    ///     unless the CMS explicitly asks for a crop — the natural ratio read
-    ///     from the URL is almost always the right answer.
-    ///   - copyrightPosition: The CMS `copyrightPosition` value, unparsed.
-    ///     Rendering happens whenever the asset carries a credit.
     public init(
         asset: StoryblokAsset,
         fallbackAlt: String = "",
@@ -55,9 +43,7 @@ public struct AssetImage: View {
                 }
             }
         }
-        // Every content image doubles as its own loupe: tap for the black
-        // room, pinch from there. Cards are untouched — they render through
-        // `WorkCardImage`, where a tap already means "open the story".
+
         .onTapGesture { isZoomed = true }
         .fullScreenCover(isPresented: $isZoomed) {
             ImageZoomViewer(

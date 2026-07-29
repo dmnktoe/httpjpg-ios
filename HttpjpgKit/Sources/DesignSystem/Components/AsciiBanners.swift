@@ -1,10 +1,5 @@
 import Foundation
 
-/// ASCII furniture, ported verbatim from
-/// `packages/ui/src/components/ascii-art/banners.ts`.
-///
-/// These strings *are* the brand. Keep them byte-identical to the web so the
-/// two surfaces read as the same site.
 public enum Ascii {
     public static let sparkles = "·°•. ⋆ ✦ ⋆ .•°·"
     public static let tape = "▰▰▰▱▱▱▰▰▰▱▱▱▰▰▰"

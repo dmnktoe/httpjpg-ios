@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The date stamp on a work card: `╱╱ 15. ☀ M 24 ⌘ρτ`.
-/// Port of `work-card-date.tsx`, month glyphs and all.
 public struct WorkCardDateView: View {
     private let date: Date
     private let dateEnd: Date?
@@ -44,11 +42,6 @@ public struct WorkCardDateView: View {
     }
 }
 
-/// Date formatting for work cards.
-///
-/// The web renders these with `Intl.DateTimeFormat("de-DE", …)`; `de_DE` is
-/// pinned here for the same reason — the site's stamps are German, regardless
-/// of the reader's locale.
 public enum WorkCardDate {
     public struct Parts: Equatable, Sendable {
         public let day: String
@@ -57,7 +50,6 @@ public enum WorkCardDate {
         public let monthSymbol: String
     }
 
-    /// The per-month glyphs from `MONTH_SYMBOLS` in `work-card-date.tsx`.
     private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
 
     nonisolated(unsafe) private static let dayFormatter = formatter("dd")
@@ -83,7 +75,6 @@ public enum WorkCardDate {
         )
     }
 
-    /// Four-digit year, used for the work list's section headers.
     public static func year(of date: Date) -> String {
         fullYearFormatter.string(from: date)
     }

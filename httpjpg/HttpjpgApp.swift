@@ -2,9 +2,6 @@ import PortfolioFeature
 import StoryblokContent
 import SwiftUI
 
-/// The app target is deliberately thin: it resolves configuration and hands
-/// off to `PortfolioFeature`. Everything else lives in `HttpjpgKit`, which
-/// keeps the code buildable and testable without the app shell.
 @main
 struct HttpjpgApp: App {
     private let configuration: Result<StoryblokConfiguration, Error>
@@ -25,8 +22,6 @@ struct HttpjpgApp: App {
     }
 }
 
-/// Shown when `STORYBLOK_ACCESS_TOKEN` is missing — a blank screen would send
-/// the reader hunting through Xcode for no reason.
 private struct ConfigurationErrorView: View {
     let message: String
 

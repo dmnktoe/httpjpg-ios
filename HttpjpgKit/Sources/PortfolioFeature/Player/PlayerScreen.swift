@@ -2,13 +2,6 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The full-screen player the mini bar expands into. Swipe down closes it —
-/// it is a sheet, and the sheet's own gesture is the dismissal.
-///
-/// Everything is set in the house voice: mono type, hard-edged artwork with a
-/// hairline border, ASCII furniture where Apple would put gradients. The theme
-/// is resolved locally from the system scheme because sheet content does not
-/// inherit the environment of the view that presented it.
 struct PlayerScreen: View {
     let player: AudioPlayerModel
 
@@ -37,8 +30,6 @@ struct PlayerScreen: View {
                 scrubber(theme: theme)
                 transport
 
-                // Below the transport, where Apple Music keeps it: the same
-                // system picker, wearing the page's foreground instead of blue.
                 AirPlayPicker(tint: theme.foreground)
                     .frame(width: 44, height: 44)
                     .accessibilityLabel("AirPlay")
@@ -56,8 +47,6 @@ struct PlayerScreen: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Same source as the mini bar and the lock screen: the model's one
-    /// downloaded image.
     private func artwork(_ track: AudioTrack, theme: PageTheme) -> some View {
         Group {
             if let image = player.artwork {
@@ -110,13 +99,12 @@ struct PlayerScreen: View {
                     .font(Typography.mono(28, weight: .bold))
                     .frame(width: 64, height: 64)
                     .contentShape(Rectangle())
-                    // Same fast glyph swap as the bar's button.
+
                     .contentTransition(.opacity)
                     .animation(.easeOut(duration: 0.1), value: player.isPlaying)
             }
             .buttonStyle(.plain)
-            // Tap-counted like the bar's button: lock-screen toggles flip
-            // `isPlaying` too, and those are not this button's taps.
+
             .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
             .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
             skipButton(by: 15, label: "↻15", accessibility: "Forward 15 seconds")

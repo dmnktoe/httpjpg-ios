@@ -1,11 +1,6 @@
 import SwiftUI
 
-/// Full-bleed placeholder shown while a screen's first payload is in flight —
-/// the Swift port of `@httpjpg/ui`'s `<Loading>`: the label with the sliding
-/// rainbow gradient *inside the letters*, a static tape strip underneath.
 public struct LoadingState: View {
-    /// The web's gradient, stop for stop. First and last colour match, which
-    /// is what lets the slide loop without a visible seam.
     private static let rainbow: [Color] = [
         Color(red: 0xF7 / 255, green: 0x25 / 255, blue: 0x85 / 255),
         Color(red: 0xFF / 255, green: 0x00 / 255, blue: 0x6E / 255),
@@ -16,8 +11,6 @@ public struct LoadingState: View {
         Color(red: 0xF7 / 255, green: 0x25 / 255, blue: 0x85 / 255),
     ]
 
-    /// Two gradient cycles end to end. The window only ever shows one cycle's
-    /// worth, so sliding by exactly one cycle and snapping back is invisible.
     private static let doubledRainbow: [Color] = rainbow + rainbow.dropFirst()
 
     private let label: String
@@ -36,8 +29,6 @@ public struct LoadingState: View {
                 .tracking(Typography.Size.sm * 0.05)
                 .foregroundStyle(gradient)
 
-            // The web's loading tape is its own 12-segment strip, not the
-            // 15-segment `Ascii.tape` — matched glyph for glyph.
             Text("▰▰▰▱▱▱▰▰▰▱▱▱")
                 .font(Typography.mono(Typography.Size.xs))
                 .tracking(Typography.Size.xs * 0.2)
@@ -55,9 +46,6 @@ public struct LoadingState: View {
         }
     }
 
-    /// A two-cycle gradient sliding one cycle to the left — `background-size:
-    /// 200%` with the 3s linear `rainbow` keyframes, expressed as animatable
-    /// unit points. `UnitPoint` interpolates, which is what carries the slide.
     private var gradient: LinearGradient {
         LinearGradient(
             colors: Self.doubledRainbow,

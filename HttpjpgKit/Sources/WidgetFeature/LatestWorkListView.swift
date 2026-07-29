@@ -2,8 +2,6 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The medium and large families: the featured image beside — or above — the
-/// most recent titles, in the index's own mono voice.
 struct LatestWorkListView: View {
     let entry: LatestWorkEntry
     let isLarge: Bool

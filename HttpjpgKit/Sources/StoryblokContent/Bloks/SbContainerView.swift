@@ -1,10 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `container` blok.
-///
-/// The CMS `width` field caps a desktop column; on a phone the container is
-/// always the full width, so only the background and spacing carry over.
 public struct SbContainerView: View {
     private let blok: ContainerBlok
 

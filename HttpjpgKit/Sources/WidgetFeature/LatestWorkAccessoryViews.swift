@@ -2,9 +2,6 @@ import DesignSystem
 import SwiftUI
 import WidgetKit
 
-/// The lock-screen renditions of the latest-work widget. Monochrome by
-/// contract — the system renders these vibrant/tinted — so they lean entirely
-/// on the mono voice: glyph, tape, title.
 struct LatestWorkAccessoryView: View {
     let entry: LatestWorkEntry
 
@@ -13,8 +10,7 @@ struct LatestWorkAccessoryView: View {
     var body: some View {
         switch family {
         case .accessoryInline:
-            // One line next to the clock: the glyph is the brand, the title
-            // is the news.
+
             Text("㋡ \(title)")
                 .font(Typography.mono(Typography.Size.sm, weight: .bold))
 
@@ -26,8 +22,7 @@ struct LatestWorkAccessoryView: View {
             }
 
         default:
-            // Rectangular: the small card's text block without its photo —
-            // tape, then title, then where it lives.
+
             VStack(alignment: .leading, spacing: 1) {
                 Text(Ascii.tape)
                     .font(Typography.mono(Typography.Size.xxs))

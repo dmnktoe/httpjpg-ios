@@ -2,15 +2,6 @@ import DesignSystem
 import StoryblokContent
 import SwiftUI
 
-/// The site footer, natively.
-///
-/// A straight port of `@httpjpg/ui`'s `<Footer>`, in the same order: the CMS
-/// footer links in one centred wrapping row separated by `·`, the copyright
-/// line, the star rule, the live widgets, the sign-off wave, and the version.
-///
-/// One thing the web does is deliberately dropped: Cookie Settings and Cookie
-/// Policy. The app sets no cookies and runs no analytics, so offering to
-/// configure them would be a lie.
 struct InfoFooter: View {
     let config: SiteConfig
     let widgets: FooterWidgetsModel
@@ -52,12 +43,6 @@ struct InfoFooter: View {
         .background(alignment: .center) { backgroundImage }
     }
 
-    /// The CMS's `background_image`, behind the text and bleeding to both
-    /// edges — `background-size: cover; background-position: center`, natively.
-    ///
-    /// `AsyncImage` rather than `RemoteImage`: this one is decoration, it has no
-    /// size to reserve and nothing to fall back to. A footer that fails to load
-    /// its wallpaper is a footer, not an error.
     @ViewBuilder
     private var backgroundImage: some View {
         if let url = config.footer?.backgroundImage?.filename.flatMap(URL.init(string:)) {
@@ -73,9 +58,6 @@ struct InfoFooter: View {
         }
     }
 
-    /// A wrapping row, because "Legal Notice · Privacy Policy · pr0d for
-    /// listening purposes only" does not fit a phone on one line and the web
-    /// wraps it too.
     private var linkRow: some View {
         FlowLayout(spacing: Spacing.s2) {
             ForEach(Array(links.enumerated()), id: \.offset) { entry in
@@ -98,8 +80,6 @@ struct InfoFooter: View {
         .padding(.horizontal, PageLayout.gutter)
     }
 
-    /// `footer_links` from the config story, resolved against the site origin so
-    /// an internal `/legal-notice` opens the real page rather than nothing.
     private var links: [(label: String, url: URL)] {
         (config.footer?.links ?? []).compactMap { link in
             guard !link.label.isEmpty,
@@ -109,8 +89,6 @@ struct InfoFooter: View {
         }
     }
 
-    /// The app's own build, not the website's release tag — on the web the
-    /// footer names the thing you are looking at, and here that is the app.
     private var version: String {
         let bundle = Bundle.main
         let short = bundle.infoDictionary?["CFBundleShortVersionString"] as? String

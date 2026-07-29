@@ -3,12 +3,6 @@ import DesignSystem
 import Foundation
 import StoryblokClient
 
-/// Turns Storyblok payloads into the CMS-agnostic ``WorkCardModel`` the design
-/// system renders.
-///
-/// The image URLs are built here rather than in the view so the request width
-/// matches the device's real pixel budget, the way `sizes`/`srcSet` do on the
-/// web.
 public enum WorkCardAdapter {
     public static func model(
         for item: WorkItem,
@@ -64,7 +58,6 @@ public enum WorkCardAdapter {
         )
     }
 
-    /// For work stories reached through a resolved `work_list.work` relation.
     public static func model(
         for story: Story<PortfolioBlok>,
         targetWidth: CGFloat,
@@ -86,8 +79,6 @@ public enum WorkCardAdapter {
         )
     }
 
-    /// One asset, one slide — a clip becomes a muted loop, a still goes
-    /// through the image service at the device's pixel budget.
     private static func slide(
         for asset: StoryblokAsset,
         fallbackAlt: String,

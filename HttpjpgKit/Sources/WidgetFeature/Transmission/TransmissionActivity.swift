@@ -3,11 +3,6 @@ import DesignSystem
 import SwiftUI
 import WidgetKit
 
-/// Renders the transmission Live Activity — lock screen banner and every
-/// Dynamic Island shape — in the site's mono/ASCII voice.
-///
-/// Everything on it is either static (title, slug) or a system-driven timer,
-/// so the activity never needs an update from the app once started.
 public struct TransmissionActivity: Widget {
     public init() {}
 
@@ -47,8 +42,7 @@ public struct TransmissionActivity: Widget {
                     .font(Typography.mono(Typography.Size.md))
             } compactTrailing: {
                 timer(context, size: Typography.Size.xs)
-                    // Unconstrained, the auto-updating timer text claims the
-                    // island's whole trailing lobe and shoves the clock.
+
                     .frame(maxWidth: 44)
             } minimal: {
                 Text("㋡")
@@ -74,8 +68,6 @@ public struct TransmissionActivity: Widget {
     }
 }
 
-/// The lock-screen (and StandBy) banner: ghost glyph, title, tape, timer —
-/// the widget rendition of the site's footer strip.
 private struct LockScreenView: View {
     let context: ActivityViewContext<TransmissionAttributes>
 

@@ -1,10 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Renders the `divider` blok.
-///
-/// Vertical dividers are a desktop-grid affair; on a phone every divider is
-/// horizontal, so the `orientation` field is read but collapses to one shape.
 public struct SbDividerView: View {
     private let blok: DividerBlok
 

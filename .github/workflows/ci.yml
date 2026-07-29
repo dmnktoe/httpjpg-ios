@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-  # The blok contract can break from the *other* repo's side, so allow a
-  # manual run (and a repository_dispatch from the web repo later on).
   workflow_dispatch:
 
 concurrency:
@@ -13,9 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Cheap and Linux-only: does the Swift decoder still cover every blok the
-  # CMS schema folder defines? Runs first so a missing blok fails in seconds
-  # rather than after a full Xcode build.
   bloks:
     name: Blok registry
     runs-on: ubuntu-latest
@@ -24,8 +19,6 @@ jobs:
         with:
           path: httpjpg-ios
 
-      # The website repo is public, so CI can compare against the real
-      # schemas instead of a vendored snapshot that would drift.
       - uses: actions/checkout@v4
         with:
           repository: dmnktoe/httpjpg
@@ -44,49 +37,73 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pick the newest Xcode the runner image has. The project declares
-      # swift-tools-version 6.2, so this needs Xcode 26 — if the step below
-      # prints something older, the build will say so plainly rather than
-      # failing somewhere confusing.
       - name: Select Xcode
+        shell: bash
         run: |
-          ls /Applications | grep -i '^Xcode' || true
-          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
-          echo "Using $latest"
-          sudo xcode-select -s "$latest/Contents/Developer"
+          has_ios_runtime() {
+            xcrun simctl list runtimes --json \
+              | jq -e '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | length > 0' >/dev/null
+          }
+          for app in $(ls -d /Applications/Xcode*.app | sort -Vr); do
+            sudo xcode-select -s "$app/Contents/Developer"
+            if has_ios_runtime; then break; fi
+            echo "$app has no iOS simulator runtime"
+          done
           xcodebuild -version
+          xcrun simctl list runtimes
 
-      # No Secrets.xcconfig in CI: Shared.xcconfig includes it with `#include?`,
-      # so the token resolves empty and the app compiles fine. Signing is off —
-      # the associated-domains entitlement would otherwise demand a profile.
-      # `shell: bash` is deliberate: it brings `-o pipefail`, without which the
-      # pipe below would report the formatter's exit code and a failing build
-      # would pass CI. The formatter itself is optional — `cat` if it's absent.
+      - name: Resolve simulator
+        shell: bash
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("iPhone"))] | last | .udid // empty')
+          if [ -z "$udid" ]; then
+            runtime=$(xcrun simctl list runtimes --json \
+              | jq -r '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | last | .identifier // empty')
+            if [ -z "$runtime" ]; then
+              echo "no iOS simulator runtime on this image" >&2
+              exit 1
+            fi
+            devtype=$(xcrun simctl list devicetypes --json \
+              | jq -r '[.devicetypes[] | select(.productFamily == "iPhone")] | last | .identifier')
+            udid=$(xcrun simctl create ci-iphone "$devtype" "$runtime")
+          fi
+          xcrun simctl list devices available
+          echo "SIMULATOR=id=$udid" >> "$GITHUB_ENV"
+
       - name: Build app
         shell: bash
         run: |
           xcodebuild build \
-            -project Httpjpg.xcodeproj \
-            -scheme Httpjpg \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -project httpjpg.xcodeproj \
+            -scheme httpjpg \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            | tee build.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
 
-      # The app scheme carries no testables — the tests live in the local
-      # package, whose aggregate scheme Xcode generates from Package.swift.
-      # `swift test` can't stand in: the package declares iOS only, so it has
-      # no macOS slice to run on the host.
+      - name: Raw build log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
+
       - name: Test package
         shell: bash
         working-directory: HttpjpgKit
         run: |
           xcodebuild test \
             -scheme HttpjpgKit-Package \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "$SIMULATOR" \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
+            | tee test.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
+
+      - name: Raw test log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' HttpjpgKit/test.log | tail -100 || tail -100 HttpjpgKit/test.log

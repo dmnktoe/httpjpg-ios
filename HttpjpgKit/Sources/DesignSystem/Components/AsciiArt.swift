@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Renders an ASCII banner in monospace with a spoken label for VoiceOver,
-/// mirroring `@httpjpg/ui`'s `<AsciiArt>` (`aria-label` + `aria-hidden` art).
 public struct AsciiArt: View {
     private let art: String
     private let label: String
@@ -27,7 +25,6 @@ public struct AsciiArt: View {
     }
 }
 
-/// The `▰▰▰▱▱▱` tape strip printed under every work card's meta block.
 public struct AsciiTape: View {
     public init() {}
 

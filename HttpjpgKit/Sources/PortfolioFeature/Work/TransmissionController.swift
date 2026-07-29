@@ -3,22 +3,14 @@ import Foundation
 import Observation
 import WidgetFeature
 
-/// Starts and stops the transmission Live Activity from the app side.
-///
-/// One transmission at a time: the island has one slot, and "pin another
-/// story" reads as retuning the broadcast, not stacking two. Starting a new
-/// one ends the old one first.
 @MainActor
 @Observable
 final class TransmissionController {
-    /// The slug currently on air, driving the ㋡ button's on/off state.
     private(set) var activeSlug: String?
 
     private var activity: Activity<TransmissionAttributes>?
 
     init() {
-        // Adopt a survivor from a previous launch, so the button state and
-        // "end" path still line up with an island the system kept alive.
         if let existing = Activity<TransmissionAttributes>.activities.first {
             activity = existing
             activeSlug = existing.attributes.slug

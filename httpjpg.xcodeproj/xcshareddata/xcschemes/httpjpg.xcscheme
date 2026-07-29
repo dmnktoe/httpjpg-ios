@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA0000000000000000000010"
-               BuildableName = "Httpjpg.app"
-               BlueprintName = "Httpjpg"
-               ReferencedContainer = "container:Httpjpg.xcodeproj">
+               BuildableName = "httpjpg.app"
+               BlueprintName = "httpjpg"
+               ReferencedContainer = "container:httpjpg.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000010"
-            BuildableName = "Httpjpg.app"
-            BlueprintName = "Httpjpg"
-            ReferencedContainer = "container:Httpjpg.xcodeproj">
+            BuildableName = "httpjpg.app"
+            BlueprintName = "httpjpg"
+            ReferencedContainer = "container:httpjpg.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000010"
-            BuildableName = "Httpjpg.app"
-            BlueprintName = "Httpjpg"
-            ReferencedContainer = "container:Httpjpg.xcodeproj">
+            BuildableName = "httpjpg.app"
+            BlueprintName = "httpjpg"
+            ReferencedContainer = "container:httpjpg.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

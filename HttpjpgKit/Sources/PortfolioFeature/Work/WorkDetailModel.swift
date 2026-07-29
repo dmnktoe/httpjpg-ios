@@ -1,7 +1,6 @@
 import Observation
 import StoryblokContent
 
-/// Loads one `work/*` story.
 @MainActor
 @Observable
 final class WorkDetailModel {

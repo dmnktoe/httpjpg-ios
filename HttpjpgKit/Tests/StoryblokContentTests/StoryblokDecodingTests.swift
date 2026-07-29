@@ -4,15 +4,10 @@ import XCTest
 
 @testable import StoryblokContent
 
-/// Decoding tests against the exact JSON shapes Storyblok emits, including the
-/// awkward ones: cleared assets that serialise as all-`null` objects, `options`
-/// fields that hold numbers as strings, and unknown components.
 final class StoryblokDecodingTests: XCTestCase {
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try ContentClient.decoder().decode(T.self, from: Data(json.utf8))
     }
-
-    // MARK: - Assets
 
     func testClearedAssetDecodesInsteadOfThrowing() throws {
         let asset = try decode(StoryblokAsset.self, """
@@ -39,8 +34,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(assets.images.count, 1)
     }
 
-    // MARK: - Links
-
     func testStoryLinkResolvesAgainstSiteOrigin() throws {
         let link = try decode(StoryblokLink.self, """
         {"id":"abc","url":"","linktype":"story","fieldtype":"multilink","cached_url":"work/atlas"}
@@ -65,8 +58,6 @@ final class StoryblokDecodingTests: XCTestCase {
         """)
         XCTAssertTrue(link.isEmpty)
     }
-
-    // MARK: - Bloks
 
     func testHeadlineBlokReadsNumericOptionAsString() throws {
         let blok = try decode(PortfolioBlok.self, """
@@ -113,9 +104,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.spacing.marginTop, 16)
     }
 
-    /// The spacing matrix used to be read as `String` only, so an axis that had
-    /// ever been saved through a number field decoded as nothing at all and the
-    /// blok silently lost its margins.
     func testSpacingDecodesFromNumbersAsWellAsStrings() throws {
         let blok = try decode(ImageBlok.self, """
         {"_uid":"i1","component":"image","mt":8,"mb":"12","pt":4,"pb":"0",
@@ -127,9 +115,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.spacing.paddingBottom, 0)
     }
 
-    /// Unresolved relations arrive as bare UUID strings; they must land in
-    /// `workUUIDs` so `SbWorkListView` can run the second fetch, while the
-    /// resolved-story array stays empty instead of throwing.
     func testWorkListKeepsRelationUUIDsForTheSecondFetch() throws {
         let blok = try decode(WorkListBlok.self, """
         {"_uid":"w1","component":"work_list","work":["uuid-a","uuid-b"],
@@ -141,8 +126,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.dividerVariant, "ascii")
     }
 
-    /// Only presentation fields come from the CMS — the playback fields are
-    /// deliberately ignored so every carousel runs the work cards' cadence.
     func testSlideshowDecodesPresentationFieldsOnly() throws {
         let blok = try decode(SlideshowBlok.self, """
         {"_uid":"s1","component":"slideshow","aspectRatio":"4/3","showCounter":true,
@@ -173,7 +156,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(blok.showsArtwork)
     }
 
-    /// Streaming sources never become tracks — they hand off to the browser.
     func testMusicPlayerSpotifyHasNoTrack() throws {
         let blok = try decode(MusicPlayerBlok.self, """
         {"_uid":"mp2","component":"music_player","source":"spotify",
@@ -184,8 +166,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.decoration, Ascii.dividerMusic)
     }
 
-    /// The image blok's width option scales the box — a 5% logo must not
-    /// render full-bleed. Unset, `auto` and malformed values mean full width.
     func testImageWidthOptionParsesToAFraction() throws {
         let scaled = try decode(ImageBlok.self, """
         {"_uid":"i2","component":"image","width":"5%",
@@ -206,8 +186,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(unset.widthFraction)
     }
 
-    /// External clips count as videos too — the site hosts card loops on
-    /// Dropbox, and their URLs end in `.mp4?rlkey=…`, extension before query.
     func testExternalDropboxClipIsDetectedAsVideo() throws {
         let asset = try decode(StoryblokAsset.self, """
         {"filename":"https://www.dropbox.com/scl/fi/x/logo-loop.mp4?rlkey=abc&raw=1",
@@ -216,9 +194,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(asset.isVideo)
     }
 
-    /// Clips stay in the slide list. Filtering them out collapsed video-heavy
-    /// slideshows to one slide — and a one-slide carousel draws no arrows, no
-    /// counter and never autoplays, which read as the whole feature missing.
     func testSlideshowKeepsVideoAssetsAsSlides() throws {
         let blok = try decode(SlideshowBlok.self, """
         {"_uid":"s4","component":"slideshow","images":[
@@ -247,12 +222,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(extractPlainText(blok.details), "Hello")
     }
 
-    // MARK: - Rich text
-
-    /// The whole reason rich text is decoded here rather than by the SDK: one
-    /// malformed node must not cost the document. A heading with no `attrs`,
-    /// an emoji with no `attrs` and an unknown node type all occur in content
-    /// edited over years, and each of them throws out of the SDK's model.
     func testMalformedNodesDoNotDiscardTheDocument() throws {
         let document = try decode(RichTextNode.self, """
         {"type":"doc","content":[
@@ -319,8 +288,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(level, 2, "an attrs-less heading reads as h2, not a decoding failure")
     }
 
-    // MARK: - Config
-
     func testConfigDecodesMenuAndFooter() throws {
         let config = try decode(SiteConfig.self, """
         {"header_menu":[
@@ -340,9 +307,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
     }
 
-    /// The widget switches live flat on the config story, and their defaults
-    /// are `getWidgetConfig()`'s: Discord and Letterboxd on. PSN has no flag
-    /// here at all — the web footer renders its trophy line unconditionally.
     func testWidgetFlagsDefaultTheSameWayTheWebDoes() throws {
         let config = try decode(SiteConfig.self, #"{"seo_title":"httpjpg"}"#)
         XCTAssertTrue(config.widgets.isDiscordEnabled)
@@ -357,8 +321,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
     }
 
-    // MARK: - Marquee
-
     func testMarqueeCarriesSpeedDirectionAndRepeat() throws {
         let blok = try decode(MarqueeBlok.self, """
         {"_uid":"m1","component":"marquee","text":"+++ON AIR+++",
@@ -369,16 +331,12 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.repeatCount, 12)
     }
 
-    /// A marquee with one copy cannot scroll — `MarqueeLabel` refuses to move a
-    /// label that fits — so the repeat count never falls below the web's 3.
     func testMarqueeDefaultsToThreeCopies() throws {
         let blok = try decode(MarqueeBlok.self, #"{"_uid":"m2","component":"marquee","text":"hi"}"#)
         XCTAssertEqual(blok.repeatCount, 3)
         XCTAssertEqual(blok.secondsPerCopy, 20)
         XCTAssertFalse(blok.isReversed)
     }
-
-    // MARK: - Configuration
 
     func testRegionsMapToTheirCDNHosts() {
         XCTAssertEqual(ContentRegion.eu.baseURL.host, "api.storyblok.com")
@@ -387,7 +345,7 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(ContentRegion.aus.baseURL.host, "api-ap.storyblok.com")
         for region in ContentRegion.allCases {
             XCTAssertTrue(
-                region.baseURL.path.hasSuffix("/v2/cdn/"),
+                region.baseURL.absoluteString.hasSuffix("/v2/cdn/"),
                 "\(region) must point at the v2 CDN root"
             )
         }

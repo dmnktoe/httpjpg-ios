@@ -9,12 +9,6 @@ same Storyblok space the website reads. The website lives in a separate repo,
 [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg) — a pnpm/Turbo monorepo.
 This app used to sit inside it at `apps/ios/`.
 
-**`README.md` is the real document.** It records why things are the way they
-are — why the Storyblok SDK's networking is unused, why rich text is decoded
-in-house, why the carousel ignores the CMS playback fields. Read the relevant
-section before changing any of it; most of those decisions were paid for with a
-bug.
-
 ## Stack
 
 - **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 deployment
@@ -88,5 +82,5 @@ test when you add a tolerance.
 1. Open a neighbouring file in the same target and copy the shape.
 2. Prefer fewer abstractions; three similar lines beat a half-baked helper.
 3. Keep changes scoped — don't refactor and add features in one commit.
-4. Check `README.md`'s "Known gaps" before reporting something as broken; it
-   may be a documented decision.
+4. Read the code before reporting something as broken; some of what looks
+   missing is a deliberate omission.
