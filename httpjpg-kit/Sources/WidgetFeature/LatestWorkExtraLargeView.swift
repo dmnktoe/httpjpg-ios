@@ -17,8 +17,6 @@ struct LatestWorkExtraLargeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(16)
         }
-        // The hero bleeds to the widget edge, so it needs the container's corner
-        // radius; content margins are disabled and nothing else clips it.
         .clipShape(ContainerRelativeShape())
     }
 

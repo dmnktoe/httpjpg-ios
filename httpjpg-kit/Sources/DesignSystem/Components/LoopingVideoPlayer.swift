@@ -42,11 +42,6 @@ public struct LoopingVideoPlayer: View {
     }
 }
 
-/// AVKit's `VideoPlayer` wraps an `AVPlayerViewController`, which claims status
-/// bar appearance for the whole window and hides it — so a card carousel with a
-/// video slide knocked out the status bar for the rest of the session, and every
-/// slide change churned the view controller hierarchy behind the glass pills.
-/// An `AVPlayerLayer` carries no view controller and no playback chrome.
 private struct PlayerLayerView: UIViewRepresentable {
     let player: AVPlayer
 
@@ -67,8 +62,5 @@ private struct PlayerLayerView: UIViewRepresentable {
 private final class PlayerLayerHost: UIView {
     override class var layerClass: AnyClass { AVPlayerLayer.self }
 
-    var playerLayer: AVPlayerLayer {
-        // Safe: `layerClass` above pins the backing layer to AVPlayerLayer.
-        layer as! AVPlayerLayer
-    }
+    var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
 }

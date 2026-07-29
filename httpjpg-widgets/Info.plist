@@ -7,10 +7,6 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
-	<!-- WidgetKit hands the archived view tree to the home screen renderer, which
-	     never runs FontRegistry's process-scoped registration. Declaring the face
-	     here is what makes the headline resolve to Anton instead of falling back
-	     to HelveticaNeue-CondensedBlack. -->
 	<key>UIAppFonts</key>
 	<array>
 		<string>Anton-Regular.ttf</string>
