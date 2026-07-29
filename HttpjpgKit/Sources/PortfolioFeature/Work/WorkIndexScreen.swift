@@ -60,20 +60,17 @@ struct WorkIndexScreen: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.s8) {
                 masthead(model)
-                // The ZStack is what makes the crossfade safe: during the
-                // transition the outgoing and incoming lists both exist, and
-                // as stack *siblings* they stacked vertically — content
-                // doubled for a moment and the scroll position ended up down
-                // at the first card. Overlapped, they occupy the same space.
-                ZStack(alignment: .topLeading) {
+                // No transition machinery: the id swap replaces the subtree
+                // outright — the old list vanishes, the layout snaps, no
+                // overlap, no doubled height — and the fresh subtree animates
+                // itself in as ONE block. The previous transition-based
+                // attempts either rushed the page (animated layout) or read
+                // as elements updating one after another (lazy rows
+                // materialising into a crossfade).
+                FadeInUp {
                     rows(model)
-                        // A pure crossfade on filter changes. The animation
-                        // hangs on the *transition*, not on the layout —
-                        // animating the layout made the whole page's height
-                        // change ride along and rush the page upward.
-                        .id(filterFingerprint(model))
-                        .transition(.opacity.animation(.easeInOut(duration: 0.25)))
                 }
+                .id(filterFingerprint(model))
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, TabBarClearance.bottomPadding)
@@ -104,6 +101,35 @@ struct WorkIndexScreen: View {
 
     private func filterFingerprint(_ model: WorkIndexModel) -> String {
         model.variant.rawValue + model.selectedTags.sorted().joined(separator: ",")
+    }
+}
+
+/// Fades its content in with a slight upward drift, once, on appearance.
+///
+/// Paired with `.id(...)` on the outside this is the whole filter animation:
+/// the id swap creates a fresh instance whose state starts hidden, and
+/// `onAppear` animates the single reveal. No insertion/removal transitions,
+/// so nothing overlaps, nothing stacks, and the list moves as one piece
+/// instead of element by element.
+private struct FadeInUp<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    @State private var isShown = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        content
+            .opacity(isShown ? 1 : 0)
+            .offset(y: isShown ? 0 : 14)
+            .onAppear {
+                guard !reduceMotion else {
+                    isShown = true
+                    return
+                }
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isShown = true
+                }
+            }
     }
 
     /// Title and slice switch, kept as one tight group so the gap between them
