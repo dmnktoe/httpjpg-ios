@@ -106,7 +106,10 @@ private struct TabBar: View {
                 previewPill(previewURL)
             }
         }
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { onRowWidthChange($0) }
+        // Rounded: the mini player takes this width back as its own frame, so a
+        // sub-point difference would feed the animated inset a new value on every
+        // layout pass and the pills would never settle.
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
