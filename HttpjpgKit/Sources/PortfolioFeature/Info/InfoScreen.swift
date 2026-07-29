@@ -30,6 +30,10 @@ struct InfoScreen: View {
                         pages
                         InfoLinksSection(links: app.config.headerMenu)
                     }
+                    // Pinned to the full width: with no rows to stretch it,
+                    // the column hugged its short labels and the outer stack
+                    // centred the lot.
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, PageLayout.gutter)
                     .padding(.top, Spacing.s6)
 
@@ -85,9 +89,14 @@ struct InfoScreen: View {
                     .buttonStyle(.plain)
                     BrutalDivider(variant: .dotted)
                 }
+            case .loaded:
+                // Loaded and empty is an answer, not a pending state — this
+                // used to fall into the "loading …" arm and sit there forever.
+                MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
+                    .padding(.vertical, Spacing.s3)
             case .failed(let message):
                 BodyText(message, size: .sm, emphasis: .muted)
-            case .loaded, .none, .loading:
+            case .none, .loading:
                 MonoText("loading …", size: Typography.Size.sm, opacity: Opacities.subtle)
                     .padding(.vertical, Spacing.s3)
             }
