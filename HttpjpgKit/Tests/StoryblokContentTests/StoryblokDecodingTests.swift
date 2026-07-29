@@ -345,7 +345,7 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(ContentRegion.aus.baseURL.host, "api-ap.storyblok.com")
         for region in ContentRegion.allCases {
             XCTAssertTrue(
-                region.baseURL.path.hasSuffix("/v2/cdn/"),
+                region.baseURL.absoluteString.hasSuffix("/v2/cdn/"),
                 "\(region) must point at the v2 CDN root"
             )
         }
