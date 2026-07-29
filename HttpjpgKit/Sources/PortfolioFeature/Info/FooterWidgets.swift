@@ -12,13 +12,15 @@ import SwiftUI
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
 
-    // The whole block waits for the batch, clock included. The clock could
-    // render instantly, but then the rows landing above it shoved it down a
-    // line a moment later — every row appearing at once means every row
-    // appears where it stays.
+    // All four rows exist from the first frame: the three network rows hold
+    // their line with a dim "loading …" (the same thing the web's SSR pass
+    // renders) and swap to their content in place, so nothing appears late
+    // and nothing gets shoved. Only a row that comes back *empty* collapses,
+    // eased — an integration with nothing to say loses its line, same as on
+    // the web.
     var body: some View {
-        if model.isLoaded {
-            VStack(spacing: Spacing.s1) {
+        VStack(spacing: Spacing.s1) {
+            if model.isLoaded {
                 if let discord = model.discord {
                     DiscordLine(presence: discord)
                 }
@@ -28,10 +30,20 @@ struct FooterWidgets: View {
                 if let trophy = model.trophy {
                     TrophyLine(trophy: trophy)
                 }
-                ClockLine(weather: model.weather)
+            } else {
+                placeholderLine(label: "discord:")
+                placeholderLine(label: "letterboxd:")
+                placeholderLine(label: "psn:")
             }
-            .frame(maxWidth: .infinity)
-            .transition(.opacity.animation(.easeOut(duration: 0.25)))
+            ClockLine(weather: model.weather)
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.easeOut(duration: 0.25), value: model.isLoaded)
+    }
+
+    private func placeholderLine(label: String) -> some View {
+        FooterStatusLine(label: label) {
+            Text("loading …").opacity(Opacities.subtle)
         }
     }
 }
