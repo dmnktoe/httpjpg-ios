@@ -3,7 +3,7 @@ import SwiftUI
 import WidgetKit
 
 public struct LatestWorkWidget: Widget {
-    public static let kind = "com.httpjpg.portfolio.latest-work"
+    public static let kind = "com.yl33ly.httpjpg.latest-work"
 
     public init() {}
 
