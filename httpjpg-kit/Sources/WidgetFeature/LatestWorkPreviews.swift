@@ -86,6 +86,7 @@ private enum LatestWorkSample {
     LatestWorkWidget()
 } timeline: {
     LatestWorkEntry.sample
+    LatestWorkEntry.sampleWithoutArtwork
     LatestWorkEntry.placeholder
     LatestWorkEntry.sampleFailure
 }
@@ -94,6 +95,7 @@ private enum LatestWorkSample {
     LatestWorkWidget()
 } timeline: {
     LatestWorkEntry.sample
+    LatestWorkEntry.sampleWithoutArtwork
     LatestWorkEntry.placeholder
     LatestWorkEntry.sampleFailure
 }
