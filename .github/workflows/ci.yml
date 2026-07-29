@@ -38,12 +38,38 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
+        shell: bash
         run: |
-          ls /Applications | grep -i '^Xcode' || true
-          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
-          echo "Using $latest"
-          sudo xcode-select -s "$latest/Contents/Developer"
+          has_ios_runtime() {
+            xcrun simctl list runtimes --json \
+              | jq -e '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | length > 0' >/dev/null
+          }
+          for app in $(ls -d /Applications/Xcode*.app | sort -Vr); do
+            sudo xcode-select -s "$app/Contents/Developer"
+            if has_ios_runtime; then break; fi
+            echo "$app has no iOS simulator runtime"
+          done
           xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Resolve simulator
+        shell: bash
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("iPhone"))] | last | .udid // empty')
+          if [ -z "$udid" ]; then
+            runtime=$(xcrun simctl list runtimes --json \
+              | jq -r '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | last | .identifier // empty')
+            if [ -z "$runtime" ]; then
+              echo "no iOS simulator runtime on this image" >&2
+              exit 1
+            fi
+            devtype=$(xcrun simctl list devicetypes --json \
+              | jq -r '[.devicetypes[] | select(.productFamily == "iPhone")] | last | .identifier')
+            udid=$(xcrun simctl create ci-iphone "$devtype" "$runtime")
+          fi
+          xcrun simctl list devices available
+          echo "SIMULATOR=id=$udid" >> "$GITHUB_ENV"
 
       - name: Build app
         shell: bash
@@ -51,7 +77,7 @@ jobs:
           xcodebuild build \
             -project httpjpg.xcodeproj \
             -scheme httpjpg \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'generic/platform=iOS Simulator' \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
@@ -70,7 +96,7 @@ jobs:
         run: |
           xcodebuild test \
             -scheme HttpjpgKit-Package \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "$SIMULATOR" \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             | tee test.log \
