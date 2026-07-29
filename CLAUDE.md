@@ -7,7 +7,6 @@
 The native SwiftUI reader for the httpjpg.com portfolio. Content comes from the
 same Storyblok space the website reads. The website lives in a separate repo,
 [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg) — a pnpm/Turbo monorepo.
-This app used to sit inside it at `apps/ios/`.
 
 ## Stack
 
