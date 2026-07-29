@@ -17,7 +17,7 @@ const webRepo = resolveWebRepo();
 const blocksDir = join(webRepo, "packages", "storyblok-sync", "scripts", "blocks");
 const swiftFile = join(
   iosRoot,
-  "HttpjpgKit",
+  "httpjpg-kit",
   "Sources",
   "StoryblokContent",
   "Content",

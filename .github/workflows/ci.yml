@@ -92,10 +92,17 @@ jobs:
 
       - name: Test package
         shell: bash
-        working-directory: HttpjpgKit
+        working-directory: httpjpg-kit
         run: |
+          scheme=$(xcodebuild -list -json | jq -r '[(.workspace // .project).schemes[] | select(endswith("-Package"))] | first // empty')
+          if [ -z "$scheme" ]; then
+            xcodebuild -list
+            echo "no aggregate package scheme" >&2
+            exit 1
+          fi
+          echo "scheme: $scheme"
           xcodebuild test \
-            -scheme HttpjpgKit-Package \
+            -scheme "$scheme" \
             -destination "$SIMULATOR" \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
@@ -106,4 +113,4 @@ jobs:
 
       - name: Raw test log
         if: failure()
-        run: grep -n -B2 -A6 -i 'error' HttpjpgKit/test.log | tail -100 || tail -100 HttpjpgKit/test.log
+        run: grep -n -B2 -A6 -i 'error' httpjpg-kit/test.log | tail -100 || tail -100 httpjpg-kit/test.log

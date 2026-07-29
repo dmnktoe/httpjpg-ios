@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "HttpjpgKit",
+    name: "httpjpg-kit",
     platforms: [.iOS(.v17)],
     products: [
         .library(name: "DesignSystem", targets: ["DesignSystem"]),

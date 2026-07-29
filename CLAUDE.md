@@ -12,7 +12,7 @@ This app used to sit inside it at `apps/ios/`.
 ## Stack
 
 - **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 deployment
-- **SwiftPM local package** `HttpjpgKit` — every line of real code
+- **SwiftPM local package** `httpjpg-kit` — every line of real code
 - **XcodeGen** — `project.yml` is the source of truth for target structure; the
   `.xcodeproj` is checked in, regenerate with `xcodegen generate`
 - **xcconfig** build settings in `Config/`; secrets in the git-ignored
@@ -68,9 +68,9 @@ script header). CI runs it against the real schemas on every push.
 
 ## Testing
 
-Tests live next to the code they cover, in `HttpjpgKit/Tests/`. The package
+Tests live next to the code they cover, in `httpjpg-kit/Tests/`. The package
 declares iOS only, so `swift test` cannot run them on a Mac host — use
-`xcodebuild test -scheme HttpjpgKit-Package -destination 'platform=iOS Simulator,…'`.
+`xcodebuild test -scheme httpjpg-kit-Package -destination 'platform=iOS Simulator,…'`.
 
 The decoding tests are the valuable ones: Storyblok is loose about field shapes
 (numbers arriving as strings, cleared fields as `""`), and every tolerance in

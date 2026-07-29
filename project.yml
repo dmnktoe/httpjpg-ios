@@ -11,8 +11,8 @@ configs:
   Release: release
 
 packages:
-  HttpjpgKit:
-    path: HttpjpgKit
+  httpjpg-kit:
+    path: httpjpg-kit
 
 fileGroups:
   - Config
@@ -25,13 +25,13 @@ targets:
     sources:
       - path: httpjpg
     dependencies:
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: DesignSystem
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: StoryblokContent
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: PortfolioFeature
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: WidgetFeature
       - target: httpjpg-widgets
         embed: true
@@ -50,11 +50,11 @@ targets:
     sources:
       - path: httpjpg-widgets
     dependencies:
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: DesignSystem
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: StoryblokContent
-      - package: HttpjpgKit
+      - package: httpjpg-kit
         product: WidgetFeature
     configFiles:
       Debug: Config/Widgets.xcconfig
