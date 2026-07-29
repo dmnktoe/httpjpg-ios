@@ -14,5 +14,5 @@ xcuserdata/
 .build/
 .swiftpm/
 Packages/
-HttpjpgKit/.build/
+httpjpg-kit/.build/
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration/

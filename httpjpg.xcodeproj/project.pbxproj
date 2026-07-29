@@ -183,7 +183,7 @@
 			);
 			mainGroup = AA0000000000000000000002;
 			packageReferences = (
-				AA0000000000000000000040 /* XCLocalSwiftPackageReference "HttpjpgKit" */,
+				AA0000000000000000000040 /* XCLocalSwiftPackageReference "httpjpg-kit" */,
 			);
 			productRefGroup = AA0000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -389,9 +389,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AA0000000000000000000040 /* XCLocalSwiftPackageReference "HttpjpgKit" */ = {
+		AA0000000000000000000040 /* XCLocalSwiftPackageReference "httpjpg-kit" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = HttpjpgKit;
+			relativePath = httpjpg-kit;
 		};
 /* End XCLocalSwiftPackageReference section */
 
