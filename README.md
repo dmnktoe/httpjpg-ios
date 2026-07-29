@@ -14,7 +14,7 @@ cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig   # fill in STORYBLOK
 open httpjpg.xcodeproj
 ```
 
-The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg) — this app used to sit inside it at `apps/ios/`. For agents: [`CLAUDE.md`](CLAUDE.md).
+The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg). For agents: [`CLAUDE.md`](CLAUDE.md).
 
 *ੈ✩‧₊˚༺☆༻*ੈ✩‧₊˚
 
