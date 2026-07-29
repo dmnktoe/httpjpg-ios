@@ -15,7 +15,7 @@ public struct LatestWorkWidget: Widget {
         .description("The newest piece from httpjpg.com.")
 
         .supportedFamilies([
-            .systemSmall, .systemMedium, .systemLarge,
+            .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge,
             .accessoryInline, .accessoryRectangular, .accessoryCircular,
         ])
         .contentMarginsDisabled()
@@ -46,6 +46,8 @@ struct LatestWorkWidgetView: View {
             LatestWorkAccessoryView(entry: entry)
         case .systemSmall:
             LatestWorkSmallView(entry: entry)
+        case .systemExtraLarge:
+            LatestWorkExtraLargeView(entry: entry)
         case .systemLarge:
             LatestWorkListView(entry: entry, isLarge: true)
                 .padding(14)

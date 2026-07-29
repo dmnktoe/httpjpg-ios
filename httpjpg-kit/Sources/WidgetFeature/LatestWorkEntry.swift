@@ -9,34 +9,51 @@ struct LatestWorkEntry: TimelineEntry {
 
     let image: UIImage?
 
+    let thumbnails: [String: UIImage]
+
     let message: String?
 
     var featured: WorkItem? { items.first }
 
-    init(date: Date, items: [WorkItem], image: UIImage? = nil, message: String? = nil) {
+    init(
+        date: Date,
+        items: [WorkItem],
+        image: UIImage? = nil,
+        thumbnails: [String: UIImage] = [:],
+        message: String? = nil
+    ) {
         self.date = date
         self.items = items
         self.image = image
+        self.thumbnails = thumbnails
         self.message = message
     }
 
     static let placeholder = LatestWorkEntry(
         date: Date(timeIntervalSince1970: 0),
         items: [
+            "we're yet to find out",
+            "still in the darkroom",
+            "tape rewinding",
+            "loading the index",
+            "no signal yet",
+            "check back shortly",
+            "almost there",
+        ].enumerated().map { position, title in
             WorkItem(
-                id: "placeholder",
-                slug: "loading",
-                fullSlug: "work/loading",
-                title: "we're yet to find out",
+                id: "placeholder-\(position)",
+                slug: "loading-\(position)",
+                fullSlug: "work/loading-\(position)",
+                title: title,
                 thumbnailURL: nil,
                 imageFilenames: [],
                 isDraft: false,
                 isExternal: false,
                 externalURL: nil,
-                date: Date(timeIntervalSince1970: 0),
+                date: nil,
                 tags: ["Projects"]
-            ),
-        ]
+            )
+        }
     )
 
     static func failure(_ message: String) -> LatestWorkEntry {
