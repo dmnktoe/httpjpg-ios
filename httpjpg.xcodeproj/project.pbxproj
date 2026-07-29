@@ -18,6 +18,7 @@
 		AA0000000000000000000038 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000046 /* DesignSystem */; };
 		AA0000000000000000000039 /* StoryblokContent in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000047 /* StoryblokContent */; };
 		AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* httpjpg-widgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA000000000000000000003B /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWidgetsBundle.swift; sourceTree = "<group>"; };
 		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
+		AA0000000000000000000028 /* Anton-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Anton-Regular.ttf"; path = "httpjpg-kit/Sources/DesignSystem/Resources/Fonts/Anton-Regular.ttf"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 			children = (
 				AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */,
 				AA0000000000000000000026 /* Info.plist */,
+				AA0000000000000000000028 /* Anton-Regular.ttf */,
 			);
 			path = httpjpg-widgets;
 			sourceTree = "<group>";
@@ -140,6 +143,7 @@
 			buildPhases = (
 				AA000000000000000000001C /* Sources */,
 				AA000000000000000000001A /* Frameworks */,
+				AA000000000000000000001F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -215,6 +219,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000031 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA000000000000000000001F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000003B /* Anton-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
