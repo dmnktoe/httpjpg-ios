@@ -1,34 +1,58 @@
 #!/usr/bin/env node
 /**
- * Guards the CMS ↔ iOS blok contract.
+ * Guards the CMS ↔ iOS blok contract, which now spans two repositories.
  *
- * The web side already stays honest via `storyblokInit`'s registry; the iOS
- * app's registry is the `switch` in `PortfolioBlok.init(from:)`, which nothing
- * checks at build time — Swift can't know what the CMS schema folder contains.
- * This script can: it compares the blok names pushed by
- * `packages/storyblok-sync/scripts/blocks/*.ts` against the cases the Swift
- * decoder dispatches, so adding a blok on the web without teaching the app
- * about it fails CI instead of silently rendering the `SbMissing` fallback.
+ * The web side already stays honest via `storyblokInit`'s registry; this app's
+ * registry is the `switch` in `PortfolioBlok.init(from:)`, which nothing checks
+ * at build time — Swift can't know what the CMS schema folder contains, and
+ * since the app moved out of the monorepo it can't even see it. This script
+ * can: point it at a checkout of the web repo and it compares the blok names
+ * pushed by `packages/storyblok-sync/scripts/blocks/*.ts` against the cases the
+ * Swift decoder dispatches, so adding a blok on the web without teaching the
+ * app about it fails CI instead of silently rendering the `SbMissing` fallback.
  *
- * Run from anywhere: `node apps/ios/scripts/check-blok-registry.mjs`.
+ *     npm run check:bloks                          # sibling ../httpjpg
+ *     npm run check:bloks -- --web-repo=/path/to/httpjpg
+ *     HTTPJPG_WEB_REPO=/path/to/httpjpg npm run check:bloks
+ *
+ * With no checkout to compare against it prints a notice and exits 0 — a
+ * missing sibling repo is a local-setup detail, not a broken contract. CI
+ * checks the web repo out, so there the comparison always runs.
  */
 
-import { readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const blocksDir = join(repoRoot, "packages", "storyblok-sync", "scripts", "blocks");
+const iosRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** `--web-repo=…` wins over the env var, which wins over the sibling default. */
+function resolveWebRepo() {
+  const flag = process.argv.find((arg) => arg.startsWith("--web-repo="));
+  if (flag) return resolve(flag.slice("--web-repo=".length));
+  if (process.env.HTTPJPG_WEB_REPO) return resolve(process.env.HTTPJPG_WEB_REPO);
+  return resolve(iosRoot, "..", "httpjpg");
+}
+
+const webRepo = resolveWebRepo();
+const blocksDir = join(webRepo, "packages", "storyblok-sync", "scripts", "blocks");
 const swiftFile = join(
-  repoRoot,
-  "apps",
-  "ios",
+  iosRoot,
   "HttpjpgKit",
   "Sources",
   "StoryblokContent",
   "Content",
   "PortfolioBlok.swift",
 );
+
+if (!existsSync(blocksDir)) {
+  console.log(
+    `• skipped: no web repo at ${webRepo}\n` +
+      `  Clone https://github.com/dmnktoe/httpjpg next to this one, or pass\n` +
+      `  --web-repo=<path> / set HTTPJPG_WEB_REPO to compare against it.`,
+  );
+  process.exit(0);
+}
 
 /**
  * Bloks the app knows about and deliberately does not render as standalone
@@ -108,4 +132,7 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log(`✓ blok registry in sync — ${cms.size} CMS bloks, ${swift.size} rendered, ${CONSCIOUSLY_UNRENDERED.size} consciously unrendered`);
+console.log(
+  `✓ blok registry in sync with ${webRepo} — ` +
+    `${cms.size} CMS bloks, ${swift.size} rendered, ${CONSCIOUSLY_UNRENDERED.size} consciously unrendered`,
+);

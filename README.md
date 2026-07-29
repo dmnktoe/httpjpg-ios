@@ -5,6 +5,21 @@ space as the web app. Content comes down through
 [`storyblok/storyblok-swift`](https://github.com/storyblok/storyblok-swift); the
 look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation.
 
+## Relationship to the web repo
+
+The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg), a
+pnpm/Turbo monorepo. This app used to sit inside it at `apps/ios/`; its history
+was carried over commit for commit when it moved out.
+
+Nothing is shared at build time — no package manager spans the two — but three
+contracts do, and each has a guard:
+
+| Contract | Owned by | Guard |
+| --- | --- | --- |
+| Storyblok blok schemas ↔ the Swift decoder | web (`packages/storyblok-sync`) | `npm run check:bloks` here, run in CI against a checkout of the web repo |
+| Design tokens ↔ `DesignSystem` | web (`packages/tokens`) | none — ported by hand, drift is caught by eye |
+| `applinks:` ↔ the AASA file | web (`apps/portfolio/public/.well-known/`) | none — see [Universal links](#universal-links) |
+
 ## Requirements
 
 - Xcode 26 or newer (the Storyblok SDK declares `swift-tools-version: 6.2`)
@@ -13,7 +28,6 @@ look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation.
 ## Getting started
 
 ```bash
-cd apps/ios
 cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig
 # fill in STORYBLOK_ACCESS_TOKEN
 open Httpjpg.xcodeproj
@@ -35,14 +49,14 @@ but `StoryblokClient` links against the plugin, so it has to be enabled once.
 Running the package tests without the app shell:
 
 ```bash
-cd apps/ios/HttpjpgKit
+cd HttpjpgKit
 swift test                     # or: xcodebuild test -scheme HttpjpgKit -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
 ## Layout
 
 ```
-apps/ios/
+.
 ├── Httpjpg.xcodeproj/       # checked in; regenerate with `xcodegen generate`
 ├── project.yml              # XcodeGen spec — the source of truth for target structure
 ├── Config/                  # xcconfig build settings (+ the git-ignored secrets file)
@@ -247,10 +261,15 @@ matches the app's request with the extension's renderer by that type's identity.
 the app; `/` is the work index; any other path opens as a page on the info tab
 — the same routing table the web router has. The app side is
 `Httpjpg.entitlements` (`applinks:` for both hosts) plus `AppModel.open`; the
-site side is `apps/portfolio/public/.well-known/apple-app-site-association`,
-served as JSON via a `headers()` entry in `next.config.ts`. The AASA ships with
-a `TEAMID.` placeholder — swap in the real Apple team ID and redeploy the site
-before testing, and note Apple's CDN caches the file for hours.
+site side lives in the web repo at
+`apps/portfolio/public/.well-known/apple-app-site-association`, served as JSON
+via a `headers()` entry in `next.config.ts`. The AASA ships with a `TEAMID.`
+placeholder — swap in the real Apple team ID and redeploy the site before
+testing, and note Apple's CDN caches the file for hours.
+
+This is the one cross-repo contract with no automated guard: changing the
+bundle id here means editing the AASA over there, and nothing will tell you if
+you forget — the links just silently open in Safari.
 
 ### Analytics
 
@@ -299,13 +318,13 @@ version of `srcSet`/`sizes`.
 
 ## Adding a blok
 
-Same five steps as the web, plus one:
+Four steps happen in the web repo, one here:
 
 1. Add the schema in `packages/storyblok-sync/scripts/blocks/<group>.ts`.
 2. `pnpm --filter @httpjpg/storyblok-sync sync:components`.
 3. Add the `Sb<Pascal>` component in `packages/storyblok-ui`.
 4. Register it in `apps/portfolio/lib/storyblok.ts`.
-5. **iOS:** add a case to `PortfolioBlok`, a payload struct, and a
+5. **Here:** add a case to `PortfolioBlok`, a payload struct, and a
    `Sb<Pascal>View` under `Sources/StoryblokContent/Bloks/`, then wire it into
    the switch in `BlokView.swift`.
 
@@ -313,19 +332,22 @@ Until step 5 happens, the blok renders as `SbMissingView` — a dashed placehold
 in debug builds, nothing at all in release. That mirrors the `_fallback: SbMissing`
 slot the web registers in development.
 
-`pnpm check:ios-bloks` (CI-friendly, plain Node) diffs the schema folder
-against the Swift decoder's dispatch switch, with an allowlist naming every
-consciously-unrendered blok and why — so forgetting step 5 fails loudly instead
-of shipping placeholders.
+Step 5 is easy to forget now that it lives in another repo, which is exactly
+what `npm run check:bloks` is for: it diffs the web repo's schema folder against
+the Swift decoder's dispatch switch, with an allowlist naming every
+consciously-unrendered blok and why. It needs a checkout of the web repo —
+found via `--web-repo=<path>`, `$HTTPJPG_WEB_REPO`, or a sibling `../httpjpg`,
+and skipped with a notice if none is there. CI checks the web repo out and runs
+it for real.
 
 ## Conventions
 
-`CLAUDE.md` at the repo root is a TypeScript guide. Swift code here follows the
-Swift API Design Guidelines instead — `lowerCamelCase` static members, no
-`SCREAMING_SNAKE_CASE` — while keeping the repo's structural rules: one exported
-component per file, props types named after their component, kebab-case folders
-only where the web already uses them, and `Sb`-prefixed blok renderers that map
-1:1 onto CMS component names.
+Swift code follows the Swift API Design Guidelines — `lowerCamelCase` static
+members, no `SCREAMING_SNAKE_CASE` — while keeping the structural rules the web
+repo's `CLAUDE.md` sets out: one exported component per file, props types named
+after their component, kebab-case folders only where the web already uses them,
+and `Sb`-prefixed blok renderers that map 1:1 onto CMS component names. The
+short version for agents is in `CLAUDE.md` here.
 
 ## Known gaps
 

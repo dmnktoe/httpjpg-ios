@@ -1,0 +1,9 @@
+{
+  "name": "httpjpg-ios-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Repo tooling only — the app itself is Swift and builds with Xcode/SwiftPM.",
+  "scripts": {
+    "check:bloks": "node scripts/check-blok-registry.mjs"
+  }
+}

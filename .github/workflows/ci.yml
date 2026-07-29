@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The blok contract can break from the *other* repo's side, so allow a
+  # manual run (and a repository_dispatch from the web repo later on).
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Cheap and Linux-only: does the Swift decoder still cover every blok the
+  # CMS schema folder defines? Runs first so a missing blok fails in seconds
+  # rather than after a full Xcode build.
+  bloks:
+    name: Blok registry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: httpjpg-ios
+
+      # The website repo is public, so CI can compare against the real
+      # schemas instead of a vendored snapshot that would drift.
+      - uses: actions/checkout@v4
+        with:
+          repository: dmnktoe/httpjpg
+          path: httpjpg
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node scripts/check-blok-registry.mjs --web-repo=../httpjpg
+        working-directory: httpjpg-ios
+
+  build:
+    name: Build & test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pick the newest Xcode the runner image has. The project declares
+      # swift-tools-version 6.2, so this needs Xcode 26 — if the step below
+      # prints something older, the build will say so plainly rather than
+      # failing somewhere confusing.
+      - name: Select Xcode
+        run: |
+          ls /Applications | grep -i '^Xcode' || true
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Using $latest"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+
+      # No Secrets.xcconfig in CI: Shared.xcconfig includes it with `#include?`,
+      # so the token resolves empty and the app compiles fine. Signing is off —
+      # the associated-domains entitlement would otherwise demand a profile.
+      # `shell: bash` is deliberate: it brings `-o pipefail`, without which the
+      # pipe below would report the formatter's exit code and a failing build
+      # would pass CI. The formatter itself is optional — `cat` if it's absent.
+      - name: Build app
+        shell: bash
+        run: |
+          xcodebuild build \
+            -project Httpjpg.xcodeproj \
+            -scheme Httpjpg \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
+
+      # The app scheme carries no testables — the tests live in the local
+      # package, whose aggregate scheme Xcode generates from Package.swift.
+      # `swift test` can't stand in: the package declares iOS only, so it has
+      # no macOS slice to run on the host.
+      - name: Test package
+        shell: bash
+        working-directory: HttpjpgKit
+        run: |
+          xcodebuild test \
+            -scheme HttpjpgKit-Package \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
