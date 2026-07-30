@@ -45,6 +45,7 @@ struct VariantPicker: View {
                 .opacity(isSelected ? 1 : 0.55)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(variant.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
@@ -63,6 +64,13 @@ extension MenuLink.Variant {
         switch self {
         case .projects: return "⇝ᵣₑcꫀₙₜ TH1𝓃𝑔S"
         case .websites: return "⇝ᵣₑcꫀₙₜ ℘ɑׁׅ֮ᧁׁꫀׁׅܻ꯱ׁׅ֒"
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .projects: return "Projects"
+        case .websites: return "Websites"
         }
     }
 }
