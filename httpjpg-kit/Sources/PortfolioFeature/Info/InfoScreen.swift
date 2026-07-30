@@ -49,16 +49,13 @@ struct InfoScreen: View {
 
             switch app.info.state {
             case .loaded(let summaries) where !summaries.isEmpty:
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(summaries) { page in
-                        NavigationLink(value: PageRoute(page: page)) {
-                            InfoPageRow(page: page)
-                        }
-                        .buttonStyle(.plain)
-                        BrutalDivider(variant: .dotted)
+                ForEach(summaries) { page in
+                    NavigationLink(value: PageRoute(page: page)) {
+                        InfoPageRow(page: page)
                     }
+                    .buttonStyle(.plain)
+                    BrutalDivider(variant: .dotted)
                 }
-                .fadeInUp()
             case .loaded:
 
                 MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
