@@ -40,6 +40,22 @@ final class ResponseCacheTests: XCTestCase {
         XCTAssertNil(cache.data(for: request, now: now.addingTimeInterval(ttl + 1)))
     }
 
+    func testServesAnExpiredEntryWhenStaleIsAllowed() {
+        let request = request("stale-fallback")
+        cache.store(body, response: response(for: request), for: request, now: now)
+
+        let expired = now.addingTimeInterval(ttl + 1)
+        XCTAssertNil(cache.data(for: request, now: expired))
+        XCTAssertEqual(cache.data(for: request, allowsStale: true, now: expired), body)
+    }
+
+    func testDropsAnEntryStampedInTheFutureEvenWhenStaleIsAllowed() {
+        let request = request("future-stamp-stale")
+        cache.store(body, response: response(for: request), for: request, now: now)
+
+        XCTAssertNil(cache.data(for: request, allowsStale: true, now: now.addingTimeInterval(-60)))
+    }
+
     func testDropsAnEntryStampedInTheFuture() {
         let request = request("clock-jumped-back")
         cache.store(body, response: response(for: request), for: request, now: now)

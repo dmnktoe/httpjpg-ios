@@ -12,7 +12,7 @@ final class ResponseCache: @unchecked Sendable {
         self.ttl = ttl
     }
 
-    func data(for request: URLRequest, now: Date = Date()) -> Data? {
+    func data(for request: URLRequest, allowsStale: Bool = false, now: Date = Date()) -> Data? {
         guard let cached = cache.cachedResponse(for: request),
               let response = cached.response as? HTTPURLResponse,
               let stamp = response.value(forHTTPHeaderField: Self.stampHeader),
@@ -20,7 +20,7 @@ final class ResponseCache: @unchecked Sendable {
         else { return nil }
 
         let age = now.timeIntervalSince1970 - storedAt
-        guard age >= 0, age < ttl else { return nil }
+        guard age >= 0, allowsStale || age < ttl else { return nil }
 
         return cached.data
     }

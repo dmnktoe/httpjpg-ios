@@ -51,14 +51,15 @@ final class WorkIndexModel {
         isLoading = true
         defer { isLoading = false }
 
-        if !isLoaded {
+        let hadContent = isLoaded
+        if !hadContent {
             state = .loading
         }
 
         do {
             state = .loaded(try await client.workIndex(refresh: force))
         } catch {
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !hadContent else { return }
             state = .failed(error.localizedDescription)
         }
     }

@@ -160,7 +160,7 @@ public final class ContentClient: @unchecked Sendable {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            if let cached = cache.data(for: request) { return cached }
+            if let cached = cache.data(for: request, allowsStale: true) { return cached }
             throw ContentError.transport(error.localizedDescription)
         }
 
