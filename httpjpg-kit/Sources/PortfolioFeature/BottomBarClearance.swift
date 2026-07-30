@@ -1,8 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Room the scrolling screens keep under their content so the floating pill row — and,
-/// while a track is playing, the mini player stacked above it — never covers the last item.
 enum BottomBarClearance {
     static let tabBar: CGFloat = Spacing.s16
 

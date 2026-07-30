@@ -2,7 +2,6 @@ import Foundation
 import StoryblokClient
 
 public final class ContentClient: @unchecked Sendable {
-    /// How long a fetched response stands in for the live one.
     public static let cacheDuration: TimeInterval = 60 * 60
 
     public let configuration: StoryblokConfiguration
@@ -13,8 +12,6 @@ public final class ContentClient: @unchecked Sendable {
     public init(configuration: StoryblokConfiguration) {
         self.configuration = configuration
 
-        // The session itself never caches: `ResponseCache` owns the store so the window
-        // is ours instead of whatever the CDN happens to put in `cache-control`.
         let sessionConfiguration = URLSessionConfiguration.default
         sessionConfiguration.urlCache = nil
         sessionConfiguration.requestCachePolicy = .reloadIgnoringLocalCacheData
@@ -163,7 +160,6 @@ public final class ContentClient: @unchecked Sendable {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            // A pull-to-refresh with no network keeps the answer it already had.
             if let cached = cache.data(for: request) { return cached }
             throw ContentError.transport(error.localizedDescription)
         }

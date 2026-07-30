@@ -1,8 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Stands in for the pages list: the row rhythm and dividers of `InfoPageRow`, at
-/// varying widths so it reads as a list rather than a loading bar.
 struct InfoPagesSkeleton: View {
     private static let widths: [CGFloat] = [132, 96, 156, 112, 140]
 

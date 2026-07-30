@@ -40,9 +40,6 @@ public final class AppModel {
 
     public private(set) var hasLoadedConfig = false
 
-    // The tab roots are rebuilt from scratch on every switch, so what they loaded
-    // lives here instead of in their own state — otherwise each visit starts over
-    // from an empty screen.
     let workIndex: WorkIndexModel
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
@@ -66,7 +63,6 @@ public final class AppModel {
         hasLoadedConfig = true
     }
 
-    /// Kept off the launch path: nothing here is worth fetching until the info tab is open.
     func loadFooterWidgets() async {
         guard hasLoadedConfig, footerWidgets == nil else { return }
         let widgets = FooterWidgetsModel(origin: configuration.siteOrigin, flags: config.widgets)

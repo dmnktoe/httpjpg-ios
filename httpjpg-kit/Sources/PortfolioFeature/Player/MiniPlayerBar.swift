@@ -12,7 +12,6 @@ struct MiniPlayerBar: View {
 
     private static let rowHeight: CGFloat = 32
 
-    /// What the bar takes off the bottom of the screen once a track is on.
     static let height: CGFloat = rowHeight + Spacing.s2 * 2
 
     @State private var playPauseTaps = 0

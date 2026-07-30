@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// A pulsing bar that stands in for a line of text or a piece of media while it loads.
-///
-/// Laid out at the size of the thing it replaces, so the real content drops into place
-/// instead of pushing the page around when it arrives.
 public struct SkeletonBlock: View {
     private let width: CGFloat?
     private let height: CGFloat

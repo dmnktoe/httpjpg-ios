@@ -1,8 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Stands in for the work list: two cards at the proportions `WorkCardView` draws, so
-/// the real ones land without the page jumping.
 struct WorkListSkeleton: View {
     @Environment(\.viewportWidth) private var viewportWidth
 

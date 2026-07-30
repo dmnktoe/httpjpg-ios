@@ -1,12 +1,5 @@
 import SwiftUI
 
-/// The entrance every list shares: a short fade up from just below its resting place.
-///
-/// The reveal is driven from `task` and animated by value rather than by a
-/// `withAnimation` inside `onAppear`. When the content is ready on the very first
-/// render — a warm cache, a tab switch — an `onAppear` flip lands inside the
-/// insertion transaction and SwiftUI draws the end state straight away, which is why
-/// the entrance used to play only some of the time.
 public struct FadeInUp: ViewModifier {
     private let distance: CGFloat
     private let duration: TimeInterval

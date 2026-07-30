@@ -51,7 +51,6 @@ final class WorkIndexModel {
         isLoading = true
         defer { isLoading = false }
 
-        // A refresh keeps the list on screen — only a cold start drops to the skeleton.
         if !isLoaded {
             state = .loading
         }
@@ -59,8 +58,6 @@ final class WorkIndexModel {
         do {
             state = .loaded(try await client.workIndex(refresh: force))
         } catch {
-            // Switching tabs cancels the load. The model outlives the screen now, so
-            // recording that as a failure would greet the next visit with an error.
             guard !Task.isCancelled else { return }
             state = .failed(error.localizedDescription)
         }
