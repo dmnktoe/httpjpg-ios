@@ -7,6 +7,10 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Anton-Regular.ttf</string>
+	</array>
 	<key>STORYBLOK_ACCESS_TOKEN</key>
 	<string>$(STORYBLOK_ACCESS_TOKEN)</string>
 	<key>STORYBLOK_VERSION</key>

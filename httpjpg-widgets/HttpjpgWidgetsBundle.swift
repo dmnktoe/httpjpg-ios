@@ -6,6 +6,5 @@ import WidgetKit
 struct HttpjpgWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LatestWorkWidget()
-        TransmissionActivity()
     }
 }

@@ -17,6 +17,7 @@ struct LatestWorkExtraLargeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(16)
         }
+        .clipShape(ContainerRelativeShape())
     }
 
     private var hero: some View {

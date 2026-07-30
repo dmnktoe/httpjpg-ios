@@ -7,7 +7,7 @@
 
 **swiftui · storyblok · swiftpm · xcodegen**
 
-Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, a home-screen widget, and a Dynamic Island transmission.
+Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, and a home-screen widget.
 
 ```bash
 cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig   # fill in STORYBLOK_ACCESS_TOKEN

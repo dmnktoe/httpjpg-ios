@@ -5,7 +5,6 @@ import SwiftUI
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
-    @State private var transmission = TransmissionController()
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -40,7 +39,6 @@ public struct RootView: View {
         .pageTheme(theme)
         .pageSurface(theme)
         .environment(model)
-        .environment(transmission)
         .environment(\.storyblokConfiguration, model.configuration)
         .environment(\.contentClient, model.client)
         .environment(\.playAudioTrack) {
@@ -79,38 +77,49 @@ private struct TabBar: View {
     let onRowWidthChange: (CGFloat) -> Void
 
     private static let labelHeight: CGFloat = 16
+    private static let accent = BrutalButtonStyle.Variant.accent
 
     @Environment(\.openURL) private var openURL
 
     @State private var tapCount = 0
 
     var body: some View {
-        HStack(spacing: Spacing.s2) {
-            ForEach(AppModel.Tab.allCases) { tab in
-                Button {
-                    tapCount += 1
-                    withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
-                } label: {
-                    label(for: tab)
-                        .padding(.horizontal, Spacing.s4)
-                        .padding(.vertical, Spacing.s3)
-                        .contentShape(Capsule())
-                        .modifier(SelectionPill(isSelected: selection == tab))
+        GlassGroup(spacing: Spacing.s2) {
+            HStack(spacing: Spacing.s2) {
+                ForEach(AppModel.Tab.allCases) { tab in
+                    pill(for: tab)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(tab.accessibilityLabel)
-                .accessibilityAddTraits(traits(for: tab))
-            }
 
-            if let previewURL {
-                previewPill(previewURL)
+                if let previewURL {
+                    previewPill(previewURL)
+                }
             }
         }
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { onRowWidthChange($0) }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2)
+    }
+
+    private func pill(for tab: AppModel.Tab) -> some View {
+        let isSelected = selection == tab
+
+        return Button {
+            tapCount += 1
+            withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
+        } label: {
+            Text(tab.label)
+                .font(Typography.mono(Typography.Size.xs))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(height: Self.labelHeight)
+                .foregroundStyle(isSelected ? Self.accent.label : Palette.white.opacity(0.9))
+                .glassPill(tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(tab.accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
     private func previewPill(_ url: URL) -> some View {
@@ -121,29 +130,13 @@ private struct TabBar: View {
                 .font(Typography.mono(Typography.Size.md, weight: .bold))
                 .foregroundStyle(Palette.black)
                 .frame(height: Self.labelHeight)
-                .padding(.horizontal, Spacing.s4)
-                .padding(.vertical, Spacing.s3)
-                .contentShape(Capsule())
-                .glassBackground(in: .capsule, tint: Palette.white.opacity(0.65), interactive: true)
-
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.7), lineWidth: 1))
+                .glassPill(
+                    tint: Palette.white.opacity(0.65),
+                    stroke: Palette.neutral.s400.opacity(0.7)
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open external preview")
-    }
-
-    private func label(for tab: AppModel.Tab) -> some View {
-        Text(tab.label)
-            .font(Typography.mono(Typography.Size.xs))
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .frame(height: Self.labelHeight)
-            .foregroundStyle(SelectionPill.labelColor(isSelected: selection == tab))
-    }
-
-    private func traits(for tab: AppModel.Tab) -> AccessibilityTraits {
-        selection == tab ? [.isSelected, .isButton] : .isButton
     }
 }
 

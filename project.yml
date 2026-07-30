@@ -49,6 +49,8 @@ targets:
     platform: iOS
     sources:
       - path: httpjpg-widgets
+      - path: httpjpg-kit/Sources/DesignSystem/Resources/Fonts/Anton-Regular.ttf
+        buildPhase: resources
     dependencies:
       - package: httpjpg-kit
         product: DesignSystem
