@@ -57,7 +57,7 @@ struct WorkIndexScreen: View {
                 FadeInUp {
                     rows(model)
                 }
-                .id(filterFingerprint(model))
+                .id(model.variant)
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, TabBarClearance.bottomPadding)
@@ -82,10 +82,6 @@ struct WorkIndexScreen: View {
         }
     }
 
-    private func filterFingerprint(_ model: WorkIndexModel) -> String {
-        model.variant.rawValue + model.selectedTags.sorted().joined(separator: ",")
-    }
-
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
             Headline(app.siteName, level: .two, lineSpacing: -0.45)
@@ -108,6 +104,7 @@ struct WorkIndexScreen: View {
             }
         }
         .padding(.top, Spacing.s2)
+        .animation(.smooth(duration: 0.2), value: model.availableTags)
     }
 
     @ViewBuilder
