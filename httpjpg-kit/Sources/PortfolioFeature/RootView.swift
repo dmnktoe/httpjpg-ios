@@ -5,7 +5,6 @@ import SwiftUI
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
-    @State private var transmission = TransmissionController()
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -40,7 +39,6 @@ public struct RootView: View {
         .pageTheme(theme)
         .pageSurface(theme)
         .environment(model)
-        .environment(transmission)
         .environment(\.storyblokConfiguration, model.configuration)
         .environment(\.contentClient, model.client)
         .environment(\.playAudioTrack) {

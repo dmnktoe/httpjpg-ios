@@ -12,8 +12,6 @@
 	<string>$(SITE_ORIGIN)</string>
 	<key>TELEMETRYDECK_APP_ID</key>
 	<string>$(TELEMETRYDECK_APP_ID)</string>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
