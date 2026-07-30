@@ -10,6 +10,11 @@ struct MiniPlayerBar: View {
     private static let tint = Palette.black.opacity(0.72)
     private static let labelColor = Palette.white.opacity(0.9)
 
+    private static let rowHeight: CGFloat = 32
+
+    /// What the bar takes off the bottom of the screen once a track is on.
+    static let height: CGFloat = rowHeight + Spacing.s2 * 2
+
     @State private var playPauseTaps = 0
 
     var body: some View {
@@ -31,7 +36,7 @@ struct MiniPlayerBar: View {
                 } label: {
                     Text(player.isPlaying ? "▮▮" : "▸")
                         .font(Typography.mono(Typography.Size.md, weight: .bold))
-                        .frame(width: 32, height: 32)
+                        .frame(width: Self.rowHeight, height: Self.rowHeight)
                         .contentShape(Rectangle())
 
                         .contentTransition(.opacity)
@@ -47,7 +52,7 @@ struct MiniPlayerBar: View {
                     Text("✕")
                         .font(Typography.mono(Typography.Size.sm))
                         .opacity(Opacities.muted)
-                        .frame(width: 28, height: 32)
+                        .frame(width: 28, height: Self.rowHeight)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -87,7 +92,7 @@ struct MiniPlayerBar: View {
                 MonoText("♫", size: Typography.Size.md)
             }
         }
-        .frame(width: 32, height: 32)
+        .frame(width: Self.rowHeight, height: Self.rowHeight)
         .clipped()
         .overlay(Rectangle().stroke(Palette.white.opacity(0.35), lineWidth: 1))
     }

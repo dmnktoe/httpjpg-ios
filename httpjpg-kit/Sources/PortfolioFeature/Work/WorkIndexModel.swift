@@ -14,6 +14,7 @@ final class WorkIndexModel {
     private let client: ContentClient
 
     private(set) var state: LoadState = .idle
+    private var isLoading = false
     var variant: MenuLink.Variant = .projects
     var selectedTags: Set<String> = []
 
@@ -40,18 +41,27 @@ final class WorkIndexModel {
 
     private static let sliceTagNames = Set(MenuLink.Variant.allVariants.map(\.rawValue))
 
-    var isLoading: Bool {
-        if case .loading = state { return true }
+    var isLoaded: Bool {
+        if case .loaded = state { return true }
         return false
     }
 
     func load(force: Bool = false) async {
-        if case .loaded = state, !force { return }
-        if case .loading = state { return }
-        state = .loading
+        guard !isLoading, force || !isLoaded else { return }
+        isLoading = true
+        defer { isLoading = false }
+
+        // A refresh keeps the list on screen — only a cold start drops to the skeleton.
+        if !isLoaded {
+            state = .loading
+        }
+
         do {
-            state = .loaded(try await client.workIndex())
+            state = .loaded(try await client.workIndex(refresh: force))
         } catch {
+            // Switching tabs cancels the load. The model outlives the screen now, so
+            // recording that as a failure would greet the next visit with an error.
+            guard !Task.isCancelled else { return }
             state = .failed(error.localizedDescription)
         }
     }
