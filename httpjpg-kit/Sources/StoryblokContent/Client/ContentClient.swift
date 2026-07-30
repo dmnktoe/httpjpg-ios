@@ -2,32 +2,38 @@ import Foundation
 import StoryblokClient
 
 public final class ContentClient: @unchecked Sendable {
+    public static let cacheDuration: TimeInterval = 60 * 60
+
     public let configuration: StoryblokConfiguration
 
     private let session: URLSession
+    private let cache: ResponseCache
 
     public init(configuration: StoryblokConfiguration) {
         self.configuration = configuration
 
         let sessionConfiguration = URLSessionConfiguration.default
-        sessionConfiguration.urlCache = URLCache(
-            memoryCapacity: 8 * 1024 * 1024,
-            diskCapacity: 64 * 1024 * 1024
-        )
+        sessionConfiguration.urlCache = nil
+        sessionConfiguration.requestCachePolicy = .reloadIgnoringLocalCacheData
         sessionConfiguration.waitsForConnectivity = true
-        sessionConfiguration.requestCachePolicy = .useProtocolCachePolicy
         self.session = URLSession(configuration: sessionConfiguration)
+
+        self.cache = ResponseCache(
+            cache: URLCache(memoryCapacity: 8 * 1024 * 1024, diskCapacity: 64 * 1024 * 1024),
+            ttl: Self.cacheDuration
+        )
     }
 
     deinit {
         session.finishTasksAndInvalidate()
     }
 
-    public func workIndex(perPage: Int = 100) async throws -> WorkCollection {
+    public func workIndex(perPage: Int = 100, refresh: Bool = false) async throws -> WorkCollection {
         let stories: [Story<WorkBlok>] = try await stories(
             startingWith: StorySlug.workPrefix,
             perPage: perPage,
-            sortBy: "content.date:desc"
+            sortBy: "content.date:desc",
+            refresh: refresh
         )
 
         let direct = stories.filter { StorySlug.isDirectWork($0.fullSlug) }
@@ -39,22 +45,26 @@ public final class ContentClient: @unchecked Sendable {
         )
     }
 
-    public func workDetail(slug: String) async throws -> WorkDetail {
-        let story: Story<WorkBlok> = try await story(at: StorySlug.workPrefix + slug)
+    public func workDetail(slug: String, refresh: Bool = false) async throws -> WorkDetail {
+        let story: Story<WorkBlok> = try await story(
+            at: StorySlug.workPrefix + slug,
+            refresh: refresh
+        )
         return WorkDetail(story: story)
     }
 
-    public func page(slug: String) async throws -> PageDocument {
-        let story: Story<PageBlok> = try await story(at: slug)
+    public func page(slug: String, refresh: Bool = false) async throws -> PageDocument {
+        let story: Story<PageBlok> = try await story(at: slug, refresh: refresh)
         return PageDocument(story: story)
     }
 
-    public func pageIndex(perPage: Int = 100) async throws -> [PageSummary] {
+    public func pageIndex(perPage: Int = 100, refresh: Bool = false) async throws -> [PageSummary] {
         let stories: [Story<StoryOverview>] = try await stories(
             startingWith: nil,
             excludingSlugs: StorySlug.workPrefix + "*",
             perPage: perPage,
-            sortBy: "name:asc"
+            sortBy: "name:asc",
+            refresh: refresh
         )
 
         return stories
@@ -62,9 +72,9 @@ public final class ContentClient: @unchecked Sendable {
             .map(PageSummary.init(story:))
     }
 
-    public func siteConfig() async -> SiteConfig {
+    public func siteConfig(refresh: Bool = false) async -> SiteConfig {
         do {
-            let story: Story<SiteConfig> = try await story(at: StorySlug.config)
+            let story: Story<SiteConfig> = try await story(at: StorySlug.config, refresh: refresh)
             return story.content
         } catch {
             return .fallback
@@ -77,7 +87,7 @@ public final class ContentClient: @unchecked Sendable {
             URLQueryItem(name: "by_uuids_ordered", value: uuids.joined(separator: ",")),
             URLQueryItem(name: "per_page", value: String(min(uuids.count, 100))),
         ])
-        let data = try await load(request)
+        let data = try await load(request, refresh: false)
         do {
             return try Self.decoder().decode(StoriesResponse<WorkBlok>.self, from: data).stories
         } catch {
@@ -85,12 +95,15 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
-    private func story<Content: Decodable>(at slug: String) async throws -> Story<Content> {
+    private func story<Content: Decodable>(
+        at slug: String,
+        refresh: Bool
+    ) async throws -> Story<Content> {
         let request = buildRequest(
             path: "stories/\(slug)",
             queryItems: [URLQueryItem(name: "resolve_relations", value: PortfolioBlok.relations)]
         )
-        let data = try await load(request)
+        let data = try await load(request, refresh: refresh)
         do {
             return try Self.decoder().decode(StoryResponse<Content>.self, from: data).story
         } catch {
@@ -102,7 +115,8 @@ public final class ContentClient: @unchecked Sendable {
         startingWith prefix: String?,
         excludingSlugs: String? = nil,
         perPage: Int,
-        sortBy: String?
+        sortBy: String?,
+        refresh: Bool
     ) async throws -> [Story<Content>] {
         var queryItems = [
             URLQueryItem(name: "per_page", value: String(perPage)),
@@ -118,7 +132,10 @@ public final class ContentClient: @unchecked Sendable {
             queryItems.append(URLQueryItem(name: "sort_by", value: sortBy))
         }
 
-        let data = try await load(buildRequest(path: "stories", queryItems: queryItems))
+        let data = try await load(
+            buildRequest(path: "stories", queryItems: queryItems),
+            refresh: refresh
+        )
         do {
             return try Self.decoder().decode(StoriesResponse<Content>.self, from: data).stories
         } catch {
@@ -135,18 +152,22 @@ public final class ContentClient: @unchecked Sendable {
         return URLRequest(url: url, timeoutInterval: 30)
     }
 
-    private func load(_ request: URLRequest) async throws -> Data {
+    private func load(_ request: URLRequest, refresh: Bool) async throws -> Data {
+        if !refresh, let cached = cache.data(for: request) { return cached }
+
         let data: Data
         let response: URLResponse
         do {
             (data, response) = try await session.data(for: request)
         } catch {
+            if let cached = cache.data(for: request, allowsStale: true) { return cached }
             throw ContentError.transport(error.localizedDescription)
         }
 
         guard let http = response as? HTTPURLResponse else { return data }
         switch http.statusCode {
         case 200..<300:
+            cache.store(data, response: http, for: request)
             return data
         case 404:
             throw ContentError.notFound(slug: request.url?.path ?? "")

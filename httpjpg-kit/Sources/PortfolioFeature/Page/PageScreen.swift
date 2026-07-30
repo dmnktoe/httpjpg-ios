@@ -8,6 +8,7 @@ struct PageScreen: View {
     let title: String
 
     @Environment(AppModel.self) private var app
+    @Environment(\.bottomBarClearance) private var bottomBarClearance
 
     @State private var model: PageModel?
 
@@ -62,7 +63,7 @@ struct PageScreen: View {
             ScrollView {
                 BlokListView(page.body, appliesPageGutter: true)
                     .padding(.top, Spacing.s6)
-                    .padding(.bottom, TabBarClearance.bottomPadding)
+                    .padding(.bottom, bottomBarClearance)
             }
             .pageTheme(theme)
             .pageSurface(theme)

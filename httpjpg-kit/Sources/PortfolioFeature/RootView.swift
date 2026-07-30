@@ -38,6 +38,7 @@ public struct RootView: View {
         }
         .pageTheme(theme)
         .pageSurface(theme)
+        .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
         .environment(\.contentClient, model.client)
@@ -64,6 +65,12 @@ public struct RootView: View {
 
     private var theme: PageTheme {
         systemScheme == .dark ? .dark : .light
+    }
+
+    private var bottomBarClearance: CGFloat {
+        player.track == nil
+            ? BottomBarClearance.tabBar
+            : BottomBarClearance.tabBar + BottomBarClearance.miniPlayer
     }
 }
 
@@ -138,8 +145,4 @@ private struct TabBar: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Open external preview")
     }
-}
-
-public enum TabBarClearance {
-    public static let bottomPadding: CGFloat = Spacing.s16
 }

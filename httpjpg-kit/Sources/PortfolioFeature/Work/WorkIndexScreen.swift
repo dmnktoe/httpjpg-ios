@@ -6,45 +6,32 @@ struct WorkIndexScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
-
-    @State private var model: WorkIndexModel?
+    @Environment(\.bottomBarClearance) private var bottomBarClearance
 
     var body: some View {
         @Bindable var app = app
         return NavigationStack(path: $app.workPath) {
-            Group {
-                if let model {
-                    content(model)
-                } else {
-                    LoadingState()
+            content(app.workIndex)
+                .navigationTitle("")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(for: WorkRoute.self) { route in
+                    WorkDetailScreen(route: route)
                 }
-            }
-
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: WorkRoute.self) { route in
-                WorkDetailScreen(route: route)
-            }
         }
         .task {
-            if model == nil {
-                model = WorkIndexModel(client: app.client)
-                Telemetry.signal("work.index.viewed")
-            }
-            await model?.load()
+            Telemetry.signal("work.index.viewed")
+            await app.workIndex.load()
         }
     }
 
     @ViewBuilder
     private func content(_ model: WorkIndexModel) -> some View {
         switch model.state {
-        case .idle, .loading:
-            LoadingState(label: "fetching work")
         case .failed(let message):
             AsciiState(art: Ascii.offline, label: "Could not load work", message: message) {
                 Task { await model.load(force: true) }
             }
-        case .loaded:
+        case .idle, .loading, .loaded:
             list(model)
         }
     }
@@ -54,13 +41,16 @@ struct WorkIndexScreen: View {
             LazyVStack(alignment: .leading, spacing: Spacing.s8) {
                 masthead(model)
 
-                FadeInUp {
+                if model.isLoaded {
                     rows(model)
+                        .fadeInUp()
+                        .id(model.variant)
+                } else {
+                    WorkListSkeleton()
                 }
-                .id(model.variant)
             }
             .padding(.horizontal, PageLayout.gutter)
-            .padding(.bottom, TabBarClearance.bottomPadding)
+            .padding(.bottom, bottomBarClearance)
         }
         .refreshable { await model.load(force: true) }
     }
@@ -125,27 +115,5 @@ struct WorkIndexScreen: View {
             }
             .buttonStyle(.plain)
         }
-    }
-}
-
-private struct FadeInUp<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    @State private var isShown = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        content
-            .opacity(isShown ? 1 : 0)
-            .offset(y: isShown ? 0 : 14)
-            .onAppear {
-                guard !reduceMotion else {
-                    isShown = true
-                    return
-                }
-                withAnimation(.easeOut(duration: 0.3)) {
-                    isShown = true
-                }
-            }
     }
 }

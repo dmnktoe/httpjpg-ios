@@ -40,8 +40,15 @@ public final class AppModel {
 
     public private(set) var hasLoadedConfig = false
 
+    let workIndex: WorkIndexModel
+    let info: InfoModel
+    private(set) var footerWidgets: FooterWidgetsModel?
+
     public init(configuration: StoryblokConfiguration) {
-        self.client = ContentClient(configuration: configuration)
+        let client = ContentClient(configuration: configuration)
+        self.client = client
+        self.workIndex = WorkIndexModel(client: client)
+        self.info = InfoModel(client: client)
     }
 
     public var configuration: StoryblokConfiguration { client.configuration }
@@ -54,6 +61,13 @@ public final class AppModel {
         guard !hasLoadedConfig else { return }
         config = await client.siteConfig()
         hasLoadedConfig = true
+    }
+
+    func loadFooterWidgets() async {
+        guard hasLoadedConfig, footerWidgets == nil else { return }
+        let widgets = FooterWidgetsModel(origin: configuration.siteOrigin, flags: config.widgets)
+        footerWidgets = widgets
+        await widgets.load()
     }
 
     public func open(_ url: URL) {

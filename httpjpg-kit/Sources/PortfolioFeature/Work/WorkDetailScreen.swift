@@ -6,6 +6,7 @@ struct WorkDetailScreen: View {
     let route: WorkRoute
 
     @Environment(AppModel.self) private var app
+    @Environment(\.bottomBarClearance) private var bottomBarClearance
 
     @State private var model: WorkDetailModel?
 
@@ -91,7 +92,7 @@ struct WorkDetailScreen: View {
                 }
             }
             .padding(.top, Spacing.s6)
-            .padding(.bottom, TabBarClearance.bottomPadding)
+            .padding(.bottom, bottomBarClearance)
         }
         .pageTheme(theme)
         .pageSurface(theme)
