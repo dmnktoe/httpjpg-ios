@@ -43,7 +43,6 @@ struct WorkIndexScreen: View {
 
                 if model.isLoaded {
                     rows(model)
-                        .fadeInUp()
                         .id(model.variant)
                 } else {
                     WorkListSkeleton()
