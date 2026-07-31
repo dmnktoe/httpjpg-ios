@@ -68,18 +68,26 @@ public struct StoryblokConfiguration: Sendable {
             MockContentProtocol.install()
         }
 
-        guard let token = string(InfoPlistKey.accessToken), token != "REPLACE_ME" else {
-            guard source == .mock else { throw ContentError.missingAccessToken }
-            return StoryblokConfiguration(accessToken: mockAccessToken, source: .mock)
-        }
-
+        let version = string(InfoPlistKey.version).flatMap(ContentVersion.init(rawValue:)) ?? .published
+        let region = string(InfoPlistKey.region).flatMap(ContentRegion.init(rawValue:)) ?? .eu
         let origin = string(InfoPlistKey.siteOrigin)
             .flatMap(URL.init(string:)) ?? URL(string: "https://www.httpjpg.com")!
 
+        guard let token = string(InfoPlistKey.accessToken), token != "REPLACE_ME" else {
+            guard source == .mock else { throw ContentError.missingAccessToken }
+            return StoryblokConfiguration(
+                accessToken: mockAccessToken,
+                version: version,
+                region: region,
+                siteOrigin: origin,
+                source: .mock
+            )
+        }
+
         return StoryblokConfiguration(
             accessToken: token,
-            version: string(InfoPlistKey.version).flatMap(ContentVersion.init(rawValue:)) ?? .published,
-            region: string(InfoPlistKey.region).flatMap(ContentRegion.init(rawValue:)) ?? .eu,
+            version: version,
+            region: region,
             siteOrigin: origin,
             source: source
         )

@@ -14,7 +14,7 @@ cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig   # fill in STORYBLOK
 open httpjpg.xcodeproj
 ```
 
-Without a token — staging, CI, a fresh clone — build with `CONTENT_SOURCE=mock` (on the command line or in `Secrets.xcconfig`). Every target then reads the JSON fixtures bundled in `StoryblokContent`: the app, the home-screen widget and the lock-screen accessories see the same five works. Images and audio are synthesized on the fly, so the build needs no network at all; uploaded video is the one thing the provider cannot fake.
+Without a token — staging, CI, a fresh clone — build with `CONTENT_SOURCE=mock` (on the command line or in `Secrets.xcconfig`). Every target then reads the JSON fixtures bundled in `StoryblokContent`: the app, the home-screen widget and the lock-screen accessories see the same five works. Images and audio are synthesized on the fly, so no Storyblok request leaves the device; uploaded video is the one thing the provider cannot fake. Only Storyblok traffic is intercepted — anything else the app calls still goes to the network.
 
 The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg). For agents: [`CLAUDE.md`](CLAUDE.md).
 

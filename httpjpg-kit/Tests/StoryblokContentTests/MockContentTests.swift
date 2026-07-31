@@ -114,8 +114,20 @@ final class MockContentTests: XCTestCase {
         XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 404)
     }
 
+    func testASmallerPageSizeReturnsFewerStories() async throws {
+        let collection = try await client.workIndex(perPage: 2)
+        let pages = try await client.pageIndex(perPage: 1)
+
+        XCTAssertEqual(collection.projects.count + collection.websites.count, 2)
+        XCTAssertEqual(pages.map(\.slug), ["about"])
+    }
+
     func testOnlyStoryblokTrafficIsIntercepted() {
-        XCTAssertFalse(MockContentFixtures.handles(URL(string: "https://www.httpjpg.com/api/discord")))
         XCTAssertTrue(MockContentFixtures.handles(URL(string: "https://api.storyblok.com/v2/cdn/stories")))
+        XCTAssertTrue(MockContentFixtures.handles(URL(string: "https://a.storyblok.com/f/1/x/p.jpg")))
+        XCTAssertTrue(MockContentFixtures.handles(URL(string: "https://app.storyblokchina.cn/v2/cdn/stories")))
+        XCTAssertFalse(MockContentFixtures.handles(URL(string: "https://www.httpjpg.com/api/discord")))
+        XCTAssertFalse(MockContentFixtures.handles(URL(string: "https://storyblok.com.example.test/stories")))
+        XCTAssertFalse(MockContentFixtures.handles(URL(string: "file:///tmp/stories.json")))
     }
 }

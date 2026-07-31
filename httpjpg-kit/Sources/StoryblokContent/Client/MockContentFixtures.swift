@@ -14,9 +14,11 @@ enum MockContentFixtures {
     private static let storiesPath = "stories"
     private static let directory = "Fixtures"
 
+    private static let domains = ["storyblok.com", "storyblokchina.cn"]
+
     static func handles(_ url: URL?) -> Bool {
-        guard let host = url?.host else { return false }
-        return host.contains("storyblok")
+        guard let host = url?.host?.lowercased() else { return false }
+        return domains.contains { host == $0 || host.hasSuffix("." + $0) }
     }
 
     static func response(for url: URL) -> Response {
@@ -44,10 +46,11 @@ enum MockContentFixtures {
         if let uuids = value("by_uuids_ordered") {
             return works(orderedBy: uuids.split(separator: ",").map(String.init))
         }
-        if value("starts_with")?.hasPrefix(StorySlug.workPrefix) == true {
-            return json(named: "stories-work")
-        }
-        return json(named: "stories-pages")
+
+        let name = value("starts_with")?.hasPrefix(StorySlug.workPrefix) == true
+            ? "stories-work"
+            : "stories-pages"
+        return json(named: name, firstStories: value("per_page").flatMap(Int.init))
     }
 
     private static func works(orderedBy uuids: [String]) -> Response {
@@ -68,9 +71,20 @@ enum MockContentFixtures {
         return Response(data: payload, statusCode: 200, contentType: "application/json")
     }
 
-    private static func json(named name: String) -> Response {
+    private static func json(named name: String, firstStories limit: Int? = nil) -> Response {
         guard let data = fixture(named: name) else { return .notFound }
-        return Response(data: data, statusCode: 200, contentType: "application/json")
+
+        guard let limit, limit > 0,
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let stories = root[storiesPath] as? [[String: Any]],
+              stories.count > limit,
+              let page = try? JSONSerialization.data(
+                  withJSONObject: [storiesPath: Array(stories.prefix(limit))]
+              )
+        else {
+            return Response(data: data, statusCode: 200, contentType: "application/json")
+        }
+        return Response(data: page, statusCode: 200, contentType: "application/json")
     }
 
     private static func fixture(named name: String) -> Data? {
