@@ -55,7 +55,6 @@ public struct RootView: View {
             openPendingQuickAction()
         }
         .task {
-            // A cold launch fills the inbox before this view exists, so `onChange` never fires.
             openPendingQuickAction()
             await model.loadConfig()
         }

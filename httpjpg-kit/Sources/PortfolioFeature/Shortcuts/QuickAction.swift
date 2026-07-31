@@ -1,18 +1,15 @@
 import StoryblokContent
 import UIKit
 
-/// What an entry in the Home Screen long-press menu does once the app is up.
 enum QuickAction: Equatable {
     case work(slug: String, title: String)
 
-    /// Opens one of the carried slugs at random — a different work on every tap.
     case shuffle(pool: [String])
 
     enum Kind: String, CaseIterable {
         case work
         case shuffle
 
-        /// Quick action types are namespaced by bundle id, per Apple's convention.
         var type: String {
             (Bundle.main.bundleIdentifier ?? "httpjpg") + ".quickaction." + rawValue
         }
@@ -51,13 +48,11 @@ enum QuickAction: Equatable {
         }
     }
 
-    /// The detail screen this action lands on. `nil` only if a shuffle arrives empty.
     var route: WorkRoute? {
         switch self {
         case .work(let slug, let title):
             return WorkRoute(slug: slug, title: title)
         case .shuffle(let pool):
-            // The title is a placeholder until the detail loads, same as a widget deep link.
             return pool.randomElement().map { WorkRoute(slug: $0, title: $0) }
         }
     }

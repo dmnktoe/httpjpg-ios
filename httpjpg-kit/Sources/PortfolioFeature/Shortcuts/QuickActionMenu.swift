@@ -2,16 +2,12 @@ import DesignSystem
 import StoryblokContent
 import UIKit
 
-/// The Home Screen long-press menu: the three latest works, plus a shuffle.
 @MainActor
 enum QuickActionMenu {
-    /// iOS shows at most four entries, and the fourth one is the shuffle.
     private static let workCount = 3
 
-    /// Enough slugs to keep the shuffle surprising without bloating the item's userInfo.
     private static let shufflePoolLimit = 60
 
-    /// A work published inside this window still counts as fresh.
     private static let freshWindow: TimeInterval = 21 * 24 * 60 * 60
 
     static func refresh(with collection: WorkCollection, now: Date = Date()) {
@@ -31,7 +27,6 @@ enum QuickActionMenu {
         Array(sorted(collection).prefix(workCount))
     }
 
-    /// Newest first. An item tagged both Projects and Websites is in both slices.
     private static func sorted(_ collection: WorkCollection) -> [WorkItem] {
         var seen = Set<String>()
         return (collection.projects + collection.websites)

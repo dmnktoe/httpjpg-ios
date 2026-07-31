@@ -71,7 +71,6 @@ public enum WorkCardDate {
         )
     }
 
-    /// The brutalist stamp — "24. ☀ J25" — shared by cards and the Home Screen menu.
     public static func stamp(of date: Date) -> String {
         let parts = parts(of: date)
         return "\(parts.day). \(parts.monthSymbol) \(parts.month)\(parts.year)"
