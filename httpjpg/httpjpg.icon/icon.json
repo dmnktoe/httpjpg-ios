@@ -1,7 +1,4 @@
 {
-  "features" : [
-    "refractivity"
-  ],
   "fill" : {
     "automatic-gradient" : "srgb:0.63922,0.90196,0.20784,1.00000"
   },
@@ -23,11 +20,6 @@
         }
       ],
       "lighting" : "individual",
-      "refractivity" : {
-        "depth" : 0.5687109375,
-        "enabled" : true,
-        "strength" : -0.0641015625
-      },
       "shadow" : {
         "kind" : "layer-color",
         "opacity" : 0.5
