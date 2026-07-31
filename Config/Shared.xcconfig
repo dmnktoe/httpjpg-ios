@@ -1,3 +1,5 @@
+CONTENT_SOURCE = network
+
 #include? "Secrets.xcconfig"
 
 PRODUCT_NAME = $(TARGET_NAME)

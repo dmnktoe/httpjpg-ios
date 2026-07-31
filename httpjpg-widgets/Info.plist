@@ -19,5 +19,7 @@
 	<string>$(STORYBLOK_REGION)</string>
 	<key>SITE_ORIGIN</key>
 	<string>$(SITE_ORIGIN)</string>
+	<key>CONTENT_SOURCE</key>
+	<string>$(CONTENT_SOURCE)</string>
 </dict>
 </plist>

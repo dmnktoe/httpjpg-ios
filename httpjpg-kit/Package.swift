@@ -32,6 +32,7 @@ let package = Package(
 
                 .product(name: "StoryblokClient", package: "storyblok-swift"),
             ],
+            resources: [.copy("Resources/Fixtures")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(

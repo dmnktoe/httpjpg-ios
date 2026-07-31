@@ -1,0 +1,81 @@
+{
+  "story": {
+    "id": 900003,
+    "uuid": "00d05e01-de68-5a20-ba09-45643b62b8e7",
+    "name": "Tape Loop",
+    "slug": "tape-loop",
+    "full_slug": "work/tape-loop",
+    "created_at": "2025-01-04T11:12:00.000Z",
+    "published_at": "2026-02-20T12:00:00.000Z",
+    "first_published_at": "2026-02-20T12:00:00.000Z",
+    "updated_at": "2026-02-20T12:00:00.000Z",
+    "position": 30,
+    "tag_list": [
+      "Projects",
+      "Sound"
+    ],
+    "is_startpage": false,
+    "parent_id": 0,
+    "group_id": "ff95a065-1dc8-507a-9702-c88bc3baa44b",
+    "lang": "default",
+    "alternates": [],
+    "content": {
+      "_uid": "105ef411-b741-5a13-8e9f-92c7b0a2e61f",
+      "component": "work",
+      "title": "Tape Loop",
+      "date": "2026-02-18 00:00",
+      "date_end": "",
+      "external_only": false,
+      "link": {
+        "id": "",
+        "url": "",
+        "linktype": "story",
+        "fieldtype": "multilink",
+        "cached_url": ""
+      },
+      "isDark": false,
+      "description": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Vier Minuten Bandschleife, in dieser Fassung nur Platzhalter."
+              }
+            ]
+          }
+        ]
+      },
+      "images": [
+        {
+          "id": 1812468,
+          "alt": "",
+          "name": "tape-loop-01",
+          "title": "",
+          "focus": "",
+          "filename": "https://a.storyblok.com/f/1000042/2000x2000/d788ec81ef6/tape-loop-01.jpg",
+          "copyright": "",
+          "content_type": "image/jpeg",
+          "fieldtype": "asset"
+        }
+      ],
+      "body": [
+        {
+          "_uid": "c9b23124-4101-5543-a488-27a464c79c78",
+          "component": "music_player",
+          "source": "mp3",
+          "src": "https://a.storyblok.com/f/1000042/0x0/2c29a7aaf79/tape-loop.wav",
+          "title": "Tape Loop (mock)",
+          "artist": "httpjpg",
+          "artwork": "https://a.storyblok.com/f/1000042/2000x2000/d788ec81ef6/tape-loop-01.jpg",
+          "showArtwork": true,
+          "showInfo": true,
+          "headerText": "MOCK SIDE A",
+          "mt": "6"
+        }
+      ]
+    }
+  }
+}

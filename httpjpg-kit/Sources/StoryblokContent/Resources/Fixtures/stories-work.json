@@ -1,0 +1,570 @@
+{
+  "stories": [
+    {
+      "id": 900001,
+      "uuid": "6f96414f-bcfc-53d0-86a3-a80a5a4d06fc",
+      "name": "Atlas der Nebenstraßen",
+      "slug": "atlas-der-nebenstrassen",
+      "full_slug": "work/atlas-der-nebenstrassen",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2026-07-14T08:30:00.000Z",
+      "first_published_at": "2026-07-14T08:30:00.000Z",
+      "updated_at": "2026-07-14T08:30:00.000Z",
+      "position": 10,
+      "tag_list": [
+        "Projects",
+        "Editorial"
+      ],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "c490296f-b2e7-5ffa-a42f-2263fd597479",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "_uid": "83e5c6ab-7722-5e7d-b123-3499b1b5c13f",
+        "component": "work",
+        "title": "Atlas der Nebenstraßen",
+        "date": "2026-07-12 00:00",
+        "date_end": "",
+        "external_only": false,
+        "link": {
+          "id": "",
+          "url": "",
+          "linktype": "story",
+          "fieldtype": "multilink",
+          "cached_url": ""
+        },
+        "isDark": false,
+        "description": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ein Mock-Bildband über Umleitungen, Randsteine und die Stellen dazwischen."
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "id": 5724611,
+            "alt": "",
+            "name": "atlas-01",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1600/a295cdda4e4/atlas-01.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          },
+          {
+            "id": 4984043,
+            "alt": "",
+            "name": "atlas-02",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/1600x2400/a203d100f06/atlas-02.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          },
+          {
+            "id": 6901983,
+            "alt": "",
+            "name": "atlas-03",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1600/9b1676e3f41/atlas-03.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        ],
+        "body": [
+          {
+            "_uid": "83661404-9bb2-5478-98fd-30b6d3162193",
+            "component": "headline",
+            "text": "ATLAS DER NEBENSTRASSEN",
+            "level": "2",
+            "align": "start",
+            "mt": "8"
+          },
+          {
+            "_uid": "ed80edf2-400c-53a0-a60e-8f34d645d367",
+            "component": "richtext",
+            "content": {
+              "type": "doc",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ein Mock-Bildband über Umleitungen, Randsteine und die Stellen dazwischen."
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Alle Inhalte hier stammen aus "
+                    },
+                    {
+                      "type": "text",
+                      "text": "Fixtures",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " und nicht aus Storyblok."
+                    }
+                  ]
+                }
+              ]
+            },
+            "mt": "4"
+          },
+          {
+            "_uid": "d3316a77-ec98-5a58-b6d0-9f739a6bad99",
+            "component": "divider",
+            "variant": "ascii",
+            "pattern": "+-+-",
+            "orientation": "horizontal",
+            "spacing": "6"
+          },
+          {
+            "_uid": "bf8e719e-d52c-5943-a4da-a723f3d8ce79",
+            "component": "image",
+            "image": {
+              "id": 5724611,
+              "alt": "",
+              "name": "atlas-01",
+              "title": "",
+              "focus": "",
+              "filename": "https://a.storyblok.com/f/1000042/2400x1600/a295cdda4e4/atlas-01.jpg",
+              "copyright": "",
+              "content_type": "image/jpeg",
+              "fieldtype": "asset"
+            },
+            "alt": "Atlas der Nebenstraßen",
+            "aspectRatio": "3/2",
+            "width": "100%",
+            "mt": "6"
+          }
+        ]
+      }
+    },
+    {
+      "id": 900002,
+      "uuid": "06d60741-46ce-5880-8306-06042c5913ba",
+      "name": "Nachtbus",
+      "slug": "nachtbus",
+      "full_slug": "work/nachtbus",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2026-05-06T19:45:00.000Z",
+      "first_published_at": "2026-05-06T19:45:00.000Z",
+      "updated_at": "2026-05-06T19:45:00.000Z",
+      "position": 20,
+      "tag_list": [
+        "Projects",
+        "Motion"
+      ],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "cdbabc7d-f92b-5c72-b270-2fdaafe57bb6",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "_uid": "41d0670b-74be-5900-8778-edfd65b59945",
+        "component": "work",
+        "title": "Nachtbus",
+        "date": "2026-05-02 00:00",
+        "date_end": "2026-05-30 00:00",
+        "external_only": false,
+        "link": {
+          "id": "",
+          "url": "",
+          "linktype": "story",
+          "fieldtype": "multilink",
+          "cached_url": ""
+        },
+        "isDark": true,
+        "description": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Loop-Material aus der letzten Linie, als Mockdaten konserviert."
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "id": 4955809,
+            "alt": "",
+            "name": "nachtbus-still",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1350/d849536239f/nachtbus-still.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        ],
+        "body": [
+          {
+            "_uid": "4ed56314-395b-5e68-b5d8-e13158453e40",
+            "component": "video",
+            "videoAsset": {
+              "id": 8975874,
+              "alt": "",
+              "name": "nachtbus-loop",
+              "title": "",
+              "focus": "",
+              "filename": "https://a.storyblok.com/f/1000042/1920x1080/8962c7155ac/nachtbus-loop.mp4",
+              "copyright": "",
+              "content_type": "video/mp4",
+              "fieldtype": "asset"
+            },
+            "poster": {
+              "id": 4955809,
+              "alt": "",
+              "name": "nachtbus-still",
+              "title": "",
+              "focus": "",
+              "filename": "https://a.storyblok.com/f/1000042/2400x1350/d849536239f/nachtbus-still.jpg",
+              "copyright": "",
+              "content_type": "image/jpeg",
+              "fieldtype": "asset"
+            },
+            "aspectRatio": "16/9",
+            "mt": "6"
+          },
+          {
+            "_uid": "a7cc94e2-bd49-5eed-80f0-54158184e6b9",
+            "component": "marquee",
+            "text": "+++ MOCK DATA +++ NO NETWORK +++",
+            "speed": "18",
+            "direction": "left",
+            "repeat": "4",
+            "mt": "8"
+          }
+        ]
+      }
+    },
+    {
+      "id": 900003,
+      "uuid": "00d05e01-de68-5a20-ba09-45643b62b8e7",
+      "name": "Tape Loop",
+      "slug": "tape-loop",
+      "full_slug": "work/tape-loop",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2026-02-20T12:00:00.000Z",
+      "first_published_at": "2026-02-20T12:00:00.000Z",
+      "updated_at": "2026-02-20T12:00:00.000Z",
+      "position": 30,
+      "tag_list": [
+        "Projects",
+        "Sound"
+      ],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "ff95a065-1dc8-507a-9702-c88bc3baa44b",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "_uid": "105ef411-b741-5a13-8e9f-92c7b0a2e61f",
+        "component": "work",
+        "title": "Tape Loop",
+        "date": "2026-02-18 00:00",
+        "date_end": "",
+        "external_only": false,
+        "link": {
+          "id": "",
+          "url": "",
+          "linktype": "story",
+          "fieldtype": "multilink",
+          "cached_url": ""
+        },
+        "isDark": false,
+        "description": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Vier Minuten Bandschleife, in dieser Fassung nur Platzhalter."
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "id": 1812468,
+            "alt": "",
+            "name": "tape-loop-01",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2000x2000/d788ec81ef6/tape-loop-01.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        ],
+        "body": [
+          {
+            "_uid": "c9b23124-4101-5543-a488-27a464c79c78",
+            "component": "music_player",
+            "source": "mp3",
+            "src": "https://a.storyblok.com/f/1000042/0x0/2c29a7aaf79/tape-loop.wav",
+            "title": "Tape Loop (mock)",
+            "artist": "httpjpg",
+            "artwork": "https://a.storyblok.com/f/1000042/2000x2000/d788ec81ef6/tape-loop-01.jpg",
+            "showArtwork": true,
+            "showInfo": true,
+            "headerText": "MOCK SIDE A",
+            "mt": "6"
+          }
+        ]
+      }
+    },
+    {
+      "id": 900004,
+      "uuid": "525e0841-210d-50c7-bab6-f19cb20b2ec6",
+      "name": "Kiosk",
+      "slug": "kiosk",
+      "full_slug": "work/kiosk",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2025-11-09T10:15:00.000Z",
+      "first_published_at": "2025-11-09T10:15:00.000Z",
+      "updated_at": "2025-11-09T10:15:00.000Z",
+      "position": 40,
+      "tag_list": [
+        "Websites"
+      ],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "cd02bdaa-f68c-5032-82a5-d56906aca166",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "_uid": "4e3dd990-a2d1-5e1a-9ce5-9934d77fba1b",
+        "component": "work",
+        "title": "Kiosk",
+        "date": "2025-11-08 00:00",
+        "date_end": "",
+        "external_only": true,
+        "link": {
+          "id": "",
+          "url": "https://kiosk.example/mock",
+          "linktype": "url",
+          "fieldtype": "multilink",
+          "cached_url": "https://kiosk.example/mock"
+        },
+        "isDark": false,
+        "description": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ein Shop, der in dieser Umgebung nach außen zeigt."
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "id": 7511709,
+            "alt": "",
+            "name": "kiosk-cover",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1500/fd096701784/kiosk-cover.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        ],
+        "body": []
+      }
+    },
+    {
+      "id": 900005,
+      "uuid": "a9f4195f-fc53-57e4-b4e8-5cfa4fbcc760",
+      "name": "Feldnotizen",
+      "slug": "feldnotizen",
+      "full_slug": "work/feldnotizen",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2025-06-25T07:00:00.000Z",
+      "first_published_at": "2025-06-25T07:00:00.000Z",
+      "updated_at": "2025-06-25T07:00:00.000Z",
+      "position": 50,
+      "tag_list": [
+        "Projects",
+        "Editorial"
+      ],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "e373feb3-dd96-56ee-a853-a0a0c7c8dcf5",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "_uid": "6ea82733-73f8-567f-bd7e-26b006fccc79",
+        "component": "work",
+        "title": "Feldnotizen",
+        "date": "2025-06-24 00:00",
+        "date_end": "",
+        "external_only": false,
+        "link": {
+          "id": "",
+          "url": "",
+          "linktype": "story",
+          "fieldtype": "multilink",
+          "cached_url": ""
+        },
+        "isDark": false,
+        "description": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Gesammelte Notizen, gesetzt in Mono, gefüllt mit Mockdaten."
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "id": 6154287,
+            "alt": "",
+            "name": "feldnotizen-01",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1600/1047a99090c/feldnotizen-01.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          },
+          {
+            "id": 5596838,
+            "alt": "",
+            "name": "feldnotizen-02",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1600/d35372dff7a/feldnotizen-02.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        ],
+        "body": [
+          {
+            "_uid": "fb3e9b62-636e-5f6e-8b1c-f0fdf76a1183",
+            "component": "headline",
+            "text": "FELDNOTIZEN",
+            "level": "2",
+            "align": "start",
+            "mt": "8"
+          },
+          {
+            "_uid": "2ce0bc9c-b91b-52e2-a7fc-8f4c53e46aec",
+            "component": "richtext",
+            "content": {
+              "type": "doc",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Gesammelte Notizen, gesetzt in Mono, gefüllt mit Mockdaten."
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Alle Inhalte hier stammen aus "
+                    },
+                    {
+                      "type": "text",
+                      "text": "Fixtures",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " und nicht aus Storyblok."
+                    }
+                  ]
+                }
+              ]
+            },
+            "mt": "4"
+          },
+          {
+            "_uid": "dae867fa-b537-5590-9e3d-0cd627a7c575",
+            "component": "divider",
+            "variant": "ascii",
+            "pattern": "+-+-",
+            "orientation": "horizontal",
+            "spacing": "6"
+          },
+          {
+            "_uid": "58e5a239-37e6-5db0-a531-221738e8544e",
+            "component": "image",
+            "image": {
+              "id": 6154287,
+              "alt": "",
+              "name": "feldnotizen-01",
+              "title": "",
+              "focus": "",
+              "filename": "https://a.storyblok.com/f/1000042/2400x1600/1047a99090c/feldnotizen-01.jpg",
+              "copyright": "",
+              "content_type": "image/jpeg",
+              "fieldtype": "asset"
+            },
+            "alt": "Feldnotizen",
+            "aspectRatio": "3/2",
+            "width": "100%",
+            "mt": "6"
+          }
+        ]
+      }
+    }
+  ],
+  "cv": 1750000000,
+  "rels": [],
+  "links": []
+}

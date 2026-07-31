@@ -16,6 +16,13 @@ public final class ContentClient: @unchecked Sendable {
         sessionConfiguration.urlCache = nil
         sessionConfiguration.requestCachePolicy = .reloadIgnoringLocalCacheData
         sessionConfiguration.waitsForConnectivity = true
+
+        if configuration.source == .mock {
+            MockContentProtocol.install()
+            sessionConfiguration.protocolClasses = [MockContentProtocol.self]
+            sessionConfiguration.waitsForConnectivity = false
+        }
+
         self.session = URLSession(configuration: sessionConfiguration)
 
         self.cache = ResponseCache(

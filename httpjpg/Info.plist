@@ -10,6 +10,8 @@
 	<string>$(STORYBLOK_REGION)</string>
 	<key>SITE_ORIGIN</key>
 	<string>$(SITE_ORIGIN)</string>
+	<key>CONTENT_SOURCE</key>
+	<string>$(CONTENT_SOURCE)</string>
 	<key>TELEMETRYDECK_APP_ID</key>
 	<string>$(TELEMETRYDECK_APP_ID)</string>
 	<key>UIBackgroundModes</key>
