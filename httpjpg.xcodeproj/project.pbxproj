@@ -19,6 +19,7 @@
 		AA0000000000000000000039 /* StoryblokContent in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000047 /* StoryblokContent */; };
 		AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* httpjpg-widgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA000000000000000000003B /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
+		AA000000000000000000003C /* httpjpg.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* httpjpg.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000028 /* Anton-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Anton-Regular.ttf"; path = "httpjpg-kit/Sources/DesignSystem/Resources/Fonts/Anton-Regular.ttf"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000029 /* httpjpg.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = httpjpg.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +86,7 @@
 			children = (
 				AA0000000000000000000020 /* HttpjpgApp.swift */,
 				AA0000000000000000000021 /* Assets.xcassets */,
+				AA0000000000000000000029 /* httpjpg.icon */,
 				AA0000000000000000000022 /* Info.plist */,
 			);
 			path = httpjpg;
@@ -219,6 +222,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000031 /* Assets.xcassets in Resources */,
+				AA000000000000000000003C /* httpjpg.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
