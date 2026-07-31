@@ -15,7 +15,6 @@ final class PortfolioSceneDelegate: NSObject, UIWindowSceneDelegate {
         performActionFor shortcutItem: UIApplicationShortcutItem,
         completionHandler: @escaping (Bool) -> Void
     ) {
-        QuickActionInbox.shared.post(shortcutItem)
-        completionHandler(true)
+        completionHandler(QuickActionInbox.shared.post(shortcutItem))
     }
 }

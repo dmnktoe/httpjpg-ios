@@ -47,15 +47,17 @@ final class QuickActionInboxTests: XCTestCase {
     }
 
     func testForeignItemsNeverReachTheInbox() {
-        inbox.post(item(type: "com.example.other"))
-
+        XCTAssertFalse(inbox.post(item(type: "com.example.other")))
         XCTAssertNil(inbox.pending)
     }
 
     func testAWorkItemWithoutASlugIsDropped() {
-        inbox.post(item(userInfo: nil))
-
+        XCTAssertFalse(inbox.post(item(userInfo: nil)))
         XCTAssertNil(inbox.pending)
+    }
+
+    func testAnAcceptedItemReportsSuccessBackToUIKit() {
+        XCTAssertTrue(inbox.post(item()))
     }
 
     func testTheNewestActionWins() {

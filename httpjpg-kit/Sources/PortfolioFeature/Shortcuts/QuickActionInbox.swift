@@ -10,9 +10,11 @@ final class QuickActionInbox {
 
     private init() {}
 
-    func post(_ item: UIApplicationShortcutItem) {
-        guard let action = QuickAction(item) else { return }
+    @discardableResult
+    func post(_ item: UIApplicationShortcutItem) -> Bool {
+        guard let action = QuickAction(item) else { return false }
         pending = action
+        return true
     }
 
     func take() -> QuickAction? {
