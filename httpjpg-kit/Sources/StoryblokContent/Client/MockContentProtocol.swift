@@ -39,7 +39,7 @@ final class MockContentProtocol: URLProtocol {
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         }
         client?.urlProtocol(self, didLoad: fixture.data)
-        client?.urlProtocolDidFinish(self)
+        client?.urlProtocolDidFinishLoading(self)
     }
 
     override func stopLoading() {}
