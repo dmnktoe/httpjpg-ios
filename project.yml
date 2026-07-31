@@ -6,8 +6,6 @@ options:
   createIntermediateGroups: true
   minimumXcodeGenVersion: "2.38.0"
   fileTypes:
-    # Xcode hands the whole Icon Composer package to actool; without this
-    # XcodeGen walks into it and adds icon.json and the SVG as loose resources.
     icon:
       file: true
       buildPhase: resources
