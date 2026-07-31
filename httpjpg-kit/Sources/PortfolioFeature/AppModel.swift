@@ -72,8 +72,18 @@ public final class AppModel {
 
     public func open(_ url: URL) {
         guard let slug = WidgetDeepLink.workSlug(from: url) else { return }
+        show(WorkRoute(slug: slug, title: slug))
+    }
+
+    func perform(_ action: QuickAction) {
+        guard let route = action.route else { return }
+        Telemetry.signal("quickaction.opened", parameters: ["kind": action.kind.rawValue])
+        show(route)
+    }
+
+    private func show(_ route: WorkRoute) {
         selectedTab = .work
-        workPath = [WorkRoute(slug: slug, title: slug)]
+        workPath = [route]
     }
 
     public func select(tab: Tab) {

@@ -1,0 +1,82 @@
+import StoryblokContent
+import WidgetFeature
+import XCTest
+
+@testable import PortfolioFeature
+
+@MainActor
+final class QuickActionRoutingTests: XCTestCase {
+    private func makeApp() -> AppModel {
+        AppModel(configuration: StoryblokConfiguration(accessToken: "test-token"))
+    }
+
+    func testAWorkActionOpensItsDetailRoute() {
+        let app = makeApp()
+        app.selectedTab = .info
+
+        app.perform(.work(slug: "atlas", title: "ATLAS"))
+
+        XCTAssertEqual(app.selectedTab, .work)
+        XCTAssertEqual(app.workPath, [WorkRoute(slug: "atlas", title: "ATLAS")])
+    }
+
+    func testASecondActionReplacesTheStackInsteadOfDeepeningIt() {
+        let app = makeApp()
+
+        app.perform(.work(slug: "one", title: "ONE"))
+        app.perform(.work(slug: "two", title: "TWO"))
+
+        XCTAssertEqual(app.workPath.map(\.slug), ["two"])
+    }
+
+    func testAShuffleLandsSomewhereInsideItsPool() {
+        let app = makeApp()
+        let pool = ["one", "two", "three"]
+
+        app.perform(.shuffle(pool: pool))
+
+        XCTAssertEqual(app.workPath.count, 1)
+        XCTAssertTrue(pool.contains(app.workPath[0].slug))
+    }
+
+    func testAShuffleDoesNotKeepPickingTheSameWork() {
+        let app = makeApp()
+        let pool = (1...10).map { "work-\($0)" }
+
+        var picked = Set<String>()
+        for _ in 0..<50 {
+            app.perform(.shuffle(pool: pool))
+            picked.formUnion(app.workPath.map(\.slug))
+        }
+
+        XCTAssertGreaterThan(picked.count, 1)
+    }
+
+    func testAnEmptyShuffleLeavesTheAppWhereItIs() {
+        let app = makeApp()
+        app.selectedTab = .info
+
+        app.perform(.shuffle(pool: []))
+
+        XCTAssertEqual(app.selectedTab, .info)
+        XCTAssertTrue(app.workPath.isEmpty)
+    }
+
+    func testWidgetDeepLinksStillOpenTheirDetailRoute() throws {
+        let app = makeApp()
+        app.selectedTab = .info
+
+        app.open(try XCTUnwrap(WidgetDeepLink.work(slug: "atlas")))
+
+        XCTAssertEqual(app.selectedTab, .work)
+        XCTAssertEqual(app.workPath.map(\.slug), ["atlas"])
+    }
+
+    func testUnknownURLsAreIgnored() {
+        let app = makeApp()
+
+        app.open(URL(string: "httpjpg://info/imprint")!)
+
+        XCTAssertTrue(app.workPath.isEmpty)
+    }
+}

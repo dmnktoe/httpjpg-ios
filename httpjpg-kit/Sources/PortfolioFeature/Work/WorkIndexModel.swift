@@ -57,7 +57,9 @@ final class WorkIndexModel {
         }
 
         do {
-            state = .loaded(try await client.workIndex(refresh: force))
+            let collection = try await client.workIndex(refresh: force)
+            state = .loaded(collection)
+            QuickActionMenu.refresh(with: collection)
         } catch {
             guard !Task.isCancelled, !hadContent else { return }
             state = .failed(error.localizedDescription)

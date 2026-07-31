@@ -4,6 +4,8 @@ import SwiftUI
 
 @main
 struct HttpjpgApp: App {
+    @UIApplicationDelegateAdaptor(PortfolioAppDelegate.self) private var appDelegate
+
     private let configuration: Result<StoryblokConfiguration, Error>
 
     init() {
