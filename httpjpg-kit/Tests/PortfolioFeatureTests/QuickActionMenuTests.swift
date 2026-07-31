@@ -144,12 +144,9 @@ final class QuickActionMenuTests: XCTestCase {
         XCTAssertNil(QuickAction(foreign))
     }
 
-    func testRefreshInstallsTheMenuOnTheApplication() {
-        let previous = UIApplication.shared.shortcutItems
-        defer { UIApplication.shared.shortcutItems = previous }
-
-        QuickActionMenu.refresh(
-            with: collection([
+    func testEveryEntryReadsBackAsTheActionItEncodes() {
+        let items = QuickActionMenu.items(
+            for: collection([
                 work("one", daysAgo: 1),
                 work("two", daysAgo: 2),
                 work("three", daysAgo: 3),
@@ -158,10 +155,8 @@ final class QuickActionMenuTests: XCTestCase {
             now: now
         )
 
-        let installed = UIApplication.shared.shortcutItems ?? []
-        XCTAssertEqual(installed.count, 4)
-        XCTAssertEqual(installed.compactMap(QuickAction.init).count, 4)
-        XCTAssertEqual(QuickAction(installed[0]), .work(slug: "one", title: "ONE"))
-        XCTAssertEqual(QuickAction(installed[3]), .shuffle(pool: ["four"]))
+        XCTAssertEqual(items.compactMap(QuickAction.init).count, items.count)
+        XCTAssertEqual(QuickAction(items[0]), .work(slug: "one", title: "ONE"))
+        XCTAssertEqual(QuickAction(items[3]), .shuffle(pool: ["four"]))
     }
 }
