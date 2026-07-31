@@ -56,6 +56,11 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
+            name: "PortfolioFeatureTests",
+            dependencies: ["PortfolioFeature", "StoryblokContent"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
             name: "StoryblokContentTests",
 
             dependencies: ["StoryblokContent", "DesignSystem"],

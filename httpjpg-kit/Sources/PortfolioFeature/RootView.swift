@@ -50,7 +50,20 @@ public struct RootView: View {
             PlayerScreen(player: player)
         }
         .onOpenURL { model.open($0) }
-        .task { await model.loadConfig() }
+        .onChange(of: QuickActionInbox.shared.pending) { _, action in
+            guard action != nil else { return }
+            openPendingQuickAction()
+        }
+        .task {
+            // A cold launch fills the inbox before this view exists, so `onChange` never fires.
+            openPendingQuickAction()
+            await model.loadConfig()
+        }
+    }
+
+    private func openPendingQuickAction() {
+        guard let action = QuickActionInbox.shared.take() else { return }
+        model.perform(action)
     }
 
     @ViewBuilder

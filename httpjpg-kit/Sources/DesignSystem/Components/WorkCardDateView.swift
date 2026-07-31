@@ -20,17 +20,13 @@ public struct WorkCardDateView: View {
     }
 
     private var stamp: some View {
-        let start = WorkCardDate.parts(of: date)
-        let end = dateEnd.map(WorkCardDate.parts(of:))
-        return Text(render(start) + (end.map { " → " + render($0) } ?? ""))
+        let start = WorkCardDate.stamp(of: date)
+        let end = dateEnd.map(WorkCardDate.stamp(of:))
+        return Text(start + (end.map { " → " + $0 } ?? ""))
             .font(Typography.mono(Typography.Size.sm))
             .tracking(Typography.Size.sm * 0.05)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-    }
-
-    private func render(_ parts: WorkCardDate.Parts) -> String {
-        "\(parts.day). \(parts.monthSymbol) \(parts.month)\(parts.year)"
     }
 
     private var accessibilityLabel: String {
@@ -73,6 +69,12 @@ public enum WorkCardDate {
             year: shortYearFormatter.string(from: date),
             monthSymbol: symbol
         )
+    }
+
+    /// The brutalist stamp — "24. ☀ J25" — shared by cards and the Home Screen menu.
+    public static func stamp(of date: Date) -> String {
+        let parts = parts(of: date)
+        return "\(parts.day). \(parts.monthSymbol) \(parts.month)\(parts.year)"
     }
 
     public static func year(of date: Date) -> String {
