@@ -30,16 +30,20 @@ public struct StoryblokConfiguration: Sendable {
 
     public var siteOrigin: URL
 
+    public var source: ContentSource
+
     public init(
         accessToken: String,
         version: ContentVersion = .published,
         region: ContentRegion = .eu,
-        siteOrigin: URL = URL(string: "https://www.httpjpg.com")!
+        siteOrigin: URL = URL(string: "https://www.httpjpg.com")!,
+        source: ContentSource = .network
     ) {
         self.accessToken = accessToken
         self.version = version
         self.region = region
         self.siteOrigin = siteOrigin
+        self.source = source
     }
 
     public enum InfoPlistKey {
@@ -47,7 +51,10 @@ public struct StoryblokConfiguration: Sendable {
         public static let version = "STORYBLOK_VERSION"
         public static let region = "STORYBLOK_REGION"
         public static let siteOrigin = "SITE_ORIGIN"
+        public static let source = "CONTENT_SOURCE"
     }
+
+    public static let mockAccessToken = "mock"
 
     public static func fromBundle(_ bundle: Bundle = .main) throws -> StoryblokConfiguration {
         func string(_ key: String) -> String? {
@@ -56,8 +63,14 @@ public struct StoryblokConfiguration: Sendable {
             return trimmed.isEmpty ? nil : trimmed
         }
 
+        let source = ContentSource.named(string(InfoPlistKey.source))
+        if source == .mock {
+            MockContentProtocol.install()
+        }
+
         guard let token = string(InfoPlistKey.accessToken), token != "REPLACE_ME" else {
-            throw ContentError.missingAccessToken
+            guard source == .mock else { throw ContentError.missingAccessToken }
+            return StoryblokConfiguration(accessToken: mockAccessToken, source: .mock)
         }
 
         let origin = string(InfoPlistKey.siteOrigin)
@@ -67,7 +80,8 @@ public struct StoryblokConfiguration: Sendable {
             accessToken: token,
             version: string(InfoPlistKey.version).flatMap(ContentVersion.init(rawValue:)) ?? .published,
             region: string(InfoPlistKey.region).flatMap(ContentRegion.init(rawValue:)) ?? .eu,
-            siteOrigin: origin
+            siteOrigin: origin,
+            source: source
         )
     }
 }

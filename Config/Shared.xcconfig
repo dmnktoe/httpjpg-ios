@@ -25,3 +25,4 @@ STORYBLOK_VERSION = published
 STORYBLOK_REGION = eu
 SITE_ORIGIN = https:/$()/www.httpjpg.com
 TELEMETRYDECK_APP_ID =
+CONTENT_SOURCE = network

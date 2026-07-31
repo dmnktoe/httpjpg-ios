@@ -1,0 +1,105 @@
+{
+  "story": {
+    "id": 900002,
+    "uuid": "06d60741-46ce-5880-8306-06042c5913ba",
+    "name": "Nachtbus",
+    "slug": "nachtbus",
+    "full_slug": "work/nachtbus",
+    "created_at": "2025-01-04T11:12:00.000Z",
+    "published_at": "2026-05-06T19:45:00.000Z",
+    "first_published_at": "2026-05-06T19:45:00.000Z",
+    "updated_at": "2026-05-06T19:45:00.000Z",
+    "position": 20,
+    "tag_list": [
+      "Projects",
+      "Motion"
+    ],
+    "is_startpage": false,
+    "parent_id": 0,
+    "group_id": "cdbabc7d-f92b-5c72-b270-2fdaafe57bb6",
+    "lang": "default",
+    "alternates": [],
+    "content": {
+      "_uid": "41d0670b-74be-5900-8778-edfd65b59945",
+      "component": "work",
+      "title": "Nachtbus",
+      "date": "2026-05-02 00:00",
+      "date_end": "2026-05-30 00:00",
+      "external_only": false,
+      "link": {
+        "id": "",
+        "url": "",
+        "linktype": "story",
+        "fieldtype": "multilink",
+        "cached_url": ""
+      },
+      "isDark": true,
+      "description": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Loop-Material aus der letzten Linie, als Mockdaten konserviert."
+              }
+            ]
+          }
+        ]
+      },
+      "images": [
+        {
+          "id": 4955809,
+          "alt": "",
+          "name": "nachtbus-still",
+          "title": "",
+          "focus": "",
+          "filename": "https://a.storyblok.com/f/1000042/2400x1350/d849536239f/nachtbus-still.jpg",
+          "copyright": "",
+          "content_type": "image/jpeg",
+          "fieldtype": "asset"
+        }
+      ],
+      "body": [
+        {
+          "_uid": "4ed56314-395b-5e68-b5d8-e13158453e40",
+          "component": "video",
+          "videoAsset": {
+            "id": 8975874,
+            "alt": "",
+            "name": "nachtbus-loop",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/1920x1080/8962c7155ac/nachtbus-loop.mp4",
+            "copyright": "",
+            "content_type": "video/mp4",
+            "fieldtype": "asset"
+          },
+          "poster": {
+            "id": 4955809,
+            "alt": "",
+            "name": "nachtbus-still",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1350/d849536239f/nachtbus-still.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          },
+          "aspectRatio": "16/9",
+          "mt": "6"
+        },
+        {
+          "_uid": "a7cc94e2-bd49-5eed-80f0-54158184e6b9",
+          "component": "marquee",
+          "text": "+++ MOCK DATA +++ NO NETWORK +++",
+          "speed": "18",
+          "direction": "left",
+          "repeat": "4",
+          "mt": "8"
+        }
+      ]
+    }
+  }
+}

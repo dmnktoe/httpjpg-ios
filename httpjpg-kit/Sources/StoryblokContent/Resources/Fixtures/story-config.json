@@ -1,0 +1,94 @@
+{
+  "story": {
+    "id": 900090,
+    "uuid": "7279510f-cc51-5e20-8a70-bb377f45df9d",
+    "name": "Config",
+    "slug": "config",
+    "full_slug": "config",
+    "created_at": "2025-01-04T11:12:00.000Z",
+    "published_at": "2026-07-20T09:00:00.000Z",
+    "first_published_at": "2026-07-20T09:00:00.000Z",
+    "updated_at": "2026-07-20T09:00:00.000Z",
+    "position": 900,
+    "tag_list": [],
+    "is_startpage": false,
+    "parent_id": 0,
+    "group_id": "e9862bfe-df36-52c2-a0de-557f9c5bba6a",
+    "lang": "default",
+    "alternates": [],
+    "content": {
+      "_uid": "7279510f-cc51-5e20-8a70-bb377f45df9d",
+      "component": "config",
+      "seo_title": "㋡httpjpg.com ▚ mock",
+      "seo_description": "Fixture content served by the mock provider.",
+      "author_name": "Domenik Töfflinger",
+      "author_url": "https://www.httpjpg.com",
+      "discord_enabled": false,
+      "letterboxd_enabled": false,
+      "header_menu": [
+        {
+          "_uid": "b6b56a0e-b73f-55de-9252-47e4c47dea2d",
+          "component": "menu_link",
+          "label": "Projects",
+          "variant": "projects",
+          "link": {
+            "id": "",
+            "url": "",
+            "linktype": "story",
+            "fieldtype": "multilink",
+            "cached_url": ""
+          },
+          "is_external": false
+        },
+        {
+          "_uid": "e528b7af-f8ee-5ebe-ab5b-f726f1b330cf",
+          "component": "menu_link",
+          "label": "Websites",
+          "variant": "websites",
+          "link": {
+            "id": "",
+            "url": "",
+            "linktype": "story",
+            "fieldtype": "multilink",
+            "cached_url": ""
+          },
+          "is_external": false
+        }
+      ],
+      "footer_config": [
+        {
+          "_uid": "dbb5f28d-7d13-526b-8fbb-9ce531290ef2",
+          "component": "footer_config",
+          "copyright_text": "© httpjpg — mock build",
+          "footer_links": [
+            {
+              "_uid": "c969ae76-e8d1-583a-bd12-de758607df5b",
+              "component": "menu_link",
+              "label": "Instagram",
+              "variant": "projects",
+              "link": {
+                "id": "",
+                "url": "https://instagram.com/icon.icon.iconn",
+                "linktype": "url",
+                "fieldtype": "multilink",
+                "cached_url": "https://instagram.com/icon.icon.iconn"
+              },
+              "is_external": true
+            }
+          ],
+          "background_image": {
+            "id": 3444746,
+            "alt": "",
+            "name": "footer-bg",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/1600x900/7c2ee9ca6bd/footer-bg.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "story": {
+    "id": 900005,
+    "uuid": "a9f4195f-fc53-57e4-b4e8-5cfa4fbcc760",
+    "name": "Feldnotizen",
+    "slug": "feldnotizen",
+    "full_slug": "work/feldnotizen",
+    "created_at": "2025-01-04T11:12:00.000Z",
+    "published_at": "2025-06-25T07:00:00.000Z",
+    "first_published_at": "2025-06-25T07:00:00.000Z",
+    "updated_at": "2025-06-25T07:00:00.000Z",
+    "position": 50,
+    "tag_list": [
+      "Projects",
+      "Editorial"
+    ],
+    "is_startpage": false,
+    "parent_id": 0,
+    "group_id": "e373feb3-dd96-56ee-a853-a0a0c7c8dcf5",
+    "lang": "default",
+    "alternates": [],
+    "content": {
+      "_uid": "6ea82733-73f8-567f-bd7e-26b006fccc79",
+      "component": "work",
+      "title": "Feldnotizen",
+      "date": "2025-06-24 00:00",
+      "date_end": "",
+      "external_only": false,
+      "link": {
+        "id": "",
+        "url": "",
+        "linktype": "story",
+        "fieldtype": "multilink",
+        "cached_url": ""
+      },
+      "isDark": false,
+      "description": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Gesammelte Notizen, gesetzt in Mono, gefüllt mit Mockdaten."
+              }
+            ]
+          }
+        ]
+      },
+      "images": [
+        {
+          "id": 6154287,
+          "alt": "",
+          "name": "feldnotizen-01",
+          "title": "",
+          "focus": "",
+          "filename": "https://a.storyblok.com/f/1000042/2400x1600/1047a99090c/feldnotizen-01.jpg",
+          "copyright": "",
+          "content_type": "image/jpeg",
+          "fieldtype": "asset"
+        },
+        {
+          "id": 5596838,
+          "alt": "",
+          "name": "feldnotizen-02",
+          "title": "",
+          "focus": "",
+          "filename": "https://a.storyblok.com/f/1000042/2400x1600/d35372dff7a/feldnotizen-02.jpg",
+          "copyright": "",
+          "content_type": "image/jpeg",
+          "fieldtype": "asset"
+        }
+      ],
+      "body": [
+        {
+          "_uid": "fb3e9b62-636e-5f6e-8b1c-f0fdf76a1183",
+          "component": "headline",
+          "text": "FELDNOTIZEN",
+          "level": "2",
+          "align": "start",
+          "mt": "8"
+        },
+        {
+          "_uid": "2ce0bc9c-b91b-52e2-a7fc-8f4c53e46aec",
+          "component": "richtext",
+          "content": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Gesammelte Notizen, gesetzt in Mono, gefüllt mit Mockdaten."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Alle Inhalte hier stammen aus "
+                  },
+                  {
+                    "type": "text",
+                    "text": "Fixtures",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " und nicht aus Storyblok."
+                  }
+                ]
+              }
+            ]
+          },
+          "mt": "4"
+        },
+        {
+          "_uid": "dae867fa-b537-5590-9e3d-0cd627a7c575",
+          "component": "divider",
+          "variant": "ascii",
+          "pattern": "+-+-",
+          "orientation": "horizontal",
+          "spacing": "6"
+        },
+        {
+          "_uid": "58e5a239-37e6-5db0-a531-221738e8544e",
+          "component": "image",
+          "image": {
+            "id": 6154287,
+            "alt": "",
+            "name": "feldnotizen-01",
+            "title": "",
+            "focus": "",
+            "filename": "https://a.storyblok.com/f/1000042/2400x1600/1047a99090c/feldnotizen-01.jpg",
+            "copyright": "",
+            "content_type": "image/jpeg",
+            "fieldtype": "asset"
+          },
+          "alt": "Feldnotizen",
+          "aspectRatio": "3/2",
+          "width": "100%",
+          "mt": "6"
+        }
+      ]
+    }
+  }
+}

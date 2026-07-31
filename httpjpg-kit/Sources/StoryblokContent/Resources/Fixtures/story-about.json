@@ -1,0 +1,88 @@
+{
+  "story": {
+    "id": 900091,
+    "uuid": "81519ff9-8443-59ec-b02f-e58b80080df4",
+    "name": "About",
+    "slug": "about",
+    "full_slug": "about",
+    "created_at": "2025-01-04T11:12:00.000Z",
+    "published_at": "2026-07-20T09:00:00.000Z",
+    "first_published_at": "2026-07-20T09:00:00.000Z",
+    "updated_at": "2026-07-20T09:00:00.000Z",
+    "position": 910,
+    "tag_list": [],
+    "is_startpage": false,
+    "parent_id": 0,
+    "group_id": "353f04f3-0cff-5203-8326-fb732ce9f473",
+    "lang": "default",
+    "alternates": [],
+    "content": {
+      "_uid": "81519ff9-8443-59ec-b02f-e58b80080df4",
+      "component": "page",
+      "title": "About",
+      "isDark": false,
+      "body": [
+        {
+          "_uid": "bc663dc2-a86c-5598-8c77-3a5092cd3468",
+          "component": "headline",
+          "text": "ABOUT (MOCK)",
+          "level": "1",
+          "align": "start"
+        },
+        {
+          "_uid": "c43404c2-cb94-53c4-a57b-43ed09703365",
+          "component": "richtext",
+          "content": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Diese Seite kommt aus den Fixtures im Paket. Sie existiert, damit Staging-Builds ohne Storyblok-Token etwas zu zeigen haben."
+                  }
+                ]
+              }
+            ]
+          },
+          "mt": "4"
+        },
+        {
+          "_uid": "ce8610c5-87ac-5d5a-bf04-c01f77b1ef5a",
+          "component": "callout",
+          "title": "Mock provider",
+          "body": "CONTENT_SOURCE=mock schaltet die App auf gebündelte Fixtures um.",
+          "tone": "accent",
+          "align": "start",
+          "ctaText": "httpjpg.com",
+          "ctaLink": {
+            "id": "",
+            "url": "https://www.httpjpg.com",
+            "linktype": "url",
+            "fieldtype": "multilink",
+            "cached_url": "https://www.httpjpg.com"
+          },
+          "ctaVariant": "primary",
+          "mt": "6"
+        },
+        {
+          "_uid": "9eafdeda-8e77-5aeb-8aba-a12bfd6b2738",
+          "component": "work_list",
+          "work": [
+            "6f96414f-bcfc-53d0-86a3-a80a5a4d06fc",
+            "06d60741-46ce-5880-8306-06042c5913ba",
+            "00d05e01-de68-5a20-ba09-45643b62b8e7"
+          ],
+          "columns": "1",
+          "variant": "list",
+          "showDividers": true,
+          "dividerVariant": "ascii",
+          "dividerPattern": "~~~",
+          "enableTagFilter": false,
+          "mt": "8"
+        }
+      ]
+    }
+  }
+}
