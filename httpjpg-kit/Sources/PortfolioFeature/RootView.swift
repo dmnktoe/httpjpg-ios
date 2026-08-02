@@ -16,25 +16,25 @@ public struct RootView: View {
     }
 
     public var body: some View {
+        @Bindable var model = model
         @Bindable var player = player
         return ViewportReader {
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: Spacing.s2) {
-                MiniPlayerBar(player: player, width: pillRowWidth)
-                TabBar(
-                    selection: model.selectedTab,
-                    previewURL: model.previewURL,
-                    onSelect: { model.select(tab: $0) },
-                    onRowWidthChange: { pillRowWidth = $0 }
-                )
+            SidebarContainer(
+                isOpen: $model.isSidebarOpen,
+                dragEnabled: model.isAtNavigationRoot
+            ) {
+                SidebarView()
+            } content: {
+                content
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        bottomBar(player)
+                    }
+                    // The sliding card has to be opaque, otherwise the drawer
+                    // shows through it.
+                    .background(theme.background)
+                    .overlay(alignment: .topLeading) { menuButton }
             }
-
-            .animation(.smooth(duration: 0.2), value: player.track)
-            .animation(.smooth(duration: 0.2), value: pillRowWidth)
         }
         .pageTheme(theme)
         .pageSurface(theme)
@@ -63,6 +63,34 @@ public struct RootView: View {
     private func openPendingQuickAction() {
         guard let action = QuickActionInbox.shared.take() else { return }
         model.perform(action)
+    }
+
+    private func bottomBar(_ player: AudioPlayerModel) -> some View {
+        VStack(spacing: Spacing.s2) {
+            MiniPlayerBar(player: player, width: pillRowWidth)
+            TabBar(
+                selection: model.selectedTab,
+                previewURL: model.previewURL,
+                onSelect: { model.select(tab: $0) },
+                onRowWidthChange: { pillRowWidth = $0 }
+            )
+        }
+
+        .animation(.smooth(duration: 0.2), value: player.track)
+        .animation(.smooth(duration: 0.2), value: pillRowWidth)
+    }
+
+    /// Sits in the (otherwise empty) navigation bar strip at the root of each
+    /// stack; deeper in, that spot belongs to the back button.
+    @ViewBuilder
+    private var menuButton: some View {
+        if model.isAtNavigationRoot {
+            SidebarGlassButton(glyph: "☰", label: "Open menu") {
+                model.toggleSidebar()
+            }
+            .padding(.leading, PageLayout.gutter)
+            .transition(.opacity)
+        }
     }
 
     @ViewBuilder
