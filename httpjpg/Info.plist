@@ -18,6 +18,14 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<!-- Built against the iOS 27 SDK, UIKit refuses to launch an app without a
+	     scene manifest. No UISceneConfigurations: PortfolioAppDelegate hands
+	     back the scene delegate in configurationForConnecting instead. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
