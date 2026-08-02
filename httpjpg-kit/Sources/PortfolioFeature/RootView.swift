@@ -10,10 +10,6 @@ public struct RootView: View {
     @Environment(\.colorScheme) private var systemScheme
 
     public init(configuration: StoryblokConfiguration) {
-        // Assign the wrapped value rather than the synthesized `_model` store:
-        // the former is the documented form and does not depend on how @State
-        // synthesizes storage, which changes when it becomes a macro in the
-        // iOS 27 SDK.
         model = AppModel(configuration: configuration)
         NavigationBarStyle.install()
         Telemetry.start()
