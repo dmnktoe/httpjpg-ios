@@ -13,8 +13,6 @@ struct SidebarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(surface.ignoresSafeArea())
-        // The drawer stays populated on the info tab too, where nothing else
-        // pulls the work index.
         .task { await app.workIndex.load() }
     }
 
@@ -84,8 +82,6 @@ struct SidebarView: View {
         }
     }
 
-    /// A step off the page background so the main view still reads as a card
-    /// once it has slid aside — black on black would flatten the whole effect.
     private var surface: Color {
         theme.isDark ? Palette.neutral.s950 : Palette.neutral.s100
     }

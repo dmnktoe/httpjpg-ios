@@ -1,8 +1,6 @@
 import DesignSystem
 import SwiftUI
 
-/// Round liquid-glass button for the top row — the drawer's toggle on the main
-/// view, its close button inside the drawer.
 struct SidebarGlassButton: View {
     let glyph: String
     let label: String

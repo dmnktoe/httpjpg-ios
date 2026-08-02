@@ -97,8 +97,6 @@ public final class AppModel {
         isSidebarOpen.toggle()
     }
 
-    /// The drawer's own swipe would fight the navigation stack's back swipe, so
-    /// it only listens while the visible stack sits at its root.
     var isAtNavigationRoot: Bool {
         switch selectedTab {
         case .work: return workPath.isEmpty

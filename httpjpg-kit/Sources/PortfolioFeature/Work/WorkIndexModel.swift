@@ -29,8 +29,6 @@ final class WorkIndexModel {
         return items.filter { !selectedTags.isDisjoint(with: $0.tags) }
     }
 
-    /// Every project, ignoring the variant and tag filters the index applies —
-    /// the sidebar is meant to be the complete list.
     var allProjects: [WorkItem] {
         guard case .loaded(let collection) = state else { return [] }
         return collection.projects
