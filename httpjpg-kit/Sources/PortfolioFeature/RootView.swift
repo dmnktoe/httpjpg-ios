@@ -33,8 +33,6 @@ public struct RootView: View {
                     .safeAreaInset(edge: .bottom, spacing: 0) {
                         bottomBar(player)
                     }
-                    // The sliding card has to be opaque, otherwise the drawer
-                    // shows through it.
                     .background(theme.background)
                     .overlay(alignment: .topLeading) { menuButton }
             }
@@ -88,8 +86,6 @@ public struct RootView: View {
         .animation(.smooth(duration: 0.2), value: pillRowWidth)
     }
 
-    /// Sits in the (otherwise empty) navigation bar strip at the root of each
-    /// stack; deeper in, that spot belongs to the back button.
     @ViewBuilder
     private var menuButton: some View {
         if model.isAtNavigationRoot {

@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Drawer that pushes the main view aside instead of covering it — the shape of
-/// navigation the AI chat apps popularised. The main view keeps its full width
-/// and slides; the corner radius, the slight scale down and the shadow are what
-/// sell it as a card lifted off the drawer underneath.
 public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private let maxWidth: CGFloat
     private let dragEnabled: Bool
@@ -16,14 +12,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// The drawer trails the content a little so it reads as a layer underneath
-    /// rather than a panel arriving under its own steam.
     private static var parallax: CGFloat { Spacing.s10 }
 
     private static var scaleDrop: CGFloat { 0.05 }
 
-    /// Leading strip that opens the drawer, roughly the width of the system's
-    /// own edge gestures.
     private static var edgeWidth: CGFloat { Spacing.s5 }
 
     public init(
@@ -72,8 +64,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             )
             .offset(x: offset)
             .accessibilityHidden(isOpen)
-            // `.subviews` keeps the drawer's own drag out of the way without
-            // disabling the gestures inside the content (nav-stack back swipe).
             .simultaneousGesture(drawerDrag, including: dragEnabled ? .all : .subviews)
     }
 
@@ -116,8 +106,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private func tracks(_ value: DragGesture.Value) -> Bool {
         guard abs(value.translation.width) > abs(value.translation.height) else { return false }
-        // Closed, only a swipe off the leading edge counts: a drag that starts
-        // anywhere else belongs to the paging carousels inside the content.
         return isOpen || value.startLocation.x <= Self.edgeWidth
     }
 
