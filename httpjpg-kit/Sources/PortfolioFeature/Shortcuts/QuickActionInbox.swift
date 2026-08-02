@@ -13,8 +13,14 @@ final class QuickActionInbox {
     @discardableResult
     func post(_ item: UIApplicationShortcutItem) -> Bool {
         guard let action = QuickAction(item) else { return false }
-        pending = action
+        post(action)
         return true
+    }
+
+    /// The other way in: App Intents and Spotlight hand over an action directly
+    /// rather than a shortcut item.
+    func post(_ action: QuickAction) {
+        pending = action
     }
 
     func take() -> QuickAction? {

@@ -1,3 +1,4 @@
+import CoreSpotlight
 import DesignSystem
 import StoryblokContent
 import SwiftUI
@@ -50,6 +51,10 @@ public struct RootView: View {
             PlayerScreen(player: player)
         }
         .onOpenURL { model.open($0) }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            guard let slug = WorkSpotlightIndex.slug(from: activity) else { return }
+            QuickActionInbox.shared.post(.work(slug: slug, title: slug))
+        }
         .onChange(of: QuickActionInbox.shared.pending) { _, action in
             guard action != nil else { return }
             openPendingQuickAction()
