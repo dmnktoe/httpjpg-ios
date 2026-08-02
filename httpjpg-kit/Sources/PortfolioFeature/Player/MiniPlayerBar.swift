@@ -7,6 +7,8 @@ struct MiniPlayerBar: View {
 
     let width: CGFloat
 
+    let glass: Namespace.ID
+
     private static let tint = Palette.black.opacity(0.72)
     private static let labelColor = Palette.white.opacity(0.9)
 
@@ -62,6 +64,7 @@ struct MiniPlayerBar: View {
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)
             .glassBackground(in: .capsule, tint: Self.tint)
+            .glassMorph(id: "player", in: glass)
 
             .clipShape(Capsule())
             .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.6), lineWidth: 1))

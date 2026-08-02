@@ -58,6 +58,7 @@ struct SidebarView: View {
             .padding(.bottom, Spacing.s8)
         }
         .scrollIndicators(.hidden)
+        .softScrollEdges()
     }
 
     private var rows: some View {

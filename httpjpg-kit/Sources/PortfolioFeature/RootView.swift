@@ -9,9 +9,12 @@ public struct RootView: View {
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
 
+    @Namespace private var chrome
+
     public init(configuration: StoryblokConfiguration) {
         _model = State(initialValue: AppModel(configuration: configuration))
         NavigationBarStyle.install()
+        ImageCache.install()
         Telemetry.start()
     }
 
@@ -65,15 +68,20 @@ public struct RootView: View {
         model.perform(action)
     }
 
+    /// One container for the whole bottom chrome, so the mini player grows out
+    /// of the tab row rather than fading in above it.
     private func bottomBar(_ player: AudioPlayerModel) -> some View {
-        VStack(spacing: Spacing.s2) {
-            MiniPlayerBar(player: player, width: pillRowWidth)
-            TabBar(
-                selection: model.selectedTab,
-                previewURL: model.previewURL,
-                onSelect: { model.select(tab: $0) },
-                onRowWidthChange: { pillRowWidth = $0 }
-            )
+        GlassGroup(spacing: Spacing.s2) {
+            VStack(spacing: Spacing.s2) {
+                MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
+                TabBar(
+                    selection: model.selectedTab,
+                    previewURL: model.previewURL,
+                    glass: chrome,
+                    onSelect: { model.select(tab: $0) },
+                    onRowWidthChange: { pillRowWidth = $0 }
+                )
+            }
         }
 
         .animation(.smooth(duration: 0.2), value: player.track)
@@ -119,6 +127,8 @@ private struct TabBar: View {
 
     let previewURL: URL?
 
+    let glass: Namespace.ID
+
     let onSelect: (AppModel.Tab) -> Void
 
     let onRowWidthChange: (CGFloat) -> Void
@@ -131,15 +141,13 @@ private struct TabBar: View {
     @State private var tapCount = 0
 
     var body: some View {
-        GlassGroup(spacing: Spacing.s2) {
-            HStack(spacing: Spacing.s2) {
-                ForEach(AppModel.Tab.allCases) { tab in
-                    pill(for: tab)
-                }
+        HStack(spacing: Spacing.s2) {
+            ForEach(AppModel.Tab.allCases) { tab in
+                pill(for: tab)
+            }
 
-                if let previewURL {
-                    previewPill(previewURL)
-                }
+            if let previewURL {
+                previewPill(previewURL)
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
@@ -162,7 +170,11 @@ private struct TabBar: View {
                 .minimumScaleFactor(0.7)
                 .frame(height: Self.labelHeight)
                 .foregroundStyle(isSelected ? Self.accent.label : Palette.white.opacity(0.9))
-                .glassPill(tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72))
+                .glassPill(
+                    tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72),
+                    morphID: tab.id,
+                    glass: glass
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.accessibilityLabel)
@@ -179,7 +191,9 @@ private struct TabBar: View {
                 .frame(height: Self.labelHeight)
                 .glassPill(
                     tint: Palette.white.opacity(0.65),
-                    stroke: Palette.neutral.s400.opacity(0.7)
+                    stroke: Palette.neutral.s400.opacity(0.7),
+                    morphID: "preview",
+                    glass: glass
                 )
         }
         .buttonStyle(.plain)

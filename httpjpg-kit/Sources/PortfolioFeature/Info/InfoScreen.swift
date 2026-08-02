@@ -27,6 +27,7 @@ struct InfoScreen: View {
                 }
                 .padding(.bottom, bottomBarClearance)
             }
+            .softScrollEdges()
             .refreshable {
                 await app.info.load(force: true)
                 await app.footerWidgets?.load()

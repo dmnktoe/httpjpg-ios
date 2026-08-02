@@ -8,6 +8,8 @@ struct WorkIndexScreen: View {
     @Environment(\.displayScale) private var displayScale
     @Environment(\.bottomBarClearance) private var bottomBarClearance
 
+    @Namespace private var cardZoom
+
     var body: some View {
         @Bindable var app = app
         return NavigationStack(path: $app.workPath) {
@@ -16,6 +18,7 @@ struct WorkIndexScreen: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: WorkRoute.self) { route in
                     WorkDetailScreen(route: route)
+                        .zoomTransitionDestination(id: route.slug, in: cardZoom)
                 }
         }
         .task {
@@ -51,6 +54,7 @@ struct WorkIndexScreen: View {
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, bottomBarClearance)
         }
+        .softScrollEdges()
         .refreshable { await model.load(force: true) }
     }
 
@@ -113,6 +117,7 @@ struct WorkIndexScreen: View {
                 WorkCardView(card)
             }
             .buttonStyle(.plain)
+            .zoomTransitionSource(id: item.slug, in: cardZoom)
         }
     }
 }

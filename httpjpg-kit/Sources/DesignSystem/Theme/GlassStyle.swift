@@ -10,6 +10,28 @@ public extension View {
     }
 }
 
+/// Tags a glass shape so the container can morph it into its neighbours as it
+/// appears and disappears, instead of cross-fading it in place. Only does
+/// anything inside a `GlassGroup` sharing the same namespace.
+public extension View {
+    func glassMorph(id: some Hashable, in namespace: Namespace.ID) -> some View {
+        modifier(GlassMorphModifier(id: id, namespace: namespace))
+    }
+}
+
+private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
+    let id: ID
+    let namespace: Namespace.ID
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffectID(id, in: namespace)
+        } else {
+            content
+        }
+    }
+}
+
 private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
