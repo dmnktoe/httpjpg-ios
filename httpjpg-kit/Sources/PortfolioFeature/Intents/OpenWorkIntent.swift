@@ -20,8 +20,6 @@ public struct OpenWorkIntent: AppIntent {
 
     @MainActor
     public func perform() async throws -> some IntentResult {
-        // The app may still be launching. RootView drains the inbox on appear
-        // and watches it afterwards, so either order lands on the work.
         QuickActionInbox.shared.post(.work(slug: work.id, title: work.title))
         return .result()
     }

@@ -1,8 +1,6 @@
 import AppIntents
 import StoryblokContent
 
-/// A single work, as Siri and the Shortcuts app see it. The slug is the id
-/// because that is what every other entry point into the app already routes on.
 public struct WorkEntity: AppEntity, Sendable {
     public static var typeDisplayRepresentation: TypeDisplayRepresentation {
         TypeDisplayRepresentation(name: "Work")

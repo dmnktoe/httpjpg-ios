@@ -1,10 +1,6 @@
 import AppIntents
 import StoryblokContent
 
-/// Shortcuts and Siri ask for entities while the app is not running, so this
-/// builds its own client off the bundled configuration rather than reaching for
-/// the one `AppModel` holds. With `CONTENT_SOURCE=mock` that is the fixtures,
-/// same as everywhere else.
 public struct WorkEntityQuery: EntityStringQuery, Sendable {
     public init() {}
 

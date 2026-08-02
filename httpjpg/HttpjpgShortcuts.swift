@@ -1,9 +1,6 @@
 import AppIntents
 import PortfolioFeature
 
-/// Lives in the app target rather than in `PortfolioFeature`: App Intents
-/// metadata extraction runs against the app, and a provider tucked away in a
-/// package is not reliably picked up.
 struct HttpjpgShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
