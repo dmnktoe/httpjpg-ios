@@ -25,8 +25,6 @@ struct GlassPill: ViewModifier {
         }
     }
 
-    /// The morph id has to sit on the glass effect itself, before the shape is
-    /// clipped and stroked, or the container has nothing to match against.
     @ViewBuilder
     private func morphed(_ view: some View) -> some View {
         if let morphID, let glass {

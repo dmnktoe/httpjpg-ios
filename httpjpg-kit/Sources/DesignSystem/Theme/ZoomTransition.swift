@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Pairs a source view with the screen it pushes to, so the destination grows
-/// out of the thing that was tapped. Both halves need the same id and
-/// namespace; without a matching source the push falls back to a plain slide.
 public extension View {
     func zoomTransitionSource(id: some Hashable, in namespace: Namespace.ID) -> some View {
         modifier(ZoomTransitionSource(id: id, namespace: namespace))

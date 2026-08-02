@@ -66,8 +66,6 @@ public struct RootView: View {
         model.perform(action)
     }
 
-    /// One container for the whole bottom chrome, so the mini player grows out
-    /// of the tab row rather than fading in above it.
     private func bottomBar(_ player: AudioPlayerModel) -> some View {
         GlassGroup(spacing: Spacing.s2) {
             VStack(spacing: Spacing.s2) {
