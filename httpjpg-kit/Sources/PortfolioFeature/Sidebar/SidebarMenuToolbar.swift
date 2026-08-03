@@ -1,4 +1,3 @@
-import DesignSystem
 import SwiftUI
 
 struct SidebarMenuToolbar: ViewModifier {
@@ -13,11 +12,9 @@ struct SidebarMenuToolbar: ViewModifier {
                     taps += 1
                     app.toggleSidebar()
                 } label: {
-                    Text("☰")
-                        .font(Typography.mono(Typography.Size.base, weight: .medium))
+                    Label("Open menu", systemImage: "line.3.horizontal")
                 }
                 .sensoryFeedback(.impact(weight: .light), trigger: taps)
-                .accessibilityLabel("Open menu")
             }
         }
     }
