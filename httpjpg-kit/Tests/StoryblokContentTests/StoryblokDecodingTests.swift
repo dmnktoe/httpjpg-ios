@@ -338,6 +338,21 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(blok.isReversed)
     }
 
+    func testExtractPlainTextClampsAtWordBoundaryWithEllipsis() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"paragraph","content":[{"type":"text",
+           "text":"removing the friction of typical time-tracking tools that drown users in sub-menus, team-chat integrations, and complex project management overhead"}]}
+        ]}
+        """)
+        let excerpt = extractPlainText(document, maxLength: 120)
+        XCTAssertTrue(excerpt.hasSuffix("…"))
+        XCTAssertFalse(excerpt.hasSuffix(" …"))
+        XCTAssertFalse(excerpt.dropLast().contains("…"))
+        let lastWord = excerpt.dropLast().split(separator: " ").last ?? ""
+        XCTAssertTrue("team-chat integrations, and complex project management overhead".contains(lastWord))
+    }
+
     func testRegionsMapToTheirCDNHosts() {
         XCTAssertEqual(ContentRegion.eu.baseURL.host, "api.storyblok.com")
         XCTAssertEqual(ContentRegion.usa.baseURL.host, "api-us.storyblok.com")

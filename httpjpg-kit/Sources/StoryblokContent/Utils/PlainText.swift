@@ -6,7 +6,9 @@ public func extractPlainText(_ node: RichTextNode?, maxLength: Int? = nil) -> St
         .joined(separator: " ")
         .trimmingCharacters(in: .whitespacesAndNewlines)
     guard let maxLength, text.count > maxLength else { return text }
-    return String(text.prefix(maxLength))
+    let truncated = text.prefix(maxLength)
+    let atWordBoundary = truncated.range(of: " ", options: .backwards).map { truncated[..<$0.lowerBound] } ?? truncated
+    return atWordBoundary.trimmingCharacters(in: .whitespacesAndNewlines) + "…"
 }
 
 private func walk(_ node: RichTextNode) -> [String] {
