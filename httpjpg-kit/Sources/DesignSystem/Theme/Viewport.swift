@@ -11,10 +11,22 @@ public extension EnvironmentValues {
     }
 }
 
+private struct ViewportSafeAreaBottomKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+public extension EnvironmentValues {
+    var viewportSafeAreaBottom: CGFloat {
+        get { self[ViewportSafeAreaBottomKey.self] }
+        set { self[ViewportSafeAreaBottomKey.self] = newValue }
+    }
+}
+
 public struct ViewportReader<Content: View>: View {
     private let content: Content
 
     @State private var width = ViewportWidthKey.defaultValue
+    @State private var safeAreaBottom = ViewportSafeAreaBottomKey.defaultValue
 
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -23,7 +35,9 @@ public struct ViewportReader<Content: View>: View {
     public var body: some View {
         content
             .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width = $0 }
+            .onGeometryChange(for: CGFloat.self, of: { $0.safeAreaInsets.bottom }) { safeAreaBottom = $0 }
             .environment(\.viewportWidth, width)
+            .environment(\.viewportSafeAreaBottom, safeAreaBottom)
     }
 }
 

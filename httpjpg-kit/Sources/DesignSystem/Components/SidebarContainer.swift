@@ -65,6 +65,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .offset(x: offset)
             .accessibilityHidden(isOpen)
             .simultaneousGesture(drawerDrag, including: dragEnabled ? .all : .subviews)
+            .ignoresSafeArea()
     }
 
     private var drawerDrag: some Gesture {

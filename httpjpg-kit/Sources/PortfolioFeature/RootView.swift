@@ -124,6 +124,7 @@ private struct TabBar: View {
     private static let accent = BrutalButtonStyle.Variant.accent
 
     @Environment(\.openURL) private var openURL
+    @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     @State private var tapCount = 0
 
@@ -141,7 +142,7 @@ private struct TabBar: View {
         .sensoryFeedback(.selection, trigger: tapCount)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
-        .padding(.bottom, Spacing.s2)
+        .padding(.bottom, Spacing.s2 + safeAreaBottom)
     }
 
     private func pill(for tab: AppModel.Tab) -> some View {
