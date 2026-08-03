@@ -34,7 +34,6 @@ public struct RootView: View {
                         bottomBar(player)
                     }
                     .background(theme.background)
-                    .overlay(alignment: .topLeading) { menuButton }
             }
         }
         .pageTheme(theme)
@@ -82,17 +81,6 @@ public struct RootView: View {
 
         .animation(.smooth(duration: 0.2), value: player.track)
         .animation(.smooth(duration: 0.2), value: pillRowWidth)
-    }
-
-    @ViewBuilder
-    private var menuButton: some View {
-        if model.isAtNavigationRoot {
-            SidebarGlassButton(glyph: "☰", label: "Open menu") {
-                model.toggleSidebar()
-            }
-            .padding(.leading, PageLayout.gutter)
-            .transition(.opacity)
-        }
     }
 
     @ViewBuilder

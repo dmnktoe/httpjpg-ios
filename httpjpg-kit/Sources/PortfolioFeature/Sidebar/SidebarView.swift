@@ -4,7 +4,6 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(AppModel.self) private var app
-    @Environment(\.pageTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -12,7 +11,6 @@ struct SidebarView: View {
             projects
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(surface.ignoresSafeArea())
         .task { await app.workIndex.load() }
     }
 
@@ -83,9 +81,6 @@ struct SidebarView: View {
         }
     }
 
-    private var surface: Color {
-        theme.isDark ? Palette.neutral.s950 : Palette.neutral.s100
-    }
 }
 
 private struct SidebarSkeleton: View {
