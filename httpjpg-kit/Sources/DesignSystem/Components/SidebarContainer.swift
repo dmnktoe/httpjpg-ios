@@ -8,6 +8,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @Binding private var isOpen: Bool
     @State private var drag: CGFloat = 0
+    @State private var isDragging = false
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -44,6 +45,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
             main
         }
+        .environment(\.marqueeHeld, isDragging)
         .animation(motion, value: isOpen)
     }
 
@@ -72,12 +74,14 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         DragGesture(minimumDistance: 15)
             .onChanged { value in
                 guard tracks(value) else { return }
+                isDragging = true
                 drag = value.translation.width
             }
             .onEnded { value in
                 let shouldOpen = tracks(value)
                     ? base + value.predictedEndTranslation.width > width / 2
                     : isOpen
+                isDragging = false
                 withAnimation(motion) {
                     drag = 0
                     isOpen = shouldOpen

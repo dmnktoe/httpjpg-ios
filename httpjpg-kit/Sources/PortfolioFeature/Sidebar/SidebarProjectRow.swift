@@ -16,6 +16,7 @@ struct SidebarProjectRow: View {
                 font: Typography.uiSans(Typography.Size.base),
                 speed: .rate(20),
                 repeatCount: 1,
+                pauseDuration: 1.5,
                 color: theme.foreground
             )
             .frame(maxWidth: .infinity)
