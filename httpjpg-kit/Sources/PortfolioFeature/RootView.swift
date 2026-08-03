@@ -30,7 +30,7 @@ public struct RootView: View {
             } content: {
                 content
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                    .floatingBottomBar {
                         bottomBar(player)
                     }
                     .background(theme.background)
