@@ -32,12 +32,12 @@ struct SidebarView: View {
     @ViewBuilder
     private var projects: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                InfoSectionLabel("all projects")
+            LazyVStack(alignment: .leading, spacing: 0) {
+                InfoSectionLabel("all work")
                     .padding(.bottom, Spacing.s2)
 
                 switch app.workIndex.state {
-                case .loaded where !app.workIndex.allProjects.isEmpty:
+                case .loaded where !app.workIndex.allWork.isEmpty:
                     rows
                 case .loaded:
                     MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
@@ -58,7 +58,7 @@ struct SidebarView: View {
     }
 
     private var rows: some View {
-        ForEach(app.workIndex.allProjects) { item in
+        ForEach(app.workIndex.allWork) { item in
             row(for: item)
             BrutalDivider(variant: .dotted)
         }

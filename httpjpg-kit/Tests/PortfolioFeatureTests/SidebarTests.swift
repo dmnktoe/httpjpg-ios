@@ -14,7 +14,7 @@ final class SidebarTests: XCTestCase {
         await app.workIndex.load()
         app.isSidebarOpen = true
 
-        let project = try XCTUnwrap(app.workIndex.allProjects.first)
+        let project = try XCTUnwrap(app.workIndex.allWork.first)
         app.open(work: project)
 
         XCTAssertFalse(app.isSidebarOpen)
@@ -30,7 +30,21 @@ final class SidebarTests: XCTestCase {
         app.workIndex.toggle(tag: "a-tag-nothing-carries")
 
         XCTAssertTrue(app.workIndex.visibleItems.isEmpty)
-        XCTAssertFalse(app.workIndex.allProjects.isEmpty)
+        XCTAssertFalse(app.workIndex.allWork.isEmpty)
+    }
+
+    func testTheSidebarListSpansBothVariants() async throws {
+        let app = makeApp()
+        await app.workIndex.load()
+
+        let collection = try await app.client.workIndex()
+        let slugs = Set(app.workIndex.allWork.map(\.slug))
+
+        XCTAssertFalse(collection.websites.isEmpty)
+        for item in collection.projects + collection.websites {
+            XCTAssertTrue(slugs.contains(item.slug), "\(item.slug) missing from the drawer")
+        }
+        XCTAssertEqual(app.workIndex.allWork.count, slugs.count)
     }
 
     func testTheDrawerSwipeStandsDownInsideANavigationStack() {
