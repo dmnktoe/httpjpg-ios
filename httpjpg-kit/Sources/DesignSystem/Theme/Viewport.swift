@@ -14,16 +14,16 @@ public extension EnvironmentValues {
 public struct ViewportReader<Content: View>: View {
     private let content: Content
 
+    @State private var width = ViewportWidthKey.defaultValue
+
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
 
     public var body: some View {
-        GeometryReader { proxy in
-            content
-                .environment(\.viewportWidth, proxy.size.width)
-                .frame(width: proxy.size.width, height: proxy.size.height)
-        }
+        content
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width = $0 }
+            .environment(\.viewportWidth, width)
     }
 }
 
