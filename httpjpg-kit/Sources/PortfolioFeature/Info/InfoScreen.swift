@@ -27,12 +27,14 @@ struct InfoScreen: View {
                 }
                 .padding(.bottom, bottomBarClearance)
             }
+            .softScrollEdges()
             .refreshable {
                 await app.info.load(force: true)
                 await app.footerWidgets?.load()
             }
             .navigationTitle("info")
             .navigationBarTitleDisplayMode(.large)
+            .sidebarMenuToolbar()
             .navigationDestination(for: PageRoute.self) { route in
                 PageScreen(slug: route.slug, title: route.title)
             }

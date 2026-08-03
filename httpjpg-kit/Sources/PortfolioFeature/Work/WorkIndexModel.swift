@@ -29,6 +29,11 @@ final class WorkIndexModel {
         return items.filter { !selectedTags.isDisjoint(with: $0.tags) }
     }
 
+    var allProjects: [WorkItem] {
+        guard case .loaded(let collection) = state else { return [] }
+        return collection.projects
+    }
+
     var availableTags: [String] {
         guard case .loaded(let collection) = state else { return [] }
         var seen = Set<String>()

@@ -25,7 +25,7 @@ same Storyblok space the website reads. The website lives in a separate repo,
 | --- | --- |
 | `DesignSystem` | `@httpjpg/tokens` + `@httpjpg/ui` |
 | `StoryblokContent` | `storyblok-utils` + `-api` + `-richtext` + `-ui` |
-| `WidgetFeature` | widgets and Live Activities; linked by app *and* extension |
+| `WidgetFeature` | home-screen widgets and lock-screen accessories; linked by app *and* extension |
 | `PortfolioFeature` | `apps/portfolio` |
 
 Dependency direction is one-way: `DesignSystem` is a leaf, `StoryblokContent`

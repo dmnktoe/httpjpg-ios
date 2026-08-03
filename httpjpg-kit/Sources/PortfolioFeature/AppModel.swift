@@ -36,6 +36,8 @@ public final class AppModel {
     public var infoPath: [PageRoute] = []
 
     public var previewURL: URL?
+
+    public var isSidebarOpen = false
     public private(set) var config: SiteConfig = .fallback
 
     public private(set) var hasLoadedConfig = false
@@ -84,6 +86,22 @@ public final class AppModel {
     private func show(_ route: WorkRoute) {
         selectedTab = .work
         workPath = [route]
+        isSidebarOpen = false
+    }
+
+    func open(work item: WorkItem) {
+        show(WorkRoute(item: item))
+    }
+
+    func toggleSidebar() {
+        isSidebarOpen.toggle()
+    }
+
+    var isAtNavigationRoot: Bool {
+        switch selectedTab {
+        case .work: return workPath.isEmpty
+        case .info: return infoPath.isEmpty
+        }
     }
 
     public func select(tab: Tab) {
