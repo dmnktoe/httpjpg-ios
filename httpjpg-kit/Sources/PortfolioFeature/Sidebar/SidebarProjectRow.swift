@@ -29,7 +29,6 @@ struct SidebarProjectRow: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(year.map { "\($0), \(item.title)" } ?? item.title)
-        .accessibilityAddTraits(.isButton)
     }
 
     private var year: String? {
