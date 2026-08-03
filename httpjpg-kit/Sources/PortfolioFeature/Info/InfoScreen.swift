@@ -33,6 +33,7 @@ struct InfoScreen: View {
             }
             .navigationTitle("info")
             .navigationBarTitleDisplayMode(.large)
+            .sidebarMenuToolbar()
             .navigationDestination(for: PageRoute.self) { route in
                 PageScreen(slug: route.slug, title: route.title)
             }

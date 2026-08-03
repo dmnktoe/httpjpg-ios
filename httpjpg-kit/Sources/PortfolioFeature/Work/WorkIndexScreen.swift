@@ -14,6 +14,7 @@ struct WorkIndexScreen: View {
             content(app.workIndex)
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
+                .sidebarMenuToolbar()
                 .navigationDestination(for: WorkRoute.self) { route in
                     WorkDetailScreen(route: route)
                 }
