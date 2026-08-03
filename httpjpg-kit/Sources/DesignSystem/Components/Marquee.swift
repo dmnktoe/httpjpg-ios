@@ -2,6 +2,21 @@ import MarqueeLabel
 import SwiftUI
 import UIKit
 
+private struct MarqueeHeldKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// Set by an ancestor (e.g. a drag gesture) to freeze every marquee beneath it at its
+    /// home position instead of scrolling — MarqueeLabel restarts from scratch on every
+    /// layout pass, so continuous interactive layout changes (a swipe) would otherwise make
+    /// it look like the scroll keeps restarting.
+    var marqueeHeld: Bool {
+        get { self[MarqueeHeldKey.self] }
+        set { self[MarqueeHeldKey.self] = newValue }
+    }
+}
+
 public struct Marquee: View {
     public enum Speed: Sendable {
         case rate(CGFloat)
@@ -21,11 +36,13 @@ public struct Marquee: View {
     private let repeatCount: Int
     private let fadeLength: CGFloat
     private let trailingBuffer: CGFloat
+    private let pauseDuration: CGFloat
 
     private let color: Color?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
+    @Environment(\.marqueeHeld) private var isHeld
 
     public init(
         _ text: String,
@@ -35,6 +52,7 @@ public struct Marquee: View {
         repeatCount: Int = 3,
         fadeLength: CGFloat = 12,
         trailingBuffer: CGFloat = 32,
+        pauseDuration: CGFloat = 0,
         color: Color? = nil
     ) {
         self.text = text
@@ -44,6 +62,7 @@ public struct Marquee: View {
         self.repeatCount = max(repeatCount, 1)
         self.fadeLength = fadeLength
         self.trailingBuffer = trailingBuffer
+        self.pauseDuration = pauseDuration
         self.color = color
     }
 
@@ -56,7 +75,9 @@ public struct Marquee: View {
             isReversed: direction == .right,
             fadeLength: fadeLength,
             trailingBuffer: trailingBuffer,
-            isLabelized: reduceMotion
+            pauseDuration: pauseDuration,
+            isLabelized: reduceMotion,
+            isHeld: isHeld
         )
         .frame(height: font.lineHeight)
         .accessibilityElement()
@@ -82,7 +103,9 @@ private struct MarqueeLabelView: UIViewRepresentable {
     let isReversed: Bool
     let fadeLength: CGFloat
     let trailingBuffer: CGFloat
+    let pauseDuration: CGFloat
     let isLabelized: Bool
+    let isHeld: Bool
 
     struct Settings: Equatable {
         let text: String
@@ -92,7 +115,9 @@ private struct MarqueeLabelView: UIViewRepresentable {
         let isReversed: Bool
         let fadeLength: CGFloat
         let trailingBuffer: CGFloat
+        let pauseDuration: CGFloat
         let isLabelized: Bool
+        let isHeld: Bool
     }
 
     final class Coordinator {
@@ -106,7 +131,6 @@ private struct MarqueeLabelView: UIViewRepresentable {
     func makeUIView(context: Context) -> MarqueeLabel {
         let label = MarqueeLabel(frame: .zero, rate: rate, fadeLength: fadeLength)
         label.animationCurve = .linear
-        label.animationDelay = 0
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         apply(to: label, coordinator: context.coordinator)
@@ -130,7 +154,9 @@ private struct MarqueeLabelView: UIViewRepresentable {
             isReversed: isReversed,
             fadeLength: fadeLength,
             trailingBuffer: trailingBuffer,
-            isLabelized: isLabelized
+            pauseDuration: pauseDuration,
+            isLabelized: isLabelized,
+            isHeld: isHeld
         )
     }
 
@@ -146,7 +172,9 @@ private struct MarqueeLabelView: UIViewRepresentable {
         label.speed = .rate(rate)
         label.fadeLength = fadeLength
         label.trailingBuffer = trailingBuffer
+        label.animationDelay = pauseDuration
 
         label.labelize = isLabelized
+        label.holdScrolling = isHeld
     }
 }
