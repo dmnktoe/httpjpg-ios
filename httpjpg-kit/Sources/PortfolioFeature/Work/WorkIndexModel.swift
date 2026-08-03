@@ -29,6 +29,13 @@ final class WorkIndexModel {
         return items.filter { !selectedTags.isDisjoint(with: $0.tags) }
     }
 
+    var allWork: [WorkItem] {
+        guard case .loaded(let collection) = state else { return [] }
+        var seen = Set<String>()
+        return (collection.projects + collection.websites)
+            .filter { seen.insert($0.id).inserted }
+    }
+
     var availableTags: [String] {
         guard case .loaded(let collection) = state else { return [] }
         var seen = Set<String>()
@@ -60,6 +67,7 @@ final class WorkIndexModel {
             let collection = try await client.workIndex(refresh: force)
             state = .loaded(collection)
             QuickActionMenu.refresh(with: collection)
+            WorkSpotlightIndex.refresh(with: collection)
         } catch {
             guard !Task.isCancelled, !hadContent else { return }
             state = .failed(error.localizedDescription)

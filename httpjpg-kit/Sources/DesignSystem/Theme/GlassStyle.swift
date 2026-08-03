@@ -10,6 +10,25 @@ public extension View {
     }
 }
 
+public extension View {
+    func glassMorph(id: some Hashable, in namespace: Namespace.ID) -> some View {
+        modifier(GlassMorphModifier(id: id, namespace: namespace))
+    }
+}
+
+private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
+    let id: ID
+    let namespace: Namespace.ID
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffectID(id, in: namespace)
+        } else {
+            content
+        }
+    }
+}
+
 private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?

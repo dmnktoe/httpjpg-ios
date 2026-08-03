@@ -65,6 +65,7 @@ struct PageScreen: View {
                     .padding(.top, Spacing.s6)
                     .padding(.bottom, bottomBarClearance)
             }
+            .softScrollEdges()
             .pageTheme(theme)
             .pageSurface(theme)
         }

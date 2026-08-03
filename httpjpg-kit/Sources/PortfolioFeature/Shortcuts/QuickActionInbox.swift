@@ -13,8 +13,12 @@ final class QuickActionInbox {
     @discardableResult
     func post(_ item: UIApplicationShortcutItem) -> Bool {
         guard let action = QuickAction(item) else { return false }
-        pending = action
+        post(action)
         return true
+    }
+
+    func post(_ action: QuickAction) {
+        pending = action
     }
 
     func take() -> QuickAction? {

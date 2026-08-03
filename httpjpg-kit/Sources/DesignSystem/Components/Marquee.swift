@@ -51,7 +51,7 @@ public struct Marquee: View {
         MarqueeLabelView(
             text: String(repeating: text, count: repeatCount),
             font: font,
-            color: UIColor(color ?? theme.foreground),
+            color: color ?? theme.foreground,
             rate: resolvedRate,
             isReversed: direction == .right,
             fadeLength: fadeLength,
@@ -77,12 +77,31 @@ public struct Marquee: View {
 private struct MarqueeLabelView: UIViewRepresentable {
     let text: String
     let font: UIFont
-    let color: UIColor
+    let color: Color
     let rate: CGFloat
     let isReversed: Bool
     let fadeLength: CGFloat
     let trailingBuffer: CGFloat
     let isLabelized: Bool
+
+    struct Settings: Equatable {
+        let text: String
+        let font: UIFont
+        let color: Color
+        let rate: CGFloat
+        let isReversed: Bool
+        let fadeLength: CGFloat
+        let trailingBuffer: CGFloat
+        let isLabelized: Bool
+    }
+
+    final class Coordinator {
+        var applied: Settings?
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeUIView(context: Context) -> MarqueeLabel {
         let label = MarqueeLabel(frame: .zero, rate: rate, fadeLength: fadeLength)
@@ -90,23 +109,40 @@ private struct MarqueeLabelView: UIViewRepresentable {
         label.animationDelay = 0
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        apply(to: label)
+        apply(to: label, coordinator: context.coordinator)
         return label
     }
 
     func updateUIView(_ label: MarqueeLabel, context: Context) {
-        apply(to: label)
+        apply(to: label, coordinator: context.coordinator)
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: MarqueeLabel, context: Context) -> CGSize? {
         CGSize(width: proposal.width ?? 0, height: font.lineHeight)
     }
 
-    private func apply(to label: MarqueeLabel) {
+    private var settings: Settings {
+        Settings(
+            text: text,
+            font: font,
+            color: color,
+            rate: rate,
+            isReversed: isReversed,
+            fadeLength: fadeLength,
+            trailingBuffer: trailingBuffer,
+            isLabelized: isLabelized
+        )
+    }
+
+    private func apply(to label: MarqueeLabel, coordinator: Coordinator) {
+        let next = settings
+        guard coordinator.applied != next else { return }
+        coordinator.applied = next
+
         label.type = isReversed ? .continuousReverse : .continuous
         label.text = text
         label.font = font
-        label.textColor = color
+        label.textColor = UIColor(color)
         label.speed = .rate(rate)
         label.fadeLength = fadeLength
         label.trailingBuffer = trailingBuffer

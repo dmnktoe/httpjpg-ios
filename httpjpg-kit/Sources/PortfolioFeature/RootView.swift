@@ -1,3 +1,4 @@
+import CoreSpotlight
 import DesignSystem
 import StoryblokContent
 import SwiftUI
@@ -9,32 +10,32 @@ public struct RootView: View {
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
 
+    @Namespace private var chrome
+
     public init(configuration: StoryblokConfiguration) {
-        _model = State(initialValue: AppModel(configuration: configuration))
+        model = AppModel(configuration: configuration)
         NavigationBarStyle.install()
+        ImageCache.install()
         Telemetry.start()
     }
 
     public var body: some View {
+        @Bindable var model = model
         @Bindable var player = player
         return ViewportReader {
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: Spacing.s2) {
-                MiniPlayerBar(player: player, width: pillRowWidth)
-                TabBar(
-                    selection: model.selectedTab,
-                    previewURL: model.previewURL,
-                    onSelect: { model.select(tab: $0) },
-                    onRowWidthChange: { pillRowWidth = $0 }
-                )
+            SidebarContainer(
+                isOpen: $model.isSidebarOpen,
+                dragEnabled: model.isAtNavigationRoot
+            ) {
+                SidebarView()
+            } content: {
+                content
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .floatingBottomBar {
+                        bottomBar(player)
+                    }
+                    .background(theme.background)
             }
-
-            .animation(.smooth(duration: 0.2), value: player.track)
-            .animation(.smooth(duration: 0.2), value: pillRowWidth)
         }
         .pageTheme(theme)
         .pageSurface(theme)
@@ -50,6 +51,10 @@ public struct RootView: View {
             PlayerScreen(player: player)
         }
         .onOpenURL { model.open($0) }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            guard let slug = WorkSpotlightIndex.slug(from: activity) else { return }
+            QuickActionInbox.shared.post(.work(slug: slug, title: slug))
+        }
         .onChange(of: QuickActionInbox.shared.pending) { _, action in
             guard action != nil else { return }
             openPendingQuickAction()
@@ -63,6 +68,24 @@ public struct RootView: View {
     private func openPendingQuickAction() {
         guard let action = QuickActionInbox.shared.take() else { return }
         model.perform(action)
+    }
+
+    private func bottomBar(_ player: AudioPlayerModel) -> some View {
+        GlassGroup(spacing: Spacing.s2) {
+            VStack(spacing: Spacing.s2) {
+                MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
+                TabBar(
+                    selection: model.selectedTab,
+                    previewURL: model.previewURL,
+                    glass: chrome,
+                    onSelect: { model.select(tab: $0) },
+                    onRowWidthChange: { pillRowWidth = $0 }
+                )
+            }
+        }
+
+        .animation(.smooth(duration: 0.2), value: player.track)
+        .animation(.smooth(duration: 0.2), value: pillRowWidth)
     }
 
     @ViewBuilder
@@ -91,6 +114,8 @@ private struct TabBar: View {
 
     let previewURL: URL?
 
+    let glass: Namespace.ID
+
     let onSelect: (AppModel.Tab) -> Void
 
     let onRowWidthChange: (CGFloat) -> Void
@@ -99,26 +124,25 @@ private struct TabBar: View {
     private static let accent = BrutalButtonStyle.Variant.accent
 
     @Environment(\.openURL) private var openURL
+    @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     @State private var tapCount = 0
 
     var body: some View {
-        GlassGroup(spacing: Spacing.s2) {
-            HStack(spacing: Spacing.s2) {
-                ForEach(AppModel.Tab.allCases) { tab in
-                    pill(for: tab)
-                }
+        HStack(spacing: Spacing.s2) {
+            ForEach(AppModel.Tab.allCases) { tab in
+                pill(for: tab)
+            }
 
-                if let previewURL {
-                    previewPill(previewURL)
-                }
+            if let previewURL {
+                previewPill(previewURL)
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
-        .padding(.bottom, Spacing.s2)
+        .padding(.bottom, Spacing.s2 + safeAreaBottom)
     }
 
     private func pill(for tab: AppModel.Tab) -> some View {
@@ -134,7 +158,11 @@ private struct TabBar: View {
                 .minimumScaleFactor(0.7)
                 .frame(height: Self.labelHeight)
                 .foregroundStyle(isSelected ? Self.accent.label : Palette.white.opacity(0.9))
-                .glassPill(tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72))
+                .glassPill(
+                    tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72),
+                    morphID: tab.id,
+                    glass: glass
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.accessibilityLabel)
@@ -151,7 +179,9 @@ private struct TabBar: View {
                 .frame(height: Self.labelHeight)
                 .glassPill(
                     tint: Palette.white.opacity(0.65),
-                    stroke: Palette.neutral.s400.opacity(0.7)
+                    stroke: Palette.neutral.s400.opacity(0.7),
+                    morphID: "preview",
+                    glass: glass
                 )
         }
         .buttonStyle(.plain)
