@@ -58,10 +58,32 @@ struct SidebarView: View {
     }
 
     private var rows: some View {
-        ForEach(app.workIndex.allWork) { item in
-            row(for: item)
-            BrutalDivider(variant: .dotted)
+        ForEach(Array(app.workIndex.workByYear.enumerated()), id: \.element.id) { entry in
+            yearHeader(entry.element)
+                .padding(.top, entry.offset == 0 ? Spacing.s0 : Spacing.s5)
+                .padding(.bottom, Spacing.s1)
+
+            ForEach(entry.element.items) { item in
+                row(for: item)
+                BrutalDivider(variant: .dotted)
+            }
         }
+    }
+
+    private func yearHeader(_ group: WorkYearGroup) -> some View {
+        HStack(spacing: Spacing.s3) {
+            MonoText(
+                group.year,
+                size: Typography.Size.xs,
+                tracking: Typography.Size.xs * 0.2,
+                opacity: Opacities.subtle
+            )
+
+            BrutalDivider()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(group.accessibilityLabel)
+        .accessibilityAddTraits(.isHeader)
     }
 
     @ViewBuilder
