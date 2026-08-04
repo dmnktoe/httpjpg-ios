@@ -62,6 +62,10 @@ public struct WorkMedia: Hashable, Sendable {
 }
 
 public extension WorkItem {
+    func canonicalURL(siteOrigin: URL) -> URL {
+        siteOrigin.appending(path: fullSlug)
+    }
+
     init(story: Story<WorkBlok>) {
         let content = story.content
         let externalURL = content.link?.href.flatMap(URL.init(string:))
