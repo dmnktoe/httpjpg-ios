@@ -137,7 +137,11 @@ private struct TabBar: View {
             }
 
             if let previewURL {
-                previewPill(previewURL)
+                // Its own container: sharing the bottom bar's, the pill picks up the
+                // accent tint off the selected tab whenever the selection animates.
+                GlassGroup {
+                    previewPill(previewURL)
+                }
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
@@ -182,8 +186,7 @@ private struct TabBar: View {
                 .glassPill(tint: Self.idleFill)
         }
         .buttonStyle(.plain)
-        // Kept out of the morph namespace: inside it the pill interpolates with the tab
-        // pill taking the accent tint on a selection change and flashes as if selected.
+        // Out of the tab pills' morph namespace too — it never stands in for one of them.
         .transition(.scale.combined(with: .opacity))
         .accessibilityLabel("Open external preview")
     }
