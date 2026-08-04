@@ -86,5 +86,9 @@ private struct ForcedPageSurface: ViewModifier {
         return content
             .pageTheme(theme)
             .pageSurface(theme)
+            // The colorScheme environment doesn't reach the UIKit navigation
+            // bar or the status bar; without this a forced-dark page draws
+            // its title and status bar black-on-black in a light system.
+            .toolbarColorScheme(theme.colorScheme, for: .navigationBar)
     }
 }
