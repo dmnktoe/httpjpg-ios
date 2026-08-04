@@ -34,6 +34,11 @@ final class WorkIndexModel {
         var seen = Set<String>()
         return (collection.projects + collection.websites)
             .filter { seen.insert($0.id).inserted }
+            .sorted(by: WorkYearGroup.isNewer)
+    }
+
+    var workByYear: [WorkYearGroup] {
+        WorkYearGroup.groups(from: allWork)
     }
 
     var availableTags: [String] {

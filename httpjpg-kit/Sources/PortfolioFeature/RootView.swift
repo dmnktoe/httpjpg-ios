@@ -122,6 +122,8 @@ private struct TabBar: View {
 
     private static let labelHeight: CGFloat = 16
     private static let accent = BrutalButtonStyle.Variant.accent
+    private static let idleFill = Palette.black.opacity(0.72)
+    private static let idleLabel = Palette.white.opacity(0.9)
 
     @Environment(\.openURL) private var openURL
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
@@ -157,9 +159,9 @@ private struct TabBar: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Self.labelHeight)
-                .foregroundStyle(isSelected ? Self.accent.label : Palette.white.opacity(0.9))
+                .foregroundStyle(isSelected ? Self.accent.label : Self.idleLabel)
                 .glassPill(
-                    tint: isSelected ? Self.accent.fill : Palette.black.opacity(0.72),
+                    tint: isSelected ? Self.accent.fill : Self.idleFill,
                     morphID: tab.id,
                     glass: glass
                 )
@@ -175,11 +177,10 @@ private struct TabBar: View {
         } label: {
             Text("↗")
                 .font(Typography.mono(Typography.Size.md, weight: .bold))
-                .foregroundStyle(Palette.black)
+                .foregroundStyle(Self.idleLabel)
                 .frame(height: Self.labelHeight)
                 .glassPill(
-                    tint: Palette.white.opacity(0.65),
-                    stroke: Palette.neutral.s400.opacity(0.7),
+                    tint: Self.idleFill,
                     morphID: "preview",
                     glass: glass
                 )
