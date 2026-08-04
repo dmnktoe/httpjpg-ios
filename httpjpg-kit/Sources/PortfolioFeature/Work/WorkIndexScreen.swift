@@ -45,17 +45,20 @@ struct WorkIndexScreen: View {
             LazyVStack(alignment: .leading, spacing: Spacing.s8) {
                 masthead(model)
 
-                if model.isLoaded {
-                    rows(model)
-                        .id(model.variant)
-                } else {
-                    WorkListSkeleton()
+                FadeSwap(key: ListGeneration(
+                    isLoaded: model.isLoaded,
+                    variant: model.variant,
+                    tags: model.selectedTags
+                )) {
+                    if model.isLoaded {
+                        rows(model)
+                    } else {
+                        WorkListSkeleton()
+                    }
                 }
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, bottomBarClearance)
-            .animation(Motion.stateChange, value: model.isLoaded)
-            .animation(Motion.stateChange, value: model.variant)
         }
         .softScrollEdges()
         .refreshable { await model.load(force: true) }
@@ -123,4 +126,11 @@ struct WorkIndexScreen: View {
             .zoomTransitionSource(id: item.slug, in: cardZoom)
         }
     }
+}
+
+/// One crossfade generation per distinct filter state of the list.
+private struct ListGeneration: Hashable {
+    let isLoaded: Bool
+    let variant: MenuLink.Variant
+    let tags: Set<String>
 }

@@ -21,13 +21,15 @@ struct InfoScreen: View {
                     .padding(.horizontal, PageLayout.gutter)
                     .padding(.top, Spacing.s6)
 
-                    if let widgets = app.footerWidgets {
-                        InfoFooter(config: app.config, widgets: widgets)
+                    Group {
+                        if let widgets = app.footerWidgets {
+                            InfoFooter(config: app.config, widgets: widgets)
+                                .transition(.opacity)
+                        }
                     }
+                    .animation(Motion.stateChange, value: app.footerWidgets == nil)
                 }
                 .padding(.bottom, bottomBarClearance)
-                .animation(Motion.stateChange, value: app.info.isLoaded)
-                .animation(Motion.stateChange, value: app.footerWidgets == nil)
             }
             .softScrollEdges()
             .refreshable {
@@ -51,23 +53,26 @@ struct InfoScreen: View {
             InfoSectionLabel("pages")
                 .padding(.bottom, Spacing.s3)
 
-            switch app.info.state {
-            case .loaded(let summaries) where !summaries.isEmpty:
-                ForEach(summaries) { page in
-                    NavigationLink(value: PageRoute(page: page)) {
-                        InfoPageRow(page: page)
+            FadeSwap(key: app.info.isLoaded) {
+                VStack(alignment: .leading, spacing: 0) {
+                    switch app.info.state {
+                    case .loaded(let summaries) where !summaries.isEmpty:
+                        ForEach(summaries) { page in
+                            NavigationLink(value: PageRoute(page: page)) {
+                                InfoPageRow(page: page)
+                            }
+                            .buttonStyle(.plain)
+                            BrutalDivider(variant: .dotted)
+                        }
+                    case .loaded:
+                        MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
+                            .padding(.vertical, Spacing.s3)
+                    case .failed(let message):
+                        BodyText(message, size: .sm, emphasis: .muted)
+                    case .loading:
+                        InfoPagesSkeleton()
                     }
-                    .buttonStyle(.plain)
-                    BrutalDivider(variant: .dotted)
                 }
-            case .loaded:
-
-                MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
-                    .padding(.vertical, Spacing.s3)
-            case .failed(let message):
-                BodyText(message, size: .sm, emphasis: .muted)
-            case .loading:
-                InfoPagesSkeleton()
             }
         }
     }
