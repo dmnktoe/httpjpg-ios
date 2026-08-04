@@ -78,8 +78,7 @@ struct WorkDetailScreen: View {
     }
 
     private func loaded(_ detail: WorkDetail) -> some View {
-        let theme = detail.isDark ? PageTheme.dark : PageTheme.light
-        return ScrollView {
+        ScrollView {
             VStack(alignment: .leading, spacing: Spacing.s6) {
                 BlokListView(detail.body, appliesPageGutter: true)
 
@@ -92,8 +91,7 @@ struct WorkDetailScreen: View {
             .padding(.bottom, bottomBarClearance)
         }
         .softScrollEdges()
-        .pageTheme(theme)
-        .pageSurface(theme)
+        .pageSurface(forcingDark: detail.isDark)
     }
 
     @ViewBuilder

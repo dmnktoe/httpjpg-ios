@@ -37,6 +37,11 @@ public struct RootView: View {
                     .background(theme.background)
             }
         }
+        // Anchored below the theme modifiers so the presented sheet inherits
+        // the page theme through the environment.
+        .sheet(isPresented: $player.isExpanded) {
+            PlayerScreen(player: player)
+        }
         .pageTheme(theme)
         .pageSurface(theme)
         .environment(\.bottomBarClearance, bottomBarClearance)
@@ -46,9 +51,6 @@ public struct RootView: View {
         .environment(\.playAudioTrack) {
             Telemetry.signal("player.played")
             player.play($0)
-        }
-        .sheet(isPresented: $player.isExpanded) {
-            PlayerScreen(player: player)
         }
         .onOpenURL { model.open($0) }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in

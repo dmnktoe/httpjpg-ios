@@ -13,8 +13,7 @@ struct TabBar: View {
 
     let onRowWidthChange: (CGFloat) -> Void
 
-    private static let accent = BrutalButtonStyle.Variant.accent
-
+    @Environment(\.pageTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
@@ -49,8 +48,8 @@ struct TabBar: View {
 
         return ChromePillButton(
             text: tab.label,
-            tint: isSelected ? Self.accent.fill : ChromeStyle.idleFill,
-            labelColor: isSelected ? Self.accent.label : ChromeStyle.idleLabel,
+            tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
+            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
             morphID: tab.id,
             glass: glass
         ) {
@@ -65,8 +64,8 @@ struct TabBar: View {
         ChromePillButton(
             text: "↗",
             font: Typography.mono(Typography.Size.md, weight: .bold),
-            tint: ChromeStyle.idleFill,
-            labelColor: ChromeStyle.idleLabel,
+            tint: theme.chromeFill,
+            labelColor: theme.chromeLabel,
             morphID: "preview",
             glass: glass
         ) {

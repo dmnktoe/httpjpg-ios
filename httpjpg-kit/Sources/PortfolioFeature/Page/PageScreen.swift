@@ -50,15 +50,13 @@ struct PageScreen: View {
 
     @ViewBuilder
     private func document(_ page: PageDocument) -> some View {
-        let theme = page.isDark ? PageTheme.dark : PageTheme.light
         if page.body.isEmpty {
             AsciiState(
                 art: Ascii.ghost,
                 label: "Nothing to render",
                 message: "\"\(page.title)\" has no bloks this app knows how to draw yet."
             )
-            .pageTheme(theme)
-            .pageSurface(theme)
+            .pageSurface(forcingDark: page.isDark)
         } else {
             ScrollView {
                 BlokListView(page.body, appliesPageGutter: true)
@@ -66,8 +64,7 @@ struct PageScreen: View {
                     .padding(.bottom, bottomBarClearance)
             }
             .softScrollEdges()
-            .pageTheme(theme)
-            .pageSurface(theme)
+            .pageSurface(forcingDark: page.isDark)
         }
     }
 }
