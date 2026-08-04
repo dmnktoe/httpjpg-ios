@@ -34,11 +34,8 @@ struct WorkDetailScreen: View {
                 await model?.load()
             }
 
-            if !Task.isCancelled {
-                app.previewURL = externalPreviewURL
-            }
+            app.registerPreviewURL(externalPreviewURL, for: route.slug)
         }
-        .onDisappear { app.previewURL = nil }
     }
 
     private var externalPreviewURL: URL? {

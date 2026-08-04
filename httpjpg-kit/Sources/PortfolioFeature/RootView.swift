@@ -83,18 +83,24 @@ public struct RootView: View {
                 )
             }
         }
-
-        .animation(.smooth(duration: 0.2), value: player.track)
-        .animation(.smooth(duration: 0.2), value: pillRowWidth)
+        .animation(Motion.navigate, value: player.track)
+        // No animation on pillRowWidth: it is measured from the already-animated
+        // pill row, and re-animating the measurement made the player bar lag and
+        // flicker behind it.
     }
 
-    @ViewBuilder
     private var content: some View {
-        switch model.selectedTab {
-        case .work:
-            WorkIndexScreen()
-        case .info:
-            InfoScreen()
+        TabSwitcher(
+            tabs: AppModel.Tab.allCases,
+            selection: model.selectedTab,
+            mounted: model.visitedTabs
+        ) { tab in
+            switch tab {
+            case .work:
+                WorkIndexScreen()
+            case .info:
+                InfoScreen()
+            }
         }
     }
 
@@ -106,86 +112,5 @@ public struct RootView: View {
         player.track == nil
             ? BottomBarClearance.tabBar
             : BottomBarClearance.tabBar + BottomBarClearance.miniPlayer
-    }
-}
-
-private struct TabBar: View {
-    let selection: AppModel.Tab
-
-    let previewURL: URL?
-
-    let glass: Namespace.ID
-
-    let onSelect: (AppModel.Tab) -> Void
-
-    let onRowWidthChange: (CGFloat) -> Void
-
-    private static let labelHeight: CGFloat = 16
-    private static let accent = BrutalButtonStyle.Variant.accent
-    private static let idleFill = Palette.black.opacity(0.72)
-    private static let idleLabel = Palette.white.opacity(0.9)
-
-    @Environment(\.openURL) private var openURL
-    @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
-
-    @State private var tapCount = 0
-
-    var body: some View {
-        HStack(spacing: Spacing.s2) {
-            ForEach(AppModel.Tab.allCases) { tab in
-                pill(for: tab)
-            }
-
-            if let previewURL {
-                previewPill(previewURL)
-            }
-        }
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
-        .sensoryFeedback(.selection, trigger: tapCount)
-        .animation(.smooth(duration: 0.35), value: previewURL)
-        .padding(.horizontal, PageLayout.gutter)
-        .padding(.bottom, Spacing.s2 + safeAreaBottom)
-    }
-
-    private func pill(for tab: AppModel.Tab) -> some View {
-        let isSelected = selection == tab
-
-        return Button {
-            tapCount += 1
-            withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
-        } label: {
-            Text(tab.label)
-                .font(Typography.mono(Typography.Size.xs))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(height: Self.labelHeight)
-                .foregroundStyle(isSelected ? Self.accent.label : Self.idleLabel)
-                .glassPill(
-                    tint: isSelected ? Self.accent.fill : Self.idleFill,
-                    morphID: tab.id,
-                    glass: glass
-                )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(tab.accessibilityLabel)
-        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
-    }
-
-    private func previewPill(_ url: URL) -> some View {
-        Button {
-            openURL(url)
-        } label: {
-            Text("↗")
-                .font(Typography.mono(Typography.Size.md, weight: .bold))
-                .foregroundStyle(Self.idleLabel)
-                .frame(height: Self.labelHeight)
-                .glassPill(
-                    tint: Self.idleFill,
-                    morphID: "preview",
-                    glass: glass
-                )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Open external preview")
     }
 }

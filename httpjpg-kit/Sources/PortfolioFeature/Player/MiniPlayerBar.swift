@@ -9,9 +9,6 @@ struct MiniPlayerBar: View {
 
     let glass: Namespace.ID
 
-    private static let tint = Palette.black.opacity(0.72)
-    private static let labelColor = Palette.white.opacity(0.9)
-
     private static let rowHeight: CGFloat = 32
 
     static let height: CGFloat = rowHeight + Spacing.s2 * 2
@@ -27,7 +24,7 @@ struct MiniPlayerBar: View {
                     marqueeText(track),
                     font: Typography.uiMono(Typography.Size.xs),
                     speed: .rate(20),
-                    color: Self.labelColor
+                    color: ChromeStyle.idleLabel
                 )
                 .frame(maxWidth: .infinity)
 
@@ -41,7 +38,7 @@ struct MiniPlayerBar: View {
                         .contentShape(Rectangle())
 
                         .contentTransition(.opacity)
-                        .animation(.easeOut(duration: 0.1), value: player.isPlaying)
+                        .animation(Motion.pressed, value: player.isPlaying)
                 }
                 .buttonStyle(.plain)
                 .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
@@ -59,13 +56,12 @@ struct MiniPlayerBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Stop playback")
             }
-            .foregroundStyle(Self.labelColor)
+            .foregroundStyle(ChromeStyle.idleLabel)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)
-            .glassBackground(in: .capsule, tint: Self.tint)
+            .glassBackground(in: .capsule, tint: ChromeStyle.idleFill)
             .glassMorph(id: "player", in: glass)
-
             .clipShape(Capsule())
             .overlay(Capsule().stroke(Palette.neutral.s400.opacity(0.6), lineWidth: 1))
             .contentShape(Capsule())
@@ -78,6 +74,8 @@ struct MiniPlayerBar: View {
                 }
             )
             .padding(.horizontal, width > 0 ? 0 : PageLayout.gutter)
+            // Same entrance as the preview pill, so chrome appears uniformly.
+            .transition(.blurReplace)
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Opens the full player")
         }

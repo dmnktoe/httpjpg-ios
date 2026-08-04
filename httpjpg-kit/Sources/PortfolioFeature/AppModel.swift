@@ -29,13 +29,32 @@ public final class AppModel {
     }
 
     public let client: ContentClient
-    public var selectedTab: Tab = .work
+    public var selectedTab: Tab = .work {
+        didSet { visitedTabs.insert(selectedTab) }
+    }
+
+    /// Tabs that have been shown at least once. RootView keeps their roots
+    /// mounted so switching back doesn't rebuild the stack (and flicker).
+    private(set) var visitedTabs: Set<Tab> = [.work]
 
     public var workPath: [WorkRoute] = []
 
     public var infoPath: [PageRoute] = []
 
-    public var previewURL: URL?
+    /// External preview links, keyed by work slug. The visible URL is derived
+    /// from the top of the work path instead of being set and cleared by the
+    /// detail screens — appear/disappear order is not guaranteed on push and
+    /// pop, and the imperative version made the preview pill blink.
+    private var previewURLs: [String: URL] = [:]
+
+    public var previewURL: URL? {
+        guard selectedTab == .work, let slug = workPath.last?.slug else { return nil }
+        return previewURLs[slug]
+    }
+
+    func registerPreviewURL(_ url: URL?, for slug: String) {
+        previewURLs[slug] = url
+    }
 
     public var isSidebarOpen = false
     public private(set) var config: SiteConfig = .fallback
