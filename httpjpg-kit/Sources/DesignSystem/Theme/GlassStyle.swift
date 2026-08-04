@@ -16,15 +16,39 @@ public extension View {
     }
 }
 
+public extension View {
+    /// Entrance/exit for glass chrome that appears and disappears. On iOS 26
+    /// the container already morphs the shape out of its neighbours (see
+    /// glassMorph), so only the content crossfades; earlier systems get a
+    /// blur-replace stand-in.
+    func glassReveal() -> some View {
+        modifier(GlassRevealModifier())
+    }
+}
+
 private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
     let id: ID
     let namespace: Namespace.ID
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.glassEffectID(id, in: namespace)
+            content
+                .glassEffectID(id, in: namespace)
+                // Morph out of neighbouring glass instead of materializing in
+                // place when the element enters or leaves the container.
+                .glassEffectTransition(.matchedGeometry)
         } else {
             content
+        }
+    }
+}
+
+private struct GlassRevealModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.transition(.opacity)
+        } else {
+            content.transition(.blurReplace)
         }
     }
 }

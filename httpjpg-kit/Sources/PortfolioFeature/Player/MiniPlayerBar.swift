@@ -75,7 +75,7 @@ struct MiniPlayerBar: View {
             )
             .padding(.horizontal, width > 0 ? 0 : PageLayout.gutter)
             // Same entrance as the preview pill, so chrome appears uniformly.
-            .transition(.blurReplace)
+            .glassReveal()
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Opens the full player")
         }

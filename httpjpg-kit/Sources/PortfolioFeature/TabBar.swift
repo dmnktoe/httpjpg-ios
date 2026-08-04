@@ -28,7 +28,7 @@ struct TabBar: View {
 
             if let previewURL {
                 previewPill(previewURL)
-                    .transition(.blurReplace)
+                    .glassReveal()
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
@@ -37,7 +37,9 @@ struct TabBar: View {
         // to drag the whole glass container into the transition and flicker
         // the pills on every switch.
         .animation(Motion.navigate, value: selection)
-        .animation(Motion.navigate, value: previewURL)
+        // Full liquid entrance on the way in; quick exit so the pill doesn't
+        // cling to the bar after a pop back to the index.
+        .animation(previewURL == nil ? Motion.stateChange : Motion.navigate, value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)
     }
