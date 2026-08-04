@@ -136,7 +136,10 @@ private struct TabBar: View {
                 pill(for: tab)
             }
 
-            if let previewURL {
+            // Work-detail chrome, so it only stands with the work tab. The URL itself is
+            // left alone — the detail screen doesn't run its task again on the way back,
+            // and switching tabs would otherwise strand the arrow for good.
+            if let previewURL, selection == .work {
                 // Its own container: sharing the bottom bar's, the pill picks up the
                 // accent tint off the selected tab whenever the selection animates.
                 GlassGroup {
@@ -186,8 +189,9 @@ private struct TabBar: View {
                 .glassPill(tint: Self.idleFill)
         }
         .buttonStyle(.plain)
-        // Out of the tab pills' morph namespace too — it never stands in for one of them.
-        .transition(.scale.combined(with: .opacity))
+        // In and out with no transition of its own: the tab it belongs to switches under
+        // it, and a pill fading through that carries the selection tint with it.
+        .transition(.identity)
         .accessibilityLabel("Open external preview")
     }
 }
