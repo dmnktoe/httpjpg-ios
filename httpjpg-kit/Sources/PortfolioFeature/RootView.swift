@@ -79,7 +79,6 @@ public struct RootView: View {
                     previewURL: model.previewURL,
                     glass: chrome,
                     onSelect: { model.select(tab: $0) },
-                    onDismissPreview: { model.previewURL = nil },
                     onRowWidthChange: { pillRowWidth = $0 }
                 )
             }
@@ -119,8 +118,6 @@ private struct TabBar: View {
 
     let onSelect: (AppModel.Tab) -> Void
 
-    let onDismissPreview: () -> Void
-
     let onRowWidthChange: (CGFloat) -> Void
 
     private static let labelHeight: CGFloat = 16
@@ -155,14 +152,6 @@ private struct TabBar: View {
 
         return Button {
             tapCount += 1
-            // The arrow is work-detail chrome, but the detail screen only clears it on
-            // disappear — a frame into the tab switch. Left in the glass container that
-            // long it flows into the pill taking the accent tint and flashes selected.
-            if !isSelected {
-                var instant = Transaction()
-                instant.disablesAnimations = true
-                withTransaction(instant, onDismissPreview)
-            }
             withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
         } label: {
             Text(tab.label)
@@ -190,13 +179,12 @@ private struct TabBar: View {
                 .font(Typography.mono(Typography.Size.md, weight: .bold))
                 .foregroundStyle(Self.idleLabel)
                 .frame(height: Self.labelHeight)
-                .glassPill(
-                    tint: Self.idleFill,
-                    morphID: "preview",
-                    glass: glass
-                )
+                .glassPill(tint: Self.idleFill)
         }
         .buttonStyle(.plain)
+        // Kept out of the morph namespace: inside it the pill interpolates with the tab
+        // pill taking the accent tint on a selection change and flashes as if selected.
+        .transition(.scale.combined(with: .opacity))
         .accessibilityLabel("Open external preview")
     }
 }
