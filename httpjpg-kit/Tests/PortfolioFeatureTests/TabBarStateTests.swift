@@ -38,6 +38,17 @@ final class TabBarStateTests: XCTestCase {
         app.select(tab: .work)
 
         XCTAssertTrue(app.workPath.isEmpty)
+        XCTAssertEqual(app.scrollToTopTick(for: .work), 0)
+    }
+
+    func testReselectingAtTheRootScrollsToTopInsteadOfPopping() {
+        let app = makeApp()
+
+        app.select(tab: .work)
+        app.select(tab: .work)
+
+        XCTAssertEqual(app.scrollToTopTick(for: .work), 2)
+        XCTAssertEqual(app.scrollToTopTick(for: .info), 0)
     }
 
     // MARK: - Preview pill URL (derived, not set/cleared imperatively)

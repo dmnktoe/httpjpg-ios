@@ -123,14 +123,32 @@ public final class AppModel {
         }
     }
 
+    /// Bumped when re-selecting a tab that is already at its root; the tab's
+    /// scroll view scrolls back to the top in response.
+    private(set) var scrollToTopTicks: [Tab: Int] = [:]
+
+    func scrollToTopTick(for tab: Tab) -> Int {
+        scrollToTopTicks[tab] ?? 0
+    }
+
     public func select(tab: Tab) {
         guard tab == selectedTab else {
             selectedTab = tab
             return
         }
         switch tab {
-        case .work: workPath.removeAll()
-        case .info: infoPath.removeAll()
+        case .work:
+            if workPath.isEmpty {
+                scrollToTopTicks[.work, default: 0] += 1
+            } else {
+                workPath.removeAll()
+            }
+        case .info:
+            if infoPath.isEmpty {
+                scrollToTopTicks[.info, default: 0] += 1
+            } else {
+                infoPath.removeAll()
+            }
         }
     }
 }

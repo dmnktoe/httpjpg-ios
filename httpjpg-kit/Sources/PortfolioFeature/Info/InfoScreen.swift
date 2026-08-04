@@ -10,31 +10,8 @@ struct InfoScreen: View {
     var body: some View {
         @Bindable var app = app
         return NavigationStack(path: $app.infoPath) {
-            ScrollView {
-                VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: Spacing.s8) {
-                        pages
-                        InfoLinksSection(links: app.config.headerMenu)
-                    }
-
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, PageLayout.gutter)
-                    .padding(.top, Spacing.s6)
-
-                    Group {
-                        if let widgets = app.footerWidgets {
-                            InfoFooter(config: app.config, widgets: widgets)
-                                .transition(.opacity)
-                        }
-                    }
-                    .animation(Motion.stateChange, value: app.footerWidgets == nil)
-                }
-                .padding(.bottom, bottomBarClearance)
-            }
-            .softScrollEdges()
-            .refreshable {
-                await app.info.load(force: true)
-                await app.footerWidgets?.load()
+            ScrollToTopReader(tick: app.scrollToTopTick(for: .info)) {
+                infoList
             }
             .navigationTitle("info")
             .navigationBarTitleDisplayMode(.large)
@@ -45,6 +22,35 @@ struct InfoScreen: View {
         }
         .task { await app.info.load() }
         .task(id: app.hasLoadedConfig) { await app.loadFooterWidgets() }
+    }
+
+    private var infoList: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: Spacing.s8) {
+                    pages
+                    InfoLinksSection(links: app.config.headerMenu)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, PageLayout.gutter)
+                .padding(.top, Spacing.s6)
+
+                Group {
+                    if let widgets = app.footerWidgets {
+                        InfoFooter(config: app.config, widgets: widgets)
+                            .transition(.opacity)
+                    }
+                }
+                .animation(Motion.stateChange, value: app.footerWidgets == nil)
+            }
+            .padding(.bottom, bottomBarClearance)
+            .scrollToTopAnchor()
+        }
+        .softScrollEdges()
+        .refreshable {
+            await app.info.load(force: true)
+            await app.footerWidgets?.load()
+        }
     }
 
     @ViewBuilder
