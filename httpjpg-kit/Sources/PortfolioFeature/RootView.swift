@@ -149,6 +149,7 @@ private struct TabBar: View {
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
+        .animation(.smooth(duration: 0.35), value: selection)
         .animation(.smooth(duration: 0.35), value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)
@@ -159,7 +160,10 @@ private struct TabBar: View {
 
         return Button {
             tapCount += 1
-            withAnimation(.smooth(duration: 0.35)) { onSelect(tab) }
+            // Deliberately unanimated: animating the selection cross-fades the two pages
+            // under the bar, and the glass spends the whole fade sampling both at once,
+            // which reads as flat and washed out. The row animates itself instead.
+            onSelect(tab)
         } label: {
             Text(tab.label)
                 .font(Typography.mono(Typography.Size.xs))
