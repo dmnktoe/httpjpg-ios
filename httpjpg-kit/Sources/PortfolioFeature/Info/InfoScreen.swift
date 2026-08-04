@@ -26,6 +26,8 @@ struct InfoScreen: View {
                     }
                 }
                 .padding(.bottom, bottomBarClearance)
+                .animation(Motion.stateChange, value: app.info.isLoaded)
+                .animation(Motion.stateChange, value: app.footerWidgets == nil)
             }
             .softScrollEdges()
             .refreshable {

@@ -101,7 +101,7 @@ struct PlayerScreen: View {
                     .contentShape(Rectangle())
 
                     .contentTransition(.opacity)
-                    .animation(.easeOut(duration: 0.1), value: player.isPlaying)
+                    .animation(Motion.pressed, value: player.isPlaying)
             }
             .buttonStyle(.plain)
 

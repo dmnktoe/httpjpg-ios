@@ -18,7 +18,7 @@ struct VariantPicker: View {
                 Spacer(minLength: 0)
             }
         }
-        .animation(.smooth(duration: 0.2), value: selection)
+        .animation(Motion.stateChange, value: selection)
         .sensoryFeedback(.selection, trigger: selection)
     }
 

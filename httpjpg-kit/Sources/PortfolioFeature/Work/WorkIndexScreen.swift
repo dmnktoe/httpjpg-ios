@@ -54,6 +54,8 @@ struct WorkIndexScreen: View {
             }
             .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, bottomBarClearance)
+            .animation(Motion.stateChange, value: model.isLoaded)
+            .animation(Motion.stateChange, value: model.variant)
         }
         .softScrollEdges()
         .refreshable { await model.load(force: true) }
@@ -98,7 +100,7 @@ struct WorkIndexScreen: View {
             }
         }
         .padding(.top, Spacing.s2)
-        .animation(.smooth(duration: 0.2), value: model.availableTags)
+        .animation(Motion.stateChange, value: model.availableTags)
     }
 
     @ViewBuilder
