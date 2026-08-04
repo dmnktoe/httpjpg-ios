@@ -32,11 +32,12 @@ private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content
-                .glassEffectID(id, in: namespace)
-                // Morph out of neighbouring glass instead of materializing in
-                // place when the element enters or leaves the container.
-                .glassEffectTransition(.matchedGeometry)
+            // Deliberately the default materialize transition, not
+            // matchedGeometry: the morph blends a departing pill into its
+            // nearest neighbour, and when a tab switch recolors that
+            // neighbour in the same transaction the pill flashed white and
+            // clipped out hard.
+            content.glassEffectID(id, in: namespace)
         } else {
             content
         }
