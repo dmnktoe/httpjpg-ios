@@ -60,9 +60,16 @@ final class SidebarTests: XCTestCase {
         await app.workIndex.load()
 
         let groups = app.workIndex.workByYear
-        XCTAssertEqual(groups.map(\.year), groups.map(\.year).sorted(by: >))
-        XCTAssertEqual(groups.map(\.year).count, Set(groups.map(\.year)).count)
+        let years = groups.map(\.year)
+        // The undated placeholder sorts ahead of digits, so only the dated years get the order check.
+        let dated = years.filter { $0 != WorkYearGroup.undatedYear }
+
+        XCTAssertEqual(dated, dated.sorted(by: >))
+        XCTAssertEqual(years.count, Set(years).count)
         XCTAssertEqual(groups.flatMap(\.items), app.workIndex.allWork)
+        if years.contains(WorkYearGroup.undatedYear) {
+            XCTAssertEqual(years.last, WorkYearGroup.undatedYear)
+        }
     }
 
     func testUndatedWorkTrailsTheDatedYears() {
