@@ -22,12 +22,22 @@ struct PageScreen: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        // toolbarColorScheme doesn't reach the status bar when the bar is
+        // transparent; forcing the scheme does. Tied to the selected tab
+        // because the stack stays mounted across tab switches — a hidden
+        // dark page must not keep the whole scene dark.
+        .preferredColorScheme(forcesDark ? .dark : nil)
         .task {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)
                 await model?.load()
             }
         }
+    }
+
+    private var forcesDark: Bool {
+        guard let model, case .loaded(let page) = model.state else { return false }
+        return page.isDark && app.selectedTab == .info
     }
 
     @ViewBuilder

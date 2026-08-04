@@ -36,11 +36,9 @@ struct TabBar: View {
         // to drag the whole glass container into the transition and flicker
         // the pills on every switch.
         .animation(Motion.navigate, value: selection)
-        // Quick exit only when the pill leaves on a pop within the work tab —
-        // it shouldn't cling to the bar on the way back to the index. When a
-        // tab switch hides it, everything shares the navigate timing so the
-        // row doesn't reflow out of step with the crossfade.
-        .animation(selection == .work && previewURL == nil ? Motion.stateChange : Motion.navigate, value: previewURL)
+        // Exits always match the pop back to the index — a quick fade — while
+        // the entrance keeps the slower liquid timing.
+        .animation(previewURL == nil ? Motion.stateChange : Motion.navigate, value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)
     }

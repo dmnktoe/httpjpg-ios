@@ -20,6 +20,11 @@ struct WorkDetailScreen: View {
         }
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
+        // toolbarColorScheme doesn't reach the status bar when the bar is
+        // transparent; forcing the scheme does. Tied to the selected tab
+        // because the stack stays mounted across tab switches — a hidden
+        // dark page must not keep the whole scene dark.
+        .preferredColorScheme(forcesDark ? .dark : nil)
         .toolbar {
             if let shareURL {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -49,6 +54,10 @@ struct WorkDetailScreen: View {
     private var loadedDetail: WorkDetail? {
         guard let model, case .loaded(let detail) = model.state else { return nil }
         return detail
+    }
+
+    private var forcesDark: Bool {
+        loadedDetail?.isDark == true && app.selectedTab == .work
     }
 
     private var navigationTitle: String {
