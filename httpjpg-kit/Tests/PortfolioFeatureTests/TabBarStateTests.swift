@@ -52,14 +52,16 @@ final class TabBarStateTests: XCTestCase {
         XCTAssertEqual(app.previewURL, url)
     }
 
-    func testThePreviewURLStaysAcrossTabSwitchesLikeTheMiniPlayer() throws {
+    func testThePreviewURLHidesOffTheWorkTabAndComesBackWithIt() throws {
         let app = makeApp()
         let url = try XCTUnwrap(URL(string: "https://example.com"))
         app.perform(.work(slug: "atlas", title: "ATLAS"))
         app.registerPreviewURL(url, for: "atlas")
 
         app.select(tab: .info)
+        XCTAssertNil(app.previewURL)
 
+        app.select(tab: .work)
         XCTAssertEqual(app.previewURL, url)
     }
 

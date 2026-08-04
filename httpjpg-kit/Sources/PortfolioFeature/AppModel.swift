@@ -45,12 +45,10 @@ public final class AppModel {
     /// from the top of the work path instead of being set and cleared by the
     /// detail screens — appear/disappear order is not guaranteed on push and
     /// pop, and the imperative version made the preview pill blink.
-    /// Like the mini player, the pill stays up across tab switches: hiding it
-    /// per tab made the pill row reflow in the middle of the tab crossfade.
     private var previewURLs: [String: URL] = [:]
 
     public var previewURL: URL? {
-        guard let slug = workPath.last?.slug else { return nil }
+        guard selectedTab == .work, let slug = workPath.last?.slug else { return nil }
         return previewURLs[slug]
     }
 
