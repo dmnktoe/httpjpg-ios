@@ -205,6 +205,56 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(blok.images[0].isVideo)
     }
 
+    func testVideoBlokReadsTheUploadedFileFromTheCmsFieldName() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v1","component":"video","source":"native","videoUrl":"","aspectRatio":"4/3",
+         "video":{"filename":"https://a.storyblok.com/f/1/x/clip.mp4",
+                  "content_type":"video/mp4","copyright":"© dmnktoe"},
+         "poster":{"filename":"https://a.storyblok.com/f/1/1200x900/x/still.jpg"},
+         "controls":"false","autoPlay":"true","loop":true,"muted":"1"}
+        """)
+        XCTAssertEqual(blok.nativeURL?.absoluteString, "https://a.storyblok.com/f/1/x/clip.mp4")
+        XCTAssertNil(blok.embedURL)
+        XCTAssertEqual(blok.copyright, "© dmnktoe")
+        XCTAssertNotNil(blok.poster)
+        XCTAssertFalse(blok.showsControls)
+        XCTAssertTrue(blok.autoPlays)
+        XCTAssertTrue(blok.loops)
+        XCTAssertTrue(blok.isMuted)
+        XCTAssertEqual(blok.aspectRatio ?? 0, 4.0 / 3.0, accuracy: 0.0001)
+    }
+
+    func testVideoControlsStayOnWhenThePlaybackTabWasNeverTouched() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v2","component":"video",
+         "video":{"filename":"https://a.storyblok.com/f/1/x/clip.mp4"}}
+        """)
+        XCTAssertEqual(blok.source, "native")
+        XCTAssertTrue(blok.showsControls)
+        XCTAssertFalse(blok.autoPlays)
+        XCTAssertFalse(blok.loops)
+        XCTAssertFalse(blok.isMuted)
+    }
+
+    func testEmbedVideoIgnoresAStaleUploadedFile() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v3","component":"video","source":"youtube",
+         "videoUrl":"https://youtu.be/dQw4w9WgXcQ",
+         "video":{"filename":"https://a.storyblok.com/f/1/x/stale.mp4"}}
+        """)
+        XCTAssertNil(blok.nativeURL)
+        XCTAssertEqual(blok.embedURL?.absoluteString, "https://youtu.be/dQw4w9WgXcQ")
+    }
+
+    func testNativeVideoFallsBackToTheUrlFieldWithoutAnUpload() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v4","component":"video","source":"native",
+         "videoUrl":"https://cdn.example.com/clip.mp4",
+         "video":{"id":null,"filename":null,"fieldtype":"asset"}}
+        """)
+        XCTAssertEqual(blok.nativeURL?.absoluteString, "https://cdn.example.com/clip.mp4")
+    }
+
     func testWorkBlokDecodesEveryField() throws {
         let blok = try decode(WorkBlok.self, """
         {"_uid":"w1","component":"work","title":"Atlas","date":"2024-06-15 00:00",

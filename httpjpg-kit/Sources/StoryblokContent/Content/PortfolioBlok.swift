@@ -596,15 +596,23 @@ public struct VideoBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
 
+    public let source: String
     public let asset: StoryblokAsset?
 
     public let videoURL: String?
     public let poster: StoryblokAsset?
     public let caption: RichTextNode?
     public let aspectRatio: CGFloat?
+    public let copyrightPosition: String?
+
+    public let showsControls: Bool
+    public let autoPlays: Bool
+    public let loops: Bool
+    public let isMuted: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case videoAsset, videoUrl, poster, caption, aspectRatio
+        case video, videoUrl, source, poster, caption, aspectRatio, copyrightPosition
+        case controls, autoPlay, loop, muted
     }
 
     public init(from decoder: any Decoder) throws {
@@ -612,21 +620,38 @@ public struct VideoBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         spacing = envelope.spacing
-        let uploaded = container.cmsValue(StoryblokAsset.self, forKey: .videoAsset)
+        source = container.cmsString(forKey: .source) ?? "native"
+        let uploaded = container.cmsValue(StoryblokAsset.self, forKey: .video)
         asset = uploaded?.isEmpty == false ? uploaded : nil
         videoURL = container.cmsString(forKey: .videoUrl)
         let posterAsset = container.cmsValue(StoryblokAsset.self, forKey: .poster)
         poster = posterAsset?.isEmpty == false ? posterAsset : nil
         caption = container.cmsValue(RichTextNode.self, forKey: .caption)
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+        copyrightPosition = container.cmsString(forKey: .copyrightPosition)
+        showsControls = container.cmsBool(forKey: .controls, default: true)
+        autoPlays = container.cmsBool(forKey: .autoPlay)
+        loops = container.cmsBool(forKey: .loop)
+        isMuted = container.cmsBool(forKey: .muted)
     }
 
-    public var assetURL: URL? {
-        asset?.filename.flatMap(URL.init(string:))
+    public var isEmbed: Bool { source == "youtube" || source == "vimeo" }
+
+    /// Mirrors the web `resolveSrc`: the embed sources read the URL field,
+    /// native prefers the uploaded asset and falls back to the URL.
+    public var nativeURL: URL? {
+        guard !isEmbed else { return nil }
+        return (asset?.filename ?? videoURL).flatMap(URL.init(string:))
     }
 
-    public var externalURL: URL? {
-        videoURL.flatMap(URL.init(string:))
+    public var embedURL: URL? {
+        guard isEmbed else { return nil }
+        return videoURL.flatMap(URL.init(string:))
+    }
+
+    public var copyright: String? {
+        guard let copyright = asset?.copyright, !copyright.isEmpty else { return nil }
+        return copyright
     }
 }
 

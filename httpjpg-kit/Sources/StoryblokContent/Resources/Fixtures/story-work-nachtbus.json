@@ -65,7 +65,7 @@
         {
           "_uid": "4ed56314-395b-5e68-b5d8-e13158453e40",
           "component": "video",
-          "videoAsset": {
+          "video": {
             "id": 8975874,
             "alt": "",
             "name": "nachtbus-loop",
