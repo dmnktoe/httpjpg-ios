@@ -20,6 +20,6 @@ enum CSSLength {
             guard let number = Double(value.dropLast(suffix.count)) else { return nil }
             return CGFloat(number) * scale
         }
-        return Double(value).map(CGFloat.init)
+        return Double(value).map { CGFloat($0) }
     }
 }
