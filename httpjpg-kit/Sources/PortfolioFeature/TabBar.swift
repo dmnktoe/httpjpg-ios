@@ -1,11 +1,9 @@
 import DesignSystem
 import SwiftUI
 
-/// The floating tab pill row, plus the optional external-preview pill.
+/// The floating tab pill row.
 struct TabBar: View {
     let selection: AppModel.Tab
-
-    let previewURL: URL?
 
     let glass: Namespace.ID
 
@@ -14,7 +12,6 @@ struct TabBar: View {
     let onRowWidthChange: (CGFloat) -> Void
 
     @Environment(\.pageTheme) private var theme
-    @Environment(\.openURL) private var openURL
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     @State private var tapCount = 0
@@ -24,11 +21,6 @@ struct TabBar: View {
             ForEach(AppModel.Tab.allCases) { tab in
                 pill(for: tab)
             }
-
-            if let previewURL {
-                previewPill(previewURL)
-                    .glassReveal()
-            }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
@@ -36,10 +28,6 @@ struct TabBar: View {
         // to drag the whole glass container into the transition and flicker
         // the pills on every switch.
         .animation(Motion.navigate, value: selection)
-        // Governs only the row reflow: the pill's own fade is pinned inside
-        // glassReveal, because on a tab switch the selection modifier above
-        // overrides whatever animation is picked here.
-        .animation(previewURL == nil ? Motion.stateChange : Motion.navigate, value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)
     }
@@ -59,19 +47,5 @@ struct TabBar: View {
         }
         .accessibilityLabel(tab.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
-    }
-
-    private func previewPill(_ url: URL) -> some View {
-        ChromePillButton(
-            text: "↗",
-            font: Typography.mono(Typography.Size.md, weight: .bold),
-            tint: theme.chromeFill,
-            labelColor: theme.chromeLabel,
-            morphID: "preview",
-            glass: glass
-        ) {
-            openURL(url)
-        }
-        .accessibilityLabel("Open external preview")
     }
 }

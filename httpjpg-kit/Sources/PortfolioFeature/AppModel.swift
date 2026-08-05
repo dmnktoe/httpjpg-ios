@@ -41,21 +41,6 @@ public final class AppModel {
 
     public var infoPath: [PageRoute] = []
 
-    /// External preview links, keyed by work slug. The visible URL is derived
-    /// from the top of the work path instead of being set and cleared by the
-    /// detail screens — appear/disappear order is not guaranteed on push and
-    /// pop, and the imperative version made the preview pill blink.
-    private var previewURLs: [String: URL] = [:]
-
-    public var previewURL: URL? {
-        guard selectedTab == .work, let slug = workPath.last?.slug else { return nil }
-        return previewURLs[slug]
-    }
-
-    func registerPreviewURL(_ url: URL?, for slug: String) {
-        previewURLs[slug] = url
-    }
-
     public var isSidebarOpen = false
     public private(set) var config: SiteConfig = .fallback
 

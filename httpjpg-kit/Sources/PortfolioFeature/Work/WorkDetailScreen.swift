@@ -7,6 +7,7 @@ struct WorkDetailScreen: View {
 
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
+    @Environment(\.openURL) private var openURL
 
     @State private var model: WorkDetailModel?
 
@@ -26,10 +27,21 @@ struct WorkDetailScreen: View {
         // dark page must not keep the whole scene dark.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .toolbar {
-            if let shareURL {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: shareURL)
+            // One group, one glass cluster: the external preview lives next
+            // to the share button instead of in the bottom pill row, so it
+            // appears and leaves with the screen — no choreography of its own.
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if let url = externalPreviewURL {
+                    Button {
+                        openURL(url)
+                    } label: {
+                        Text("↗")
+                            .font(Typography.mono(Typography.Size.md, weight: .bold))
+                    }
+                    .accessibilityLabel("Open external preview")
                 }
+
+                ShareLink(item: shareURL)
             }
         }
         .task {
@@ -38,8 +50,6 @@ struct WorkDetailScreen: View {
                 Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
                 await model?.load()
             }
-
-            app.registerPreviewURL(externalPreviewURL, for: route.slug)
         }
     }
 
@@ -64,8 +74,11 @@ struct WorkDetailScreen: View {
         loadedDetail?.title ?? route.title
     }
 
-    private var shareURL: URL? {
+    // Derived from the route, not the loaded detail, so the button is there
+    // from the first frame — conditional toolbar items pop in unanimated.
+    private var shareURL: URL {
         loadedDetail?.canonicalURL(siteOrigin: app.configuration.siteOrigin)
+            ?? app.configuration.siteOrigin.appending(path: StorySlug.workPrefix + route.slug)
     }
 
     @ViewBuilder

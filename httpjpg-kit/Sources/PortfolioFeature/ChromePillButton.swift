@@ -5,7 +5,6 @@ import SwiftUI
 /// identity so the glass container can blend it with its neighbours.
 struct ChromePillButton: View {
     let text: String
-    var font: Font = Typography.mono(Typography.Size.xs)
     let tint: Color
     let labelColor: Color
     let morphID: AnyHashable
@@ -15,7 +14,7 @@ struct ChromePillButton: View {
     var body: some View {
         Button(action: action) {
             Text(text)
-                .font(font)
+                .font(Typography.mono(Typography.Size.xs))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
