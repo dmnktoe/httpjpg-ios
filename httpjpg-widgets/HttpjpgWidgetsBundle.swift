@@ -7,5 +7,6 @@ struct HttpjpgWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LatestWorkWidget()
         ContactSheetWidget()
+        FrameOfTheDayWidget()
     }
 }
