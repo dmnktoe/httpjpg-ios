@@ -75,7 +75,8 @@ public enum WorkCardAdapter {
             tags: story.tagList,
             images: blok.images.filter { !$0.isEmpty }.map { asset in
                 slide(for: asset, fallbackAlt: title, targetWidth: targetWidth, scale: scale)
-            }
+            },
+            externalURL: blok.link?.href.flatMap(URL.init(string:))
         )
     }
 
