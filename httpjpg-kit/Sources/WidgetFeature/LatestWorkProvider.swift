@@ -52,7 +52,7 @@ struct LatestWorkProvider: TimelineProvider {
             )
 
             let image = await WidgetImageLoader.image(
-                items.first?.imageFilenames.first,
+                items.first.flatMap { $0.imageFilenames.first },
                 width: context.displaySize.width,
                 scale: 3
             )

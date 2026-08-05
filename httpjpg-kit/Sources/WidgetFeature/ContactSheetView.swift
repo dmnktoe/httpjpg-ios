@@ -31,15 +31,15 @@ struct ContactSheetView: View {
     @ViewBuilder
     private func tile(_ item: WorkItem) -> some View {
         if let destination = destination(of: item) {
-            Link(destination: destination) { frame(item) }
+            Link(destination: destination) { cell(item) }
                 .accessibilityLabel(item.title)
         } else {
-            frame(item)
+            cell(item)
                 .accessibilityLabel(item.title)
         }
     }
 
-    private func frame(_ item: WorkItem) -> some View {
+    private func cell(_ item: WorkItem) -> some View {
         Color.clear
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay {
