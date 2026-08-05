@@ -39,6 +39,7 @@ struct TabBar: View {
             text: tab.label,
             tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
             labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
+            stroke: isSelected ? theme.chromeActiveStroke : nil,
             morphID: tab.id,
             glass: glass
         ) {

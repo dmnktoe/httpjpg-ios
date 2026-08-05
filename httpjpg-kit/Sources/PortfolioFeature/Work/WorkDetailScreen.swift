@@ -8,6 +8,7 @@ struct WorkDetailScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.openURL) private var openURL
+    @Environment(\.pageTheme) private var theme
 
     @State private var model: WorkDetailModel?
 
@@ -31,15 +32,20 @@ struct WorkDetailScreen: View {
             // to the share button instead of in the bottom pill row, so it
             // appears and leaves with the screen — no choreography of its own.
             ToolbarItemGroup(placement: .topBarTrailing) {
+                // Monochrome on purpose: iOS forces bar items to monochrome
+                // once content scrolls beneath the glass, so a colored tint
+                // (the global link tint) visibly flipped on the first scroll.
                 if let url = externalPreviewURL {
                     Button {
                         openURL(url)
                     } label: {
                         Label("Open external preview", systemImage: "safari")
                     }
+                    .tint(theme.foreground)
                 }
 
                 ShareLink(item: shareURL)
+                    .tint(theme.foreground)
             }
         }
         .task {

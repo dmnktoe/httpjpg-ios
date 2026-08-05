@@ -24,7 +24,7 @@ struct VariantPicker: View {
 
     private func chip(for variant: MenuLink.Variant) -> some View {
         let isSelected = variant == selection
-        let primary = BrutalButtonStyle.Variant.primary
+        let accent = BrutalButtonStyle.Variant.accent
 
         return Button {
             onSelect(variant)
@@ -33,11 +33,11 @@ struct VariantPicker: View {
                 .font(Typography.mono(Typography.Size.sm))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(isSelected ? primary.label : theme.foreground)
+                .foregroundStyle(isSelected ? accent.label : theme.foreground)
                 .glassPill(
-                    tint: isSelected ? primary.fill.opacity(0.85) : nil,
+                    tint: isSelected ? accent.fill.opacity(0.85) : nil,
                     stroke: isSelected
-                        ? primary.fill.opacity(0.9)
+                        ? accent.fill.opacity(0.9)
                         : Palette.neutral.s400.opacity(0.35),
                     horizontalPadding: Spacing.s3,
                     verticalPadding: Spacing.s2

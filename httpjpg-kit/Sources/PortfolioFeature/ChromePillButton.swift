@@ -7,6 +7,7 @@ struct ChromePillButton: View {
     let text: String
     let tint: Color
     let labelColor: Color
+    var stroke: Color?
     let morphID: AnyHashable
     let glass: Namespace.ID
     let action: () -> Void
@@ -19,7 +20,7 @@ struct ChromePillButton: View {
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
                 .foregroundStyle(labelColor)
-                .glassPill(tint: tint, morphID: morphID, glass: glass)
+                .glassPill(tint: tint, stroke: stroke, morphID: morphID, glass: glass)
         }
         .buttonStyle(.plain)
     }

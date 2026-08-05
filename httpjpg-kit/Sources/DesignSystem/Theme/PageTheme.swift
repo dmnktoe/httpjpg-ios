@@ -42,6 +42,9 @@ public struct PageTheme: Sendable, Equatable {
 
     public var chromeActiveLabel: Color { Palette.black }
 
+    /// The brand lime, ringing the active pill in both appearances.
+    public var chromeActiveStroke: Color { Palette.accent.s400 }
+
     public var colorScheme: ColorScheme { isDark ? .dark : .light }
 }
 
