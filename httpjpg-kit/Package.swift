@@ -62,6 +62,11 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
+            name: "WidgetFeatureTests",
+            dependencies: ["WidgetFeature", "StoryblokContent"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
             name: "StoryblokContentTests",
 
             dependencies: ["StoryblokContent", "DesignSystem"],

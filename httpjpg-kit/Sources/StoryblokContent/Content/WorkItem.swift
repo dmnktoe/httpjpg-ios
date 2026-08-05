@@ -113,6 +113,9 @@ public struct WorkCollection: Sendable {
 public enum StorySlug {
     public static let config = "config"
     public static let home = "home"
+
+    /// The picture feed — a page of loose image bloks rather than a work.
+    public static let feed = "feed-xml_html"
     public static let workPrefix = "work/"
 
     public static func isDirectWork(_ fullSlug: String) -> Bool {
