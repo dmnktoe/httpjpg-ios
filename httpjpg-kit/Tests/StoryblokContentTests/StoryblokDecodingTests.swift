@@ -403,6 +403,137 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue("team-chat integrations, and complex project management overhead".contains(lastWord))
     }
 
+    func testListBlokDecodesItsChildrenAndStyleOptions() throws {
+        let blok = try decode(ListBlok.self, """
+        {"_uid":"l1","component":"list","ordered":true,"size":"md","itemSpacing":"4",
+         "orderedStyle":"upper-roman","unorderedStyle":"square","color":"primary.500",
+         "items":[{"_uid":"li1","component":"list_item","text":"First"},
+                  {"_uid":"li2","component":"list_item","text":"Second"}]}
+        """)
+        XCTAssertEqual(blok.items.map(\.text), ["First", "Second"])
+        XCTAssertTrue(blok.isOrdered)
+        XCTAssertEqual(blok.size, "md")
+        XCTAssertEqual(blok.itemSpacing, 16)
+        XCTAssertEqual(blok.orderedStyle, "upper-roman")
+        XCTAssertEqual(blok.color, "primary.500")
+    }
+
+    func testListBlokFallsBackToTheSchemaDefaults() throws {
+        let blok = try decode(ListBlok.self, """
+        {"_uid":"l2","component":"list","items":[],"color":""}
+        """)
+        XCTAssertFalse(blok.isOrdered)
+        XCTAssertEqual(blok.size, "sm")
+        XCTAssertEqual(blok.itemSpacing, 8)
+        XCTAssertEqual(blok.unorderedStyle, "disc")
+        XCTAssertNil(blok.color, "a cleared datasource field must not become an empty colour")
+    }
+
+    func testLinkBlokKeepsItsMultilink() throws {
+        let blok = try decode(LinkBlok.self, """
+        {"_uid":"k1","component":"link","text":"Imprint","showExternalIcon":"true",
+         "link":{"id":"abc","url":"","linktype":"story","fieldtype":"multilink",
+                 "cached_url":"imprint"}}
+        """)
+        XCTAssertEqual(blok.text, "Imprint")
+        XCTAssertTrue(blok.showsExternalIcon)
+        XCTAssertEqual(blok.link?.href, "/imprint")
+    }
+
+    func testIconBlokParsesCssLengths() throws {
+        let blok = try decode(IconBlok.self, """
+        {"_uid":"n1","component":"icon","name":"arrow-right","size":"48px","label":"Next"}
+        """)
+        XCTAssertEqual(blok.name, "arrow-right")
+        XCTAssertEqual(blok.size, 48)
+        XCTAssertEqual(blok.label, "Next")
+
+        XCTAssertEqual(CSSLength.points("2rem"), 32)
+        XCTAssertEqual(CSSLength.points(" 24 "), 24)
+        XCTAssertNil(CSSLength.points(""))
+        XCTAssertNil(CSSLength.points("auto"))
+    }
+
+    func testStatsBlokClampsColumnsToTheSchemaRange() throws {
+        let blok = try decode(StatsBlok.self, """
+        {"_uid":"t1","component":"stats","columns":"9","variant":"boxed","align":"center",
+         "items":[{"_uid":"si1","component":"stat_item","value":"12","label":"Works",
+                   "caption":""}]}
+        """)
+        XCTAssertEqual(blok.columns, 4)
+        XCTAssertEqual(blok.variant, "boxed")
+        XCTAssertEqual(blok.items.first?.value, "12")
+        XCTAssertNil(blok.items.first?.caption)
+
+        let bare = try decode(StatsBlok.self, """
+        {"_uid":"t2","component":"stats","items":[]}
+        """)
+        XCTAssertEqual(bare.columns, 3)
+        XCTAssertEqual(bare.align, "left")
+    }
+
+    func testAccordionBlokCarriesTheDefaultOpenFlag() throws {
+        let blok = try decode(AccordionBlok.self, """
+        {"_uid":"a1","component":"accordion","allowMultiple":true,"variant":"brutalist",
+         "items":[{"_uid":"ai1","component":"accordion_item","title":"One",
+                   "content":"Body","defaultOpen":true},
+                  {"_uid":"ai2","component":"accordion_item","title":"Two","content":"Body"}]}
+        """)
+        XCTAssertTrue(blok.allowsMultiple)
+        XCTAssertEqual(blok.size, "md", "the size field defaults even when the tab was untouched")
+        XCTAssertEqual(blok.items.filter(\.isOpenByDefault).map(\.id), ["ai1"])
+    }
+
+    func testScrollClipImageReadsTheRevealNumbersAsStrings() throws {
+        let blok = try decode(ScrollClipImageBlok.self, """
+        {"_uid":"c1","component":"scroll_clip_image","pin":true,"maxClipRatio":"25",
+         "maxScale":"1.4","brackets":false,"aspectRatio":"1/1","width":"50%",
+         "image":{"filename":"https://a.storyblok.com/f/1/1200x1200/x/plate.jpg"}}
+        """)
+        XCTAssertTrue(blok.isPinned)
+        XCTAssertEqual(blok.maxClipRatio, 0.25, accuracy: 0.0001)
+        XCTAssertEqual(blok.maxScale, 1.4, accuracy: 0.0001)
+        XCTAssertFalse(blok.showsBrackets)
+        XCTAssertTrue(blok.showsProgress, "the progress label defaults on, like the web renderer")
+        XCTAssertEqual(blok.widthFraction, 0.5)
+        XCTAssertEqual(blok.aspectRatio, 1)
+    }
+
+    func testScrollClipImageFallsBackToTheWebDefaults() throws {
+        let blok = try decode(ScrollClipImageBlok.self, """
+        {"_uid":"c2","component":"scroll_clip_image",
+         "image":{"filename":"https://a.storyblok.com/f/1/1200x1200/x/plate.jpg"}}
+        """)
+        XCTAssertEqual(blok.maxClipRatio, 0.1, accuracy: 0.0001)
+        XCTAssertEqual(blok.maxScale, 1.1, accuracy: 0.0001)
+        XCTAssertTrue(blok.showsBrackets)
+        XCTAssertFalse(blok.isPinned)
+        XCTAssertNil(blok.widthFraction)
+    }
+
+    func testEveryNewBlokDispatchesInsteadOfFallingBack() throws {
+        let components = ["list", "link", "icon", "stats", "accordion", "scroll_clip_image"]
+        for component in components {
+            let blok = try decode(PortfolioBlok.self, """
+            {"_uid":"d-\(component)","component":"\(component)"}
+            """)
+            XCTAssertEqual(blok.component, component)
+            XCTAssertEqual(blok.id, "d-\(component)")
+        }
+    }
+
+    func testOrderedListMarkersFollowTheCssStyles() {
+        XCTAssertEqual(ListMarker.ordinal(4, style: "decimal"), "4")
+        XCTAssertEqual(ListMarker.ordinal(4, style: "lower-alpha"), "d")
+        XCTAssertEqual(ListMarker.ordinal(27, style: "upper-alpha"), "AA")
+        XCTAssertEqual(ListMarker.ordinal(26, style: "upper-alpha"), "Z")
+        XCTAssertEqual(ListMarker.ordinal(4, style: "upper-roman"), "IV")
+        XCTAssertEqual(ListMarker.ordinal(1994, style: "lower-roman"), "mcmxciv")
+        XCTAssertEqual(ListMarker.bullet(style: "square"), "▪")
+        XCTAssertEqual(ListMarker.bullet(style: "none"), "")
+        XCTAssertEqual(ListMarker.bullet(style: "unknown"), "•")
+    }
+
     func testRegionsMapToTheirCDNHosts() {
         XCTAssertEqual(ContentRegion.eu.baseURL.host, "api.storyblok.com")
         XCTAssertEqual(ContentRegion.usa.baseURL.host, "api-us.storyblok.com")
