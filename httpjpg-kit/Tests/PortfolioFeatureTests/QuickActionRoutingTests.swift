@@ -72,6 +72,35 @@ final class QuickActionRoutingTests: XCTestCase {
         XCTAssertEqual(app.workPath.map(\.slug), ["atlas"])
     }
 
+    func testAPageLinkOpensItInsideTheInfoTab() throws {
+        let app = makeApp()
+
+        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html")))
+
+        XCTAssertEqual(app.selectedTab, .info)
+        XCTAssertEqual(app.infoPath.map(\.slug), ["feed-xml_html"])
+    }
+
+    func testTheInfoLinkLandsOnTheTabRoot() throws {
+        let app = makeApp()
+        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html")))
+
+        app.open(try XCTUnwrap(WidgetDeepLink.info))
+
+        XCTAssertEqual(app.selectedTab, .info)
+        XCTAssertTrue(app.infoPath.isEmpty)
+    }
+
+    func testTheWorkIndexLinkPopsBackToTheList() throws {
+        let app = makeApp()
+        app.perform(.work(slug: "atlas", title: "ATLAS"))
+
+        app.open(try XCTUnwrap(WidgetDeepLink.workIndex))
+
+        XCTAssertEqual(app.selectedTab, .work)
+        XCTAssertTrue(app.workPath.isEmpty)
+    }
+
     func testUnknownURLsAreIgnored() {
         let app = makeApp()
 

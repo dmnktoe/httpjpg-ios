@@ -73,8 +73,24 @@ public final class AppModel {
     }
 
     public func open(_ url: URL) {
-        guard let slug = WidgetDeepLink.workSlug(from: url) else { return }
-        show(WorkRoute(slug: slug, title: slug))
+        switch WidgetDeepLink.destination(from: url) {
+        case .work(let slug):
+            show(WorkRoute(slug: slug, title: slug))
+        case .workIndex:
+            select(tab: .work)
+            workPath.removeAll()
+            isSidebarOpen = false
+        case .page(let slug):
+            // A link carries the slug and nothing else, so it doubles as the title —
+            // same stand-in the work routes use.
+            show(PageRoute(slug: slug, title: slug))
+        case .info:
+            select(tab: .info)
+            infoPath.removeAll()
+            isSidebarOpen = false
+        case nil:
+            return
+        }
     }
 
     func perform(_ action: QuickAction) {
@@ -86,6 +102,12 @@ public final class AppModel {
     private func show(_ route: WorkRoute) {
         selectedTab = .work
         workPath = [route]
+        isSidebarOpen = false
+    }
+
+    private func show(_ route: PageRoute) {
+        selectedTab = .info
+        infoPath = [route]
         isSidebarOpen = false
     }
 
