@@ -16,7 +16,7 @@ public final class AppModel {
         public var label: String {
             switch self {
             case .work: return "🎀 ୧ꔛꗃ˖ աօʀӄ"
-            case .info: return "👊🐯  ᶤⓝƒ𝓸  💀☟"
+            case .info: return "👊🐯  ᶤⓝƒ𝓸"
             }
         }
 
