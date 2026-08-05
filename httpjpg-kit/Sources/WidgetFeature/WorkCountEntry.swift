@@ -1,3 +1,4 @@
+import Foundation
 import StoryblokContent
 import WidgetKit
 
@@ -56,10 +57,12 @@ struct WorkCountEntry: TimelineEntry {
         return "\(firstYear)–\(latestYear)"
     }
 
+    /// Non-zero on purpose: WidgetKit redacts the placeholder, so it only has to carry
+    /// the right shape — a zero total would draw the empty state instead.
     static let placeholder = WorkCountEntry(
         date: Date(timeIntervalSince1970: 0),
-        projects: 0,
-        websites: 0
+        projects: 24,
+        websites: 12
     )
 
     static func failure(_ message: String) -> WorkCountEntry {

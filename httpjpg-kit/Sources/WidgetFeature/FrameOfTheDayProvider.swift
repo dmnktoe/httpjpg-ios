@@ -43,10 +43,12 @@ struct FrameOfTheDayProvider: TimelineProvider {
             return .failure("no frames published")
         }
 
+        // 2× rather than 3×: this fills the whole widget, and an extra-large frame at
+        // 3× decodes to more than the extension's memory budget likes.
         let image = await WidgetImageLoader.image(
             filename,
             width: context.displaySize.width,
-            scale: 3
+            scale: 2
         )
         guard let image else {
             return .failure("frame unavailable")

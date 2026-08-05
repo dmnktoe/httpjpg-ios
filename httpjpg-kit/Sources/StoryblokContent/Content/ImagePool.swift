@@ -15,10 +15,10 @@ public enum ImagePool {
     }
 
     private static func assets(in bloks: [PortfolioBlok]) -> [StoryblokAsset] {
-        bloks.flatMap(assets(in:))
+        bloks.flatMap { assets(of: $0) }
     }
 
-    private static func assets(in blok: PortfolioBlok) -> [StoryblokAsset] {
+    private static func assets(of blok: PortfolioBlok) -> [StoryblokAsset] {
         switch blok {
         case .image(let image):
             return image.image.map { [$0] } ?? []
