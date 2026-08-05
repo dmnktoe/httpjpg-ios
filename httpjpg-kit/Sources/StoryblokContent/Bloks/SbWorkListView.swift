@@ -17,7 +17,7 @@ public struct SbWorkListView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s6) {
             ForEach(Array(models.enumerated()), id: \.element.id) { entry in
-                NavigationLink(value: WorkRoute(slug: entry.element.slug, title: entry.element.title)) {
+                NavigationLink(value: route(for: entry.element)) {
                     WorkCardView(entry.element, variant: cardVariant)
                 }
                 .buttonStyle(.plain)
@@ -41,6 +41,13 @@ public struct SbWorkListView: View {
 
     private var needsFetch: Bool {
         blok.work.isEmpty && !blok.workUUIDs.isEmpty && fetchedItems == nil
+    }
+
+    // Routes built from the item carry its external link, so the detail
+    // toolbar can show the preview button without waiting for the load.
+    private func route(for model: WorkCardModel) -> WorkRoute {
+        let item = (blok.work + (fetchedItems ?? [])).first { $0.slug == model.slug }
+        return item.map(WorkRoute.init(item:)) ?? WorkRoute(slug: model.slug, title: model.title)
     }
 
     private var models: [WorkCardModel] {

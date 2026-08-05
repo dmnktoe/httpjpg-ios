@@ -26,14 +26,20 @@ public struct WorkRoute: Hashable, Identifiable, Sendable {
     public let slug: String
     public let title: String
 
+    /// The work's external link, when the index payload already knows it —
+    /// lets the detail toolbar show the preview button from the first frame
+    /// instead of after the detail loads.
+    public let previewURL: URL?
+
     public var id: String { slug }
 
-    public init(slug: String, title: String) {
+    public init(slug: String, title: String, previewURL: URL? = nil) {
         self.slug = slug
         self.title = title
+        self.previewURL = previewURL
     }
 
     public init(item: WorkItem) {
-        self.init(slug: item.slug, title: item.title)
+        self.init(slug: item.slug, title: item.title, previewURL: item.externalURL)
     }
 }

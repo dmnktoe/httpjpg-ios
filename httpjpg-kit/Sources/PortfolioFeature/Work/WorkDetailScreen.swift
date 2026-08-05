@@ -53,8 +53,17 @@ struct WorkDetailScreen: View {
         }
     }
 
+    // The route carries the link the index payload already knows, so the
+    // button is there from the first frame; once the detail is loaded its
+    // own link is the truth (the field may have been cleared since).
     private var externalPreviewURL: URL? {
-        guard let url = loadedDetail?.link?.resolvedURL(siteOrigin: app.configuration.siteOrigin),
+        loadedDetail != nil
+            ? validated(loadedDetail?.link?.resolvedURL(siteOrigin: app.configuration.siteOrigin))
+            : validated(route.previewURL)
+    }
+
+    private func validated(_ url: URL?) -> URL? {
+        guard let url,
               url.scheme == "https" || url.scheme == "http",
               url.host != app.configuration.siteOrigin.host
         else { return nil }
