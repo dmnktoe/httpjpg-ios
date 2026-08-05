@@ -35,10 +35,8 @@ struct WorkDetailScreen: View {
                     Button {
                         openURL(url)
                     } label: {
-                        Text("↗")
-                            .font(Typography.mono(Typography.Size.md, weight: .bold))
+                        Label("Open external preview", systemImage: "safari")
                     }
-                    .accessibilityLabel("Open external preview")
                 }
 
                 ShareLink(item: shareURL)
