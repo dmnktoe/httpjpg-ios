@@ -17,7 +17,7 @@ struct InfoScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             .sidebarMenuToolbar()
             .navigationDestination(for: PageRoute.self) { route in
-                PageScreen(slug: route.slug, title: route.title)
+                PageScreen(slug: route.slug, title: route.title, isDarkHint: route.isDark)
             }
         }
         .task { await app.info.load() }
@@ -94,14 +94,20 @@ public struct PageRoute: Hashable, Sendable {
     public let slug: String
     public let title: String
 
+    /// Dark-art-direction hint from the index payload, so the page renders
+    /// its scene correctly before its own request lands.
+    public let isDark: Bool
+
     init(page: PageSummary) {
         slug = page.slug
         title = page.title
+        isDark = page.isDark
     }
 
-    public init(slug: String, title: String) {
+    public init(slug: String, title: String, isDark: Bool = false) {
         self.slug = slug
         self.title = title
+        self.isDark = isDark
     }
 }
 

@@ -6,6 +6,7 @@ import SwiftUI
 struct PageScreen: View {
     let slug: String
     let title: String
+    var isDarkHint: Bool = false
 
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
@@ -20,12 +21,14 @@ struct PageScreen: View {
                 LoadingState()
             }
         }
+        .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         // toolbarColorScheme doesn't reach the status bar when the bar is
-        // transparent; forcing the scheme does. Tied to the selected tab
-        // because the stack stays mounted across tab switches — a hidden
-        // dark page must not keep the whole scene dark.
+        // transparent; forcing the scheme does. Tied to the selected tab and
+        // the top of the path: the stack stays mounted across tab switches,
+        // and coupling to the path flips the scene when a pop starts instead
+        // of snapping after the pop animation finishes.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .task {
             if model == nil {
@@ -35,9 +38,18 @@ struct PageScreen: View {
         }
     }
 
+    private var loadedPage: PageDocument? {
+        guard let model, case .loaded(let page) = model.state else { return nil }
+        return page
+    }
+
+    // The route's hint bridges the load; the loaded page is the truth.
+    private var pageIsDark: Bool {
+        loadedPage?.isDark ?? isDarkHint
+    }
+
     private var forcesDark: Bool {
-        guard let model, case .loaded(let page) = model.state else { return false }
-        return page.isDark && app.selectedTab == .info
+        pageIsDark && app.selectedTab == .info && app.infoPath.last?.slug == slug
     }
 
     @ViewBuilder
@@ -66,7 +78,6 @@ struct PageScreen: View {
                 label: "Nothing to render",
                 message: "\"\(page.title)\" has no bloks this app knows how to draw yet."
             )
-            .pageSurface(forcingDark: page.isDark)
         } else {
             ScrollView {
                 BlokListView(page.body, appliesPageGutter: true)
@@ -74,7 +85,6 @@ struct PageScreen: View {
                     .padding(.bottom, bottomBarClearance)
             }
             .softScrollEdges()
-            .pageSurface(forcingDark: page.isDark)
         }
     }
 }

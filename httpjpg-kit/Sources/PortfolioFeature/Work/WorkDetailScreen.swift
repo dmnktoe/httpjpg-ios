@@ -8,7 +8,7 @@ struct WorkDetailScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.openURL) private var openURL
-    @Environment(\.pageTheme) private var theme
+    @Environment(\.pageTheme) private var ambientTheme
 
     @State private var model: WorkDetailModel?
 
@@ -20,12 +20,14 @@ struct WorkDetailScreen: View {
                 LoadingState()
             }
         }
+        .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         // toolbarColorScheme doesn't reach the status bar when the bar is
-        // transparent; forcing the scheme does. Tied to the selected tab
-        // because the stack stays mounted across tab switches — a hidden
-        // dark page must not keep the whole scene dark.
+        // transparent; forcing the scheme does. Tied to the selected tab and
+        // the top of the path: the stack stays mounted across tab switches,
+        // and coupling to the path flips the scene when a pop starts instead
+        // of snapping after the pop animation finishes.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .toolbar {
             // One group, one glass cluster: the external preview lives next
@@ -79,8 +81,20 @@ struct WorkDetailScreen: View {
         return detail
     }
 
+    // The route's hint bridges the load; the loaded detail is the truth.
+    private var pageIsDark: Bool {
+        loadedDetail?.isDark ?? route.isDark
+    }
+
+    /// The theme this page renders in, ahead of the ambient one catching up
+    /// through the scene flip — bar items tinted off the ambient theme were
+    /// black-on-dark for the first second.
+    private var theme: PageTheme {
+        pageIsDark ? .dark : ambientTheme
+    }
+
     private var forcesDark: Bool {
-        loadedDetail?.isDark == true && app.selectedTab == .work
+        pageIsDark && app.selectedTab == .work && app.workPath.last?.slug == route.slug
     }
 
     private var navigationTitle: String {
@@ -126,7 +140,6 @@ struct WorkDetailScreen: View {
             .padding(.bottom, bottomBarClearance)
         }
         .softScrollEdges()
-        .pageSurface(forcingDark: detail.isDark)
     }
 
     @ViewBuilder

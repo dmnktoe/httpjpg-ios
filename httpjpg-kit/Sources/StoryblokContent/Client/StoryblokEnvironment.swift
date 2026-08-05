@@ -26,20 +26,24 @@ public struct WorkRoute: Hashable, Identifiable, Sendable {
     public let slug: String
     public let title: String
 
-    /// The work's external link, when the index payload already knows it —
-    /// lets the detail toolbar show the preview button from the first frame
-    /// instead of after the detail loads.
+    /// Hints the index payload already knows — the external link and the
+    /// page's dark art direction — so the detail renders its toolbar,
+    /// surface and scene correctly from the first frame instead of after
+    /// the detail request lands.
     public let previewURL: URL?
+
+    public let isDark: Bool
 
     public var id: String { slug }
 
-    public init(slug: String, title: String, previewURL: URL? = nil) {
+    public init(slug: String, title: String, previewURL: URL? = nil, isDark: Bool = false) {
         self.slug = slug
         self.title = title
         self.previewURL = previewURL
+        self.isDark = isDark
     }
 
     public init(item: WorkItem) {
-        self.init(slug: item.slug, title: item.title, previewURL: item.externalURL)
+        self.init(slug: item.slug, title: item.title, previewURL: item.externalURL, isDark: item.isDark)
     }
 }
