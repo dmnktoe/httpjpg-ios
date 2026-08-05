@@ -51,14 +51,19 @@ struct LatestWorkProvider: TimelineProvider {
                     .prefix(isExtraLarge ? Self.extraLargeEntryCount : Self.entryCount)
             )
 
-            let image = await Self.imageData(
-                for: items.first,
+            let image = await WidgetImageLoader.image(
+                items.first?.imageFilenames.first,
                 width: context.displaySize.width,
                 scale: 3
             )
-            .flatMap(UIImage.init(data:))
 
-            let thumbnails = isExtraLarge ? await Self.thumbnails(for: Array(items.dropFirst())) : [:]
+            let thumbnails = isExtraLarge
+                ? await WidgetImageLoader.images(
+                    Self.artwork(for: Array(items.dropFirst())),
+                    width: Self.thumbnailWidth,
+                    scale: 2
+                )
+                : [:]
 
             return LatestWorkEntry(date: Date(), items: items, image: image, thumbnails: thumbnails)
         } catch {
@@ -66,37 +71,9 @@ struct LatestWorkProvider: TimelineProvider {
         }
     }
 
-    private static func thumbnails(for items: [WorkItem]) async -> [String: UIImage] {
-        let payloads = await withTaskGroup(of: (String, Data?).self) { group -> [(String, Data?)] in
-            for item in items {
-                group.addTask {
-                    (item.id, await imageData(for: item, width: thumbnailWidth, scale: 2))
-                }
-            }
-            var payloads: [(String, Data?)] = []
-            for await payload in group {
-                payloads.append(payload)
-            }
-            return payloads
-        }
-
-        return payloads.reduce(into: [:]) { thumbnails, payload in
-            guard let data = payload.1, let image = UIImage(data: data) else { return }
-            thumbnails[payload.0] = image
-        }
-    }
-
-    private static func imageData(for item: WorkItem?, width: CGFloat, scale: CGFloat) async -> Data? {
-        guard let filename = item?.imageFilenames.first else { return nil }
-
-        let url = URL(string: ImageService.Preset.width(filename, width, scale: scale))
-        guard let url else { return nil }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            return data
-        } catch {
-            return nil
+    private static func artwork(for items: [WorkItem]) -> [String: String] {
+        items.reduce(into: [:]) { filenames, item in
+            filenames[item.id] = item.imageFilenames.first
         }
     }
 }
