@@ -9,5 +9,6 @@ struct HttpjpgWidgetsBundle: WidgetBundle {
         ContactSheetWidget()
         FrameOfTheDayWidget()
         SiteStatusWidget()
+        WorkCountWidget()
     }
 }
