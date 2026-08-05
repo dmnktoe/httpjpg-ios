@@ -42,6 +42,11 @@ final class WidgetDeepLinkTests: XCTestCase {
         XCTAssertNil(WidgetDeepLink.destination(from: url))
     }
 
+    func testAnEmptySlugBuildsNoDocumentLink() {
+        XCTAssertNil(WidgetDeepLink.work(slug: ""))
+        XCTAssertNil(WidgetDeepLink.page(slug: ""))
+    }
+
     func testForeignSchemesAndHostsAreRejected() throws {
         XCTAssertNil(
             WidgetDeepLink.destination(from: try XCTUnwrap(URL(string: "https://work/atlas")))

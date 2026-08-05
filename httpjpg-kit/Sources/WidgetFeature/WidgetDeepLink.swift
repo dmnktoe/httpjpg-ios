@@ -14,12 +14,16 @@ public enum WidgetDeepLink {
     private static let pageHost = "page"
     private static let infoHost = "info"
 
+    /// Nil for an empty slug: a bare host is the tab root, so building one here would
+    /// quietly turn a missing document into "open the index".
     public static func work(slug: String) -> URL? {
-        url(host: workHost, slug: slug)
+        guard !slug.isEmpty else { return nil }
+        return url(host: workHost, slug: slug)
     }
 
     public static func page(slug: String) -> URL? {
-        url(host: pageHost, slug: slug)
+        guard !slug.isEmpty else { return nil }
+        return url(host: pageHost, slug: slug)
     }
 
     public static var workIndex: URL? {
