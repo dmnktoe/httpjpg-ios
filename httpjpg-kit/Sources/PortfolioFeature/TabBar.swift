@@ -36,8 +36,9 @@ struct TabBar: View {
         // to drag the whole glass container into the transition and flicker
         // the pills on every switch.
         .animation(Motion.navigate, value: selection)
-        // Exits always match the pop back to the index — a quick fade — while
-        // the entrance keeps the slower liquid timing.
+        // Governs only the row reflow: the pill's own fade is pinned inside
+        // glassReveal, because on a tab switch the selection modifier above
+        // overrides whatever animation is picked here.
         .animation(previewURL == nil ? Motion.stateChange : Motion.navigate, value: previewURL)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)

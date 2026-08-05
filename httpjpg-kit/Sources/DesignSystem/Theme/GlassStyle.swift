@@ -17,12 +17,17 @@ public extension View {
 }
 
 public extension View {
-    /// Entrance/exit for glass chrome that appears and disappears. On iOS 26
-    /// the container already morphs the shape out of its neighbours (see
-    /// glassMorph), so only the content crossfades; earlier systems get a
-    /// blur-replace stand-in.
-    func glassReveal() -> some View {
-        modifier(GlassRevealModifier())
+    /// Entrance/exit for glass chrome that appears and disappears. The
+    /// timings are attached to the transition itself so they hold even when
+    /// the element leaves inside a larger transaction — stacked
+    /// .animation(_:value:) modifiers override each other when several
+    /// values change at once, which made the same exit run at two speeds
+    /// depending on what triggered it.
+    func glassReveal(
+        insertion: Animation = Motion.navigate,
+        removal: Animation = Motion.stateChange
+    ) -> some View {
+        modifier(GlassRevealModifier(insertion: insertion, removal: removal))
     }
 }
 
@@ -45,11 +50,20 @@ private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
 }
 
 private struct GlassRevealModifier: ViewModifier {
+    let insertion: Animation
+    let removal: Animation
+
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.transition(.opacity)
+            content.transition(AsymmetricTransition(
+                insertion: OpacityTransition().animation(insertion),
+                removal: OpacityTransition().animation(removal)
+            ))
         } else {
-            content.transition(.blurReplace)
+            content.transition(AsymmetricTransition(
+                insertion: BlurReplaceTransition(configuration: .downUp).animation(insertion),
+                removal: BlurReplaceTransition(configuration: .downUp).animation(removal)
+            ))
         }
     }
 }
