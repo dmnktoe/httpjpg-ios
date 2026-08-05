@@ -79,7 +79,9 @@ public struct VideoSurface: View {
     }
 
     private var playbackStatus: AnyPublisher<AVPlayer.TimeControlStatus, Never> {
-        guard let player else { return Empty().eraseToAnyPublisher() }
+        guard let player else {
+            return Empty<AVPlayer.TimeControlStatus, Never>().eraseToAnyPublisher()
+        }
         return player.publisher(for: \.timeControlStatus).eraseToAnyPublisher()
     }
 

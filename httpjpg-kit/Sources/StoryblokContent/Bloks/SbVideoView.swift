@@ -34,8 +34,14 @@ public struct SbVideoView: View {
         .blokSpacing(blok.spacing)
     }
 
+    /// AnyView on purpose: `body` renders this in both copyright branches, and
+    /// repeating the full opaque type is what makes type checking blow up.
+    private var player: AnyView {
+        AnyView(playerContent)
+    }
+
     @ViewBuilder
-    private var player: some View {
+    private var playerContent: some View {
         if let url = blok.nativeURL {
             VideoSurface(
                 url: url,

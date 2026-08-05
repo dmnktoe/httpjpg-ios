@@ -16,9 +16,9 @@ public struct SbAccordionView: View {
     public var body: some View {
         if !blok.items.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(blok.items) { item in
-                    row(item)
-                    if item.id != blok.items.last?.id {
+                ForEach(Array(blok.items.enumerated()), id: \.element.id) { entry in
+                    row(entry.element)
+                    if entry.offset < blok.items.count - 1 {
                         Rectangle()
                             .fill(theme.border)
                             .frame(height: 1)

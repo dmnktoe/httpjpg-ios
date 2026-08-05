@@ -37,30 +37,41 @@ public struct SbScrollClipImageView: View {
         }
     }
 
-    @ViewBuilder
-    private func linked(_ asset: StoryblokAsset) -> some View {
-        if let link = blok.link, !link.isEmpty,
-           let url = link.resolvedURL(siteOrigin: configuration.siteOrigin) {
-            Button { openURL(url) } label: { surface(asset) }
+    private func linked(_ asset: StoryblokAsset) -> AnyView {
+        let content = surface(asset)
+        guard let link = blok.link, !link.isEmpty,
+              let url = link.resolvedURL(siteOrigin: configuration.siteOrigin)
+        else { return content }
+        return AnyView(
+            Button { openURL(url) } label: { content }
                 .buttonStyle(.plain)
-        } else {
-            surface(asset)
-        }
+        )
     }
 
-    private func surface(_ asset: StoryblokAsset) -> some View {
+    /// Returns AnyView on purpose. The reveal's opaque type — a GeometryReader
+    /// wrapping a mask and three overlays — is large enough that repeating it
+    /// across the link/no-link branches sends type checking superlinear.
+    private func surface(_ asset: StoryblokAsset) -> AnyView {
+        AnyView(reveal(asset))
+    }
+
+    private func reveal(_ asset: StoryblokAsset) -> some View {
         GeometryReader { proxy in
-            let size = proxy.size
-            let inset = clipFraction
+            // Hoisted and annotated on purpose: the same arithmetic written
+            // inline inside padding(_:_:), which takes a CGFloat?, sends the
+            // type checker into a hang.
+            let size: CGSize = proxy.size
+            let horizontal: CGFloat = size.width * clipFraction
+            let vertical: CGFloat = size.height * clipFraction
             image(asset)
                 .frame(width: size.width, height: size.height)
                 .scaleEffect(scale)
                 .mask {
                     Rectangle()
-                        .padding(.horizontal, size.width * inset)
-                        .padding(.vertical, size.height * inset)
+                        .padding(.horizontal, horizontal)
+                        .padding(.vertical, vertical)
                 }
-                .overlay { brackets(in: size, inset: inset) }
+                .overlay { brackets(horizontal: horizontal, vertical: vertical) }
                 .overlay(alignment: .topTrailing) { progressLabel }
                 .overlay(alignment: overlayAlignment) { inlineCopyright(asset) }
         }
@@ -87,15 +98,17 @@ public struct SbScrollClipImageView: View {
     }
 
     @ViewBuilder
-    private func brackets(in size: CGSize, inset: CGFloat) -> some View {
+    private func brackets(horizontal: CGFloat, vertical: CGFloat) -> some View {
         if blok.showsBrackets {
+            let insetX: CGFloat = horizontal + Spacing.s2
+            let insetY: CGFloat = vertical + Spacing.s2
             Color.clear
                 .overlay(alignment: .topLeading) { bracket("┌") }
                 .overlay(alignment: .topTrailing) { bracket("┐") }
                 .overlay(alignment: .bottomLeading) { bracket("└") }
                 .overlay(alignment: .bottomTrailing) { bracket("┘") }
-                .padding(.horizontal, size.width * inset + Spacing.s2)
-                .padding(.vertical, size.height * inset + Spacing.s2)
+                .padding(.horizontal, insetX)
+                .padding(.vertical, insetY)
                 .allowsHitTesting(false)
         }
     }
@@ -112,9 +125,8 @@ public struct SbScrollClipImageView: View {
     @ViewBuilder
     private var progressLabel: some View {
         if blok.isPinned, blok.showsProgress {
-            let step = Int((progress * 99).rounded())
             MonoText(
-                "[ \(step < 10 ? "0" : "")\(step) / 99 ]",
+                progressText,
                 size: Typography.Size.xs,
                 tracking: Typography.Tracking.wider(Typography.Size.xs)
             )
@@ -133,6 +145,12 @@ public struct SbScrollClipImageView: View {
         }
     }
 
+    private var progressText: String {
+        let step: Int = Int((progress * 99).rounded())
+        let padded: String = step < 10 ? "0" + String(step) : String(step)
+        return "[ " + padded + " / 99 ]"
+    }
+
     private func update(with rect: CGRect) {
         guard !reduceMotion else {
             progress = 1
@@ -140,14 +158,15 @@ public struct SbScrollClipImageView: View {
         }
         // Ported from the web `getEntryProgress`: 0 when the top edge sits at
         // the bottom of the viewport, 1 once the frame is vertically centred.
-        let start = viewportHeight
-        let end = (viewportHeight - rect.height) / 2
-        let travel = start - end
+        let start: CGFloat = viewportHeight
+        let end: CGFloat = (viewportHeight - rect.height) / 2
+        let travel: CGFloat = start - end
         guard travel > 0 else {
             progress = rect.minY <= end ? 1 : 0
             return
         }
-        progress = min(max((start - rect.minY) / travel, 0), 1)
+        let consumed: CGFloat = (start - rect.minY) / travel
+        progress = Swift.min(Swift.max(consumed, 0), 1)
     }
 
     private var clipFraction: CGFloat { (1 - progress) * blok.maxClipRatio }
