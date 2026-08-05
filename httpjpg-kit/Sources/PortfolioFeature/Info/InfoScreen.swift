@@ -13,8 +13,8 @@ struct InfoScreen: View {
             ScrollToTopReader(tick: app.scrollToTopTick(for: .info)) {
                 infoList
             }
-            .navigationTitle("info")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .sidebarMenuToolbar()
             .navigationDestination(for: PageRoute.self) { route in
                 PageScreen(slug: route.slug, title: route.title)
@@ -28,12 +28,18 @@ struct InfoScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
+                    // In the content like the work masthead, not a UIKit
+                    // large title: that one re-lays out against the moving
+                    // safe area while the sidebar pushes the stack aside
+                    // and visibly jumps to the edge.
+                    Headline("info", level: .two)
+
                     pages
                     InfoLinksSection(links: app.config.headerMenu)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, PageLayout.gutter)
-                .padding(.top, Spacing.s6)
+                .padding(.top, Spacing.s2)
 
                 Group {
                     if let widgets = app.footerWidgets {
