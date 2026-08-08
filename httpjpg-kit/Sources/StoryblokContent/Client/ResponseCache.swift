@@ -25,6 +25,10 @@ final class ResponseCache: @unchecked Sendable {
         return cached.data
     }
 
+    func removeAll() {
+        cache.removeAllCachedResponses()
+    }
+
     func store(_ data: Data, response: HTTPURLResponse, for request: URLRequest, now: Date = Date()) {
         guard let url = response.url else { return }
 

@@ -11,4 +11,8 @@ public enum ImageCache {
         cache.memoryCapacity = memoryCapacity
         cache.diskCapacity = diskCapacity
     }
+
+    public static func clear() {
+        URLCache.shared.removeAllCachedResponses()
+    }
 }

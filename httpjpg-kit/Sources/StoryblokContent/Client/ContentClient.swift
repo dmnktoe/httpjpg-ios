@@ -88,6 +88,10 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
+    public func clearCache() {
+        cache.removeAll()
+    }
+
     public func workStories(byUUIDs uuids: [String]) async throws -> [Story<WorkBlok>] {
         guard !uuids.isEmpty else { return [] }
         let request = buildRequest(path: "stories", queryItems: [
