@@ -48,6 +48,10 @@ struct InfoScreen: View {
                     }
                 }
                 .animation(Motion.stateChange, value: app.footerWidgets == nil)
+
+                InfoResetCacheButton { await app.resetCacheAndReload() }
+                    .padding(.top, Spacing.s4)
+                    .padding(.bottom, Spacing.s10)
             }
             .padding(.bottom, bottomBarClearance)
             .scrollToTopAnchor()

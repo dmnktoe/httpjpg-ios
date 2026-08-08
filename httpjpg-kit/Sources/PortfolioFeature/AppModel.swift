@@ -76,6 +76,21 @@ public final class AppModel {
         await widgets.load()
     }
 
+    func resetCacheAndReload() async {
+        client.clearCache()
+        ImageCache.clear()
+
+        config = await client.siteConfig(refresh: true)
+        hasLoadedConfig = true
+
+        let widgets = FooterWidgetsModel(origin: configuration.siteOrigin, flags: config.widgets)
+        footerWidgets = widgets
+
+        await workIndex.load(force: true)
+        await info.load(force: true)
+        await widgets.load()
+    }
+
     public func open(_ url: URL) {
         switch WidgetDeepLink.destination(from: url) {
         case .work(let slug):
