@@ -26,7 +26,7 @@ struct FooterWidgets: View {
             ClockLine(weather: model.weather)
         }
         .frame(maxWidth: .infinity)
-        .animation(.easeOut(duration: 0.25), value: model.isLoaded)
+        .animation(Motion.stateChange, value: model.isLoaded)
     }
 
     private func placeholderLine(label: String) -> some View {

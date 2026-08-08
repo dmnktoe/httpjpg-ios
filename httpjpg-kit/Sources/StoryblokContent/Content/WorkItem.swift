@@ -16,6 +16,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let media: [WorkMedia]
     public let isDraft: Bool
     public let isExternal: Bool
+    public let isDark: Bool
     public let externalURL: URL?
     public let date: Date?
     public let tags: [String]
@@ -31,6 +32,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         media: [WorkMedia] = [],
         isDraft: Bool,
         isExternal: Bool,
+        isDark: Bool = false,
         externalURL: URL?,
         date: Date?,
         tags: [String]
@@ -45,6 +47,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.media = media.isEmpty ? imageFilenames.map { WorkMedia(filename: $0, isVideo: false) } : media
         self.isDraft = isDraft
         self.isExternal = isExternal
+        self.isDark = isDark
         self.externalURL = externalURL
         self.date = date
         self.tags = tags
@@ -62,6 +65,10 @@ public struct WorkMedia: Hashable, Sendable {
 }
 
 public extension WorkItem {
+    func canonicalURL(siteOrigin: URL) -> URL {
+        siteOrigin.appending(path: fullSlug)
+    }
+
     init(story: Story<WorkBlok>) {
         let content = story.content
         let externalURL = content.link?.href.flatMap(URL.init(string:))
@@ -84,6 +91,7 @@ public extension WorkItem {
             media: media,
             isDraft: story.firstPublishedAt == nil,
             isExternal: content.isExternalOnly,
+            isDark: content.isDark,
             externalURL: externalURL,
             date: StoryblokDate.parse(content.date),
             tags: story.tagList

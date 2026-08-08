@@ -14,12 +14,16 @@ struct HttpjpgApp: App {
 
     var body: some Scene {
         WindowGroup {
-            switch configuration {
-            case .success(let configuration):
-                RootView(configuration: configuration)
-            case .failure(let error):
-                ConfigurationErrorView(message: error.localizedDescription)
+            Group {
+                switch configuration {
+                case .success(let configuration):
+                    RootView(configuration: configuration)
+                case .failure(let error):
+                    ConfigurationErrorView(message: error.localizedDescription)
+                }
             }
+            // Lets Siri resolve the work-title phrase against real entities.
+            .task { HttpjpgShortcuts.updateAppShortcutParameters() }
         }
     }
 }

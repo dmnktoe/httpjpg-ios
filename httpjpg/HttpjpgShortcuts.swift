@@ -7,6 +7,7 @@ struct HttpjpgShortcuts: AppShortcutsProvider {
             intent: OpenWorkIntent(),
             phrases: [
                 "Open a work in \(.applicationName)",
+                "Open \(\.$work) in \(.applicationName)",
                 "Show me a work in \(.applicationName)",
             ],
             shortTitle: "Open Work",

@@ -106,7 +106,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var motion: Animation? {
-        reduceMotion ? nil : .interactiveSpring(response: 0.4, dampingFraction: 0.85)
+        reduceMotion ? nil : Motion.drawer
     }
 
     private func tracks(_ value: DragGesture.Value) -> Bool {

@@ -10,21 +10,19 @@ struct VariantPicker: View {
     @Environment(\.pageTheme) private var theme
 
     var body: some View {
-        GlassGroup(spacing: Spacing.s2) {
-            HStack(spacing: Spacing.s2) {
-                ForEach(entries) { link in
-                    chip(for: link.variant)
-                }
-                Spacer(minLength: 0)
+        HStack(spacing: Spacing.s2) {
+            ForEach(entries) { link in
+                chip(for: link.variant)
             }
+            Spacer(minLength: 0)
         }
-        .animation(.smooth(duration: 0.2), value: selection)
+        .animation(Motion.stateChange, value: selection)
         .sensoryFeedback(.selection, trigger: selection)
     }
 
     private func chip(for variant: MenuLink.Variant) -> some View {
         let isSelected = variant == selection
-        let primary = BrutalButtonStyle.Variant.primary
+        let accent = BrutalButtonStyle.Variant.accent
 
         return Button {
             onSelect(variant)
@@ -33,15 +31,20 @@ struct VariantPicker: View {
                 .font(Typography.mono(Typography.Size.sm))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(isSelected ? primary.label : theme.foreground)
-                .glassPill(
-                    tint: isSelected ? primary.fill.opacity(0.85) : nil,
-                    stroke: isSelected
-                        ? primary.fill.opacity(0.9)
-                        : Palette.neutral.s400.opacity(0.35),
-                    horizontalPadding: Spacing.s3,
-                    verticalPadding: Spacing.s2
-                )
+                .foregroundStyle(isSelected ? accent.label : theme.foreground)
+                .padding(.horizontal, Spacing.s3)
+                .padding(.vertical, Spacing.s2)
+                // Flat on purpose: glass is adaptive material, and in the
+                // scroll content it re-samples its surroundings — the chips
+                // visibly darkened once the first card image loaded below.
+                .background(isSelected ? accent.fill : .clear, in: .capsule)
+                .overlay {
+                    Capsule().stroke(
+                        isSelected ? accent.fill : Palette.neutral.s400.opacity(0.35),
+                        lineWidth: 1
+                    )
+                }
+                .contentShape(.capsule)
                 .opacity(isSelected ? 1 : 0.55)
         }
         .buttonStyle(.plain)

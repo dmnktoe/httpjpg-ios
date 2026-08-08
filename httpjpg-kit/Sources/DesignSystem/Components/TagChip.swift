@@ -23,7 +23,7 @@ public struct TagChip: View {
                 Rectangle().stroke(Palette.neutral.s400, lineWidth: 1)
             )
             .opacity(isSelected ? 1 : Opacities.muted)
-            .animation(.smooth(duration: 0.2), value: isSelected)
+            .animation(Motion.stateChange, value: isSelected)
     }
 }
 

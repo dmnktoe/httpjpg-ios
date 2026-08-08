@@ -8,6 +8,7 @@ public struct PageSummary: Identifiable, Hashable, Sendable {
     public let title: String
 
     public let component: String
+    public let isDark: Bool
     public let updatedAt: Date?
 
     public init(story: Story<StoryOverview>) {
@@ -16,6 +17,7 @@ public struct PageSummary: Identifiable, Hashable, Sendable {
         fullSlug = story.fullSlug
         title = story.content.title ?? story.name
         component = story.content.component
+        isDark = story.content.isDark
         updatedAt = story.publishedAt ?? story.updatedAt
     }
 }
@@ -23,15 +25,17 @@ public struct PageSummary: Identifiable, Hashable, Sendable {
 public struct StoryOverview: Decodable, Sendable {
     public let component: String
     public let title: String?
+    public let isDark: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case component, title
+        case component, title, isDark
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         component = container.cmsString(forKey: .component) ?? ""
         title = container.cmsString(forKey: .title)
+        isDark = container.cmsBool(forKey: .isDark)
     }
 }
 
