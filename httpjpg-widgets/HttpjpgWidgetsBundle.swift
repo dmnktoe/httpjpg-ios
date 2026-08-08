@@ -6,5 +6,9 @@ import WidgetKit
 struct HttpjpgWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LatestWorkWidget()
+        ContactSheetWidget()
+        FrameOfTheDayWidget()
+        SiteStatusWidget()
+        WorkCountWidget()
     }
 }

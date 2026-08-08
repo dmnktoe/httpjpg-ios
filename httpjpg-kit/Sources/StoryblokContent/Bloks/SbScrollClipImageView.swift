@@ -153,7 +153,9 @@ public struct SbScrollClipImageView: View {
 
     private func update(with rect: CGRect) {
         guard !reduceMotion else {
-            progress = 1
+            // onGeometryChange fires per scroll frame; the reveal is fixed here,
+            // so only write once.
+            if progress != 1 { progress = 1 }
             return
         }
         // Ported from the web `getEntryProgress`: 0 when the top edge sits at

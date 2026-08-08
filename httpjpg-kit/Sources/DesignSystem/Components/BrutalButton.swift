@@ -76,7 +76,7 @@ public struct BrutalButtonStyle: ButtonStyle {
             )
             .shadow(color: variant.fill.opacity(0.3), radius: 10)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            .animation(Motion.pressed, value: configuration.isPressed)
     }
 }
 

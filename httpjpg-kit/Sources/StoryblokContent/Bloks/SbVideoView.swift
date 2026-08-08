@@ -50,7 +50,8 @@ public struct SbVideoView: View {
                 showsControls: blok.showsControls,
                 autoPlays: blok.autoPlays,
                 loops: blok.loops,
-                isMuted: blok.isMuted
+                isMuted: blok.isMuted,
+                accessibilityText: blok.poster?.alt
             )
         } else if let url = blok.embedURL {
             Button {

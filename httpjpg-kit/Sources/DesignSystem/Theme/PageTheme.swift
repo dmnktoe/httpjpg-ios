@@ -29,6 +29,22 @@ public struct PageTheme: Sendable, Equatable {
 
     public var link: Color { Palette.primary.s500 }
 
+    /// Floating glass chrome: tab pills, mini player, preview pill. Idle
+    /// elements sit on a quiet grey; the active pill pops to a plain white
+    /// card with a black label in both appearances.
+    public var chromeFill: Color { isDark ? Palette.neutral.s800.opacity(0.72) : Palette.neutral.s300.opacity(0.6) }
+
+    public var chromeLabel: Color { isDark ? Palette.white.opacity(0.9) : Palette.neutral.s800 }
+
+    public var chromeStroke: Color { Palette.neutral.s400.opacity(isDark ? 0.6 : 0.45) }
+
+    public var chromeActiveFill: Color { Palette.white.opacity(0.95) }
+
+    public var chromeActiveLabel: Color { Palette.black }
+
+    /// The brand lime, ringing the active pill in both appearances.
+    public var chromeActiveStroke: Color { Palette.accent.s400 }
+
     public var colorScheme: ColorScheme { isDark ? .dark : .light }
 }
 
@@ -53,5 +69,29 @@ public extension View {
     func pageSurface(_ theme: PageTheme) -> some View {
         foregroundStyle(theme.foreground)
             .background(theme.background.ignoresSafeArea())
+    }
+
+    /// Surface for CMS-driven documents: a page can force dark art direction,
+    /// everything else follows the ambient theme — so system dark mode also
+    /// darkens pages that don't specify.
+    func pageSurface(forcingDark: Bool) -> some View {
+        modifier(ForcedPageSurface(forcesDark: forcingDark))
+    }
+}
+
+private struct ForcedPageSurface: ViewModifier {
+    let forcesDark: Bool
+
+    @Environment(\.pageTheme) private var ambient
+
+    func body(content: Content) -> some View {
+        let theme = forcesDark ? PageTheme.dark : ambient
+        return content
+            .pageTheme(theme)
+            .pageSurface(theme)
+            // The colorScheme environment doesn't reach the UIKit navigation
+            // bar or the status bar; without this a forced-dark page draws
+            // its title and status bar black-on-black in a light system.
+            .toolbarColorScheme(theme.colorScheme, for: .navigationBar)
     }
 }

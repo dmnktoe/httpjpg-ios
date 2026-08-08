@@ -23,7 +23,7 @@ public struct TagChip: View {
                 Rectangle().stroke(Palette.neutral.s400, lineWidth: 1)
             )
             .opacity(isSelected ? 1 : Opacities.muted)
-            .animation(.smooth(duration: 0.2), value: isSelected)
+            .animation(Motion.stateChange, value: isSelected)
     }
 }
 
@@ -57,9 +57,11 @@ public struct TagChipRow: View {
 
 public struct FlowLayout: Layout {
     private let spacing: CGFloat
+    private let alignment: HorizontalAlignment
 
-    public init(spacing: CGFloat = Spacing.s2) {
+    public init(spacing: CGFloat = Spacing.s2, alignment: HorizontalAlignment = .leading) {
         self.spacing = spacing
+        self.alignment = alignment
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
@@ -69,6 +71,11 @@ public struct FlowLayout: Layout {
             total += row.height + (total > 0 ? spacing : 0)
         }
         let width = rows.map(\.width).max() ?? 0
+        // A centred or trailing row needs the full offered width to sit in;
+        // shrinking to content would leave nothing to align against.
+        if alignment != .leading, maxWidth.isFinite {
+            return CGSize(width: maxWidth, height: height)
+        }
         return CGSize(width: min(width, maxWidth), height: height)
     }
 
@@ -81,7 +88,9 @@ public struct FlowLayout: Layout {
         let rows = layoutRows(subviews: subviews, maxWidth: bounds.width)
         var y = bounds.minY
         for row in rows {
-            var x = bounds.minX
+            // Each row is offset on its own, so centre and trailing hold even
+            // when the rows come out at different widths.
+            var x = bounds.minX + (bounds.width - row.width) * leadingFactor
             for index in row.indices {
                 let size = subviews[index].sizeThatFits(.unspecified)
                 subviews[index].place(
@@ -92,6 +101,14 @@ public struct FlowLayout: Layout {
                 x += size.width + spacing
             }
             y += row.height + spacing
+        }
+    }
+
+    private var leadingFactor: CGFloat {
+        switch alignment {
+        case .center: return 0.5
+        case .trailing: return 1
+        default: return 0
         }
     }
 

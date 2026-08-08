@@ -7,6 +7,7 @@ public struct LoopingVideoPlayer: View {
 
     @State private var player: AVQueuePlayer?
     @State private var looper: AVPlayerLooper?
+    @State private var isReady = false
 
     public init(url: URL, aspectRatio: CGFloat) {
         self.url = url
@@ -18,12 +19,20 @@ public struct LoopingVideoPlayer: View {
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
                 if let player {
-                    PlayerLayerView(player: player)
+                    PlayerLayerView(player: player) { isReady = $0 }
                         .allowsHitTesting(false)
                 }
             }
+            .overlay {
+                // The player layer renders a hard black box until its first
+                // frame is decoded; pulse the skeleton over it until then.
+                if !isReady {
+                    SkeletonBlock(height: nil)
+                        .transition(.opacity)
+                }
+            }
+            .animation(Motion.mediaIn, value: isReady)
             .clipped()
-
             .contentShape(Rectangle())
             .onAppear(perform: start)
             .onDisappear { player?.pause() }

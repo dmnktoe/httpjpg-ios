@@ -1,6 +1,5 @@
 import AVFoundation
 import AVKit
-import Combine
 import SwiftUI
 
 /// Native video playback with the CMS playback flags applied. `LoopingVideoPlayer`
@@ -18,8 +17,11 @@ public struct VideoSurface: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @State private var player: AVQueuePlayer?
+    // Created up front rather than in start(): the poster subscription below
+    // needs a publisher whose source never changes identity mid-flight.
+    @State private var player = AVQueuePlayer()
     @State private var looper: AVPlayerLooper?
+    @State private var isConfigured = false
     @State private var isPosterVisible = true
 
     public init(
@@ -48,24 +50,20 @@ public struct VideoSurface: View {
             .overlay { poster }
             .clipped()
             .onAppear(perform: start)
-            .onDisappear { player?.pause() }
-            .onReceive(playbackStatus) { status in
+            .onDisappear { player.pause() }
+            .onReceive(player.publisher(for: \.timeControlStatus)) { status in
                 if status == .playing { isPosterVisible = false }
             }
-            .accessibilityLabel(accessibilityText ?? "")
+            .modifier(OptionalAccessibilityLabel(text: accessibilityText))
     }
 
     @ViewBuilder
     private var surface: some View {
-        if let player {
-            if showsControls {
-                VideoPlayer(player: player)
-            } else {
-                PlayerLayerView(player: player)
-                    .allowsHitTesting(false)
-            }
+        if showsControls {
+            VideoPlayer(player: player)
         } else {
-            Color.black
+            PlayerLayerView(player: player)
+                .allowsHitTesting(false)
         }
     }
 
@@ -78,27 +76,33 @@ public struct VideoSurface: View {
         }
     }
 
-    private var playbackStatus: AnyPublisher<AVPlayer.TimeControlStatus, Never> {
-        guard let player else {
-            return Empty<AVPlayer.TimeControlStatus, Never>().eraseToAnyPublisher()
-        }
-        return player.publisher(for: \.timeControlStatus).eraseToAnyPublisher()
-    }
-
     private func start() {
-        if player == nil {
-            let queue = AVQueuePlayer()
-            queue.isMuted = isMuted
+        if !isConfigured {
+            isConfigured = true
+            player.isMuted = isMuted
             let item = AVPlayerItem(url: url)
             if loops {
-                looper = AVPlayerLooper(player: queue, templateItem: item)
+                looper = AVPlayerLooper(player: player, templateItem: item)
             } else {
-                queue.replaceCurrentItem(with: item)
+                player.replaceCurrentItem(with: item)
             }
-            player = queue
         }
         // Matches the web renderer, which drops autoplay under reduced motion.
         guard autoPlays, !reduceMotion else { return }
-        player?.play()
+        player.play()
+    }
+}
+
+/// An empty label would replace AVKit's own, so the label is only applied when
+/// the CMS actually supplied alt text.
+private struct OptionalAccessibilityLabel: ViewModifier {
+    let text: String?
+
+    func body(content: Content) -> some View {
+        if let text, !text.isEmpty {
+            content.accessibilityLabel(text)
+        } else {
+            content
+        }
     }
 }

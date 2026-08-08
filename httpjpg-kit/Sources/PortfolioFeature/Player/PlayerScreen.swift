@@ -5,12 +5,11 @@ import SwiftUI
 struct PlayerScreen: View {
     let player: AudioPlayerModel
 
-    @Environment(\.colorScheme) private var systemScheme
+    @Environment(\.pageTheme) private var theme
 
     @State private var playPauseTaps = 0
 
     var body: some View {
-        let theme: PageTheme = systemScheme == .dark ? .dark : .light
         VStack(spacing: Spacing.s6) {
             MonoText(Ascii.dividerMusic, size: Typography.Size.sm, opacity: Opacities.muted)
                 .padding(.top, Spacing.s8)
@@ -101,7 +100,7 @@ struct PlayerScreen: View {
                     .contentShape(Rectangle())
 
                     .contentTransition(.opacity)
-                    .animation(.easeOut(duration: 0.1), value: player.isPlaying)
+                    .animation(Motion.pressed, value: player.isPlaying)
             }
             .buttonStyle(.plain)
 

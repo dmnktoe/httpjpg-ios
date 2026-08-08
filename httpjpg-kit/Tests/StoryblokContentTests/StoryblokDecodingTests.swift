@@ -512,12 +512,26 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(blok.items.first?.title)
     }
 
-    func testBadgeRejectsAnUnsafeLinkScheme() throws {
-        let blok = try decode(BadgeItemBlok.self, """
-        {"_uid":"bi4","component":"badge_item","src":"https://example.com/b.png","alt":"B",
-         "href":"javascript:alert(1)"}
+    func testBadgeRejectsEveryHrefTheSystemCannotSafelyOpen() throws {
+        let rejected = [
+            "javascript:alert(1)",
+            "data:text/html,<script>x</script>",
+            "file:///etc/passwd",
+            "/imprint",
+        ]
+        for href in rejected {
+            let blok = try decode(BadgeItemBlok.self, """
+            {"_uid":"bi4","component":"badge_item","src":"https://example.com/b.png","alt":"B",
+             "href":"\(href)"}
+            """)
+            XCTAssertNil(blok.linkURL, "only http/https/mailto/tel may open: \(href)")
+        }
+
+        let allowed = try decode(BadgeItemBlok.self, """
+        {"_uid":"bi5","component":"badge_item","src":"https://example.com/b.png","alt":"B",
+         "href":"mailto:hi@httpjpg.com"}
         """)
-        XCTAssertNil(blok.linkURL, "only http/https/mailto/tel may open, as on the web")
+        XCTAssertEqual(allowed.linkURL?.absoluteString, "mailto:hi@httpjpg.com")
     }
 
     func testScrollClipImageReadsTheRevealNumbersAsStrings() throws {
@@ -548,14 +562,32 @@ final class StoryblokDecodingTests: XCTestCase {
     }
 
     func testEveryNewBlokDispatchesInsteadOfFallingBack() throws {
-        let components = ["list", "link", "icon", "stats", "accordion", "badges", "scroll_clip_image"]
-        for component in components {
-            let blok = try decode(PortfolioBlok.self, """
+        // Asserting the typed case, not the component name: the .unknown
+        // fallback preserves both the name and the uid, so a name check would
+        // stay green if a dispatch case were removed.
+        func decodeBare(_ component: String) throws -> PortfolioBlok {
+            try decode(PortfolioBlok.self, """
             {"_uid":"d-\(component)","component":"\(component)"}
             """)
-            XCTAssertEqual(blok.component, component)
-            XCTAssertEqual(blok.id, "d-\(component)")
         }
+        guard case .list = try decodeBare("list") else { return XCTFail("list") }
+        guard case .link = try decodeBare("link") else { return XCTFail("link") }
+        guard case .icon = try decodeBare("icon") else { return XCTFail("icon") }
+        guard case .stats = try decodeBare("stats") else { return XCTFail("stats") }
+        guard case .accordion = try decodeBare("accordion") else { return XCTFail("accordion") }
+        guard case .badges = try decodeBare("badges") else { return XCTFail("badges") }
+        guard case .scrollClipImage = try decodeBare("scroll_clip_image") else {
+            return XCTFail("scroll_clip_image")
+        }
+    }
+
+    func testScrollClipRevealInputsAreClampedToUsableRanges() throws {
+        let blok = try decode(ScrollClipImageBlok.self, """
+        {"_uid":"c3","component":"scroll_clip_image","maxClipRatio":"400","maxScale":"0.2",
+         "image":{"filename":"https://a.storyblok.com/f/1/1200x1200/x/plate.jpg"}}
+        """)
+        XCTAssertEqual(blok.maxClipRatio, 0.5, accuracy: 0.0001, "a full-frame inset would hide the image")
+        XCTAssertEqual(blok.maxScale, 1, accuracy: 0.0001, "scaling below 1 shrinks instead of revealing")
     }
 
     func testOrderedListMarkersFollowTheCssStyles() {

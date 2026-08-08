@@ -26,6 +26,8 @@ public struct SbIconView: View {
         Palette.named(blok.color) ?? theme.foreground
     }
 
+    /// Mirrors the CMS field default of "32px"; icon sizing is off the
+    /// typography scale, so there is no token to reach for.
     private static let defaultSize: CGFloat = 32
 
     /// The CMS icon picker is a fixed eight-entry list; anything outside it

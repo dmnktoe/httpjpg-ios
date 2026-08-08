@@ -46,6 +46,7 @@ public struct SbAccordionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(.isHeader)
+            .accessibilityValue(openIDs.contains(item.id) ? "Expanded" : "Collapsed")
 
             if openIDs.contains(item.id) {
                 BodyText(item.content, size: bodySize, emphasis: .muted)

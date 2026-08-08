@@ -2,13 +2,15 @@ import SwiftUI
 
 public struct SkeletonBlock: View {
     private let width: CGFloat?
-    private let height: CGFloat
+    private let height: CGFloat?
 
     @State private var isDimmed = false
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(width: CGFloat? = nil, height: CGFloat = Typography.Size.base) {
+    /// A nil height fills whatever container proposes — for media boxes
+    /// waiting on their first frame.
+    public init(width: CGFloat? = nil, height: CGFloat? = Typography.Size.base) {
         self.width = width
         self.height = height
     }
@@ -16,7 +18,7 @@ public struct SkeletonBlock: View {
     public var body: some View {
         Rectangle()
             .fill(theme.border)
-            .frame(maxWidth: width ?? .infinity)
+            .frame(maxWidth: width ?? .infinity, maxHeight: height == nil ? .infinity : nil)
             .frame(height: height)
             .opacity(isDimmed ? Opacities.dimmed : 1)
             .animation(pulse, value: isDimmed)

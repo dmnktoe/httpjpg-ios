@@ -36,7 +36,7 @@ public struct RemoteImage: View {
 
     @ViewBuilder
     private var image: some View {
-        AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.35))) { phase in
+        AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
             switch phase {
             case .success(let image):
                 image

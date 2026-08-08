@@ -45,6 +45,28 @@
       }
     },
     {
+      "id": 900094,
+      "uuid": "0d5c07f5-6c02-5ae9-9c2c-1a06d3a1b21e",
+      "name": "STORyS, feed_xml && music",
+      "slug": "feed-xml_html",
+      "full_slug": "feed-xml_html",
+      "created_at": "2025-01-04T11:12:00.000Z",
+      "published_at": "2026-07-20T09:00:00.000Z",
+      "first_published_at": "2026-07-20T09:00:00.000Z",
+      "updated_at": "2026-07-20T09:00:00.000Z",
+      "position": 930,
+      "tag_list": [],
+      "is_startpage": false,
+      "parent_id": 0,
+      "group_id": "5c1a2cf0-3f7a-5f6e-9a2b-8c4d0e6f7a91",
+      "lang": "default",
+      "alternates": [],
+      "content": {
+        "component": "page",
+        "title": "STORyS, feed_xml && music"
+      }
+    },
+    {
       "id": 900093,
       "uuid": "d1fea0de-2f5e-5f01-8061-e726649df9c6",
       "name": "Home",

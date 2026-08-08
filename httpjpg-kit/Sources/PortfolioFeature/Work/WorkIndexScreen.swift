@@ -41,22 +41,30 @@ struct WorkIndexScreen: View {
     }
 
     private func list(_ model: WorkIndexModel) -> some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: Spacing.s8) {
-                masthead(model)
+        ScrollToTopReader(tick: app.scrollToTopTick(for: .work)) {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: Spacing.s8) {
+                    masthead(model)
 
-                if model.isLoaded {
-                    rows(model)
-                        .id(model.variant)
-                } else {
-                    WorkListSkeleton()
+                    FadeSwap(key: ListGeneration(
+                        isLoaded: model.isLoaded,
+                        variant: model.variant,
+                        tags: model.selectedTags
+                    )) {
+                        if model.isLoaded {
+                            rows(model)
+                        } else {
+                            WorkListSkeleton()
+                        }
+                    }
                 }
+                .padding(.horizontal, PageLayout.gutter)
+                .padding(.bottom, bottomBarClearance)
+                .scrollToTopAnchor()
             }
-            .padding(.horizontal, PageLayout.gutter)
-            .padding(.bottom, bottomBarClearance)
+            .softScrollEdges()
+            .refreshable { await model.load(force: true) }
         }
-        .softScrollEdges()
-        .refreshable { await model.load(force: true) }
     }
 
     @ViewBuilder
@@ -98,7 +106,7 @@ struct WorkIndexScreen: View {
             }
         }
         .padding(.top, Spacing.s2)
-        .animation(.smooth(duration: 0.2), value: model.availableTags)
+        .animation(Motion.stateChange, value: model.availableTags)
     }
 
     @ViewBuilder
@@ -113,12 +121,21 @@ struct WorkIndexScreen: View {
                 WorkCardView(card)
             }
             .buttonStyle(.plain)
+            .workCardMenu(for: item)
         } else {
             NavigationLink(value: WorkRoute(item: item)) {
                 WorkCardView(card)
             }
             .buttonStyle(.plain)
             .zoomTransitionSource(id: item.slug, in: cardZoom)
+            .workCardMenu(for: item)
         }
     }
+}
+
+/// One crossfade generation per distinct filter state of the list.
+private struct ListGeneration: Hashable {
+    let isLoaded: Bool
+    let variant: MenuLink.Variant
+    let tags: Set<String>
 }

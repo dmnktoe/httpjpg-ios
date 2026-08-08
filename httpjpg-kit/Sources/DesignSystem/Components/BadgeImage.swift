@@ -68,6 +68,10 @@ public struct BadgeImage: View {
         }
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
+            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                phase = .failed
+                return
+            }
             let mimeType = response.mimeType?.lowercased() ?? ""
             if mimeType.contains("svg") || Self.looksLikeSVG(data) {
                 guard let node = SVGParser.parse(data: data) else {

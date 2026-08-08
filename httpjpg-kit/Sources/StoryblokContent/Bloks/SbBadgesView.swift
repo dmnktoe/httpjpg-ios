@@ -15,12 +15,12 @@ public struct SbBadgesView: View {
             // `align` is the CSS cross-axis alignment for badges of differing
             // heights. Every badge here is pinned to the same height, so it has
             // nothing to resolve and only `justify` is honoured.
-            FlowLayout(spacing: Spacing.s2) {
+            FlowLayout(spacing: Spacing.s2, alignment: rowAlignment) {
                 ForEach(blok.items) { item in
                     badge(item)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: frameAlignment)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .blokSpacing(blok.spacing)
         }
     }
@@ -29,7 +29,7 @@ public struct SbBadgesView: View {
     private func badge(_ item: BadgeItemBlok) -> some View {
         let image = BadgeImage(
             url: item.sourceURL,
-            accessibilityText: item.alt,
+            accessibilityText: item.alt.isEmpty ? (item.title ?? "") : item.alt,
             height: blok.height
         )
         if let url = item.linkURL {
@@ -40,7 +40,7 @@ public struct SbBadgesView: View {
         }
     }
 
-    private var frameAlignment: Alignment {
+    private var rowAlignment: HorizontalAlignment {
         switch blok.justify {
         case "center": return .center
         case "end": return .trailing

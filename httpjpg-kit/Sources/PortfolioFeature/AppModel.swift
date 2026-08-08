@@ -16,7 +16,7 @@ public final class AppModel {
         public var label: String {
             switch self {
             case .work: return "🎀 ୧ꔛꗃ˖ աօʀӄ"
-            case .info: return "👊🐯  ᶤⓝƒ𝓸  💀☟"
+            case .info: return "👊🐯  ᶤⓝƒ𝓸"
             }
         }
 
@@ -29,13 +29,17 @@ public final class AppModel {
     }
 
     public let client: ContentClient
-    public var selectedTab: Tab = .work
+    public var selectedTab: Tab = .work {
+        didSet { visitedTabs.insert(selectedTab) }
+    }
+
+    /// Tabs that have been shown at least once. RootView keeps their roots
+    /// mounted so switching back doesn't rebuild the stack (and flicker).
+    private(set) var visitedTabs: Set<Tab> = [.work]
 
     public var workPath: [WorkRoute] = []
 
     public var infoPath: [PageRoute] = []
-
-    public var previewURL: URL?
 
     public var isSidebarOpen = false
     public private(set) var config: SiteConfig = .fallback
@@ -73,8 +77,24 @@ public final class AppModel {
     }
 
     public func open(_ url: URL) {
-        guard let slug = WidgetDeepLink.workSlug(from: url) else { return }
-        show(WorkRoute(slug: slug, title: slug))
+        switch WidgetDeepLink.destination(from: url) {
+        case .work(let slug):
+            show(WorkRoute(slug: slug, title: slug))
+        case .workIndex:
+            select(tab: .work)
+            workPath.removeAll()
+            isSidebarOpen = false
+        case .page(let slug):
+            // A link carries the slug and nothing else, so it doubles as the title —
+            // same stand-in the work routes use.
+            show(PageRoute(slug: slug, title: slug))
+        case .info:
+            select(tab: .info)
+            infoPath.removeAll()
+            isSidebarOpen = false
+        case nil:
+            return
+        }
     }
 
     func perform(_ action: QuickAction) {
@@ -86,6 +106,12 @@ public final class AppModel {
     private func show(_ route: WorkRoute) {
         selectedTab = .work
         workPath = [route]
+        isSidebarOpen = false
+    }
+
+    private func show(_ route: PageRoute) {
+        selectedTab = .info
+        infoPath = [route]
         isSidebarOpen = false
     }
 
@@ -104,14 +130,32 @@ public final class AppModel {
         }
     }
 
+    /// Bumped when re-selecting a tab that is already at its root; the tab's
+    /// scroll view scrolls back to the top in response.
+    private(set) var scrollToTopTicks: [Tab: Int] = [:]
+
+    func scrollToTopTick(for tab: Tab) -> Int {
+        scrollToTopTicks[tab] ?? 0
+    }
+
     public func select(tab: Tab) {
         guard tab == selectedTab else {
             selectedTab = tab
             return
         }
         switch tab {
-        case .work: workPath.removeAll()
-        case .info: infoPath.removeAll()
+        case .work:
+            if workPath.isEmpty {
+                scrollToTopTicks[.work, default: 0] += 1
+            } else {
+                workPath.removeAll()
+            }
+        case .info:
+            if infoPath.isEmpty {
+                scrollToTopTicks[.info, default: 0] += 1
+            } else {
+                infoPath.removeAll()
+            }
         }
     }
 }
