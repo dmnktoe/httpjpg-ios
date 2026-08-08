@@ -6,8 +6,8 @@ import UIKit
 /// aspect ratio — the same contract as the web `Badge`.
 ///
 /// shields.io serves SVG, which ImageIO cannot decode, so `AsyncImage` is not
-/// enough here: the bytes are fetched once and then routed to either the vector
-/// or the bitmap renderer.
+/// enough here: the bytes are fetched once and then routed to the shields, the
+/// vector or the bitmap renderer.
 public struct BadgeImage: View {
     private let url: URL?
     private let accessibilityText: String
@@ -19,6 +19,7 @@ public struct BadgeImage: View {
 
     private enum Phase {
         case loading
+        case shields(ShieldsBadge)
         case vector(SVGNode, aspectRatio: CGFloat)
         case bitmap(UIImage)
         case failed
@@ -46,6 +47,8 @@ public struct BadgeImage: View {
         case .loading:
             theme.border.opacity(Opacities.dimmed)
                 .aspectRatio(Self.placeholderAspectRatio, contentMode: .fit)
+        case .shields(let badge):
+            shields(badge)
         case .vector(let node, let aspectRatio):
             SVGView(svg: node)
                 .aspectRatio(aspectRatio, contentMode: .fit)
@@ -61,6 +64,29 @@ public struct BadgeImage: View {
         }
     }
 
+    /// Redraws the badge from the label/message pair instead of rendering its
+    /// artwork. The proportions are shields' own, expressed relative to the
+    /// requested height: 11pt text, 5pt of side padding and a 3pt corner on the
+    /// 20pt badge it serves.
+    private func shields(_ badge: ShieldsBadge) -> some View {
+        HStack(spacing: 0) {
+            ForEach(badge.segments.indices, id: \.self) { index in
+                // Deliberately not Typography.mono: that scales with Dynamic Type,
+                // and the height here is fixed by the caller, so a scaled glyph
+                // would be clipped rather than enlarged.
+                Text(badge.segments[index].text)
+                    .font(.system(size: height * 0.55, design: .monospaced))
+                    .foregroundStyle(Palette.white)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .padding(.horizontal, height * 0.25)
+                    .frame(maxHeight: .infinity)
+                    .background(Palette.named(badge.segments[index].color) ?? theme.border)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: height * 0.15))
+    }
+
     private func load() async {
         guard let url else {
             phase = .failed
@@ -74,6 +100,10 @@ public struct BadgeImage: View {
             }
             let mimeType = response.mimeType?.lowercased() ?? ""
             if mimeType.contains("svg") || Self.looksLikeSVG(data) {
+                if let badge = ShieldsBadge.parse(data) {
+                    phase = .shields(badge)
+                    return
+                }
                 guard let node = SVGParser.parse(data: data) else {
                     phase = .failed
                     return
