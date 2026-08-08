@@ -55,7 +55,10 @@ let package = Package(
         ),
         .testTarget(
             name: "DesignSystemTests",
-            dependencies: ["DesignSystem"],
+            dependencies: [
+                "DesignSystem",
+                .product(name: "SVGView", package: "SVGView"),
+            ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

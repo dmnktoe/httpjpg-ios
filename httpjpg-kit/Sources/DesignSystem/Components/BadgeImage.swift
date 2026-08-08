@@ -25,7 +25,7 @@ public struct BadgeImage: View {
     }
 
     /// Falls back to a squat badge shape while the real ratio is unknown.
-    private static let placeholderAspectRatio: CGFloat = 4
+    static let placeholderAspectRatio: CGFloat = 4
 
     public init(url: URL?, accessibilityText: String, height: CGFloat) {
         self.url = url
@@ -87,14 +87,14 @@ public struct BadgeImage: View {
 
     /// Some CDNs mislabel SVG as text/plain or octet-stream, so the bytes get
     /// the final say.
-    private static func looksLikeSVG(_ data: Data) -> Bool {
+    static func looksLikeSVG(_ data: Data) -> Bool {
         guard let head = String(data: data.prefix(512), encoding: .utf8)?.lowercased() else {
             return false
         }
         return head.contains("<svg")
     }
 
-    private static func aspectRatio(of node: SVGNode) -> CGFloat {
+    static func aspectRatio(of node: SVGNode) -> CGFloat {
         let bounds = node.bounds()
         guard bounds.width > 0, bounds.height > 0 else { return placeholderAspectRatio }
         return bounds.width / bounds.height
