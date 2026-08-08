@@ -35,8 +35,13 @@ final class MockContentTests: XCTestCase {
         XCTAssertEqual(detail.title, "Nachtbus")
         XCTAssertNotNil(detail.date)
         XCTAssertNotNil(detail.dateEnd)
-        XCTAssertTrue(detail.body.contains { $0.component == "video" })
         XCTAssertTrue(detail.body.contains { $0.component == "marquee" })
+
+        guard case .video(let video)? = detail.body.first(where: { $0.component == "video" }) else {
+            return XCTFail("the nachtbus story should carry a video blok")
+        }
+        XCTAssertNotNil(video.nativeURL, "the uploaded file has to survive decoding")
+        XCTAssertNotNil(video.poster)
     }
 
     func testTheConfigStoryFeedsTheMenu() async {

@@ -23,6 +23,8 @@ extension PortfolioBlok: View {
             return AnyView(SbSlideshowView(blok: blok))
         case .video(let blok):
             return AnyView(SbVideoView(blok: blok))
+        case .scrollClipImage(let blok):
+            return AnyView(SbScrollClipImageView(blok: blok))
         case .musicPlayer(let blok):
             return AnyView(SbMusicPlayerView(blok: blok))
         case .headline(let blok):
@@ -41,6 +43,18 @@ extension PortfolioBlok: View {
             return AnyView(SbCalloutView(blok: blok))
         case .codeBlock(let blok):
             return AnyView(SbCodeBlockView(blok: blok))
+        case .list(let blok):
+            return AnyView(SbListView(blok: blok))
+        case .link(let blok):
+            return AnyView(SbLinkView(blok: blok))
+        case .icon(let blok):
+            return AnyView(SbIconView(blok: blok))
+        case .stats(let blok):
+            return AnyView(SbStatsView(blok: blok))
+        case .accordion(let blok):
+            return AnyView(SbAccordionView(blok: blok))
+        case .badges(let blok):
+            return AnyView(SbBadgesView(blok: blok))
         case .workList(let blok):
             return AnyView(SbWorkListView(blok: blok))
         case .unknown(let component, _):

@@ -20,10 +20,17 @@ public enum PortfolioBlok: Decodable, Identifiable {
     case button(ButtonBlok)
     case callout(CalloutBlok)
     case codeBlock(CodeBlok)
+    case list(ListBlok)
+    case link(LinkBlok)
+    case icon(IconBlok)
+    case stats(StatsBlok)
+    case accordion(AccordionBlok)
+    case badges(BadgesBlok)
     case workList(WorkListBlok)
     case marquee(MarqueeBlok)
     case slideshow(SlideshowBlok)
     case video(VideoBlok)
+    case scrollClipImage(ScrollClipImageBlok)
     case musicPlayer(MusicPlayerBlok)
 
     case unknown(component: String, id: String)
@@ -46,10 +53,17 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .button(let blok): return blok.id
         case .callout(let blok): return blok.id
         case .codeBlock(let blok): return blok.id
+        case .list(let blok): return blok.id
+        case .link(let blok): return blok.id
+        case .icon(let blok): return blok.id
+        case .stats(let blok): return blok.id
+        case .accordion(let blok): return blok.id
+        case .badges(let blok): return blok.id
         case .workList(let blok): return blok.id
         case .marquee(let blok): return blok.id
         case .slideshow(let blok): return blok.id
         case .video(let blok): return blok.id
+        case .scrollClipImage(let blok): return blok.id
         case .musicPlayer(let blok): return blok.id
         case .unknown(_, let id): return id
         }
@@ -71,10 +85,17 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .button: return "button"
         case .callout: return "callout"
         case .codeBlock: return "code_block"
+        case .list: return "list"
+        case .link: return "link"
+        case .icon: return "icon"
+        case .stats: return "stats"
+        case .accordion: return "accordion"
+        case .badges: return "badges"
         case .workList: return "work_list"
         case .marquee: return "marquee"
         case .slideshow: return "slideshow"
         case .video: return "video"
+        case .scrollClipImage: return "scroll_clip_image"
         case .musicPlayer: return "music_player"
         case .unknown(let component, _): return component
         }
@@ -105,7 +126,14 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case "button": self = .button(try ButtonBlok(from: decoder))
         case "callout": self = .callout(try CalloutBlok(from: decoder))
         case "code_block": self = .codeBlock(try CodeBlok(from: decoder))
+        case "list": self = .list(try ListBlok(from: decoder))
+        case "link": self = .link(try LinkBlok(from: decoder))
+        case "icon": self = .icon(try IconBlok(from: decoder))
+        case "stats": self = .stats(try StatsBlok(from: decoder))
+        case "accordion": self = .accordion(try AccordionBlok(from: decoder))
+        case "badges": self = .badges(try BadgesBlok(from: decoder))
         case "work_list": self = .workList(try WorkListBlok(from: decoder))
+        case "scroll_clip_image": self = .scrollClipImage(try ScrollClipImageBlok(from: decoder))
         case "music_player": self = .musicPlayer(try MusicPlayerBlok(from: decoder))
         default:
             self = .unknown(component: component, id: try BlokEnvelope(from: decoder).uid)
@@ -145,6 +173,11 @@ extension KeyedDecodingContainer {
     func cmsInt(forKey key: Key) -> Int? {
         if let value = cmsValue(Int.self, forKey: key) { return value }
         return cmsString(forKey: key).flatMap(Int.init)
+    }
+
+    func cmsDouble(forKey key: Key) -> Double? {
+        if let value = cmsValue(Double.self, forKey: key) { return value }
+        return cmsString(forKey: key).flatMap(Double.init)
     }
 
     func cmsBool(forKey key: Key, default fallback: Bool = false) -> Bool {
@@ -596,15 +629,23 @@ public struct VideoBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
 
+    public let source: String
     public let asset: StoryblokAsset?
 
     public let videoURL: String?
     public let poster: StoryblokAsset?
     public let caption: RichTextNode?
     public let aspectRatio: CGFloat?
+    public let copyrightPosition: String?
+
+    public let showsControls: Bool
+    public let autoPlays: Bool
+    public let loops: Bool
+    public let isMuted: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case videoAsset, videoUrl, poster, caption, aspectRatio
+        case video, videoUrl, source, poster, caption, aspectRatio, copyrightPosition
+        case controls, autoPlay, loop, muted
     }
 
     public init(from decoder: any Decoder) throws {
@@ -612,21 +653,38 @@ public struct VideoBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         spacing = envelope.spacing
-        let uploaded = container.cmsValue(StoryblokAsset.self, forKey: .videoAsset)
+        source = container.cmsString(forKey: .source) ?? "native"
+        let uploaded = container.cmsValue(StoryblokAsset.self, forKey: .video)
         asset = uploaded?.isEmpty == false ? uploaded : nil
         videoURL = container.cmsString(forKey: .videoUrl)
         let posterAsset = container.cmsValue(StoryblokAsset.self, forKey: .poster)
         poster = posterAsset?.isEmpty == false ? posterAsset : nil
         caption = container.cmsValue(RichTextNode.self, forKey: .caption)
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+        copyrightPosition = container.cmsString(forKey: .copyrightPosition)
+        showsControls = container.cmsBool(forKey: .controls, default: true)
+        autoPlays = container.cmsBool(forKey: .autoPlay)
+        loops = container.cmsBool(forKey: .loop)
+        isMuted = container.cmsBool(forKey: .muted)
     }
 
-    public var assetURL: URL? {
-        asset?.filename.flatMap(URL.init(string:))
+    public var isEmbed: Bool { source == "youtube" || source == "vimeo" }
+
+    /// Mirrors the web `resolveSrc`: the embed sources read the URL field,
+    /// native prefers the uploaded asset and falls back to the URL.
+    public var nativeURL: URL? {
+        guard !isEmbed else { return nil }
+        return (asset?.filename ?? videoURL).flatMap(URL.init(string:))
     }
 
-    public var externalURL: URL? {
-        videoURL.flatMap(URL.init(string:))
+    public var embedURL: URL? {
+        guard isEmbed else { return nil }
+        return videoURL.flatMap(URL.init(string:))
+    }
+
+    public var copyright: String? {
+        guard let copyright = asset?.copyright, !copyright.isEmpty else { return nil }
+        return copyright
     }
 }
 
@@ -683,6 +741,304 @@ public struct MusicPlayerBlok: Decodable, Identifiable {
 
     public var externalURL: URL? {
         sourceURL.flatMap(URL.init(string:))
+    }
+}
+
+public struct ListItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let text: String
+
+    private enum CodingKeys: String, CodingKey {
+        case text
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        text = container.cmsString(forKey: .text) ?? ""
+    }
+}
+
+public struct ListBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [ListItemBlok]
+    public let isOrdered: Bool
+    public let size: String
+    public let itemSpacing: CGFloat
+    public let unorderedStyle: String
+    public let orderedStyle: String
+    public let color: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case items, ordered, size, itemSpacing, unorderedStyle, orderedStyle, color
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(ListItemBlok.self, forKey: .items)
+        isOrdered = container.cmsBool(forKey: .ordered)
+        size = container.cmsString(forKey: .size) ?? "sm"
+        itemSpacing = SpacingScale.points(container.cmsString(forKey: .itemSpacing)) ?? Spacing.s2
+        unorderedStyle = container.cmsString(forKey: .unorderedStyle) ?? "disc"
+        orderedStyle = container.cmsString(forKey: .orderedStyle) ?? "decimal"
+        color = container.cmsString(forKey: .color)
+    }
+}
+
+public struct LinkBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let text: String
+    public let link: StoryblokLink?
+    public let showsExternalIcon: Bool
+    public let color: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case text, link, showExternalIcon, color
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        text = container.cmsString(forKey: .text) ?? ""
+        link = container.cmsValue(StoryblokLink.self, forKey: .link)
+        showsExternalIcon = container.cmsBool(forKey: .showExternalIcon)
+        color = container.cmsString(forKey: .color)
+    }
+}
+
+public struct IconBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let name: String
+    public let size: CGFloat?
+    public let color: String?
+    public let label: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case name, size, color, label
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        name = container.cmsString(forKey: .name) ?? ""
+        size = CSSLength.points(container.cmsString(forKey: .size))
+        color = container.cmsString(forKey: .color)
+        label = container.cmsString(forKey: .label)
+    }
+}
+
+public struct StatItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let value: String
+    public let label: String
+    public let caption: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case value, label, caption
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        value = container.cmsString(forKey: .value) ?? ""
+        label = container.cmsString(forKey: .label) ?? ""
+        caption = container.cmsString(forKey: .caption)
+    }
+}
+
+public struct StatsBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [StatItemBlok]
+    public let columns: Int
+    public let variant: String
+    public let align: String
+
+    private enum CodingKeys: String, CodingKey {
+        case items, columns, variant, align
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(StatItemBlok.self, forKey: .items)
+        columns = min(max(container.cmsInt(forKey: .columns) ?? 3, 1), 4)
+        variant = container.cmsString(forKey: .variant) ?? "default"
+        align = container.cmsString(forKey: .align) ?? "left"
+    }
+}
+
+public struct AccordionItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let title: String
+    public let content: String
+    public let isOpenByDefault: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case title, content, defaultOpen
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        title = container.cmsString(forKey: .title) ?? ""
+        content = container.cmsString(forKey: .content) ?? ""
+        isOpenByDefault = container.cmsBool(forKey: .defaultOpen)
+    }
+}
+
+public struct AccordionBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [AccordionItemBlok]
+    public let allowsMultiple: Bool
+    public let variant: String
+    public let size: String
+
+    private enum CodingKeys: String, CodingKey {
+        case items, allowMultiple, variant, size
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(AccordionItemBlok.self, forKey: .items)
+        allowsMultiple = container.cmsBool(forKey: .allowMultiple)
+        variant = container.cmsString(forKey: .variant) ?? "default"
+        size = container.cmsString(forKey: .size) ?? "md"
+    }
+}
+
+public struct BadgeItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let src: String
+    public let alt: String
+    public let href: String?
+    public let title: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case src, alt, href, title
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        src = container.cmsString(forKey: .src) ?? ""
+        alt = container.cmsString(forKey: .alt) ?? ""
+        href = container.cmsString(forKey: .href)
+        title = container.cmsString(forKey: .title)
+    }
+
+    public var sourceURL: URL? {
+        URL(string: src)
+    }
+
+    public var linkURL: URL? {
+        guard let href, let url = URL(string: href) else { return nil }
+        // Same scheme allowlist the web Badge applies before linking out. A
+        // scheme-less href is relative to the site, which openURL cannot
+        // resolve, so it stays unlinked rather than becoming a dead button.
+        guard let scheme = url.scheme?.lowercased() else { return nil }
+        return ["http", "https", "mailto", "tel"].contains(scheme) ? url : nil
+    }
+}
+
+public struct BadgesBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [BadgeItemBlok]
+    public let align: String
+    public let justify: String
+    public let height: CGFloat
+
+    static let defaultHeight: CGFloat = 24
+
+    private enum CodingKeys: String, CodingKey {
+        case items, align, justify, height
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(BadgeItemBlok.self, forKey: .items).filter { !$0.src.isEmpty }
+        align = container.cmsString(forKey: .align) ?? "center"
+        justify = container.cmsString(forKey: .justify) ?? "start"
+        // The CMS default is "1.5em", which CSSLength resolves against a 16pt root.
+        height = CSSLength.points(container.cmsString(forKey: .height)) ?? Self.defaultHeight
+    }
+}
+
+public struct ScrollClipImageBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let image: StoryblokAsset?
+    public let alt: String?
+    public let caption: RichTextNode?
+    public let link: StoryblokLink?
+    public let copyrightPosition: String?
+    public let aspectRatio: CGFloat?
+    public let width: String?
+
+    public let isPinned: Bool
+    public let maxClipRatio: CGFloat
+    public let maxScale: CGFloat
+    public let showsBrackets: Bool
+    public let showsProgress: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case image, alt, caption, link, copyrightPosition, aspectRatio, width
+        case pin, maxClipRatio, maxScale, brackets, showProgress
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        image = container.cmsValue(StoryblokAsset.self, forKey: .image)
+        alt = container.cmsString(forKey: .alt)
+        caption = container.cmsValue(RichTextNode.self, forKey: .caption)
+        link = container.cmsValue(StoryblokLink.self, forKey: .link)
+        copyrightPosition = container.cmsString(forKey: .copyrightPosition)
+        aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+        width = container.cmsString(forKey: .width)
+        isPinned = container.cmsBool(forKey: .pin)
+        // Percent on the CMS side, a 0…1 fraction of each axis here. Clamped
+        // because an unbounded ratio can inset the mask past the whole frame
+        // and leave the image permanently invisible.
+        let clipPercent = container.cmsDouble(forKey: .maxClipRatio) ?? 10
+        maxClipRatio = CGFloat(min(max(clipPercent, 0), 50)) / 100
+        let scale = container.cmsDouble(forKey: .maxScale) ?? 1.1
+        maxScale = CGFloat(min(max(scale, 1), 3))
+        showsBrackets = container.cmsBool(forKey: .brackets, default: true)
+        showsProgress = container.cmsBool(forKey: .showProgress, default: true)
+    }
+
+    public var widthFraction: CGFloat? {
+        guard let width, width.hasSuffix("%"),
+              let value = Double(width.dropLast()), value > 0, value < 100
+        else { return nil }
+        return CGFloat(value) / 100
     }
 }
 

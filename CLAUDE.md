@@ -17,7 +17,7 @@ same Storyblok space the website reads. The website lives in a separate repo,
 - **xcconfig** build settings in `Config/`; secrets in the git-ignored
   `Config/Secrets.xcconfig`
 - Dependencies: `storyblok-swift` (the `Story` envelope only), `MarqueeLabel`,
-  `TelemetryDeck`
+  `TelemetryDeck`, `SVGView` (badge artwork — ImageIO cannot decode SVG)
 
 ## Layering
 
