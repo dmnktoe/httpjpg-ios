@@ -79,6 +79,7 @@ public final class AppModel {
     func resetCacheAndReload() async {
         client.clearCache()
         ImageCache.clear()
+        await VideoCache.shared.clear()
 
         config = await client.siteConfig(refresh: true)
         hasLoadedConfig = true

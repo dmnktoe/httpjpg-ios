@@ -34,16 +34,25 @@ public struct LoopingVideoPlayer: View {
             .animation(Motion.mediaIn, value: isReady)
             .clipped()
             .contentShape(Rectangle())
-            .onAppear(perform: start)
+            .task { await start() }
             .onDisappear { player?.pause() }
             .accessibilityHidden(true)
     }
 
-    private func start() {
+    // Explicitly main-actor: resolving the URL suspends, and the player and the
+    // looper have to be assigned back on the main actor when it resumes.
+    @MainActor
+    private func start() async {
         if player == nil {
+            // Plays the stored copy rather than the remote URL: AVFoundation
+            // ignores URLCache, so an uncached loop re-downloads on every pass
+            // through the carousel. The skeleton above covers the first fetch.
+            let source = await VideoCache.shared.localURL(for: url)
+            guard !Task.isCancelled else { return }
+
             let queue = AVQueuePlayer()
             queue.isMuted = true
-            looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
+            looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: source))
             player = queue
         }
         player?.play()
