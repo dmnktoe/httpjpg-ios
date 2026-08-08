@@ -3,6 +3,7 @@ import Observation
 import StoryblokContent
 import SwiftUI
 import WidgetFeature
+import WidgetKit
 
 @MainActor
 @Observable
@@ -90,6 +91,12 @@ public final class AppModel {
         await workIndex.load(force: true)
         await info.load(force: true)
         await widgets.load()
+
+        // The widget extension is a separate process with its own data container
+        // and its own ContentClient, so nothing cleared above reaches it. Asking
+        // WidgetKit to reload is the only way in: the providers build a fresh
+        // client per timeline, so their cache dies with it.
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     public func open(_ url: URL) {
