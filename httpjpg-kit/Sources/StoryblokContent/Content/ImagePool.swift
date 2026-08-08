@@ -36,7 +36,10 @@ public enum ImagePool {
             return assets(in: grid.items)
         case .gridItem(let item):
             return assets(in: item.content)
+        case .scrollClipImage(let clip):
+            return clip.image.map { [$0] } ?? []
         case .headline, .paragraph, .richText, .divider, .button, .callout, .codeBlock,
+             .list, .link, .icon, .stats, .accordion, .badges,
              .workList, .marquee, .video, .musicPlayer, .unknown:
             return []
         }
