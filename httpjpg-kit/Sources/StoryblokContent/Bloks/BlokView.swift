@@ -53,6 +53,8 @@ extension PortfolioBlok: View {
             return AnyView(SbStatsView(blok: blok))
         case .accordion(let blok):
             return AnyView(SbAccordionView(blok: blok))
+        case .badges(let blok):
+            return AnyView(SbBadgesView(blok: blok))
         case .workList(let blok):
             return AnyView(SbWorkListView(blok: blok))
         case .unknown(let component, _):

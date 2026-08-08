@@ -39,6 +39,7 @@ const CONSCIOUSLY_UNRENDERED = new Map([
   ["menu_link", "decoded as MenuLink inside SiteConfig"],
   ["work_card", "work cards are built from work stories, not from the blok"],
   ["accordion_item", "decoded as AccordionItemBlok, rendered by SbAccordionView"],
+  ["badge_item", "decoded as BadgeItemBlok, rendered by SbBadgesView"],
   ["list_item", "decoded as ListItemBlok, rendered by SbListView"],
   ["stat_item", "decoded as StatItemBlok, rendered by SbStatsView"],
 ]);

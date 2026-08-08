@@ -13,6 +13,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
         .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
+        .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.0.0")),
     ],
     targets: [
@@ -20,6 +21,7 @@ let package = Package(
             name: "DesignSystem",
             dependencies: [
                 .product(name: "MarqueeLabel", package: "MarqueeLabel"),
+                .product(name: "SVGView", package: "SVGView"),
             ],
 
             resources: [.copy("Resources/Fonts")],

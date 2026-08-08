@@ -484,6 +484,42 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(blok.items.filter(\.isOpenByDefault).map(\.id), ["ai1"])
     }
 
+    func testBadgesBlokResolvesHeightAndDropsSourcelessItems() throws {
+        let blok = try decode(BadgesBlok.self, """
+        {"_uid":"b1","component":"badges","align":"end","justify":"center","height":"2em",
+         "items":[{"_uid":"bi1","component":"badge_item",
+                   "src":"https://img.shields.io/badge/swift-6.2-orange","alt":"Swift 6.2",
+                   "href":"https://swift.org","title":"Swift"},
+                  {"_uid":"bi2","component":"badge_item","src":"","alt":"empty"}]}
+        """)
+        XCTAssertEqual(blok.items.count, 1, "a badge without a source cannot render")
+        XCTAssertEqual(blok.height, 32, "2em resolves against the 16pt root")
+        XCTAssertEqual(blok.align, "end")
+        XCTAssertEqual(blok.justify, "center")
+        XCTAssertEqual(blok.items.first?.linkURL?.absoluteString, "https://swift.org")
+    }
+
+    func testBadgesBlokFallsBackToTheSchemaDefaults() throws {
+        let blok = try decode(BadgesBlok.self, """
+        {"_uid":"b2","component":"badges",
+         "items":[{"_uid":"bi3","component":"badge_item",
+                   "src":"https://example.com/b.png","alt":"B","href":"","title":""}]}
+        """)
+        XCTAssertEqual(blok.height, 24, "the CMS default of 1.5em")
+        XCTAssertEqual(blok.align, "center")
+        XCTAssertEqual(blok.justify, "start")
+        XCTAssertNil(blok.items.first?.linkURL, "a cleared href must not become a link")
+        XCTAssertNil(blok.items.first?.title)
+    }
+
+    func testBadgeRejectsAnUnsafeLinkScheme() throws {
+        let blok = try decode(BadgeItemBlok.self, """
+        {"_uid":"bi4","component":"badge_item","src":"https://example.com/b.png","alt":"B",
+         "href":"javascript:alert(1)"}
+        """)
+        XCTAssertNil(blok.linkURL, "only http/https/mailto/tel may open, as on the web")
+    }
+
     func testScrollClipImageReadsTheRevealNumbersAsStrings() throws {
         let blok = try decode(ScrollClipImageBlok.self, """
         {"_uid":"c1","component":"scroll_clip_image","pin":true,"maxClipRatio":"25",
@@ -512,7 +548,7 @@ final class StoryblokDecodingTests: XCTestCase {
     }
 
     func testEveryNewBlokDispatchesInsteadOfFallingBack() throws {
-        let components = ["list", "link", "icon", "stats", "accordion", "scroll_clip_image"]
+        let components = ["list", "link", "icon", "stats", "accordion", "badges", "scroll_clip_image"]
         for component in components {
             let blok = try decode(PortfolioBlok.self, """
             {"_uid":"d-\(component)","component":"\(component)"}

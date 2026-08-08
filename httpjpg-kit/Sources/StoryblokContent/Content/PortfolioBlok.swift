@@ -25,6 +25,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
     case icon(IconBlok)
     case stats(StatsBlok)
     case accordion(AccordionBlok)
+    case badges(BadgesBlok)
     case workList(WorkListBlok)
     case marquee(MarqueeBlok)
     case slideshow(SlideshowBlok)
@@ -57,6 +58,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .icon(let blok): return blok.id
         case .stats(let blok): return blok.id
         case .accordion(let blok): return blok.id
+        case .badges(let blok): return blok.id
         case .workList(let blok): return blok.id
         case .marquee(let blok): return blok.id
         case .slideshow(let blok): return blok.id
@@ -88,6 +90,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .icon: return "icon"
         case .stats: return "stats"
         case .accordion: return "accordion"
+        case .badges: return "badges"
         case .workList: return "work_list"
         case .marquee: return "marquee"
         case .slideshow: return "slideshow"
@@ -128,6 +131,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case "icon": self = .icon(try IconBlok(from: decoder))
         case "stats": self = .stats(try StatsBlok(from: decoder))
         case "accordion": self = .accordion(try AccordionBlok(from: decoder))
+        case "badges": self = .badges(try BadgesBlok(from: decoder))
         case "work_list": self = .workList(try WorkListBlok(from: decoder))
         case "scroll_clip_image": self = .scrollClipImage(try ScrollClipImageBlok(from: decoder))
         case "music_player": self = .musicPlayer(try MusicPlayerBlok(from: decoder))
@@ -919,6 +923,66 @@ public struct AccordionBlok: Decodable, Identifiable {
         allowsMultiple = container.cmsBool(forKey: .allowMultiple)
         variant = container.cmsString(forKey: .variant) ?? "default"
         size = container.cmsString(forKey: .size) ?? "md"
+    }
+}
+
+public struct BadgeItemBlok: Decodable, Identifiable {
+    public let id: String
+    public let src: String
+    public let alt: String
+    public let href: String?
+    public let title: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case src, alt, href, title
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        src = container.cmsString(forKey: .src) ?? ""
+        alt = container.cmsString(forKey: .alt) ?? ""
+        href = container.cmsString(forKey: .href)
+        title = container.cmsString(forKey: .title)
+    }
+
+    public var sourceURL: URL? {
+        URL(string: src)
+    }
+
+    public var linkURL: URL? {
+        guard let href, let url = URL(string: href) else { return nil }
+        // Same scheme allowlist the web Badge applies before linking out.
+        guard let scheme = url.scheme?.lowercased() else { return url }
+        return ["http", "https", "mailto", "tel"].contains(scheme) ? url : nil
+    }
+}
+
+public struct BadgesBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let items: [BadgeItemBlok]
+    public let align: String
+    public let justify: String
+    public let height: CGFloat
+
+    static let defaultHeight: CGFloat = 24
+
+    private enum CodingKeys: String, CodingKey {
+        case items, align, justify, height
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        items = container.cmsArray(BadgeItemBlok.self, forKey: .items).filter { !$0.src.isEmpty }
+        align = container.cmsString(forKey: .align) ?? "center"
+        justify = container.cmsString(forKey: .justify) ?? "start"
+        // The CMS default is "1.5em", which CSSLength resolves against a 16pt root.
+        height = CSSLength.points(container.cmsString(forKey: .height)) ?? Self.defaultHeight
     }
 }
 
