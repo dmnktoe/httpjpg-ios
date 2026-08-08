@@ -17,7 +17,7 @@ struct ShieldsBadge: Equatable {
     var segments: [Segment]
 
     static func parse(_ data: Data) -> ShieldsBadge? {
-        guard let svg = String(data: data, encoding: .utf8) else { return nil }
+        guard let svg = String(data: data, encoding: .utf8), isShieldsArtwork(svg) else { return nil }
 
         // shields draws each string three times: two offset shadows carrying
         // fill-opacity, then the visible glyph without it.
@@ -30,6 +30,18 @@ struct ShieldsBadge: Equatable {
         return ShieldsBadge(
             segments: zip(texts, fills).map { Segment(text: decodeEntities($0), color: $1) }
         )
+    }
+
+    /// Gates the redraw on shields' own construction — an oversized font inside a
+    /// scaled-down group — rather than on "has rects and text", which plenty of
+    /// unrelated artwork does. That construction is also the exact thing SVGView
+    /// cannot lay out, so anything failing this check is better off on the vector
+    /// path. If shields ever changes its markup the badge falls back to that path
+    /// and loses its text again, which is the safe direction: no other SVG gets
+    /// redrawn as something it is not.
+    private static func isShieldsArtwork(_ svg: String) -> Bool {
+        svg.contains("transform=\"scale(.1)\"")
+            && svg.range(of: "font-size=\"[0-9]{3,}\"", options: .regularExpression) != nil
     }
 
     private static func captures(in text: String, pattern: String) -> [String] {

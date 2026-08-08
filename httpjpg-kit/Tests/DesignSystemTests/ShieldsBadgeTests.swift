@@ -66,6 +66,17 @@ final class ShieldsBadgeTests: XCTestCase {
         XCTAssertNil(ShieldsBadge.parse(Data(svg.utf8)))
     }
 
+    func testLeavesUnrelatedArtworkToTheVectorRenderer() {
+        // A rect and a label, but drawn at its own size — SVGView renders this
+        // correctly, so redrawing it as a two-tone badge would be pure damage.
+        let diagram = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="60">\
+        <rect width="120" height="60" fill="#eeeeee"/>\
+        <text x="10" y="35" font-size="14">Node</text></svg>
+        """
+        XCTAssertNil(ShieldsBadge.parse(Data(diagram.utf8)))
+    }
+
     func testIgnoresArtworkItIsNotMeantToRedraw() {
         XCTAssertNil(ShieldsBadge.parse(Data()))
         XCTAssertNil(
