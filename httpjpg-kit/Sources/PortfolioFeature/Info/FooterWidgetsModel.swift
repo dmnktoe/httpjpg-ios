@@ -46,6 +46,7 @@ final class FooterWidgetsModel {
     }
 
     private func loadTrophy() async -> PsnTrophy? {
-        await api.latestTrophy()
+        guard flags.isPsnTrophyEnabled else { return nil }
+        return await api.latestTrophy()
     }
 }

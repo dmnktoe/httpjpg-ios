@@ -41,7 +41,7 @@ struct SiteStatusProvider: TimelineProvider {
 
         async let presence = discord(api, enabled: flags.isDiscordEnabled)
         async let latestFilm = film(api, enabled: flags.isLetterboxdEnabled)
-        async let latestTrophy = api.latestTrophy()
+        async let latestTrophy = trophy(api, enabled: flags.isPsnTrophyEnabled)
         async let now = api.weather()
 
         let entry = await SiteStatusEntry(
@@ -64,5 +64,10 @@ struct SiteStatusProvider: TimelineProvider {
     private func film(_ api: SiteAPI, enabled: Bool) async -> LetterboxdFilm? {
         guard enabled else { return nil }
         return await api.latestFilm()
+    }
+
+    private func trophy(_ api: SiteAPI, enabled: Bool) async -> PsnTrophy? {
+        guard enabled else { return nil }
+        return await api.latestTrophy()
     }
 }

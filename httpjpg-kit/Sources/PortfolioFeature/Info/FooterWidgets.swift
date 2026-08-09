@@ -118,9 +118,14 @@ private struct ClockLine: View {
 
     @State private var now = Date()
 
+    /// The clock reads as "what time it is here", so it stays pinned to the
+    /// site's home zone for every reader — the same contract the website holds.
+    private static let homeTimeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
+
     private static let clock: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_GB")
+        formatter.timeZone = homeTimeZone
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
@@ -146,7 +151,7 @@ private struct ClockLine: View {
     }
 
     private var offset: String {
-        let seconds = TimeZone.current.secondsFromGMT(for: now)
+        let seconds = Self.homeTimeZone.secondsFromGMT(for: now)
         if seconds == 0 { return "UTC" }
         let hours = seconds / 3600
         let minutes = abs(seconds % 3600) / 60

@@ -31,6 +31,7 @@ public struct WorkCardDateView: View {
 
     private var accessibilityLabel: String {
         let formatter = DateFormatter()
+        formatter.timeZone = WorkCardDate.authoringTimeZone
         formatter.dateStyle = .long
         formatter.timeStyle = .none
         guard let dateEnd else { return formatter.string(from: date) }
@@ -48,20 +49,33 @@ public enum WorkCardDate {
 
     private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
 
+    /// Storyblok datetime fields carry no zone, and `StoryblokDate` reads that
+    /// wall clock as UTC. Reading it back in the reader's own zone shifts the
+    /// stamp: west of UTC an authored `2026-01-01 00:00` renders as the 31st of
+    /// the year before. Format in the zone it was parsed in.
+    public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
+
     nonisolated(unsafe) private static let dayFormatter = formatter("dd")
     nonisolated(unsafe) private static let narrowMonthFormatter = formatter("MMMMM")
     nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
     nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
 
+    nonisolated(unsafe) private static let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = authoringTimeZone
+        return calendar
+    }()
+
     private static func formatter(_ format: String) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = format
         formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = authoringTimeZone
         return formatter
     }
 
     public static func parts(of date: Date) -> Parts {
-        let month = Calendar(identifier: .gregorian).component(.month, from: date)
+        let month = calendar.component(.month, from: date)
         let symbol = (1...12).contains(month) ? monthSymbols[month - 1] : "●"
         return Parts(
             day: dayFormatter.string(from: date),
