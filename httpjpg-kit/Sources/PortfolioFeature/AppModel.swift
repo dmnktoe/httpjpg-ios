@@ -45,7 +45,7 @@ public final class AppModel {
     public var isSidebarOpen = false {
         didSet {
             guard isSidebarOpen, !oldValue else { return }
-            Telemetry.signal("sidebar.opened")
+            Task { Telemetry.signal("sidebar.opened") }
         }
     }
     public private(set) var config: SiteConfig = .fallback

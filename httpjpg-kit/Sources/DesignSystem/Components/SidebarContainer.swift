@@ -72,7 +72,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            .scrollDisabled(isDragging)
+            .scrollDisabled(isDragging || isOpen)
             .overlay {
                 Rectangle()
                     .fill(Palette.black.opacity(0.35 * Double(progress)))
@@ -80,16 +80,20 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .allowsHitTesting(isOpen)
             }
             .clipShape(RoundedRectangle(cornerRadius: Radii.xxxl * progress, style: .continuous))
+            .background(shadow)
             .scaleEffect(1 - Self.scaleDrop * progress)
-            .shadow(
-                color: Palette.black.opacity(0.35 * Double(progress)),
-                radius: Spacing.s6 * progress,
-                x: -Spacing.s2 * progress
-            )
             .offset(x: offset)
             .accessibilityHidden(isOpen)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
             .ignoresSafeArea()
+    }
+
+    private var shadow: some View {
+        RoundedRectangle(cornerRadius: Radii.xxxl, style: .continuous)
+            .fill(Palette.black)
+            .blur(radius: Spacing.s6)
+            .offset(x: -Spacing.s2)
+            .opacity(0.35 * Double(progress))
     }
 
     private var openEdge: some View {
