@@ -55,6 +55,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var sidebarPane: some View {
         sidebar
+            .scrollDisabled(isDragging)
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
             .offset(x: (progress - 1) * Self.parallax)
@@ -67,6 +68,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
+            .scrollDisabled(isDragging)
             .overlay {
                 Rectangle()
                     .fill(Palette.black.opacity(0.35 * Double(progress)))
