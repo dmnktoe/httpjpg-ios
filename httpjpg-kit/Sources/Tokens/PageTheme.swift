@@ -95,10 +95,9 @@ private struct ForcedPageSurface: ViewModifier {
             .pageSurface(theme)
 
         #if os(iOS)
-        // The colorScheme environment doesn't reach the UIKit navigation
-        // bar or the status bar; without this a forced-dark page draws
-        // its title and status bar black-on-black in a light system.
-        return surface.toolbarColorScheme(theme.colorScheme, for: .navigationBar)
+        // A pinned scheme stops iOS adapting the glass chrome to what scrolls
+        // under it. Forced dark pins anyway: there the environment misses the bar.
+        return surface.toolbarColorScheme(forcesDark ? .dark : nil, for: .navigationBar)
         #else
         return surface
         #endif
