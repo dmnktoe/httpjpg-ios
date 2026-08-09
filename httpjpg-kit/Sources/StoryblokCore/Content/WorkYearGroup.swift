@@ -1,22 +1,22 @@
-import DesignSystem
 import Foundation
-import StoryblokContent
+import Tokens
 
-/// One year of work, as the sidebar lists it: newest year first, undated stories trailing.
-struct WorkYearGroup: Identifiable, Hashable {
-    let year: String
-    let items: [WorkItem]
+/// One year of work: newest year first, undated stories trailing. The phone
+/// sidebar and the watch list both read the index through these buckets.
+public struct WorkYearGroup: Identifiable, Hashable {
+    public let year: String
+    public let items: [WorkItem]
 
-    var id: String { year }
+    public var id: String { year }
 
     /// Storyblok leaves the date empty on stories that never got one; they keep the row placeholder.
-    static let undatedYear = "····"
+    public static let undatedYear = "····"
 
-    var accessibilityLabel: String {
+    public var accessibilityLabel: String {
         year == Self.undatedYear ? "undated" : year
     }
 
-    static func groups(from items: [WorkItem]) -> [WorkYearGroup] {
+    public static func groups(from items: [WorkItem]) -> [WorkYearGroup] {
         var order: [String] = []
         var buckets: [String: [WorkItem]] = [:]
 
@@ -29,7 +29,7 @@ struct WorkYearGroup: Identifiable, Hashable {
         return order.map { WorkYearGroup(year: $0, items: buckets[$0] ?? []) }
     }
 
-    static func isNewer(_ lhs: WorkItem, _ rhs: WorkItem) -> Bool {
+    public static func isNewer(_ lhs: WorkItem, _ rhs: WorkItem) -> Bool {
         (lhs.date ?? .distantPast) > (rhs.date ?? .distantPast)
     }
 }

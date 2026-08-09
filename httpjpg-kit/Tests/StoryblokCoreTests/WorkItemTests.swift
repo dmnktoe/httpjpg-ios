@@ -1,7 +1,7 @@
 import StoryblokClient
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class WorkItemTests: XCTestCase {
     private func story(

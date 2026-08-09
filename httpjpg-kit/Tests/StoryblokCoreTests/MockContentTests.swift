@@ -1,7 +1,7 @@
 import UIKit
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class MockContentTests: XCTestCase {
     private let client = ContentClient(

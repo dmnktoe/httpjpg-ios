@@ -1,5 +1,6 @@
 import SVGView
 import SwiftUI
+import Tokens
 import UIKit
 
 /// A badge drawn at a fixed height, with the width following the image's own

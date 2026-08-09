@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class ResponseCacheTests: XCTestCase {
     private let ttl: TimeInterval = 60 * 60

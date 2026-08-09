@@ -1,8 +1,8 @@
 import Foundation
 
 /// SwiftUI has no list-style-type, so the `list` blok draws its own markers.
-enum ListMarker {
-    static func bullet(style: String) -> String {
+public enum ListMarker {
+    public static func bullet(style: String) -> String {
         switch style {
         case "circle": return "◦"
         case "square": return "▪"
@@ -11,7 +11,7 @@ enum ListMarker {
         }
     }
 
-    static func ordinal(_ position: Int, style: String) -> String {
+    public static func ordinal(_ position: Int, style: String) -> String {
         switch style {
         case "lower-alpha": return alpha(position).lowercased()
         case "upper-alpha": return alpha(position)

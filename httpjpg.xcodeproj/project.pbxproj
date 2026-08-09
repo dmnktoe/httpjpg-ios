@@ -35,7 +35,7 @@
 		AA0000000000000000000025 /* HttpjpgWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWidgetsBundle.swift; sourceTree = "<group>"; };
 		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
-		AA0000000000000000000028 /* Anton-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Anton-Regular.ttf"; path = "httpjpg-kit/Sources/DesignSystem/Resources/Fonts/Anton-Regular.ttf"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000028 /* Anton-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Anton-Regular.ttf"; path = "httpjpg-kit/Sources/Tokens/Resources/Fonts/Anton-Regular.ttf"; sourceTree = SOURCE_ROOT; };
 		AA0000000000000000000029 /* httpjpg.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = httpjpg.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 

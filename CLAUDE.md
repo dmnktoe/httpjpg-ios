@@ -23,16 +23,24 @@ same Storyblok space the website reads. The website lives in a separate repo,
 
 | Target | Mirrors, on the web |
 | --- | --- |
-| `DesignSystem` | `@httpjpg/tokens` + `@httpjpg/ui` |
-| `StoryblokContent` | `storyblok-utils` + `-api` + `-richtext` + `-ui` |
+| `Tokens` | `@httpjpg/tokens` — palette, type scale, motion, page theme, ascii motifs |
+| `DesignSystem` | `@httpjpg/ui` — the SwiftUI components, UIKit-backed, iOS only |
+| `StoryblokCore` | `storyblok-utils` + `-api` — client, decoded payloads, fixtures |
+| `StoryblokContent` | `storyblok-richtext` + `-ui` — the `Sb…` blok renderers |
 | `WidgetFeature` | home-screen widgets and lock-screen accessories; linked by app *and* extension |
 | `PortfolioFeature` | `apps/portfolio` |
 
-Dependency direction is one-way: `DesignSystem` is a leaf, `StoryblokContent`
-may depend on it, the feature layer may depend on both. `DesignSystem` must
-never import `StoryblokContent` — when a blok view needs something from the
-feature layer, it goes through an environment key seam (see
-`\.playAudioTrack`, `\.contentClient`).
+Dependency direction is one-way: `Tokens` is the leaf, `DesignSystem` and
+`StoryblokCore` may depend on it, `StoryblokContent` on both, the feature layer
+on everything below it. `DesignSystem` must never import `StoryblokContent` —
+when a blok view needs something from the feature layer, it goes through an
+environment key seam (see `\.playAudioTrack`, `\.contentClient`).
+
+`DesignSystem` re-exports `Tokens` and `StoryblokContent` re-exports
+`StoryblokCore`, so `import DesignSystem` / `import StoryblokContent` still
+reach everything they used to. Files *inside* those two targets need the
+explicit `import Tokens` / `import StoryblokCore` — re-exports don't apply to
+the re-exporting module's own files.
 
 ## Conventions
 
@@ -58,9 +66,9 @@ Steps 1–4 happen in the **web repo**; only step 5 is here:
 2. `pnpm --filter @httpjpg/storyblok-sync sync:components`
 3. `Sb<Pascal>` component in `packages/storyblok-ui`
 4. Register in `apps/portfolio/lib/storyblok.ts`
-5. **Here:** a case in `PortfolioBlok`, a payload struct, an
-   `Sb<Pascal>View` in `Sources/StoryblokContent/Bloks/`, wired into
-   `BlokView.swift`
+5. **Here:** a case in `PortfolioBlok` and a payload struct, both in
+   `Sources/StoryblokCore/Content/`, then an `Sb<Pascal>View` in
+   `Sources/StoryblokContent/Bloks/`, wired into `BlokView.swift`
 
 Then run `npm run check:bloks` (needs a checkout of the web repo — see the
 script header). CI runs it against the real schemas on every push.

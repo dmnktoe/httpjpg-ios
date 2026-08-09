@@ -2,6 +2,7 @@ import CoreGraphics
 import DesignSystem
 import Foundation
 import StoryblokClient
+import StoryblokCore
 
 public enum WorkCardAdapter {
     public static func model(

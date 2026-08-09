@@ -1,7 +1,7 @@
 import CoreGraphics
-import DesignSystem
 import Foundation
 import StoryblokClient
+import Tokens
 
 public enum PortfolioBlok: Decodable, Identifiable {
     case page(PageBlok)

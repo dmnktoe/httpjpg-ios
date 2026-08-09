@@ -1,8 +1,8 @@
-import DesignSystem
 import StoryblokClient
+import Tokens
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class StoryblokDecodingTests: XCTestCase {
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {

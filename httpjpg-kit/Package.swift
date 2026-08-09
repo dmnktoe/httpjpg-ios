@@ -5,7 +5,9 @@ let package = Package(
     name: "httpjpg-kit",
     platforms: [.iOS(.v17)],
     products: [
+        .library(name: "Tokens", targets: ["Tokens"]),
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
+        .library(name: "StoryblokCore", targets: ["StoryblokCore"]),
         .library(name: "StoryblokContent", targets: ["StoryblokContent"]),
         .library(name: "PortfolioFeature", targets: ["PortfolioFeature"]),
         .library(name: "WidgetFeature", targets: ["WidgetFeature"]),
@@ -18,23 +20,38 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "Tokens",
+            resources: [.copy("Resources/Fonts")],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
             name: "DesignSystem",
             dependencies: [
+                "Tokens",
+
                 .product(name: "MarqueeLabel", package: "MarqueeLabel"),
                 .product(name: "SVGView", package: "SVGView"),
             ],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
+            name: "StoryblokCore",
+            dependencies: [
+                "Tokens",
 
-            resources: [.copy("Resources/Fonts")],
+                .product(name: "StoryblokClient", package: "storyblok-swift"),
+            ],
+            resources: [.copy("Resources/Fixtures")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
             name: "StoryblokContent",
             dependencies: [
                 "DesignSystem",
+                "StoryblokCore",
 
                 .product(name: "StoryblokClient", package: "storyblok-swift"),
             ],
-            resources: [.copy("Resources/Fixtures")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
@@ -72,9 +89,8 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "StoryblokContentTests",
-
-            dependencies: ["StoryblokContent", "DesignSystem"],
+            name: "StoryblokCoreTests",
+            dependencies: ["StoryblokCore", "Tokens"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

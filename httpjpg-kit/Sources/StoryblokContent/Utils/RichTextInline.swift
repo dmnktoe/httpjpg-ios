@@ -1,5 +1,6 @@
 import DesignSystem
 import Foundation
+import StoryblokCore
 import SwiftUI
 
 public enum RichTextInline {
