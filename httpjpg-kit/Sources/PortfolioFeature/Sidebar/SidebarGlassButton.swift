@@ -21,8 +21,6 @@ struct SidebarGlassButton: View {
                 .foregroundStyle(theme.foreground)
                 .frame(width: Self.diameter, height: Self.diameter)
                 .contentShape(.circle)
-                // No clip and no outline ring on top: both cut off the glass's
-                // own specular edge and left it reading as a flat pill.
                 .glassBackground(in: .circle, tint: theme.chromeFill, interactive: true)
         }
         .buttonStyle(.plain)
