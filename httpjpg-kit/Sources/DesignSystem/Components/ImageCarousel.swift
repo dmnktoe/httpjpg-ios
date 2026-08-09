@@ -7,7 +7,12 @@ public struct ImageCarousel<Slide: View>: View {
     private let transitionDuration: TimeInterval
     private let showsArrows: Bool
     private let showsCounter: Bool
-    private let slide: (Int) -> Slide
+
+    /// Autoplay stands down while such a slide is on screen and waits for its
+    /// `advance`.
+    private let ownsRotation: (Int) -> Bool
+
+    private let slide: (Int, CarouselSlide) -> Slide
 
     @State private var index = 0
 
@@ -23,7 +28,8 @@ public struct ImageCarousel<Slide: View>: View {
         transitionDuration: TimeInterval = 0.3,
         showsArrows: Bool = true,
         showsCounter: Bool = false,
-        @ViewBuilder slide: @escaping (Int) -> Slide
+        ownsRotation: @escaping (Int) -> Bool = { _ in false },
+        @ViewBuilder slide: @escaping (Int, CarouselSlide) -> Slide
     ) {
         self.count = count
         self.aspectRatio = aspectRatio
@@ -31,16 +37,17 @@ public struct ImageCarousel<Slide: View>: View {
         self.transitionDuration = transitionDuration
         self.showsArrows = showsArrows
         self.showsCounter = showsCounter
+        self.ownsRotation = ownsRotation
         self.slide = slide
     }
 
     public var body: some View {
         if count == 1 {
-            slide(0)
+            slide(0, .standalone)
         } else if count > 1 {
             TabView(selection: $index) {
                 ForEach(0 ..< count, id: \.self) { position in
-                    slide(position)
+                    slide(position, context(for: position))
                         .tag(position)
                 }
             }
@@ -108,15 +115,22 @@ public struct ImageCarousel<Slide: View>: View {
         count > 1 && !reduceMotion && autoplayInterval != nil
     }
 
+    /// `-1` parks the task; coming off a held slide moves the tick back to an
+    /// index, restarting the timer.
     private var autoplayTick: Int {
-        isAutoplayEnabled ? index : -1
+        isAutoplayEnabled && !ownsRotation(index) ? index : -1
     }
 
     private func autoplayStep() async {
-        guard isAutoplayEnabled, let interval = autoplayInterval else { return }
+        // `.task(id:)` runs for the parked tick too.
+        guard autoplayTick >= 0, let interval = autoplayInterval else { return }
         try? await Task.sleep(for: .seconds(interval))
         guard !Task.isCancelled else { return }
         advance(by: 1)
+    }
+
+    private func context(for position: Int) -> CarouselSlide {
+        CarouselSlide(isActive: position == index) { advance(by: 1) }
     }
 
     private func advance(by step: Int) {

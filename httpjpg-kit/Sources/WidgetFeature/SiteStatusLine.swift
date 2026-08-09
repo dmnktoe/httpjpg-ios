@@ -57,6 +57,34 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
+    init?(record: DiscogsRelease) {
+        guard !record.title.isEmpty else { return nil }
+        let detail = [record.year, record.format]
+            .compactMap { $0 }
+            .joined(separator: " ")
+
+        self.init(
+            id: "discogs",
+            label: "discogs:",
+            badge: "💿",
+            text: record.credit,
+            detail: detail.isEmpty ? nil : detail
+        )
+    }
+
+    /// No avatar — a widget refresh would have to fetch it. The follower count
+    /// leads instead, so the post is what truncates.
+    init?(profile: XProfile, post: XPost) {
+        guard !post.text.isEmpty else { return nil }
+        self.init(
+            id: "x",
+            label: "x:",
+            badge: "𝕏",
+            text: profile.compactFollowerCount.map { "(\($0))" } ?? profile.handle,
+            detail: post.text
+        )
+    }
+
     init?(trophy: PsnTrophy) {
         guard !trophy.name.isEmpty else { return nil }
         self.init(

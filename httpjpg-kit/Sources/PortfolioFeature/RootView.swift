@@ -48,6 +48,7 @@ public struct RootView: View {
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
         .environment(\.contentClient, model.client)
+        .environment(\.faviconOrigin, model.configuration.siteOrigin)
         .environment(\.playAudioTrack) {
             Telemetry.signal("player.played")
             player.play($0)

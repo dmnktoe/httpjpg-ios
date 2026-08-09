@@ -101,4 +101,11 @@ final class WorkCardDateTests: XCTestCase {
     func testFullYear() throws {
         XCTAssertEqual(WorkCardDate.year(of: try date("2024-06-15T12:00:00Z")), "2024")
     }
+
+    func testMidnightKeepsItsAuthoredDayAndYear() throws {
+        let newYear = try date("2024-01-01T00:00:00Z")
+        XCTAssertEqual(WorkCardDate.parts(of: newYear).day, "01")
+        XCTAssertEqual(WorkCardDate.parts(of: newYear).monthSymbol, "❄")
+        XCTAssertEqual(WorkCardDate.year(of: newYear), "2024")
+    }
 }

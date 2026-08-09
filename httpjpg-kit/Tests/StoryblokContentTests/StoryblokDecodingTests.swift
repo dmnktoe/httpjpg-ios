@@ -361,14 +361,21 @@ final class StoryblokDecodingTests: XCTestCase {
         let config = try decode(SiteConfig.self, #"{"seo_title":"httpjpg"}"#)
         XCTAssertTrue(config.widgets.isDiscordEnabled)
         XCTAssertTrue(config.widgets.isLetterboxdEnabled)
+        XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
+        XCTAssertFalse(config.widgets.isDiscogsEnabled)
+        XCTAssertFalse(config.widgets.isXEnabled)
     }
 
     func testWidgetFlagsReadBothBooleansAndStrings() throws {
         let config = try decode(SiteConfig.self, """
-        {"discord_enabled":false,"letterboxd_enabled":"false"}
+        {"discord_enabled":false,"letterboxd_enabled":"false",
+         "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true"}
         """)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
+        XCTAssertTrue(config.widgets.isPsnTrophyEnabled)
+        XCTAssertTrue(config.widgets.isDiscogsEnabled)
+        XCTAssertTrue(config.widgets.isXEnabled)
     }
 
     func testMarqueeCarriesSpeedDirectionAndRepeat() throws {

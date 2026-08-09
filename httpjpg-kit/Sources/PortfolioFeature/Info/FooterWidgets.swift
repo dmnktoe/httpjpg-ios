@@ -15,18 +15,33 @@ struct FooterWidgets: View {
                 if let film = model.film {
                     LetterboxdLine(film: film)
                 }
+                if let record = model.record {
+                    DiscogsLine(record: record)
+                }
+                if let timeline = model.timeline, let post = timeline.latestPost {
+                    XLine(profile: timeline.profile, post: post)
+                }
                 if let trophy = model.trophy {
                     TrophyLine(trophy: trophy)
                 }
             } else {
-                placeholderLine(label: "discord:")
-                placeholderLine(label: "letterboxd:")
-                placeholderLine(label: "psn:")
+                ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
             }
             ClockLine(weather: model.weather)
         }
         .frame(maxWidth: .infinity)
         .animation(Motion.stateChange, value: model.isLoaded)
+    }
+
+    private var pendingLabels: [String] {
+        let flags = model.flags
+        return [
+            flags.isDiscordEnabled ? "discord:" : nil,
+            flags.isLetterboxdEnabled ? "letterboxd:" : nil,
+            flags.isDiscogsEnabled ? "discogs:" : nil,
+            flags.isXEnabled ? "x:" : nil,
+            flags.isPsnTrophyEnabled ? "psn:" : nil,
+        ].compactMap { $0 }
     }
 
     private func placeholderLine(label: String) -> some View {
@@ -95,6 +110,83 @@ private struct LetterboxdLine: View {
     }
 }
 
+private struct DiscogsLine: View {
+    let record: DiscogsRelease
+
+    var body: some View {
+        FooterStatusLine(label: "discogs:") {
+            if let thumb = record.thumb.flatMap(URL.init(string:)) {
+                FooterThumb(url: thumb, clip: .rect(cornerRadius: 2))
+            } else {
+                Text("💿")
+            }
+            Text(record.credit)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if let year = record.year {
+                Text(year).opacity(Opacities.subtle)
+            }
+            if let format = record.format {
+                Text("·").opacity(Opacities.subtle)
+                Text(format)
+                    .lineLimit(1)
+                    .opacity(Opacities.muted)
+            }
+        }
+    }
+}
+
+private struct XLine: View {
+    let profile: XProfile
+    let post: XPost
+
+    var body: some View {
+        FooterStatusLine(label: "x:") {
+            // The handle stays out of the row so the post text is not the
+            // first thing to truncate; the site hides it in a tooltip.
+            if let avatar = profile.avatar.flatMap(URL.init(string:)) {
+                FooterThumb(url: avatar, clip: .circle)
+                    .accessibilityLabel(profile.handle)
+            } else {
+                Text("𝕏").accessibilityLabel(profile.handle)
+            }
+            if let followers = profile.compactFollowerCount {
+                Text("(\(followers))").opacity(Opacities.subtle)
+            }
+            Text("·").opacity(Opacities.subtle)
+            Text(post.text)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if post.isQuote {
+                Text("❝").opacity(Opacities.subtle)
+            }
+            if post.hasMedia {
+                Text("▣").opacity(Opacities.subtle)
+            }
+        }
+    }
+}
+
+/// `RemoteImage` falls back to a glyph that is illegible at this size.
+private struct FooterThumb<Clip: Shape>: View {
+    let url: URL
+    let clip: Clip
+
+    var body: some View {
+        AsyncImage(url: url) { phase in
+            if let image = phase.image {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: Typography.Size.md, height: Typography.Size.md)
+        .clipShape(clip)
+    }
+}
+
 private struct TrophyLine: View {
     let trophy: PsnTrophy
 
@@ -118,9 +210,14 @@ private struct ClockLine: View {
 
     @State private var now = Date()
 
+    /// The clock reads as "what time it is here", so it is pinned to the site's
+    /// home zone for every reader, the way the website pins it.
+    private static let homeTimeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
+
     private static let clock: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_GB")
+        formatter.timeZone = homeTimeZone
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
@@ -146,7 +243,7 @@ private struct ClockLine: View {
     }
 
     private var offset: String {
-        let seconds = TimeZone.current.secondsFromGMT(for: now)
+        let seconds = Self.homeTimeZone.secondsFromGMT(for: now)
         if seconds == 0 { return "UTC" }
         let hours = seconds / 3600
         let minutes = abs(seconds % 3600) / 60

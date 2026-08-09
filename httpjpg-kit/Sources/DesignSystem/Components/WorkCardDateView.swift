@@ -31,6 +31,7 @@ public struct WorkCardDateView: View {
 
     private var accessibilityLabel: String {
         let formatter = DateFormatter()
+        formatter.timeZone = WorkCardDate.authoringTimeZone
         formatter.dateStyle = .long
         formatter.timeStyle = .none
         guard let dateEnd else { return formatter.string(from: date) }
@@ -48,20 +49,32 @@ public enum WorkCardDate {
 
     private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
 
+    /// Storyblok datetimes carry no zone and `StoryblokDate` reads them as UTC.
+    /// West of UTC, reading them back locally rolls `2026-01-01 00:00` into the
+    /// 31st of the year before.
+    public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
+
     nonisolated(unsafe) private static let dayFormatter = formatter("dd")
     nonisolated(unsafe) private static let narrowMonthFormatter = formatter("MMMMM")
     nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
     nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
 
+    private static let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = authoringTimeZone
+        return calendar
+    }()
+
     private static func formatter(_ format: String) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = format
         formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = authoringTimeZone
         return formatter
     }
 
     public static func parts(of date: Date) -> Parts {
-        let month = Calendar(identifier: .gregorian).component(.month, from: date)
+        let month = calendar.component(.month, from: date)
         let symbol = (1...12).contains(month) ? monthSymbols[month - 1] : "●"
         return Parts(
             day: dayFormatter.string(from: date),
