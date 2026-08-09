@@ -378,6 +378,16 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(config.widgets.isXEnabled)
     }
 
+    func testClearedWidgetFlagsFallBackToTheirDefaults() throws {
+        let config = try decode(SiteConfig.self, """
+        {"discord_enabled":"","psn_trophy_enabled":"","discogs_enabled":"","x_enabled":""}
+        """)
+        XCTAssertTrue(config.widgets.isDiscordEnabled, "a cleared field is not an off switch")
+        XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
+        XCTAssertFalse(config.widgets.isDiscogsEnabled)
+        XCTAssertFalse(config.widgets.isXEnabled)
+    }
+
     func testMarqueeCarriesSpeedDirectionAndRepeat() throws {
         let blok = try decode(MarqueeBlok.self, """
         {"_uid":"m1","component":"marquee","text":"+++ON AIR+++",

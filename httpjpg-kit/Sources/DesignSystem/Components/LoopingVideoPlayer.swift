@@ -50,8 +50,10 @@ public struct LoopingVideoPlayer: View {
             // resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
             .onReceive(endOfPlayback) { notification in
-                guard let item, let ended = notification.object as? AVPlayerItem,
-                      ended === item
+                // A clip that ends as the reader swipes away would otherwise
+                // advance past the slide they just chose.
+                guard isActive, let item,
+                      let ended = notification.object as? AVPlayerItem, ended === item
                 else { return }
                 onFinished?()
             }
