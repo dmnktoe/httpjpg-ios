@@ -22,7 +22,6 @@
 		AA000000000000000000003B /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
 		AA000000000000000000003C /* httpjpg.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* httpjpg.icon */; };
 		AA0000000000000000000069 /* HttpjpgWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000066 /* HttpjpgWatchApp.swift */; };
-		AA000000000000000000006A /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
 		AA000000000000000000006B /* httpjpg.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* httpjpg.icon */; };
 		AA000000000000000000006C /* Tokens in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000070 /* Tokens */; };
 		AA000000000000000000006D /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000071 /* StoryblokCore */; };
@@ -314,7 +313,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000000000000000000006B /* httpjpg.icon in Resources */,
-				AA000000000000000000006A /* Anton-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

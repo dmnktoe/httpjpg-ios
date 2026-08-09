@@ -79,8 +79,6 @@ targets:
       - path: httpjpg-watch
       - path: httpjpg/httpjpg.icon
         buildPhase: resources
-      - path: httpjpg-kit/Sources/Tokens/Resources/Fonts/Anton-Regular.ttf
-        buildPhase: resources
     dependencies:
       - package: httpjpg-kit
         product: Tokens
