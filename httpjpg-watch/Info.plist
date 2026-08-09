@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>WKApplication</key>
+	<true/>
+	<key>WKCompanionAppBundleIdentifier</key>
+	<string>com.yl33ly.httpjpg</string>
+	<key>STORYBLOK_ACCESS_TOKEN</key>
+	<string>$(STORYBLOK_ACCESS_TOKEN)</string>
+	<key>STORYBLOK_VERSION</key>
+	<string>$(STORYBLOK_VERSION)</string>
+	<key>STORYBLOK_REGION</key>
+	<string>$(STORYBLOK_REGION)</string>
+	<key>SITE_ORIGIN</key>
+	<string>$(SITE_ORIGIN)</string>
+	<key>CONTENT_SOURCE</key>
+	<string>$(CONTENT_SOURCE)</string>
+</dict>
+</plist>

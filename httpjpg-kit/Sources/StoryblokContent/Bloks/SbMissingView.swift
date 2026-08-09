@@ -1,5 +1,6 @@
 import DesignSystem
 import SwiftUI
+import Tokens
 
 public struct SbMissingView: View {
     private let component: String

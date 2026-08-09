@@ -1,5 +1,6 @@
-import DesignSystem
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbIconView: View {
     private let blok: IconBlok

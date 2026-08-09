@@ -1,4 +1,4 @@
-import DesignSystem
+import StoryblokCore
 import SwiftUI
 
 public struct SbGridView: View {

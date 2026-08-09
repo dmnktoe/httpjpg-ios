@@ -1,4 +1,4 @@
-import StoryblokContent
+import StoryblokCore
 import UIKit
 import XCTest
 

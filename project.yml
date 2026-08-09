@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.yl33ly
   deploymentTarget:
     iOS: "17.0"
+    watchOS: "10.0"
   createIntermediateGroups: true
   minimumXcodeGenVersion: "2.38.0"
   fileTypes:
@@ -34,10 +35,14 @@ targets:
       - package: httpjpg-kit
         product: StoryblokContent
       - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
         product: PortfolioFeature
       - package: httpjpg-kit
         product: WidgetFeature
       - target: httpjpg-widgets
+        embed: true
+      - target: httpjpg-watch
         embed: true
     configFiles:
       Debug: Config/Shared.xcconfig
@@ -53,7 +58,7 @@ targets:
     platform: iOS
     sources:
       - path: httpjpg-widgets
-      - path: httpjpg-kit/Sources/DesignSystem/Resources/Fonts/Anton-Regular.ttf
+      - path: httpjpg-kit/Sources/Tokens/Resources/Fonts/Anton-Regular.ttf
         buildPhase: resources
     dependencies:
       - package: httpjpg-kit
@@ -65,6 +70,27 @@ targets:
     configFiles:
       Debug: Config/Widgets.xcconfig
       Release: Config/Widgets.xcconfig
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+
+  httpjpg-watch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: httpjpg-watch
+      - path: httpjpg/httpjpg.icon
+        buildPhase: resources
+    dependencies:
+      - package: httpjpg-kit
+        product: Tokens
+      - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
+        product: WatchFeature
+    configFiles:
+      Debug: Config/Watch.xcconfig
+      Release: Config/Watch.xcconfig
     settings:
       base:
         GENERATE_INFOPLIST_FILE: true

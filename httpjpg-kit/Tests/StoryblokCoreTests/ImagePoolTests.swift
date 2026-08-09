@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class ImagePoolTests: XCTestCase {
     private let client = ContentClient(

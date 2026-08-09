@@ -1,7 +1,8 @@
 import DesignSystem
 import Observation
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 struct InfoScreen: View {
     @Environment(AppModel.self) private var app

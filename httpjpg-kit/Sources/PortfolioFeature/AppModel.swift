@@ -1,6 +1,6 @@
 import DesignSystem
 import Observation
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
 import WidgetFeature
 import WidgetKit

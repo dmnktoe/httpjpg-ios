@@ -1,6 +1,6 @@
-import DesignSystem
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 /// One footer status row, flattened for the widget: the site renders these as live
 /// components, a widget only ever gets the snapshot.

@@ -1,4 +1,5 @@
 import SwiftUI
+import Tokens
 
 public struct WorkCardDateView: View {
     private let date: Date
@@ -36,60 +37,5 @@ public struct WorkCardDateView: View {
         formatter.timeStyle = .none
         guard let dateEnd else { return formatter.string(from: date) }
         return "\(formatter.string(from: date)) to \(formatter.string(from: dateEnd))"
-    }
-}
-
-public enum WorkCardDate {
-    public struct Parts: Equatable, Sendable {
-        public let day: String
-        public let month: String
-        public let year: String
-        public let monthSymbol: String
-    }
-
-    private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
-
-    /// Storyblok datetimes carry no zone and `StoryblokDate` reads them as UTC.
-    /// West of UTC, reading them back locally rolls `2026-01-01 00:00` into the
-    /// 31st of the year before.
-    public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
-
-    nonisolated(unsafe) private static let dayFormatter = formatter("dd")
-    nonisolated(unsafe) private static let narrowMonthFormatter = formatter("MMMMM")
-    nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
-    nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
-
-    private static let calendar: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = authoringTimeZone
-        return calendar
-    }()
-
-    private static func formatter(_ format: String) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = format
-        formatter.locale = Locale(identifier: "de_DE")
-        formatter.timeZone = authoringTimeZone
-        return formatter
-    }
-
-    public static func parts(of date: Date) -> Parts {
-        let month = calendar.component(.month, from: date)
-        let symbol = (1...12).contains(month) ? monthSymbols[month - 1] : "●"
-        return Parts(
-            day: dayFormatter.string(from: date),
-            month: narrowMonthFormatter.string(from: date),
-            year: shortYearFormatter.string(from: date),
-            monthSymbol: symbol
-        )
-    }
-
-    public static func stamp(of date: Date) -> String {
-        let parts = parts(of: date)
-        return "\(parts.day). \(parts.monthSymbol) \(parts.month)\(parts.year)"
-    }
-
-    public static func year(of date: Date) -> String {
-        fullYearFormatter.string(from: date)
     }
 }

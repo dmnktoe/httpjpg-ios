@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import StoryblokContent
+@testable import StoryblokCore
 
 final class ImageServiceTests: XCTestCase {
     private let asset = "https://a.storyblok.com/f/1/2000x1000/abc/photo.jpg"

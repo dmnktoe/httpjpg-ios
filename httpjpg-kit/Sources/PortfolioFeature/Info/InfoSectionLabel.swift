@@ -1,5 +1,6 @@
 import DesignSystem
 import SwiftUI
+import Tokens
 
 struct InfoSectionLabel: View {
     private let text: String

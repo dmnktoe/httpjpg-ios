@@ -1,5 +1,5 @@
 import AppIntents
-import StoryblokContent
+import StoryblokCore
 
 public struct WorkEntity: AppEntity, Sendable {
     public static var typeDisplayRepresentation: TypeDisplayRepresentation {

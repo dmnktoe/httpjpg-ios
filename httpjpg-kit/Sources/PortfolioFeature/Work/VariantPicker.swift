@@ -1,6 +1,7 @@
 import DesignSystem
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 struct VariantPicker: View {
     let links: [MenuLink]

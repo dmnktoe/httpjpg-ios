@@ -1,4 +1,5 @@
 import SwiftUI
+import Tokens
 
 private struct FaviconOriginKey: EnvironmentKey {
     static let defaultValue: URL? = nil

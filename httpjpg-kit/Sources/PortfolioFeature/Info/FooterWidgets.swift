@@ -1,7 +1,8 @@
 import Combine
 import DesignSystem
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 struct FooterWidgets: View {
     let model: FooterWidgetsModel

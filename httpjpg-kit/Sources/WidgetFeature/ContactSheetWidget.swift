@@ -1,5 +1,5 @@
-import DesignSystem
 import SwiftUI
+import Tokens
 import WidgetKit
 
 public struct ContactSheetWidget: Widget {

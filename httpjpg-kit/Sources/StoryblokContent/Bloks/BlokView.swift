@@ -1,5 +1,6 @@
 import DesignSystem
 import StoryblokClient
+import StoryblokCore
 import SwiftUI
 
 extension PortfolioBlok: View {

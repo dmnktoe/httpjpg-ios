@@ -19,7 +19,7 @@ const swiftFile = join(
   iosRoot,
   "httpjpg-kit",
   "Sources",
-  "StoryblokContent",
+  "StoryblokCore",
   "Content",
   "PortfolioBlok.swift",
 );

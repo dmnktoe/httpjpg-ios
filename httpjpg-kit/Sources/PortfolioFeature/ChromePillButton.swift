@@ -1,5 +1,5 @@
-import DesignSystem
 import SwiftUI
+import Tokens
 
 /// A single glass chrome pill: mono label on a tinted capsule, with a morph
 /// identity so the glass container can blend it with its neighbours.

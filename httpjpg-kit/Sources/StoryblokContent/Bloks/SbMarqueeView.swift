@@ -1,4 +1,5 @@
 import DesignSystem
+import StoryblokCore
 import SwiftUI
 
 public struct SbMarqueeView: View {

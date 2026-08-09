@@ -10,7 +10,8 @@ same Storyblok space the website reads. The website lives in a separate repo,
 
 ## Stack
 
-- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 deployment
+- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 / watchOS 10
+  deployment
 - **SwiftPM local package** `httpjpg-kit` — every line of real code
 - **XcodeGen** — `project.yml` is the source of truth for target structure; the
   `.xcodeproj` is checked in, regenerate with `xcodegen generate`
@@ -23,16 +24,31 @@ same Storyblok space the website reads. The website lives in a separate repo,
 
 | Target | Mirrors, on the web |
 | --- | --- |
-| `DesignSystem` | `@httpjpg/tokens` + `@httpjpg/ui` |
-| `StoryblokContent` | `storyblok-utils` + `-api` + `-richtext` + `-ui` |
+| `Tokens` | `@httpjpg/tokens` — palette, type scale, motion, page theme, ascii motifs |
+| `DesignSystem` | `@httpjpg/ui` — the SwiftUI components, UIKit-backed, iOS only |
+| `StoryblokCore` | `storyblok-utils` + `-api` — client, decoded payloads, fixtures |
+| `StoryblokContent` | `storyblok-richtext` + `-ui` — the `Sb…` blok renderers |
 | `WidgetFeature` | home-screen widgets and lock-screen accessories; linked by app *and* extension |
 | `PortfolioFeature` | `apps/portfolio` |
+| `WatchFeature` | the watchOS app's screens |
 
-Dependency direction is one-way: `DesignSystem` is a leaf, `StoryblokContent`
-may depend on it, the feature layer may depend on both. `DesignSystem` must
-never import `StoryblokContent` — when a blok view needs something from the
-feature layer, it goes through an environment key seam (see
-`\.playAudioTrack`, `\.contentClient`).
+Dependency direction is one-way: `Tokens` is the leaf, `DesignSystem` and
+`StoryblokCore` may depend on it, `StoryblokContent` on both, the feature layer
+on everything below it. `DesignSystem` must never import `StoryblokContent` —
+when a blok view needs something from the feature layer, it goes through an
+environment key seam (see `\.playAudioTrack`, `\.contentClient`).
+
+No umbrella re-exports: a file imports the modules it actually names, so
+`import Tokens` sits beside `import DesignSystem` wherever a view reaches for
+both, and a file that only wants the palette imports `Tokens` alone. Reading
+the import block should tell you which layers a file touches.
+
+**Platforms.** The package builds for iOS and watchOS, but only `Tokens`,
+`StoryblokCore` and `WatchFeature` are ever compiled for the watch — nothing on
+the wrist links `DesignSystem`, which is why `MarqueeLabel` and `SVGView` are
+`.when(platforms: [.iOS])`. Anything landing in the three shared targets has to
+compile on both; `WatchFeature` is written in portable SwiftUI so the package
+tests type-check it on the iOS simulator too.
 
 ## Conventions
 
@@ -58,9 +74,9 @@ Steps 1–4 happen in the **web repo**; only step 5 is here:
 2. `pnpm --filter @httpjpg/storyblok-sync sync:components`
 3. `Sb<Pascal>` component in `packages/storyblok-ui`
 4. Register in `apps/portfolio/lib/storyblok.ts`
-5. **Here:** a case in `PortfolioBlok`, a payload struct, an
-   `Sb<Pascal>View` in `Sources/StoryblokContent/Bloks/`, wired into
-   `BlokView.swift`
+5. **Here:** a case in `PortfolioBlok` and a payload struct, both in
+   `Sources/StoryblokCore/Content/`, then an `Sb<Pascal>View` in
+   `Sources/StoryblokContent/Bloks/`, wired into `BlokView.swift`
 
 Then run `npm run check:bloks` (needs a checkout of the web repo — see the
 script header). CI runs it against the real schemas on every push.
@@ -68,13 +84,16 @@ script header). CI runs it against the real schemas on every push.
 ## Testing
 
 Tests live next to the code they cover, in `httpjpg-kit/Tests/`. The package
-declares iOS only, so `swift test` cannot run them on a Mac host — use
+declares no macOS slice, so `swift test` cannot run them on a Mac host — use
 `xcodebuild test -scheme httpjpg-kit-Package -destination 'platform=iOS Simulator,…'`.
 
 The decoding tests are the valuable ones: Storyblok is loose about field shapes
 (numbers arriving as strings, cleared fields as `""`), and every tolerance in
 `PortfolioBlok.swift` exists because a real payload broke without it. Add a
 test when you add a tolerance.
+
+The watch app is not built by the package tests, but the iOS app embeds it, so
+`xcodebuild build -scheme httpjpg` compiles it for watchOS on every CI run.
 
 ## When in Doubt
 

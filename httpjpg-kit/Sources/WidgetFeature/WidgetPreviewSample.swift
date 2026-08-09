@@ -1,5 +1,5 @@
 #if DEBUG
-import StoryblokContent
+import StoryblokCore
 import UIKit
 
 /// Stand-in content for the `#Preview` timelines — the previews run without a

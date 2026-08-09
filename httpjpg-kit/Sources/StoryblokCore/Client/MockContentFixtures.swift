@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
-import UIKit
+import ImageIO
+import UniformTypeIdentifiers
 
 enum MockContentFixtures {
     struct Response: Sendable {
@@ -172,19 +173,55 @@ enum MockContentFixtures {
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         ) else { return nil }
 
-        context.setFillColor(UIColor(hue: hue, saturation: 0.55, brightness: 0.82, alpha: 1).cgColor)
+        context.setFillColor(rgb(hue: hue, saturation: 0.55, brightness: 0.82))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
         let band = CGFloat(height) * 0.18
-        context.setFillColor(UIColor.black.cgColor)
+        context.setFillColor(black)
         context.fill(CGRect(x: 0, y: CGFloat(height) * 0.41, width: CGFloat(width), height: band))
 
-        context.setStrokeColor(UIColor.black.withAlphaComponent(0.85).cgColor)
+        context.setStrokeColor(black.copy(alpha: 0.85) ?? black)
         context.setLineWidth(max(CGFloat(min(width, height)) * 0.012, 2))
         context.stroke(CGRect(x: 0, y: 0, width: width, height: height).insetBy(dx: 8, dy: 8))
 
         guard let image = context.makeImage() else { return nil }
-        return UIImage(cgImage: image).pngData()
+        return png(from: image)
+    }
+
+    private static let black = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
+
+    /// Same conversion `UIColor(hue:saturation:brightness:alpha:)` does, spelled
+    /// out in CoreGraphics so the fixtures draw on every platform the kit ships to.
+    private static func rgb(hue: CGFloat, saturation: CGFloat, brightness: CGFloat) -> CGColor {
+        let sector = (hue * 6).truncatingRemainder(dividingBy: 6)
+        let fraction = sector - sector.rounded(.down)
+        let dim = brightness * (1 - saturation)
+        let falling = brightness * (1 - saturation * fraction)
+        let rising = brightness * (1 - saturation * (1 - fraction))
+
+        let channels: (CGFloat, CGFloat, CGFloat)
+        switch Int(sector) {
+        case 0: channels = (brightness, rising, dim)
+        case 1: channels = (falling, brightness, dim)
+        case 2: channels = (dim, brightness, rising)
+        case 3: channels = (dim, falling, brightness)
+        case 4: channels = (rising, dim, brightness)
+        default: channels = (brightness, dim, falling)
+        }
+        return CGColor(srgbRed: channels.0, green: channels.1, blue: channels.2, alpha: 1)
+    }
+
+    private static func png(from image: CGImage) -> Data? {
+        let buffer = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            buffer as CFMutableData,
+            UTType.png.identifier as CFString,
+            1,
+            nil
+        ) else { return nil }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        return buffer as Data
     }
 
     private static func requestedSize(in path: String) -> CGSize {

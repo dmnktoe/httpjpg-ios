@@ -1,4 +1,5 @@
 import SwiftUI
+import Tokens
 import UIKit
 
 public struct CopyrightLabel: View {

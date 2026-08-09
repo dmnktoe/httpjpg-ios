@@ -1,5 +1,5 @@
 import PortfolioFeature
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
 
 @main

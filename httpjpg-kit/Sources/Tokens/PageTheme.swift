@@ -90,12 +90,17 @@ private struct ForcedPageSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         let theme = forcesDark ? PageTheme.dark : ambient
-        return content
+        let surface = content
             .pageTheme(theme)
             .pageSurface(theme)
-            // The colorScheme environment doesn't reach the UIKit navigation
-            // bar or the status bar; without this a forced-dark page draws
-            // its title and status bar black-on-black in a light system.
-            .toolbarColorScheme(theme.colorScheme, for: .navigationBar)
+
+        #if os(iOS)
+        // The colorScheme environment doesn't reach the UIKit navigation
+        // bar or the status bar; without this a forced-dark page draws
+        // its title and status bar black-on-black in a light system.
+        return surface.toolbarColorScheme(theme.colorScheme, for: .navigationBar)
+        #else
+        return surface
+        #endif
     }
 }
