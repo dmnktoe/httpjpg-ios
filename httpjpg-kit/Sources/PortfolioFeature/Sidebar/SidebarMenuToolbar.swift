@@ -1,4 +1,3 @@
-import DesignSystem
 import SwiftUI
 
 struct SidebarMenuToolbar: ViewModifier {
@@ -7,9 +6,7 @@ struct SidebarMenuToolbar: ViewModifier {
     @State private var taps = 0
 
     func body(content: Content) -> some View {
-        let isSidebarOpen = app.isSidebarOpen
-
-        return content.toolbar {
+        content.toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     taps += 1
@@ -18,10 +15,6 @@ struct SidebarMenuToolbar: ViewModifier {
                     Label("Open menu", systemImage: "line.3.horizontal")
                 }
                 .sensoryFeedback(.impact(weight: .light), trigger: taps)
-                .opacity(isSidebarOpen ? 0 : 1)
-                .disabled(isSidebarOpen)
-                .accessibilityHidden(isSidebarOpen)
-                .animation(Motion.navigate, value: isSidebarOpen)
             }
         }
     }
