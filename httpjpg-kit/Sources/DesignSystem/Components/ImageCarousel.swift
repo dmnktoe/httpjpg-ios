@@ -8,8 +8,8 @@ public struct ImageCarousel<Slide: View>: View {
     private let showsArrows: Bool
     private let showsCounter: Bool
 
-    /// Whether the slide at this position drives the rotation itself. Autoplay
-    /// stands down while such a slide is on screen and waits for its `advance`.
+    /// Autoplay stands down while such a slide is on screen and waits for its
+    /// `advance`.
     private let ownsRotation: (Int) -> Bool
 
     private let slide: (Int, CarouselSlide) -> Slide
@@ -116,7 +116,7 @@ public struct ImageCarousel<Slide: View>: View {
     }
 
     /// `-1` parks the task; coming off a held slide moves the tick back to an
-    /// index, which restarts the timer.
+    /// index, restarting the timer.
     private var autoplayTick: Int {
         isAutoplayEnabled && !ownsRotation(index) ? index : -1
     }

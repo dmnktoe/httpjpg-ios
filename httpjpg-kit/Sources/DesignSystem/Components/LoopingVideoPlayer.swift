@@ -10,15 +10,9 @@ public struct LoopingVideoPlayer: View {
 
     @State private var player: AVPlayer?
     @State private var looper: AVPlayerLooper?
-
-    /// Kept rather than read back off the player, so the end notification can be
-    /// matched even once the player has moved past the item.
     @State private var item: AVPlayerItem?
-
     @State private var isReady = false
 
-    /// `onFinished` turns the loop into a single pass that reports when it is
-    /// done; `isActive` false pauses and rewinds instead of looping off-screen.
     public init(
         url: URL,
         aspectRatio: CGFloat,
@@ -51,8 +45,8 @@ public struct LoopingVideoPlayer: View {
             .animation(Motion.mediaIn, value: isReady)
             .clipped()
             .contentShape(Rectangle())
-            // Keyed on isActive: resolving the URL suspends, and a plain .task
-            // would resume holding the value from when the slide appeared.
+            // Keyed on isActive: start() suspends, and a plain .task would
+            // resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
             .onReceive(endOfPlayback) { notification in
                 guard let item, let ended = notification.object as? AVPlayerItem,
@@ -64,9 +58,8 @@ public struct LoopingVideoPlayer: View {
             .accessibilityHidden(true)
     }
 
-    /// A failed item reports like a finished one: playback that never ends must
-    /// not strand the show. AVFoundation posts both on whichever thread it is
-    /// on, and the handler drives a carousel from here.
+    /// AVFoundation posts these on whichever thread it is on, and the handler
+    /// advances a carousel. A failed item counts as finished.
     private var endOfPlayback: some Publisher<Notification, Never> {
         let center = NotificationCenter.default
         return center.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)
@@ -94,8 +87,6 @@ public struct LoopingVideoPlayer: View {
                 looper = AVPlayerLooper(player: queue, templateItem: playerItem)
                 resolved = queue
             } else {
-                // A single pass wants no queue behind it — an emptying queue
-                // ends the item on its own terms rather than pausing on it.
                 resolved = AVPlayer(playerItem: playerItem)
             }
             resolved.isMuted = true
@@ -108,8 +99,8 @@ public struct LoopingVideoPlayer: View {
         settle(player, rewinding: !isFirstStart)
     }
 
-    /// Synchronous on purpose: `seek(to:)` also has an `async` overload, and
-    /// inside an `async` function that is the one overload resolution picks.
+    /// Synchronous on purpose: inside an `async` function the `async` overload
+    /// of `seek(to:)` is the one overload resolution picks.
     @MainActor
     private func settle(_ player: AVPlayer, rewinding: Bool) {
         guard isActive else {
