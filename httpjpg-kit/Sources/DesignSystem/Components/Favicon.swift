@@ -65,18 +65,28 @@ public struct Favicon: View {
             }
     }
 
+    /// Everything RFC 3986 leaves unreserved. `queryItems` only escapes what a
+    /// query as a whole disallows, which lets a `&` or a `=` inside the target
+    /// URL cut the parameter short — the value has to be escaped as a whole.
+    private static let unreserved = CharacterSet(
+        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    )
+
     /// The proxy keeps the whole URL rather than just the host: several projects
     /// share one host (`dmnktoe.github.io/<project>/`) and would otherwise all
     /// collapse onto that host's icon.
     private var proxyURL: URL? {
         guard let origin, let url, let scheme = url.scheme?.lowercased(),
               scheme == "http" || scheme == "https",
-              var components = URLComponents(url: origin, resolvingAgainstBaseURL: false)
+              var components = URLComponents(url: origin, resolvingAgainstBaseURL: false),
+              let target = url.absoluteString.addingPercentEncoding(
+                  withAllowedCharacters: Self.unreserved
+              )
         else { return nil }
 
         components.path = "/api/favicon"
-        components.queryItems = [
-            URLQueryItem(name: "url", value: url.absoluteString),
+        components.percentEncodedQueryItems = [
+            URLQueryItem(name: "url", value: target),
             URLQueryItem(name: "sz", value: String(pixelSide)),
         ]
         return components.url

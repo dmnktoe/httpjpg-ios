@@ -60,7 +60,7 @@ public enum WorkCardDate {
     nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
     nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
 
-    nonisolated(unsafe) private static let calendar: Calendar = {
+    private static let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = authoringTimeZone
         return calendar
