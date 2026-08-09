@@ -47,9 +47,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             sidebarPane
             main
 
-            if dragEnabled && !isOpen {
-                openEdge
-            }
+            openEdge
+                .allowsHitTesting(dragEnabled && !isOpen)
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
