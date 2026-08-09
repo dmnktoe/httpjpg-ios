@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 struct SidebarMenuToolbar: ViewModifier {
@@ -15,6 +16,10 @@ struct SidebarMenuToolbar: ViewModifier {
                     Label("Open menu", systemImage: "line.3.horizontal")
                 }
                 .sensoryFeedback(.impact(weight: .light), trigger: taps)
+                .opacity(app.isSidebarOpen ? 0 : 1)
+                .allowsHitTesting(!app.isSidebarOpen)
+                .accessibilityHidden(app.isSidebarOpen)
+                .animation(Motion.drawer, value: app.isSidebarOpen)
             }
         }
     }

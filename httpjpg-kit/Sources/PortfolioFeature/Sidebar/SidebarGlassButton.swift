@@ -21,11 +21,7 @@ struct SidebarGlassButton: View {
                 .foregroundStyle(theme.foreground)
                 .frame(width: Self.diameter, height: Self.diameter)
                 .contentShape(.circle)
-                .glassBackground(in: .circle, tint: theme.background.opacity(0.4), interactive: true)
-                .clipShape(.circle)
-                .overlay {
-                    Circle().stroke(Palette.neutral.s400.opacity(0.35), lineWidth: 1)
-                }
+                .glassBackground(in: .circle, tint: theme.chromeFill, interactive: true)
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.impact(weight: .light), trigger: taps)
