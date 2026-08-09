@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// What a slide knows about its place in the carousel around it. A slide that
-/// takes over the rotation — a video that should be seen to the end — needs to
-/// know when it is the one on screen, and needs a way to hand the show on.
+/// The seam a slide uses to take over the rotation around it — a video that
+/// should be seen to the end holds the show and hands it on when it ends.
 public struct CarouselSlide {
     public let isActive: Bool
     public let advance: @MainActor () -> Void
@@ -14,8 +13,7 @@ public struct CarouselSlide {
 }
 
 private struct CarouselSlideKey: EnvironmentKey {
-    /// Outside a carousel a slide is the only thing on screen, and there is
-    /// nothing to advance to.
+    /// Outside a carousel there is nothing to advance to.
     static let defaultValue = CarouselSlide(isActive: true, advance: {})
 }
 

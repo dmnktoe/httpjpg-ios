@@ -8,10 +8,8 @@ public struct ImageCarousel<Slide: View>: View {
     private let showsArrows: Bool
     private let showsCounter: Bool
 
-    /// Answers whether the slide at this position drives the rotation itself.
-    /// Autoplay stands down while such a slide is on screen and waits for it to
-    /// call `advance` — a clip that gets swiped past mid-playback was never
-    /// really shown.
+    /// Whether the slide at this position drives the rotation itself. Autoplay
+    /// stands down while such a slide is on screen and waits for its `advance`.
     private let ownsRotation: (Int) -> Bool
 
     private let slide: (Int) -> Slide
@@ -121,16 +119,14 @@ public struct ImageCarousel<Slide: View>: View {
         count > 1 && !reduceMotion && autoplayInterval != nil
     }
 
-    /// `-1` parks the autoplay task. Coming back off a held slide moves the tick
-    /// from -1 to the new index, so the timer restarts on its own.
+    /// `-1` parks the task; coming off a held slide moves the tick back to an
+    /// index, which restarts the timer.
     private var autoplayTick: Int {
         isAutoplayEnabled && !ownsRotation(index) ? index : -1
     }
 
     private func autoplayStep() async {
-        // `.task(id:)` runs for the parked tick too, so the hold has to be
-        // re-checked here or the timer would advance past a slide that owns
-        // the rotation.
+        // `.task(id:)` runs for the parked tick too.
         guard autoplayTick >= 0, let interval = autoplayInterval else { return }
         try? await Task.sleep(for: .seconds(interval))
         guard !Task.isCancelled else { return }

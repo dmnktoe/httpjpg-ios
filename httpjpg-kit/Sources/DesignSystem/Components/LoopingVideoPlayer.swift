@@ -12,10 +12,8 @@ public struct LoopingVideoPlayer: View {
     @State private var looper: AVPlayerLooper?
     @State private var isReady = false
 
-    /// `onFinished` turns the loop into a single pass: the clip plays once from
-    /// the top and reports when it is done, so a carousel can wait for it
-    /// instead of swiping past mid-playback. `isActive` false pauses and rewinds
-    /// rather than looping off-screen.
+    /// `onFinished` turns the loop into a single pass that reports when it is
+    /// done; `isActive` false pauses and rewinds instead of looping off-screen.
     public init(
         url: URL,
         aspectRatio: CGFloat,
@@ -48,9 +46,8 @@ public struct LoopingVideoPlayer: View {
             .animation(Motion.mediaIn, value: isReady)
             .clipped()
             .contentShape(Rectangle())
-            // Keyed on isActive rather than paired with an onChange: resolving
-            // the URL suspends, and a plain .task would resume holding whatever
-            // isActive read when the slide first appeared.
+            // Keyed on isActive: resolving the URL suspends, and a plain .task
+            // would resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
             .onReceive(endOfPlayback) { notification in
                 guard let item = notification.object as? AVPlayerItem,
@@ -62,8 +59,8 @@ public struct LoopingVideoPlayer: View {
             .accessibilityHidden(true)
     }
 
-    /// Playback that never finishes must not strand the show, so a failed item
-    /// reports the same way a finished one does.
+    /// A failed item reports like a finished one: playback that never ends must
+    /// not strand the show.
     private var endOfPlayback: some Publisher<Notification, Never> {
         let center = NotificationCenter.default
         return center.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)
@@ -102,9 +99,7 @@ public struct LoopingVideoPlayer: View {
             player.seek(to: .zero)
             return
         }
-        // A clip coming back on screen starts from the top; one that has never
-        // played is already there, and seeking a looped item would fight the
-        // looper for no gain.
+        // Seeking a fresh item would only fight the looper.
         if !isFirstStart {
             player.seek(to: .zero)
         }

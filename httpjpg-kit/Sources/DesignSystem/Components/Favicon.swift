@@ -5,9 +5,8 @@ private struct FaviconOriginKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Origin serving `/api/favicon`. `DesignSystem` cannot reach the Storyblok
-    /// configuration that holds the site origin, so the feature layer hands it
-    /// down here. Unset means no icons at all: the proxy is the only source.
+    /// Origin serving `/api/favicon`, handed down by the feature layer because
+    /// `DesignSystem` cannot reach the Storyblok configuration that holds it.
     var faviconOrigin: URL? {
         get { self[FaviconOriginKey.self] }
         set { self[FaviconOriginKey.self] = newValue }
@@ -17,9 +16,6 @@ public extension EnvironmentValues {
 public struct Favicon: View {
     private static let side: CGFloat = 14
 
-    /// Cycled in the reserved slot while the proxy resolves an icon — a cold
-    /// lookup fetches the page and its candidates, which takes long enough
-    /// that an empty slot reads as a missing icon.
     private static let spinnerFrames = ["|", "/", "-", "\\"]
     private static let spinnerInterval: Duration = .milliseconds(120)
 
@@ -65,16 +61,14 @@ public struct Favicon: View {
             }
     }
 
-    /// Everything RFC 3986 leaves unreserved. `queryItems` only escapes what a
-    /// query as a whole disallows, which lets a `&` or a `=` inside the target
-    /// URL cut the parameter short — the value has to be escaped as a whole.
+    /// `queryItems` only escapes what a query as a whole disallows, so a `&` or
+    /// `=` inside the target URL would cut the parameter short.
     private static let unreserved = CharacterSet(
         charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
     )
 
-    /// The proxy keeps the whole URL rather than just the host: several projects
-    /// share one host (`dmnktoe.github.io/<project>/`) and would otherwise all
-    /// collapse onto that host's icon.
+    /// Whole URL, not just the host: several projects share one host
+    /// (`dmnktoe.github.io/<project>/`) and collapse onto its icon otherwise.
     private var proxyURL: URL? {
         guard let origin, let url, let scheme = url.scheme?.lowercased(),
               scheme == "http" || scheme == "https",

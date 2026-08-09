@@ -102,9 +102,6 @@ final class WorkCardDateTests: XCTestCase {
         XCTAssertEqual(WorkCardDate.year(of: try date("2024-06-15T12:00:00Z")), "2024")
     }
 
-    /// A Storyblok datetime carries no zone and is parsed as UTC midnight, so
-    /// formatting it anywhere west of UTC used to roll the stamp back a day —
-    /// and, on New Year, a year.
     func testMidnightKeepsItsAuthoredDayAndYear() throws {
         let newYear = try date("2024-01-01T00:00:00Z")
         XCTAssertEqual(WorkCardDate.parts(of: newYear).day, "01")

@@ -34,9 +34,8 @@ public struct SbSlideshowView: View {
         }
     }
 
-    /// A clip only takes over the rotation when there is a rotation to take
-    /// over. A single slide has nowhere to advance to, and under reduced motion
-    /// autoplay is off anyway — both keep the plain loop.
+    /// A single slide has nowhere to advance to, and reduced motion has no
+    /// autoplay to hold — both keep the plain loop.
     private var playsThrough: Bool {
         blok.images.count > 1 && !reduceMotion
     }

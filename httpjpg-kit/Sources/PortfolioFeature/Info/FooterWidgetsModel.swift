@@ -7,8 +7,7 @@ import StoryblokContent
 final class FooterWidgetsModel {
     private let api: SiteAPI
 
-    /// Read by the view too: a widget switched off in the CMS should not hold
-    /// a "loading …" row that will never fill.
+    /// Read by the view too, so a widget switched off holds no loading row.
     let flags: WidgetFlags
 
     private(set) var discord: DiscordPresence?

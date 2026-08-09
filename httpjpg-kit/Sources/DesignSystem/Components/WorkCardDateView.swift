@@ -49,10 +49,9 @@ public enum WorkCardDate {
 
     private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
 
-    /// Storyblok datetime fields carry no zone, and `StoryblokDate` reads that
-    /// wall clock as UTC. Reading it back in the reader's own zone shifts the
-    /// stamp: west of UTC an authored `2026-01-01 00:00` renders as the 31st of
-    /// the year before. Format in the zone it was parsed in.
+    /// Storyblok datetimes carry no zone and `StoryblokDate` reads them as UTC.
+    /// West of UTC, reading them back locally rolls `2026-01-01 00:00` into the
+    /// 31st of the year before.
     public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
 
     nonisolated(unsafe) private static let dayFormatter = formatter("dd")

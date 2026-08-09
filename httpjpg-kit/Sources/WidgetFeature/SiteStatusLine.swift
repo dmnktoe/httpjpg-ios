@@ -72,9 +72,8 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
-    /// The avatar the site leads this line with stays behind: a widget refresh
-    /// would have to fetch it, and the row is one line of mono text anyway. The
-    /// follower count still leads, so the post is what truncates.
+    /// No avatar — a widget refresh would have to fetch it. The follower count
+    /// leads instead, so the post is what truncates.
     init?(profile: XProfile, post: XPost) {
         guard !post.text.isEmpty else { return nil }
         self.init(
