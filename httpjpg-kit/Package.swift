@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "httpjpg-kit",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v17), .watchOS(.v10)],
     products: [
         .library(name: "Tokens", targets: ["Tokens"]),
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
@@ -11,6 +11,7 @@ let package = Package(
         .library(name: "StoryblokContent", targets: ["StoryblokContent"]),
         .library(name: "PortfolioFeature", targets: ["PortfolioFeature"]),
         .library(name: "WidgetFeature", targets: ["WidgetFeature"]),
+        .library(name: "WatchFeature", targets: ["WatchFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
@@ -29,8 +30,10 @@ let package = Package(
             dependencies: [
                 "Tokens",
 
-                .product(name: "MarqueeLabel", package: "MarqueeLabel"),
-                .product(name: "SVGView", package: "SVGView"),
+                // Both are UIKit-backed and ship iOS slices only; the watch app
+                // reaches for Tokens rather than for these components.
+                .product(name: "MarqueeLabel", package: "MarqueeLabel", condition: .when(platforms: [.iOS])),
+                .product(name: "SVGView", package: "SVGView", condition: .when(platforms: [.iOS])),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -70,6 +73,11 @@ let package = Package(
             dependencies: ["DesignSystem", "StoryblokContent"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        .target(
+            name: "WatchFeature",
+            dependencies: ["Tokens", "StoryblokCore"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(
             name: "DesignSystemTests",
             dependencies: [
@@ -86,6 +94,11 @@ let package = Package(
         .testTarget(
             name: "WidgetFeatureTests",
             dependencies: ["WidgetFeature", "StoryblokContent"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "WatchFeatureTests",
+            dependencies: ["WatchFeature", "StoryblokCore"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

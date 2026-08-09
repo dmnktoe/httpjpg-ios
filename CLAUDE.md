@@ -10,7 +10,8 @@ same Storyblok space the website reads. The website lives in a separate repo,
 
 ## Stack
 
-- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 deployment
+- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 / watchOS 10
+  deployment
 - **SwiftPM local package** `httpjpg-kit` — every line of real code
 - **XcodeGen** — `project.yml` is the source of truth for target structure; the
   `.xcodeproj` is checked in, regenerate with `xcodegen generate`
@@ -29,6 +30,7 @@ same Storyblok space the website reads. The website lives in a separate repo,
 | `StoryblokContent` | `storyblok-richtext` + `-ui` — the `Sb…` blok renderers |
 | `WidgetFeature` | home-screen widgets and lock-screen accessories; linked by app *and* extension |
 | `PortfolioFeature` | `apps/portfolio` |
+| `WatchFeature` | the watchOS app's screens |
 
 Dependency direction is one-way: `Tokens` is the leaf, `DesignSystem` and
 `StoryblokCore` may depend on it, `StoryblokContent` on both, the feature layer
@@ -41,6 +43,13 @@ environment key seam (see `\.playAudioTrack`, `\.contentClient`).
 reach everything they used to. Files *inside* those two targets need the
 explicit `import Tokens` / `import StoryblokCore` — re-exports don't apply to
 the re-exporting module's own files.
+
+**Platforms.** The package builds for iOS and watchOS, but only `Tokens`,
+`StoryblokCore` and `WatchFeature` are ever compiled for the watch — nothing on
+the wrist links `DesignSystem`, which is why `MarqueeLabel` and `SVGView` are
+`.when(platforms: [.iOS])`. Anything landing in the three shared targets has to
+compile on both; `WatchFeature` is written in portable SwiftUI so the package
+tests type-check it on the iOS simulator too.
 
 ## Conventions
 
@@ -76,13 +85,16 @@ script header). CI runs it against the real schemas on every push.
 ## Testing
 
 Tests live next to the code they cover, in `httpjpg-kit/Tests/`. The package
-declares iOS only, so `swift test` cannot run them on a Mac host — use
+declares no macOS slice, so `swift test` cannot run them on a Mac host — use
 `xcodebuild test -scheme httpjpg-kit-Package -destination 'platform=iOS Simulator,…'`.
 
 The decoding tests are the valuable ones: Storyblok is loose about field shapes
 (numbers arriving as strings, cleared fields as `""`), and every tolerance in
 `PortfolioBlok.swift` exists because a real payload broke without it. Add a
 test when you add a tolerance.
+
+The watch app is not built by the package tests, but the iOS app embeds it, so
+`xcodebuild build -scheme httpjpg` compiles it for watchOS on every CI run.
 
 ## When in Doubt
 

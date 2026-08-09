@@ -21,6 +21,13 @@
 		AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* httpjpg-widgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA000000000000000000003B /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
 		AA000000000000000000003C /* httpjpg.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* httpjpg.icon */; };
+		AA0000000000000000000069 /* HttpjpgWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000066 /* HttpjpgWatchApp.swift */; };
+		AA000000000000000000006A /* Anton-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* Anton-Regular.ttf */; };
+		AA000000000000000000006B /* httpjpg.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* httpjpg.icon */; };
+		AA000000000000000000006C /* Tokens in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000070 /* Tokens */; };
+		AA000000000000000000006D /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000071 /* StoryblokCore */; };
+		AA000000000000000000006E /* WatchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000072 /* WatchFeature */; };
+		AA0000000000000000000073 /* httpjpg-watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000061 /* httpjpg-watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +44,10 @@
 		AA0000000000000000000027 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
 		AA0000000000000000000028 /* Anton-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Anton-Regular.ttf"; path = "httpjpg-kit/Sources/Tokens/Resources/Fonts/Anton-Regular.ttf"; sourceTree = SOURCE_ROOT; };
 		AA0000000000000000000029 /* httpjpg.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = httpjpg.icon; sourceTree = "<group>"; };
+		AA0000000000000000000061 /* httpjpg-watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "httpjpg-watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000066 /* HttpjpgWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWatchApp.swift; sourceTree = "<group>"; };
+		AA0000000000000000000067 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0000000000000000000068 /* Watch.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Watch.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +72,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000063 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000006C /* Tokens in Frameworks */,
+				AA000000000000000000006D /* StoryblokCore in Frameworks */,
+				AA000000000000000000006E /* WatchFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -70,6 +91,7 @@
 				AA0000000000000000000005 /* Config */,
 				AA0000000000000000000004 /* httpjpg */,
 				AA0000000000000000000006 /* httpjpg-widgets */,
+				AA0000000000000000000065 /* httpjpg-watch */,
 				AA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,6 +101,7 @@
 			children = (
 				AA0000000000000000000011 /* httpjpg.app */,
 				AA0000000000000000000019 /* httpjpg-widgets.appex */,
+				AA0000000000000000000061 /* httpjpg-watch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,6 +123,7 @@
 			children = (
 				AA0000000000000000000023 /* Shared.xcconfig */,
 				AA0000000000000000000027 /* Widgets.xcconfig */,
+				AA0000000000000000000068 /* Watch.xcconfig */,
 				AA0000000000000000000024 /* Secrets.example.xcconfig */,
 			);
 			path = Config;
@@ -115,6 +139,15 @@
 			path = httpjpg-widgets;
 			sourceTree = "<group>";
 		};
+		AA0000000000000000000065 /* httpjpg-watch */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000066 /* HttpjpgWatchApp.swift */,
+				AA0000000000000000000067 /* Info.plist */,
+			);
+			path = "httpjpg-watch";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -126,11 +159,13 @@
 				AA0000000000000000000013 /* Frameworks */,
 				AA0000000000000000000014 /* Resources */,
 				AA000000000000000000001B /* Embed Foundation Extensions */,
+				AA0000000000000000000074 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				AA000000000000000000001D /* PBXTargetDependency */,
+				AA0000000000000000000075 /* PBXTargetDependency */,
 			);
 			name = httpjpg;
 			packageProductDependencies = (
@@ -165,6 +200,28 @@
 			productReference = AA0000000000000000000019 /* httpjpg-widgets.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		AA0000000000000000000060 /* httpjpg-watch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000079 /* Build configuration list for PBXNativeTarget "httpjpg-watch" */;
+			buildPhases = (
+				AA0000000000000000000062 /* Sources */,
+				AA0000000000000000000063 /* Frameworks */,
+				AA0000000000000000000064 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "httpjpg-watch";
+			packageProductDependencies = (
+				AA0000000000000000000070 /* Tokens */,
+				AA0000000000000000000071 /* StoryblokCore */,
+				AA0000000000000000000072 /* WatchFeature */,
+			);
+			productName = "httpjpg-watch";
+			productReference = AA0000000000000000000061 /* httpjpg-watch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -179,6 +236,9 @@
 						CreatedOnToolsVersion = 26.0;
 					};
 					AA0000000000000000000018 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA0000000000000000000060 = {
 						CreatedOnToolsVersion = 26.0;
 					};
 				};
@@ -201,6 +261,7 @@
 			targets = (
 				AA0000000000000000000010 /* httpjpg */,
 				AA0000000000000000000018 /* httpjpg-widgets */,
+				AA0000000000000000000060 /* httpjpg-watch */,
 			);
 		};
 /* End PBXProject section */
@@ -215,6 +276,17 @@
 				AA000000000000000000003A /* httpjpg-widgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000074 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				AA0000000000000000000073 /* httpjpg-watch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -234,6 +306,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000000000000000000003B /* Anton-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000064 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000006B /* httpjpg.icon in Resources */,
+				AA000000000000000000006A /* Anton-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,6 +338,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000062 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000069 /* HttpjpgWatchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -264,6 +353,11 @@
 			isa = PBXTargetDependency;
 			target = AA0000000000000000000018 /* httpjpg-widgets */;
 			targetProxy = AA000000000000000000001E /* PBXContainerItemProxy */;
+		};
+		AA0000000000000000000075 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000060 /* httpjpg-watch */;
+			targetProxy = AA0000000000000000000076 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -274,6 +368,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = AA0000000000000000000018;
 			remoteInfo = httpjpg-widgets;
+		};
+		AA0000000000000000000076 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000060;
+			remoteInfo = "httpjpg-watch";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -376,6 +477,40 @@
 			};
 			name = Release;
 		};
+		AA0000000000000000000077 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000068 /* Watch.xcconfig */;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000078 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA0000000000000000000068 /* Watch.xcconfig */;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -402,6 +537,15 @@
 			buildConfigurations = (
 				AA0000000000000000000057 /* Debug */,
 				AA0000000000000000000058 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0000000000000000000079 /* Build configuration list for PBXNativeTarget "httpjpg-watch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000077 /* Debug */,
+				AA0000000000000000000078 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -443,6 +587,18 @@
 		AA0000000000000000000047 /* StoryblokContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = StoryblokContent;
+		};
+		AA0000000000000000000070 /* Tokens */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Tokens;
+		};
+		AA0000000000000000000071 /* StoryblokCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StoryblokCore;
+		};
+		AA0000000000000000000072 /* WatchFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WatchFeature;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
