@@ -46,6 +46,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         ZStack(alignment: .leading) {
             sidebarPane
             main
+
+            if dragEnabled && !isOpen {
+                openEdge
+            }
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
@@ -84,7 +88,16 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             )
             .offset(x: offset)
             .accessibilityHidden(isOpen)
-            .simultaneousGesture(drawerDrag, including: gestureMask)
+            .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
+            .ignoresSafeArea()
+    }
+
+    private var openEdge: some View {
+        Color.clear
+            .frame(width: Self.edgeWidth)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(drawerDrag)
             .ignoresSafeArea()
     }
 
@@ -103,10 +116,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     isOpen = shouldOpen(after: value)
                 }
             }
-    }
-
-    private var gestureMask: GestureMask {
-        dragEnabled || isOpen ? .all : .subviews
     }
 
     private var width: CGFloat {
