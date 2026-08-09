@@ -1,6 +1,7 @@
 import DesignSystem
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 
 struct SidebarView: View {
     @Environment(AppModel.self) private var app

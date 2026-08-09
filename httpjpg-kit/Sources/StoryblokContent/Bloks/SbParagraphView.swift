@@ -1,6 +1,7 @@
 import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbParagraphView: View {
     private let blok: ParagraphBlok

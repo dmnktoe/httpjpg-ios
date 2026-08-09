@@ -1,5 +1,5 @@
 import AppIntents
-import StoryblokContent
+import StoryblokCore
 
 public struct WorkEntityQuery: EntityStringQuery, Sendable {
     public init() {}

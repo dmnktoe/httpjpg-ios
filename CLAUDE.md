@@ -38,11 +38,10 @@ on everything below it. `DesignSystem` must never import `StoryblokContent` —
 when a blok view needs something from the feature layer, it goes through an
 environment key seam (see `\.playAudioTrack`, `\.contentClient`).
 
-`DesignSystem` re-exports `Tokens` and `StoryblokContent` re-exports
-`StoryblokCore`, so `import DesignSystem` / `import StoryblokContent` still
-reach everything they used to. Files *inside* those two targets need the
-explicit `import Tokens` / `import StoryblokCore` — re-exports don't apply to
-the re-exporting module's own files.
+No umbrella re-exports: a file imports the modules it actually names, so
+`import Tokens` sits beside `import DesignSystem` wherever a view reaches for
+both, and a file that only wants the palette imports `Tokens` alone. Reading
+the import block should tell you which layers a file touches.
 
 **Platforms.** The package builds for iOS and watchOS, but only `Tokens`,
 `StoryblokCore` and `WatchFeature` are ever compiled for the watch — nothing on

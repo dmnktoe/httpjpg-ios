@@ -1,6 +1,6 @@
 import CoreSpotlight
 import Foundation
-import StoryblokContent
+import StoryblokCore
 import UniformTypeIdentifiers
 
 enum WorkSpotlightIndex {

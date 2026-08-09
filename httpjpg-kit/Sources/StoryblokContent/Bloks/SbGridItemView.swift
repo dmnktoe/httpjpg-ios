@@ -1,6 +1,6 @@
-import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbGridItemView: View {
     private let blok: GridItemBlok

@@ -26,6 +26,7 @@
 		AA000000000000000000006C /* Tokens in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000070 /* Tokens */; };
 		AA000000000000000000006D /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000071 /* StoryblokCore */; };
 		AA000000000000000000006E /* WatchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000072 /* WatchFeature */; };
+		AA000000000000000000007A /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA000000000000000000007B /* StoryblokCore */; };
 		AA0000000000000000000073 /* httpjpg-watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000061 /* httpjpg-watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -56,6 +57,7 @@
 			files = (
 				AA0000000000000000000032 /* DesignSystem in Frameworks */,
 				AA0000000000000000000033 /* StoryblokContent in Frameworks */,
+				AA000000000000000000007A /* StoryblokCore in Frameworks */,
 				AA0000000000000000000034 /* PortfolioFeature in Frameworks */,
 				AA0000000000000000000035 /* WidgetFeature in Frameworks */,
 			);
@@ -170,6 +172,7 @@
 			packageProductDependencies = (
 				AA0000000000000000000041 /* DesignSystem */,
 				AA0000000000000000000042 /* StoryblokContent */,
+				AA000000000000000000007B /* StoryblokCore */,
 				AA0000000000000000000043 /* PortfolioFeature */,
 				AA0000000000000000000044 /* WidgetFeature */,
 			);
@@ -597,6 +600,10 @@
 		AA0000000000000000000072 /* WatchFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WatchFeature;
+		};
+		AA000000000000000000007B /* StoryblokCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StoryblokCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,5 +1,5 @@
-import DesignSystem
 import SwiftUI
+import Tokens
 
 enum BottomBarClearance {
     static let tabBar: CGFloat = Spacing.s16

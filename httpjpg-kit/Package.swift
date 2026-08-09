@@ -52,6 +52,7 @@ let package = Package(
             dependencies: [
                 "DesignSystem",
                 "StoryblokCore",
+                "Tokens",
 
                 .product(name: "StoryblokClient", package: "storyblok-swift"),
             ],
@@ -62,6 +63,8 @@ let package = Package(
             dependencies: [
                 "DesignSystem",
                 "StoryblokContent",
+                "StoryblokCore",
+                "Tokens",
                 "WidgetFeature",
                 .product(name: "TelemetryDeck", package: "SwiftSDK"),
             ],
@@ -70,7 +73,7 @@ let package = Package(
 
         .target(
             name: "WidgetFeature",
-            dependencies: ["DesignSystem", "StoryblokContent"],
+            dependencies: ["DesignSystem", "StoryblokCore", "Tokens"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
@@ -82,18 +85,19 @@ let package = Package(
             name: "DesignSystemTests",
             dependencies: [
                 "DesignSystem",
+                "Tokens",
                 .product(name: "SVGView", package: "SVGView"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "PortfolioFeatureTests",
-            dependencies: ["PortfolioFeature", "StoryblokContent", "WidgetFeature"],
+            dependencies: ["PortfolioFeature", "StoryblokCore", "WidgetFeature"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "WidgetFeatureTests",
-            dependencies: ["WidgetFeature", "StoryblokContent"],
+            dependencies: ["WidgetFeature", "StoryblokCore"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

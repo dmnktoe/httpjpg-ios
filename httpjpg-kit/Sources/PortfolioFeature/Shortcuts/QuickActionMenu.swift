@@ -1,5 +1,5 @@
-import DesignSystem
-import StoryblokContent
+import StoryblokCore
+import Tokens
 import UIKit
 
 @MainActor

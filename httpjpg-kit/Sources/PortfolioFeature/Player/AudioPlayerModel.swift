@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 import MediaPlayer
 import Observation
-import StoryblokContent
+import StoryblokCore
 import UIKit
 
 @MainActor

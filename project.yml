@@ -35,6 +35,8 @@ targets:
       - package: httpjpg-kit
         product: StoryblokContent
       - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
         product: PortfolioFeature
       - package: httpjpg-kit
         product: WidgetFeature

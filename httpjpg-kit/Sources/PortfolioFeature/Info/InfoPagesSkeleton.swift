@@ -1,5 +1,6 @@
 import DesignSystem
 import SwiftUI
+import Tokens
 
 struct InfoPagesSkeleton: View {
     private static let widths: [CGFloat] = [132, 96, 156, 112, 140]

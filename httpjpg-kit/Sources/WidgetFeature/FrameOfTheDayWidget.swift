@@ -1,6 +1,6 @@
-import DesignSystem
-import StoryblokContent
+import StoryblokCore
 import SwiftUI
+import Tokens
 import WidgetKit
 
 public struct FrameOfTheDayWidget: Widget {

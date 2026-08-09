@@ -1,6 +1,7 @@
 import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbCodeBlockView: View {
     private let blok: CodeBlok

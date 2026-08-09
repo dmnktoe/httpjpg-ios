@@ -1,5 +1,5 @@
 import Foundation
-import StoryblokContent
+import StoryblokCore
 import WidgetKit
 
 struct WorkCountEntry: TimelineEntry {

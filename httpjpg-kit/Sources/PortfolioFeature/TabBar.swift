@@ -1,5 +1,6 @@
 import DesignSystem
 import SwiftUI
+import Tokens
 
 /// The floating tab pill row.
 struct TabBar: View {

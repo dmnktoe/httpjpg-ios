@@ -1,6 +1,7 @@
 import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbAccordionView: View {
     private let blok: AccordionBlok

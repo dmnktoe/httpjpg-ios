@@ -1,5 +1,5 @@
 import AppIntents
-import StoryblokContent
+import StoryblokCore
 
 public struct ShuffleWorkIntent: AppIntent {
     public static var title: LocalizedStringResource { "Shuffle Work" }

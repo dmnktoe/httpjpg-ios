@@ -1,7 +1,7 @@
-import DesignSystem
 import Foundation
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public enum RichTextInline {
     public static func attributed(

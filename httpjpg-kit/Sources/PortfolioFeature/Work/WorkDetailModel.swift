@@ -1,5 +1,5 @@
 import Observation
-import StoryblokContent
+import StoryblokCore
 
 @MainActor
 @Observable
