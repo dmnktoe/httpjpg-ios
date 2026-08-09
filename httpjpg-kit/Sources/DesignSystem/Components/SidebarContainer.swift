@@ -12,6 +12,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.pageTheme) private var theme
 
     private static var parallax: CGFloat { Spacing.s10 }
 
@@ -45,6 +46,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
             main
         }
+        .background(theme.drawerBackground.ignoresSafeArea())
         .environment(\.marqueeHeld, isDragging)
         .animation(motion, value: isOpen)
     }

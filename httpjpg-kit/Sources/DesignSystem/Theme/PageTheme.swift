@@ -23,6 +23,10 @@ public struct PageTheme: Sendable, Equatable {
 
     public var foreground: Color { isDark ? Palette.white : Palette.black }
 
+    /// The surface the page slides off to reveal: dark mode has nowhere darker
+    /// to dim the page towards, so the drawer lifts instead.
+    public var drawerBackground: Color { isDark ? Palette.neutral.s900 : Palette.white }
+
     public var muted: Color { isDark ? Palette.neutral.s300 : Palette.neutral.s700 }
 
     public var border: Color { isDark ? Palette.neutral.s700 : Palette.neutral.s300 }
