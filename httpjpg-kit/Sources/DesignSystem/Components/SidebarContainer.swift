@@ -12,6 +12,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.pageTheme) private var theme
 
     private static var parallax: CGFloat { Spacing.s10 }
 
@@ -38,6 +39,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             sidebar
                 .frame(width: width)
                 .frame(maxHeight: .infinity, alignment: .top)
+                .background(theme.drawerBackground.ignoresSafeArea())
                 .offset(x: (progress - 1) * Self.parallax)
                 .opacity(Double(progress))
                 .accessibilityHidden(!isOpen)
