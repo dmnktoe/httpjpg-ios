@@ -10,13 +10,11 @@ struct SidebarGlassButton: View {
     private static let diameter: CGFloat = Spacing.s11
 
     @Environment(\.pageTheme) private var theme
-    @State private var taps = 0
 
     var body: some View {
-        Button {
-            taps += 1
-            action()
-        } label: {
+        // No haptic of its own: the drawer container ticks on every
+        // open/close, whichever control drove it.
+        Button(action: action) {
             Text(glyph)
                 .font(Typography.mono(Typography.Size.base, weight: .medium))
                 .foregroundStyle(theme.foreground)
@@ -25,7 +23,6 @@ struct SidebarGlassButton: View {
                 .glassBackground(in: .circle, tint: theme.chromeFill, interactive: true)
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.impact(weight: .light), trigger: taps)
         .accessibilityLabel(label)
     }
 }

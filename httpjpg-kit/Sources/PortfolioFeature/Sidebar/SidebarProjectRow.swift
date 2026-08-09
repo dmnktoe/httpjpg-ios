@@ -10,7 +10,7 @@ struct SidebarProjectRow: View {
 
     var body: some View {
         HStack(spacing: Spacing.s3) {
-            MonoText(year ?? "····", size: Typography.Size.xs, opacity: Opacities.subtle)
+            MonoText(year ?? WorkYearGroup.undatedYear, size: Typography.Size.xs, opacity: Opacities.subtle)
 
             Marquee(
                 item.title,

@@ -1,6 +1,10 @@
 import SwiftUI
 import Tokens
 
+/// The app-level drawer: the page slides right and scales back to reveal the
+/// sidebar riding in underneath it. Open state lives with the caller; the
+/// container owns the drag, the reveal choreography and the settle feedback,
+/// so button, edge swipe and scrim all land the same way.
 public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private let maxWidth: CGFloat
     private let dragEnabled: Bool
@@ -8,18 +12,37 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private let content: Content
 
     @Binding private var isOpen: Bool
-    @State private var drag: CGFloat = 0
-    @State private var isDragging = false
+
+    /// GestureState rather than State: the system can cancel a drag (incoming
+    /// call, alert) without ever reaching onEnded, which used to strand the
+    /// drawer mid-travel with every marquee frozen. GestureState also resets
+    /// on cancellation, and the reset transaction replays the drawer spring so
+    /// the abandoned drag settles instead of snapping.
+    @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
+    private var drag: CGFloat = 0
+
+    @GestureState private var isDragging = false
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
+    /// The sidebar starts slightly under the page and rides the last stretch in.
     private static var parallax: CGFloat { Spacing.s10 }
 
     private static var scaleDrop: CGFloat { 0.05 }
 
+    /// Strip along the leading edge that arms the open swipe, matching the
+    /// system back-swipe region.
     private static var edgeWidth: CGFloat { Spacing.s5 }
+
+    /// Past this horizontal speed the flick's direction decides open/close,
+    /// no matter where the finger stopped.
+    private static var flickVelocity: CGFloat { 300 }
+
+    /// Dragging past full-open moves the page at a fraction of the finger
+    /// instead of pinning it, so the drawer keeps feeling attached.
+    private static var overshootDamping: CGFloat { 4 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -37,19 +60,29 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     public var body: some View {
         ZStack(alignment: .leading) {
-            sidebar
-                .frame(width: width)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .offset(x: (progress - 1) * Self.parallax)
-                .opacity(Double(progress))
-                .accessibilityHidden(!isOpen)
-                .accessibilityAction(.escape) { close() }
-
+            sidebarPane
             main
         }
         .background(theme.drawerBackground.ignoresSafeArea())
+        // One tick per state change here, so the toolbar button, the ✕, the
+        // swipe and the scrim all feel identical.
+        .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.marqueeHeld, isDragging)
         .animation(motion, value: isOpen)
+    }
+
+    private var sidebarPane: some View {
+        sidebar
+            .frame(width: width)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .offset(x: (progress - 1) * Self.parallax)
+            .opacity(Double(progress))
+            .accessibilityHidden(!isOpen)
+            .accessibilityAddTraits(isOpen ? .isModal : [])
+            .accessibilityAction(.escape) { close() }
+            // Its own copy of the drag, so a leftward swipe that starts on the
+            // drawer closes it too — not only one on the pushed-aside page.
+            .simultaneousGesture(drawerDrag)
     }
 
     private var main: some View {
@@ -69,27 +102,31 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             )
             .offset(x: offset)
             .accessibilityHidden(isOpen)
-            .simultaneousGesture(drawerDrag, including: dragEnabled ? .all : .subviews)
+            .simultaneousGesture(drawerDrag, including: gestureMask)
             .ignoresSafeArea()
     }
 
     private var drawerDrag: some Gesture {
         DragGesture(minimumDistance: 15)
-            .onChanged { value in
+            .updating($drag) { value, state, _ in
                 guard tracks(value) else { return }
-                isDragging = true
-                drag = value.translation.width
+                state = value.translation.width
+            }
+            .updating($isDragging) { value, state, _ in
+                if tracks(value) { state = true }
             }
             .onEnded { value in
-                let shouldOpen = tracks(value)
-                    ? base + value.predictedEndTranslation.width > width / 2
-                    : isOpen
-                isDragging = false
+                guard tracks(value) else { return }
                 withAnimation(motion) {
-                    drag = 0
-                    isOpen = shouldOpen
+                    isOpen = shouldOpen(after: value)
                 }
             }
+    }
+
+    /// Closing must stay available even when pushed-in navigation turns the
+    /// open swipe off, or an open drawer could only fall back to the scrim.
+    private var gestureMask: GestureMask {
+        dragEnabled || isOpen ? .all : .subviews
     }
 
     private var width: CGFloat {
@@ -101,15 +138,24 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var offset: CGFloat {
-        min(max(base + drag, 0), width)
+        let position = base + drag
+        guard position > 0 else { return 0 }
+        guard position > width else { return position }
+        return width + (position - width) / Self.overshootDamping
     }
 
     private var progress: CGFloat {
-        width > 0 ? offset / width : 0
+        width > 0 ? min(offset / width, 1) : 0
     }
 
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
+    }
+
+    private func shouldOpen(after value: DragGesture.Value) -> Bool {
+        let velocity = value.velocity.width
+        guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
+        return base + value.translation.width > width / 2
     }
 
     private func tracks(_ value: DragGesture.Value) -> Bool {

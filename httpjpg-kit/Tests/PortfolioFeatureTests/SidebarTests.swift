@@ -100,6 +100,17 @@ final class SidebarTests: XCTestCase {
         )
     }
 
+    func testToggleSidebarFlipsTheDrawer() {
+        let app = makeApp()
+        XCTAssertFalse(app.isSidebarOpen)
+
+        app.toggleSidebar()
+        XCTAssertTrue(app.isSidebarOpen)
+
+        app.toggleSidebar()
+        XCTAssertFalse(app.isSidebarOpen)
+    }
+
     func testTheDrawerSwipeStandsDownInsideANavigationStack() {
         let app = makeApp()
         XCTAssertTrue(app.isAtNavigationRoot)

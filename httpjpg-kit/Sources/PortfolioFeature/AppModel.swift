@@ -42,7 +42,14 @@ public final class AppModel {
 
     public var infoPath: [PageRoute] = []
 
-    public var isSidebarOpen = false
+    /// Signalled here instead of in toggleSidebar so swipe-opens through the
+    /// container's binding count too.
+    public var isSidebarOpen = false {
+        didSet {
+            guard isSidebarOpen, !oldValue else { return }
+            Telemetry.signal("sidebar.opened")
+        }
+    }
     public private(set) var config: SiteConfig = .fallback
 
     public private(set) var hasLoadedConfig = false
