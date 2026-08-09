@@ -3,10 +3,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// Wrapped row of year chips above the drawer list — one tap jumps the
-/// archive to that year instead of scrolling a decade by hand. A flow, not a
-/// horizontal scroller: the drawer's close swipe tracks horizontal drags, so
-/// scrollable chips would fight it.
 struct SidebarYearIndex: View {
     let groups: [WorkYearGroup]
     let onJump: (String) -> Void
@@ -27,8 +23,6 @@ struct SidebarYearIndex: View {
         }
     }
 
-    // Mirrors the TagChip look so the drawer speaks the same chip language
-    // as the work index, minus the hashtag.
     private func chip(_ year: String) -> some View {
         Text(year)
             .font(Typography.mono(Typography.Size.xs))

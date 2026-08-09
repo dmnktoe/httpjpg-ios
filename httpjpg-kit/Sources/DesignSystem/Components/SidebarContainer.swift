@@ -1,10 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// The app-level drawer: the page slides right and scales back to reveal the
-/// sidebar riding in underneath it. Open state lives with the caller; the
-/// container owns the drag, the reveal choreography and the settle feedback,
-/// so button, edge swipe and scrim all land the same way.
 public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private let maxWidth: CGFloat
     private let dragEnabled: Bool
@@ -13,11 +9,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @Binding private var isOpen: Bool
 
-    /// GestureState rather than State: the system can cancel a drag (incoming
-    /// call, alert) without ever reaching onEnded, which used to strand the
-    /// drawer mid-travel with every marquee frozen. GestureState also resets
-    /// on cancellation, and the reset transaction replays the drawer spring so
-    /// the abandoned drag settles instead of snapping.
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag: CGFloat = 0
 
@@ -27,21 +18,14 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
-    /// The sidebar starts slightly under the page and rides the last stretch in.
     private static var parallax: CGFloat { Spacing.s10 }
 
     private static var scaleDrop: CGFloat { 0.05 }
 
-    /// Strip along the leading edge that arms the open swipe, matching the
-    /// system back-swipe region.
     private static var edgeWidth: CGFloat { Spacing.s5 }
 
-    /// Past this horizontal speed the flick's direction decides open/close,
-    /// no matter where the finger stopped.
     private static var flickVelocity: CGFloat { 300 }
 
-    /// Dragging past full-open moves the page at a fraction of the finger
-    /// instead of pinning it, so the drawer keeps feeling attached.
     private static var overshootDamping: CGFloat { 4 }
 
     public init(
@@ -64,8 +48,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             main
         }
         .background(theme.drawerBackground.ignoresSafeArea())
-        // One tick per state change here, so the toolbar button, the ✕, the
-        // swipe and the scrim all feel identical.
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.marqueeHeld, isDragging)
         .animation(motion, value: isOpen)
@@ -80,8 +62,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
-            // Its own copy of the drag, so a leftward swipe that starts on the
-            // drawer closes it too — not only one on the pushed-aside page.
             .simultaneousGesture(drawerDrag)
     }
 
@@ -123,8 +103,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             }
     }
 
-    /// Closing must stay available even when pushed-in navigation turns the
-    /// open swipe off, or an open drawer could only fall back to the scrim.
     private var gestureMask: GestureMask {
         dragEnabled || isOpen ? .all : .subviews
     }

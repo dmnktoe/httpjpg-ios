@@ -42,8 +42,6 @@ public final class AppModel {
 
     public var infoPath: [PageRoute] = []
 
-    /// Signalled here instead of in toggleSidebar so swipe-opens through the
-    /// container's binding count too.
     public var isSidebarOpen = false {
         didSet {
             guard isSidebarOpen, !oldValue else { return }

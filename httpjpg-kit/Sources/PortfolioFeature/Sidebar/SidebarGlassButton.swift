@@ -12,8 +12,6 @@ struct SidebarGlassButton: View {
     @Environment(\.pageTheme) private var theme
 
     var body: some View {
-        // No haptic of its own: the drawer container ticks on every
-        // open/close, whichever control drove it.
         Button(action: action) {
             Text(glyph)
                 .font(Typography.mono(Typography.Size.base, weight: .medium))

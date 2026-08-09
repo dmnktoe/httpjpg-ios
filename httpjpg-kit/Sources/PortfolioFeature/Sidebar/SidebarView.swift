@@ -19,8 +19,6 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
         .sensoryFeedback(.selection, trigger: jumpTaps)
-        // Re-runs on every open, so a load that failed while offline gets
-        // another try the next time the drawer comes out.
         .task(id: app.isSidebarOpen) {
             guard app.isSidebarOpen else { return }
             await app.workIndex.load()
@@ -128,9 +126,6 @@ struct SidebarView: View {
 
             MonoText("\(group.items.count)", size: Typography.Size.xs, opacity: Opacities.dimmed)
         }
-        // Pinned headers float over the rows, so they carry the drawer
-        // surface with them; padding inside the background keeps the
-        // cover complete.
         .padding(.top, Spacing.s4)
         .padding(.bottom, Spacing.s2)
         .background(theme.drawerBackground)
@@ -143,8 +138,6 @@ struct SidebarView: View {
     @ViewBuilder
     private func row(for item: WorkItem) -> some View {
         if item.isExternal, let url = item.externalURL {
-            // A Button through openURL rather than Link: Link leaves no room
-            // for press feedback or the tap haptic.
             Button {
                 externalTaps += 1
                 openURL(url)
