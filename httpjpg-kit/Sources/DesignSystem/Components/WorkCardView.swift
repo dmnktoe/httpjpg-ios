@@ -165,7 +165,7 @@ private struct WorkCardImages: View {
             count: images.count,
             aspectRatio: PageLayout.mediaAspectRatio,
             autoplayInterval: 7
-        ) { position in
+        ) { position, _ in
             slide(images[position])
         }
     }

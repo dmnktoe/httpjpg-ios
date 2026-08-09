@@ -18,17 +18,22 @@ public struct SbSlideshowView: View {
                 autoplayInterval: 7,
                 showsCounter: blok.showsCounter,
                 ownsRotation: { blok.images[$0].isVideo }
-            ) { position in
-                slide(blok.images[position])
+            ) { position, context in
+                slide(blok.images[position], context)
             }
             .blokSpacing(blok.spacing)
         }
     }
 
     @ViewBuilder
-    private func slide(_ asset: StoryblokAsset) -> some View {
+    private func slide(_ asset: StoryblokAsset, _ context: CarouselSlide) -> some View {
         if asset.isVideo, let filename = asset.filename, let url = URL(string: filename) {
-            SlideshowVideo(url: url, aspectRatio: aspectRatio, playsThrough: playsThrough)
+            LoopingVideoPlayer(
+                url: url,
+                aspectRatio: aspectRatio,
+                isActive: context.isActive,
+                onFinished: playsThrough ? context.advance : nil
+            )
         } else {
             AssetImage(asset: asset, aspectRatio: aspectRatio)
         }
@@ -42,22 +47,5 @@ public struct SbSlideshowView: View {
 
     private var aspectRatio: CGFloat {
         blok.aspectRatio ?? PageLayout.mediaAspectRatio
-    }
-}
-
-private struct SlideshowVideo: View {
-    let url: URL
-    let aspectRatio: CGFloat
-    let playsThrough: Bool
-
-    @Environment(\.carouselSlide) private var slide
-
-    var body: some View {
-        LoopingVideoPlayer(
-            url: url,
-            aspectRatio: aspectRatio,
-            isActive: slide.isActive,
-            onFinished: playsThrough ? slide.advance : nil
-        )
     }
 }

@@ -6,10 +6,15 @@ public struct LoopingVideoPlayer: View {
     private let url: URL
     private let aspectRatio: CGFloat
     private let isActive: Bool
-    private let onFinished: (@MainActor () -> Void)?
+    private let onFinished: (() -> Void)?
 
-    @State private var player: AVQueuePlayer?
+    @State private var player: AVPlayer?
     @State private var looper: AVPlayerLooper?
+
+    /// Kept rather than read back off the player, so the end notification can be
+    /// matched even once the player has moved past the item.
+    @State private var item: AVPlayerItem?
+
     @State private var isReady = false
 
     /// `onFinished` turns the loop into a single pass that reports when it is
@@ -18,7 +23,7 @@ public struct LoopingVideoPlayer: View {
         url: URL,
         aspectRatio: CGFloat,
         isActive: Bool = true,
-        onFinished: (@MainActor () -> Void)? = nil
+        onFinished: (() -> Void)? = nil
     ) {
         self.url = url
         self.aspectRatio = aspectRatio
@@ -50,8 +55,8 @@ public struct LoopingVideoPlayer: View {
             // would resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
             .onReceive(endOfPlayback) { notification in
-                guard let item = notification.object as? AVPlayerItem,
-                      item === player?.currentItem
+                guard let item, let ended = notification.object as? AVPlayerItem,
+                      ended === item
                 else { return }
                 onFinished?()
             }
@@ -60,11 +65,13 @@ public struct LoopingVideoPlayer: View {
     }
 
     /// A failed item reports like a finished one: playback that never ends must
-    /// not strand the show.
+    /// not strand the show. AVFoundation posts both on whichever thread it is
+    /// on, and the handler drives a carousel from here.
     private var endOfPlayback: some Publisher<Notification, Never> {
         let center = NotificationCenter.default
         return center.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)
             .merge(with: center.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification))
+            .receive(on: DispatchQueue.main)
     }
 
     // Explicitly main-actor: resolving the URL suspends, and the player and the
@@ -79,18 +86,21 @@ public struct LoopingVideoPlayer: View {
             let source = await VideoCache.shared.localURL(for: url)
             guard !Task.isCancelled else { return }
 
-            let item = AVPlayerItem(url: source)
-            let queue: AVQueuePlayer
+            let playerItem = AVPlayerItem(url: source)
+            let resolved: AVPlayer
             if onFinished == nil {
-                // The looper owns the queue, so it has to start out empty.
-                queue = AVQueuePlayer()
-                looper = AVPlayerLooper(player: queue, templateItem: item)
+                // AVPlayerLooper owns the queue it is given, so it starts empty.
+                let queue = AVQueuePlayer()
+                looper = AVPlayerLooper(player: queue, templateItem: playerItem)
+                resolved = queue
             } else {
-                queue = AVQueuePlayer(items: [item])
-                queue.actionAtItemEnd = .pause
+                // A single pass wants no queue behind it — an emptying queue
+                // ends the item on its own terms rather than pausing on it.
+                resolved = AVPlayer(playerItem: playerItem)
             }
-            queue.isMuted = true
-            player = queue
+            resolved.isMuted = true
+            item = playerItem
+            player = resolved
         }
 
         guard let player else { return }
@@ -101,7 +111,7 @@ public struct LoopingVideoPlayer: View {
     /// Synchronous on purpose: `seek(to:)` also has an `async` overload, and
     /// inside an `async` function that is the one overload resolution picks.
     @MainActor
-    private func settle(_ player: AVQueuePlayer, rewinding: Bool) {
+    private func settle(_ player: AVPlayer, rewinding: Bool) {
         guard isActive else {
             player.pause()
             player.seek(to: .zero)

@@ -12,7 +12,7 @@ public struct ImageCarousel<Slide: View>: View {
     /// stands down while such a slide is on screen and waits for its `advance`.
     private let ownsRotation: (Int) -> Bool
 
-    private let slide: (Int) -> Slide
+    private let slide: (Int, CarouselSlide) -> Slide
 
     @State private var index = 0
 
@@ -29,7 +29,7 @@ public struct ImageCarousel<Slide: View>: View {
         showsArrows: Bool = true,
         showsCounter: Bool = false,
         ownsRotation: @escaping (Int) -> Bool = { _ in false },
-        @ViewBuilder slide: @escaping (Int) -> Slide
+        @ViewBuilder slide: @escaping (Int, CarouselSlide) -> Slide
     ) {
         self.count = count
         self.aspectRatio = aspectRatio
@@ -43,15 +43,11 @@ public struct ImageCarousel<Slide: View>: View {
 
     public var body: some View {
         if count == 1 {
-            slide(0)
+            slide(0, .standalone)
         } else if count > 1 {
             TabView(selection: $index) {
                 ForEach(0 ..< count, id: \.self) { position in
-                    slide(position)
-                        .environment(
-                            \.carouselSlide,
-                            CarouselSlide(isActive: position == index) { advance(by: 1) }
-                        )
+                    slide(position, context(for: position))
                         .tag(position)
                 }
             }
@@ -131,6 +127,10 @@ public struct ImageCarousel<Slide: View>: View {
         try? await Task.sleep(for: .seconds(interval))
         guard !Task.isCancelled else { return }
         advance(by: 1)
+    }
+
+    private func context(for position: Int) -> CarouselSlide {
+        CarouselSlide(isActive: position == index) { advance(by: 1) }
     }
 
     private func advance(by step: Int) {
