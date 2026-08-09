@@ -94,13 +94,20 @@ public struct LoopingVideoPlayer: View {
         }
 
         guard let player else { return }
+        // Seeking a fresh item would only fight the looper.
+        settle(player, rewinding: !isFirstStart)
+    }
+
+    /// Synchronous on purpose: `seek(to:)` also has an `async` overload, and
+    /// inside an `async` function that is the one overload resolution picks.
+    @MainActor
+    private func settle(_ player: AVQueuePlayer, rewinding: Bool) {
         guard isActive else {
             player.pause()
             player.seek(to: .zero)
             return
         }
-        // Seeking a fresh item would only fight the looper.
-        if !isFirstStart {
+        if rewinding {
             player.seek(to: .zero)
         }
         player.play()
