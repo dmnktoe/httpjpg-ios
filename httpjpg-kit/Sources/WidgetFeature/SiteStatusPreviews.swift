@@ -10,6 +10,12 @@ extension SiteStatusEntry {
         date: Date(timeIntervalSince1970: 0),
         discord: decodeSample(#"{"status": "online", "activity": "Xcode — httpjpg-ios"}"#),
         film: decodeSample(#"{"title": "Chungking Express", "year": "1994", "rating": 4.5, "liked": true}"#),
+        record: decodeSample(
+            #"{"title": "Endtroducing.....", "artist": "DJ Shadow", "year": "1996", "format": "Vinyl LP"}"#
+        ),
+        timeline: decodeSample(
+            #"{"profile": {"username": "dmnktoe", "followerCount": 1234}, "posts": [{"text": "shipping"}]}"#
+        ),
         trophy: decodeSample(#"{"name": "Nachtfahrt", "game": "Death Stranding", "type": "gold"}"#),
         weather: decodeSample(#"{"temperature": 18.4, "emoji": "🌤", "condition": "bewölkt"}"#)
     )

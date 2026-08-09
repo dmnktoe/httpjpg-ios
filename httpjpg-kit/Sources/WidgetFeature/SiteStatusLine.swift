@@ -57,6 +57,35 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
+    init?(record: DiscogsRelease) {
+        guard !record.title.isEmpty else { return nil }
+        let detail = [record.year, record.format]
+            .compactMap { $0 }
+            .joined(separator: " ")
+
+        self.init(
+            id: "discogs",
+            label: "discogs:",
+            badge: "💿",
+            text: record.credit,
+            detail: detail.isEmpty ? nil : detail
+        )
+    }
+
+    /// The avatar the site leads this line with stays behind: a widget refresh
+    /// would have to fetch it, and the row is one line of mono text anyway. The
+    /// follower count still leads, so the post is what truncates.
+    init?(profile: XProfile, post: XPost) {
+        guard !post.text.isEmpty else { return nil }
+        self.init(
+            id: "x",
+            label: "x:",
+            badge: "𝕏",
+            text: profile.compactFollowerCount.map { "(\($0))" } ?? profile.handle,
+            detail: post.text
+        )
+    }
+
     init?(trophy: PsnTrophy) {
         guard !trophy.name.isEmpty else { return nil }
         self.init(

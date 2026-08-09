@@ -9,11 +9,18 @@ final class SiteStatusEntryTests: XCTestCase {
             date: .now,
             discord: try decode(#"{"status": "idle", "activity": "Xcode"}"#),
             film: try decode(#"{"title": "Chungking Express", "year": "1994", "rating": 4.5, "liked": true}"#),
+            record: try decode(#"{"title": "Endtroducing.....", "artist": "DJ Shadow", "year": "1996"}"#),
+            timeline: try decode(
+                #"{"profile": {"username": "dmnktoe", "followerCount": 1234}, "posts": [{"text": "shipping"}]}"#
+            ),
             trophy: try decode(#"{"name": "Nachtfahrt", "game": "Death Stranding", "type": "gold"}"#),
             weather: try decode(#"{"temperature": 18.4, "emoji": "🌤", "condition": "bewölkt"}"#)
         )
 
-        XCTAssertEqual(entry.lines.map(\.id), ["discord", "letterboxd", "psn", "weather"])
+        XCTAssertEqual(
+            entry.lines.map(\.id),
+            ["discord", "letterboxd", "discogs", "x", "psn", "weather"]
+        )
     }
 
     func testMissingSourcesDropOutInsteadOfShowingBlanks() throws {
@@ -21,6 +28,8 @@ final class SiteStatusEntryTests: XCTestCase {
             date: .now,
             discord: try decode(#"{"status": "offline"}"#),
             film: try decode(#"{"title": ""}"#),
+            record: try decode(#"{"title": "", "artist": "DJ Shadow"}"#),
+            timeline: try decode(#"{"profile": {"username": "dmnktoe"}, "posts": []}"#),
             trophy: try decode(#"{"name": "", "game": ""}"#),
             weather: try decode(#"{"emoji": "🌧"}"#)
         )
@@ -37,6 +46,40 @@ final class SiteStatusEntryTests: XCTestCase {
 
         XCTAssertEqual(line.text, "Chungking Express")
         XCTAssertEqual(line.detail, "1994 ★★★★½ ♥")
+    }
+
+    func testARecordReadsAsArtistThenTitle() throws {
+        let record: DiscogsRelease = try decode(
+            #"{"title": "Endtroducing.....", "artist": "DJ Shadow", "year": "1996", "format": "Vinyl LP"}"#
+        )
+
+        let line = try XCTUnwrap(SiteStatusLine(record: record))
+
+        XCTAssertEqual(line.text, "DJ Shadow — Endtroducing.....")
+        XCTAssertEqual(line.detail, "1996 Vinyl LP")
+    }
+
+    func testAPostLeadsWithTheCompactedFollowerCount() throws {
+        let timeline: XTimeline = try decode(
+            #"{"profile": {"username": "dmnktoe", "followerCount": 1234}, "posts": [{"text": "shipping"}]}"#
+        )
+        let post = try XCTUnwrap(timeline.latestPost)
+
+        let line = try XCTUnwrap(SiteStatusLine(profile: timeline.profile, post: post))
+
+        XCTAssertEqual(line.text, "(1.2K)")
+        XCTAssertEqual(line.detail, "shipping")
+    }
+
+    func testAPostWithoutAFollowerCountFallsBackToTheHandle() throws {
+        let timeline: XTimeline = try decode(
+            #"{"profile": {"username": "dmnktoe"}, "posts": [{"text": "shipping"}]}"#
+        )
+        let post = try XCTUnwrap(timeline.latestPost)
+
+        let line = try XCTUnwrap(SiteStatusLine(profile: timeline.profile, post: post))
+
+        XCTAssertEqual(line.text, "@dmnktoe")
     }
 
     func testTemperatureIsRoundedToWholeDegrees() throws {

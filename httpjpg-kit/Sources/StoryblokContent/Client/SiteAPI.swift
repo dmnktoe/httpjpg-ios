@@ -21,6 +21,17 @@ public actor SiteAPI {
         await get(PsnTrophiesResponse.self, path: "/api/psn-trophies")?.trophies.first
     }
 
+    public func latestRecord() async -> DiscogsRelease? {
+        await get(DiscogsReleasesResponse.self, path: "/api/discogs")?.releases.first
+    }
+
+    /// The whole timeline rather than its newest post: the profile that rides
+    /// along on the same response carries the avatar and the follower count
+    /// the line leads with.
+    public func xTimeline() async -> XTimeline? {
+        await get(XTimeline.self, path: "/api/x")
+    }
+
     public func weather() async -> WeatherNow? {
         await get(WeatherNow.self, path: "/api/weather")
     }
@@ -125,6 +136,106 @@ public struct PsnTrophy: Decodable, Sendable {
 
 private struct PsnTrophiesResponse: Decodable {
     let trophies: [PsnTrophy]
+}
+
+public struct DiscogsRelease: Decodable, Sendable {
+    public let title: String
+    public let artist: String
+    public let year: String?
+    public let format: String?
+    public let url: String?
+    public let thumb: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case title, artist, year, format, url, thumb
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = container.cmsString(forKey: .title) ?? ""
+        artist = container.cmsString(forKey: .artist) ?? ""
+        year = container.cmsString(forKey: .year)
+        format = container.cmsString(forKey: .format)
+        url = container.cmsString(forKey: .url)
+        thumb = container.cmsString(forKey: .thumb)
+    }
+
+    /// How the site writes the record on one line: "Artist — Title".
+    public var credit: String {
+        artist.isEmpty ? title : "\(artist) — \(title)"
+    }
+}
+
+private struct DiscogsReleasesResponse: Decodable {
+    let releases: [DiscogsRelease]
+}
+
+public struct XProfile: Decodable, Sendable {
+    public let username: String
+    public let avatar: String?
+    public let followerCount: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case username, avatar, followerCount
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        username = container.cmsString(forKey: .username) ?? ""
+        avatar = container.cmsString(forKey: .avatar)
+        followerCount = container.cmsInt(forKey: .followerCount)
+    }
+
+    public var handle: String {
+        username.isEmpty ? "" : "@\(username)"
+    }
+
+    /// Compacted the way the site compacts it — 1.2K, 227M — so a wide count
+    /// cannot push the post text off the row. Pinned to en_US because the rest
+    /// of the footer is written in English too.
+    public var compactFollowerCount: String? {
+        guard let followerCount, followerCount >= 0 else { return nil }
+        return Double(followerCount).formatted(
+            .number.notation(.compactName).precision(.fractionLength(0 ... 1))
+                .locale(Locale(identifier: "en_US"))
+        )
+    }
+}
+
+public struct XPost: Decodable, Sendable {
+    public let text: String
+    public let url: String?
+    public let hasMedia: Bool
+    public let isQuote: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case text, url, hasMedia, isQuote
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        text = container.cmsString(forKey: .text) ?? ""
+        url = container.cmsString(forKey: .url)
+        hasMedia = container.cmsBool(forKey: .hasMedia)
+        isQuote = container.cmsBool(forKey: .isQuote)
+    }
+}
+
+public struct XTimeline: Decodable, Sendable {
+    public let profile: XProfile
+    public let posts: [XPost]
+
+    private enum CodingKeys: String, CodingKey {
+        case profile, posts
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        profile = try container.decode(XProfile.self, forKey: .profile)
+        posts = container.cmsArray(XPost.self, forKey: .posts)
+    }
+
+    public var latestPost: XPost? { posts.first }
 }
 
 public struct WeatherNow: Decodable, Sendable {

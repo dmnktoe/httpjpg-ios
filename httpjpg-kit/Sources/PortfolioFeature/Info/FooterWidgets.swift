@@ -15,18 +15,33 @@ struct FooterWidgets: View {
                 if let film = model.film {
                     LetterboxdLine(film: film)
                 }
+                if let record = model.record {
+                    DiscogsLine(record: record)
+                }
+                if let timeline = model.timeline, let post = timeline.latestPost {
+                    XLine(profile: timeline.profile, post: post)
+                }
                 if let trophy = model.trophy {
                     TrophyLine(trophy: trophy)
                 }
             } else {
-                placeholderLine(label: "discord:")
-                placeholderLine(label: "letterboxd:")
-                placeholderLine(label: "psn:")
+                ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
             }
             ClockLine(weather: model.weather)
         }
         .frame(maxWidth: .infinity)
         .animation(Motion.stateChange, value: model.isLoaded)
+    }
+
+    private var pendingLabels: [String] {
+        let flags = model.flags
+        return [
+            flags.isDiscordEnabled ? "discord:" : nil,
+            flags.isLetterboxdEnabled ? "letterboxd:" : nil,
+            flags.isDiscogsEnabled ? "discogs:" : nil,
+            flags.isXEnabled ? "x:" : nil,
+            flags.isPsnTrophyEnabled ? "psn:" : nil,
+        ].compactMap { $0 }
     }
 
     private func placeholderLine(label: String) -> some View {
@@ -92,6 +107,86 @@ private struct LetterboxdLine: View {
                 Text("♥")
             }
         }
+    }
+}
+
+private struct DiscogsLine: View {
+    let record: DiscogsRelease
+
+    var body: some View {
+        FooterStatusLine(label: "discogs:") {
+            if let thumb = record.thumb.flatMap(URL.init(string:)) {
+                FooterThumb(url: thumb, clip: .rect(cornerRadius: 2))
+            } else {
+                Text("💿")
+            }
+            Text(record.credit)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if let year = record.year {
+                Text(year).opacity(Opacities.subtle)
+            }
+            if let format = record.format {
+                Text("·").opacity(Opacities.subtle)
+                Text(format)
+                    .lineLimit(1)
+                    .opacity(Opacities.muted)
+            }
+        }
+    }
+}
+
+private struct XLine: View {
+    let profile: XProfile
+    let post: XPost
+
+    var body: some View {
+        FooterStatusLine(label: "x:") {
+            // The handle rides in the accessibility label rather than on the
+            // row: the site keeps it in a tooltip for the same reason, and a
+            // row this narrow truncates the post text first.
+            if let avatar = profile.avatar.flatMap(URL.init(string:)) {
+                FooterThumb(url: avatar, clip: .circle)
+                    .accessibilityLabel(profile.handle)
+            } else {
+                Text("𝕏").accessibilityLabel(profile.handle)
+            }
+            if let followers = profile.compactFollowerCount {
+                Text("(\(followers))").opacity(Opacities.subtle)
+            }
+            Text("·").opacity(Opacities.subtle)
+            Text(post.text)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if post.isQuote {
+                Text("❝").opacity(Opacities.subtle)
+            }
+            if post.hasMedia {
+                Text("▣").opacity(Opacities.subtle)
+            }
+        }
+    }
+}
+
+/// The image slot in a status row. `RemoteImage` is built for cards and falls
+/// back to a glyph that is illegible at 14pt, so a row loads its own thumbnail
+/// and simply stays empty on a miss.
+private struct FooterThumb<Clip: Shape>: View {
+    let url: URL
+    let clip: Clip
+
+    var body: some View {
+        AsyncImage(url: url) { phase in
+            if let image = phase.image {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: Typography.Size.md, height: Typography.Size.md)
+        .clipShape(clip)
     }
 }
 

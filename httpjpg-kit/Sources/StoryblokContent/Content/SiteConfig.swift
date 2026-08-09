@@ -66,11 +66,15 @@ public struct WidgetFlags: Decodable, Sendable {
     public let isDiscordEnabled: Bool
     public let isLetterboxdEnabled: Bool
     public let isPsnTrophyEnabled: Bool
+    public let isDiscogsEnabled: Bool
+    public let isXEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
         case discordEnabled = "discord_enabled"
         case letterboxdEnabled = "letterboxd_enabled"
         case psnTrophyEnabled = "psn_trophy_enabled"
+        case discogsEnabled = "discogs_enabled"
+        case xEnabled = "x_enabled"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -78,16 +82,22 @@ public struct WidgetFlags: Decodable, Sendable {
         isDiscordEnabled = container.cmsBool(forKey: .discordEnabled, default: true)
         isLetterboxdEnabled = container.cmsBool(forKey: .letterboxdEnabled, default: true)
         isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
+        isDiscogsEnabled = container.cmsBool(forKey: .discogsEnabled)
+        isXEnabled = container.cmsBool(forKey: .xEnabled)
     }
 
     public init(
         isDiscordEnabled: Bool,
         isLetterboxdEnabled: Bool,
-        isPsnTrophyEnabled: Bool = false
+        isPsnTrophyEnabled: Bool = false,
+        isDiscogsEnabled: Bool = false,
+        isXEnabled: Bool = false
     ) {
         self.isDiscordEnabled = isDiscordEnabled
         self.isLetterboxdEnabled = isLetterboxdEnabled
         self.isPsnTrophyEnabled = isPsnTrophyEnabled
+        self.isDiscogsEnabled = isDiscogsEnabled
+        self.isXEnabled = isXEnabled
     }
 
     public static let allOff = WidgetFlags(isDiscordEnabled: false, isLetterboxdEnabled: false)
