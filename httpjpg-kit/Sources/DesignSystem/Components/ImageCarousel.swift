@@ -21,6 +21,7 @@ public struct ImageCarousel<Slide: View>: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.mediaHeld) private var isHeld
 
     public init(
         count: Int,
@@ -113,7 +114,7 @@ public struct ImageCarousel<Slide: View>: View {
     }
 
     private var isAutoplayEnabled: Bool {
-        count > 1 && !reduceMotion && autoplayInterval != nil
+        count > 1 && !reduceMotion && !isHeld && autoplayInterval != nil
     }
 
     /// `-1` parks the task; coming off a held slide moves the tick back to an

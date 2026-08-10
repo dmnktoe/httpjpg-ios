@@ -14,6 +14,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @GestureState private var isDragging = false
 
+    @State private var isSettling = false
+
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
@@ -52,9 +54,14 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
-        .environment(\.marqueeHeld, isDragging)
-        .environment(\.mediaHeld, isOpen || isDragging)
+        .environment(\.mediaHeld, ambientHeld)
         .animation(motion, value: isOpen)
+        .task(id: isOpen) {
+            isSettling = true
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled else { return }
+            isSettling = false
+        }
     }
 
     private var sidebarPane: some View {
@@ -67,6 +74,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
+            .environment(\.marqueeHeld, isDragging || isSettling)
             .simultaneousGesture(drawerDrag)
     }
 
@@ -85,8 +93,13 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .scaleEffect(1 - Self.scaleDrop * progress)
             .offset(x: offset)
             .accessibilityHidden(isOpen)
+            .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
             .ignoresSafeArea()
+    }
+
+    private var ambientHeld: Bool {
+        isOpen || isDragging || isSettling
     }
 
     private var shadow: some View {
