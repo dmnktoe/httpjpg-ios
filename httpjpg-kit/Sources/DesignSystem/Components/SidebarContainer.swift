@@ -101,17 +101,22 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private var main: some View {
         content
             .scrollDisabled(drag.isArmed || isOpen)
+            // Both overlays ignore the safe area on their own account: the
+            // page's does not reach them, so they stopped at the insets and
+            // left a square, undimmed strip of page at each end.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
                     .opacity(0.35 * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
+                    .ignoresSafeArea()
             }
             .overlay {
                 CornerCutout(radius: Self.pageCorner)
                     .fill(theme.drawerBackground, style: FillStyle(eoFill: true))
                     .allowsHitTesting(false)
+                    .ignoresSafeArea()
             }
             .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
