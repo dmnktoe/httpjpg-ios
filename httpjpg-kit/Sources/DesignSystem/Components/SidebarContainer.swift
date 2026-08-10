@@ -9,10 +9,17 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @Binding private var isOpen: Bool
 
-    @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
-    private var drag: CGFloat = 0
+    private struct DragState {
+        var translation: CGFloat = 0
 
-    @GestureState private var isDragging = false
+        /// Latched on the first horizontal-dominant update. The dominance
+        /// check only arms the drag; gating every update on it froze the
+        /// drawer mid-travel whenever an arcing thumb drifted vertical.
+        var isArmed = false
+    }
+
+    @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
+    private var drag = DragState()
 
     @State private var isSettling = false
 
@@ -66,7 +73,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var sidebarPane: some View {
         sidebar
-            .scrollDisabled(isDragging)
+            .scrollDisabled(drag.isArmed)
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
             .offset(x: (progress - 1) * Self.parallax)
@@ -79,7 +86,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            .scrollDisabled(isDragging || isOpen)
+            .scrollDisabled(drag.isArmed || isOpen)
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -98,7 +105,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var ambientHeld: Bool {
-        isOpen || isDragging || isSettling
+        isOpen || drag.isArmed || isSettling
     }
 
     private var shadow: some View {
@@ -119,16 +126,14 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var drawerDrag: some Gesture {
-        DragGesture(minimumDistance: 15)
+        DragGesture(minimumDistance: 10)
             .updating($drag) { value, state, _ in
-                guard tracks(value) else { return }
-                state = value.translation.width
-            }
-            .updating($isDragging) { value, state, _ in
-                if tracks(value) { state = true }
+                guard state.isArmed || tracks(value) else { return }
+                state.isArmed = true
+                state.translation = value.translation.width
             }
             .onEnded { value in
-                guard tracks(value) else { return }
+                guard drag.isArmed || tracks(value) else { return }
                 withAnimation(motion) {
                     isOpen = shouldOpen(after: value)
                 }
@@ -144,7 +149,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var offset: CGFloat {
-        let position = base + drag
+        let position = base + drag.translation
         guard position > 0 else { return 0 }
         guard position > width else { return position }
         return width + (position - width) / Self.overshootDamping
