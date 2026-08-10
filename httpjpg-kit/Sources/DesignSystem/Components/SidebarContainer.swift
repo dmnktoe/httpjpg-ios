@@ -102,7 +102,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .fill(theme.drawerBackground, style: FillStyle(eoFill: true))
                     .allowsHitTesting(false)
             }
-            .background(shadow)
             .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
@@ -112,19 +111,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var ambientHeld: Bool {
         isOpen || drag.isArmed || isSettling
-    }
-
-    /// Blurred, because a linear ramp reads as a grey slab rather than a
-    /// shadow — but only over a strip the width of the falloff. The old
-    /// full-screen blur spent a gaussian on pixels the opaque page covered.
-    private var shadow: some View {
-        Rectangle()
-            .fill(Palette.black)
-            .frame(width: Spacing.s4)
-            .blur(radius: Spacing.s3)
-            .offset(x: -Spacing.s4)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .opacity(0.3 * Double(progress))
     }
 
     private var openEdge: some View {
