@@ -74,7 +74,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
-            .environment(\.marqueeHeld, isDragging || isSettling)
             .simultaneousGesture(drawerDrag)
     }
 

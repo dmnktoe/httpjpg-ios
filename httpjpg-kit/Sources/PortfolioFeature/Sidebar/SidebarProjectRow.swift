@@ -12,15 +12,12 @@ struct SidebarProjectRow: View {
         HStack(spacing: Spacing.s3) {
             MonoText(year ?? WorkYearGroup.undatedYear, size: Typography.Size.xs, opacity: Opacities.subtle)
 
-            Marquee(
-                item.title,
-                font: Typography.uiSans(Typography.Size.base),
-                speed: .rate(20),
-                repeatCount: 1,
-                pauseDuration: 1.5,
-                color: theme.foreground
-            )
-            .frame(maxWidth: .infinity)
+            Text(item.title)
+                .font(Typography.sans(Typography.Size.base))
+                .foregroundStyle(theme.foreground)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             if item.isExternal {
                 MonoText("↗", size: Typography.Size.sm, opacity: Opacities.subtle)
