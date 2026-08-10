@@ -64,6 +64,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
+        .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
         .task(id: isOpen) {
             isSettling = true
@@ -113,16 +114,17 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         isOpen || drag.isArmed || isSettling
     }
 
+    /// Blurred, because a linear ramp reads as a grey slab rather than a
+    /// shadow — but only over a strip the width of the falloff. The old
+    /// full-screen blur spent a gaussian on pixels the opaque page covered.
     private var shadow: some View {
-        LinearGradient(
-            colors: [Palette.black.opacity(0), Palette.black],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-        .frame(width: Spacing.s6)
-        .offset(x: -Spacing.s6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .opacity(0.35 * Double(progress))
+        Rectangle()
+            .fill(Palette.black)
+            .frame(width: Spacing.s4)
+            .blur(radius: Spacing.s3)
+            .offset(x: -Spacing.s4)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .opacity(0.3 * Double(progress))
     }
 
     private var openEdge: some View {
