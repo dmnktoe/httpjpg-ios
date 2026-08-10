@@ -39,6 +39,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private static var overshootDamping: CGFloat { 4 }
 
+    /// Off the radius scale on purpose: this one answers to the display's own
+    /// corner, not to the type of surface it is. Kept under it, so the wedges
+    /// stay behind the hardware mask while the drawer is shut.
+    private static var pageCorner: CGFloat { Spacing.s12 }
+
     public init(
         isOpen: Binding<Bool>,
         maxWidth: CGFloat = 320,
@@ -98,7 +103,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .allowsHitTesting(isOpen)
             }
             .overlay {
-                CornerCutout(radius: Radii.xxxl)
+                CornerCutout(radius: Self.pageCorner)
                     .fill(theme.drawerBackground, style: FillStyle(eoFill: true))
                     .allowsHitTesting(false)
             }
