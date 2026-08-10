@@ -180,11 +180,8 @@ private struct SidebarSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(0..<6, id: \.self) { index in
-                HStack(spacing: Spacing.s3) {
-                    SkeletonBlock(width: Spacing.s8, height: Typography.Size.xs)
-                    SkeletonBlock(width: index.isMultiple(of: 2) ? 168 : 128, height: Typography.Size.base)
-                }
-                .padding(.vertical, Spacing.s3)
+                SkeletonBlock(width: index.isMultiple(of: 2) ? 168 : 128, height: Typography.Size.base)
+                    .padding(.vertical, Spacing.s3)
 
                 BrutalDivider(variant: .dotted)
             }

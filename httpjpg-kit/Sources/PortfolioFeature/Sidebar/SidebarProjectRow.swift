@@ -10,8 +10,6 @@ struct SidebarProjectRow: View {
 
     var body: some View {
         HStack(spacing: Spacing.s3) {
-            MonoText(year ?? WorkYearGroup.undatedYear, size: Typography.Size.xs, opacity: Opacities.subtle)
-
             Text(item.title)
                 .font(Typography.sans(Typography.Size.base))
                 .foregroundStyle(theme.foreground)
@@ -27,10 +25,6 @@ struct SidebarProjectRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(year.map { "\($0), \(item.title)" } ?? item.title)
-    }
-
-    private var year: String? {
-        item.date.map(WorkCardDate.year(of:))
+        .accessibilityLabel(item.title)
     }
 }
