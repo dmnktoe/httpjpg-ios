@@ -42,7 +42,12 @@ public final class AppModel {
 
     public var infoPath: [PageRoute] = []
 
-    public var isSidebarOpen = false
+    public var isSidebarOpen = false {
+        didSet {
+            guard isSidebarOpen, !oldValue else { return }
+            Task { Telemetry.signal("sidebar.opened") }
+        }
+    }
     public private(set) var config: SiteConfig = .fallback
 
     public private(set) var hasLoadedConfig = false

@@ -3,6 +3,20 @@ import Combine
 import SwiftUI
 import Tokens
 
+private struct MediaHeldKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// Set by an ancestor (e.g. the drawer) to pause ambient video beneath it
+    /// without rewinding — every live player layer forces a re-composite of
+    /// the transformed page on each video frame.
+    var mediaHeld: Bool {
+        get { self[MediaHeldKey.self] }
+        set { self[MediaHeldKey.self] = newValue }
+    }
+}
+
 public struct LoopingVideoPlayer: View {
     private let url: URL
     private let aspectRatio: CGFloat
@@ -13,6 +27,8 @@ public struct LoopingVideoPlayer: View {
     @State private var looper: AVPlayerLooper?
     @State private var item: AVPlayerItem?
     @State private var isReady = false
+
+    @Environment(\.mediaHeld) private var isHeld
 
     public init(
         url: URL,
@@ -49,6 +65,14 @@ public struct LoopingVideoPlayer: View {
             // Keyed on isActive: start() suspends, and a plain .task would
             // resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
+            .onChange(of: isHeld) { _, held in
+                guard isActive, let player, item != nil else { return }
+                if held {
+                    player.pause()
+                } else {
+                    player.play()
+                }
+            }
             .onReceive(endOfPlayback) { notification in
                 // A clip that ends as the reader swipes away would otherwise
                 // advance past the slide they just chose.
@@ -114,6 +138,8 @@ public struct LoopingVideoPlayer: View {
         if rewinding {
             player.seek(to: .zero)
         }
-        player.play()
+        if !isHeld {
+            player.play()
+        }
     }
 }

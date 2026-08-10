@@ -8,8 +8,20 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private let content: Content
 
     @Binding private var isOpen: Bool
-    @State private var drag: CGFloat = 0
-    @State private var isDragging = false
+
+    private struct DragState {
+        var translation: CGFloat = 0
+
+        /// Latched on the first horizontal-dominant update. The dominance
+        /// check only arms the drag; gating every update on it froze the
+        /// drawer mid-travel whenever an arcing thumb drifted vertical.
+        var isArmed = false
+    }
+
+    @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
+    private var drag = DragState()
+
+    @State private var isSettling = false
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -20,6 +32,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private static var scaleDrop: CGFloat { 0.05 }
 
     private static var edgeWidth: CGFloat { Spacing.s5 }
+
+    private static var flickVelocity: CGFloat { 300 }
+
+    private static var overshootDamping: CGFloat { 4 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -37,57 +53,89 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     public var body: some View {
         ZStack(alignment: .leading) {
-            sidebar
-                .frame(width: width)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .offset(x: (progress - 1) * Self.parallax)
-                .opacity(Double(progress))
-                .accessibilityHidden(!isOpen)
-                .accessibilityAction(.escape) { close() }
-
+            sidebarPane
             main
+
+            openEdge
+                .allowsHitTesting(dragEnabled && !isOpen)
         }
         .background(theme.drawerBackground.ignoresSafeArea())
-        .environment(\.marqueeHeld, isDragging)
+        .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
+        .environment(\.mediaHeld, ambientHeld)
         .animation(motion, value: isOpen)
+        .task(id: isOpen) {
+            isSettling = true
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled else { return }
+            isSettling = false
+        }
+    }
+
+    private var sidebarPane: some View {
+        sidebar
+            .scrollDisabled(drag.isArmed)
+            .frame(width: width)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .offset(x: (progress - 1) * Self.parallax)
+            .opacity(Double(progress))
+            .accessibilityHidden(!isOpen)
+            .accessibilityAddTraits(isOpen ? .isModal : [])
+            .accessibilityAction(.escape) { close() }
+            .simultaneousGesture(drawerDrag)
     }
 
     private var main: some View {
         content
+            .scrollDisabled(drag.isArmed || isOpen)
             .overlay {
                 Rectangle()
-                    .fill(Palette.black.opacity(0.35 * Double(progress)))
+                    .fill(Palette.black)
+                    .opacity(0.35 * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
             }
             .clipShape(RoundedRectangle(cornerRadius: Radii.xxxl * progress, style: .continuous))
+            .background(shadow)
             .scaleEffect(1 - Self.scaleDrop * progress)
-            .shadow(
-                color: Palette.black.opacity(0.35 * Double(progress)),
-                radius: Spacing.s6 * progress,
-                x: -Spacing.s2 * progress
-            )
             .offset(x: offset)
             .accessibilityHidden(isOpen)
-            .simultaneousGesture(drawerDrag, including: dragEnabled ? .all : .subviews)
+            .environment(\.marqueeHeld, ambientHeld)
+            .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
+            .ignoresSafeArea()
+    }
+
+    private var ambientHeld: Bool {
+        isOpen || drag.isArmed || isSettling
+    }
+
+    private var shadow: some View {
+        RoundedRectangle(cornerRadius: Radii.xxxl, style: .continuous)
+            .fill(Palette.black)
+            .blur(radius: Spacing.s6)
+            .offset(x: -Spacing.s2)
+            .opacity(0.35 * Double(progress))
+    }
+
+    private var openEdge: some View {
+        Color.clear
+            .frame(width: Self.edgeWidth)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(drawerDrag)
             .ignoresSafeArea()
     }
 
     private var drawerDrag: some Gesture {
-        DragGesture(minimumDistance: 15)
-            .onChanged { value in
-                guard tracks(value) else { return }
-                isDragging = true
-                drag = value.translation.width
+        DragGesture(minimumDistance: 10)
+            .updating($drag) { value, state, _ in
+                guard state.isArmed || tracks(value) else { return }
+                state.isArmed = true
+                state.translation = value.translation.width
             }
             .onEnded { value in
-                let shouldOpen = tracks(value)
-                    ? base + value.predictedEndTranslation.width > width / 2
-                    : isOpen
-                isDragging = false
+                guard drag.isArmed || tracks(value) else { return }
                 withAnimation(motion) {
-                    drag = 0
-                    isOpen = shouldOpen
+                    isOpen = shouldOpen(after: value)
                 }
             }
     }
@@ -101,15 +149,24 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var offset: CGFloat {
-        min(max(base + drag, 0), width)
+        let position = base + drag.translation
+        guard position > 0 else { return 0 }
+        guard position > width else { return position }
+        return width + (position - width) / Self.overshootDamping
     }
 
     private var progress: CGFloat {
-        width > 0 ? offset / width : 0
+        width > 0 ? min(offset / width, 1) : 0
     }
 
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
+    }
+
+    private func shouldOpen(after value: DragGesture.Value) -> Bool {
+        let velocity = value.velocity.width
+        guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
+        return base + value.translation.width > width / 2
     }
 
     private func tracks(_ value: DragGesture.Value) -> Bool {

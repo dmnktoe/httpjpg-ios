@@ -1,20 +1,26 @@
 import SwiftUI
+import Tokens
 
 struct SidebarMenuToolbar: ViewModifier {
     @Environment(AppModel.self) private var app
 
-    @State private var taps = 0
+    private static let diameter: CGFloat = Spacing.s9
 
     func body(content: Content) -> some View {
         content.toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    taps += 1
                     app.toggleSidebar()
                 } label: {
-                    Label("Open menu", systemImage: "line.3.horizontal")
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: Typography.Size.md, weight: .semibold))
+                        .foregroundStyle(Palette.white)
+                        .frame(width: Self.diameter, height: Self.diameter)
+                        .background(Circle().fill(Palette.primary.s500))
+                        .contentShape(.circle)
                 }
-                .sensoryFeedback(.impact(weight: .light), trigger: taps)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Open menu")
             }
         }
     }
