@@ -53,6 +53,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.marqueeHeld, isDragging)
+        .environment(\.mediaHeld, isOpen || isDragging)
         .animation(motion, value: isOpen)
     }
 
@@ -74,7 +75,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .scrollDisabled(isDragging || isOpen)
             .overlay {
                 Rectangle()
-                    .fill(Palette.black.opacity(0.35 * Double(progress)))
+                    .fill(Palette.black)
+                    .opacity(0.35 * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
             }
