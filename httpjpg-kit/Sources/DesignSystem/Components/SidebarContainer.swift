@@ -233,8 +233,14 @@ private struct PageTransform: GeometryEffect {
 private struct CornerCutout: Shape {
     let radius: CGFloat
 
+    /// Pushes the outer edge off the inner one. Sharing an edge left the two
+    /// antialiased against each other, and even-odd resolved that to a hairline
+    /// that shimmered along the screen edge as the page moved sub-pixel. What
+    /// the bleed covers is drawer background on every side already.
+    private static var bleed: CGFloat { 2 }
+
     func path(in rect: CGRect) -> Path {
-        var path = Path(rect)
+        var path = Path(rect.insetBy(dx: -Self.bleed, dy: -Self.bleed))
         path.addPath(RoundedRectangle(cornerRadius: radius, style: .continuous).path(in: rect))
         return path
     }
