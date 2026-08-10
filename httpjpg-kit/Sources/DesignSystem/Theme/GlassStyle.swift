@@ -95,9 +95,9 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         if isHeld {
-            content
-                .background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
-                .background(theme.background, in: shape)
+            // Translucent, no opaque backing: glass lets the page through, so
+            // a solid fill announced the swap every time a drag started.
+            content.background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
         } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else {

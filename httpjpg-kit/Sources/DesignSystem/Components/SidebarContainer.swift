@@ -25,6 +25,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @State private var isSettling = false
 
+    @State private var settleTicket = 0
+
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
@@ -71,12 +73,16 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .environment(\.mediaHeld, ambientHeld)
         .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
-        .task(id: isOpen) {
+        // Keyed on the ticket, not on isOpen: a drag that ends where it started
+        // still has a spring to ride out, and keying on isOpen let the ambient
+        // motion back in on top of it.
+        .task(id: settleTicket) {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
             guard !Task.isCancelled else { return }
             isSettling = false
         }
+        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
     private var sidebarPane: some View {
@@ -139,6 +145,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
+                settleTicket += 1
                 withAnimation(motion) {
                     isOpen = shouldOpen(after: value)
                 }
