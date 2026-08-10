@@ -96,10 +96,13 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
             }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay {
+                CornerCutout(radius: Radii.xxxl)
+                    .fill(theme.drawerBackground, style: FillStyle(eoFill: true))
+                    .allowsHitTesting(false)
+            }
             .background(shadow)
-            .scaleEffect(1 - Self.scaleDrop * progress)
-            .offset(x: offset)
+            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
@@ -168,10 +171,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         width > 0 ? min(offset / width, 1) : 0
     }
 
-    private var cornerRadius: CGFloat {
-        (Radii.xxxl * progress).rounded()
-    }
-
     private var paneOpacity: Double {
         min(Double(progress) * 3, 1)
     }
@@ -193,5 +192,45 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private func close() {
         withAnimation(motion) { isOpen = false }
+    }
+}
+
+/// A `GeometryEffect` rather than `scaleEffect` + `offset`: those two re-render
+/// the page at the new scale every frame, this hands Core Animation one
+/// projection to apply to what it already has.
+private struct PageTransform: GeometryEffect {
+    var offset: CGFloat
+    var scale: CGFloat
+
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(offset, scale) }
+        set {
+            offset = newValue.first
+            scale = newValue.second
+        }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        let x = size.width / 2
+        let y = size.height / 2
+        return ProjectionTransform(
+            CGAffineTransform(translationX: offset, y: 0)
+                .translatedBy(x: x, y: y)
+                .scaledBy(x: scale, y: scale)
+                .translatedBy(x: -x, y: -y)
+        )
+    }
+}
+
+/// The four corner wedges, painted over the page in the drawer's own colour.
+/// Clipping the page to a rounded rect is a mask, and a mask means the whole
+/// screen goes through an offscreen pass on every frame it moves.
+private struct CornerCutout: Shape {
+    let radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path(rect)
+        path.addPath(RoundedRectangle(cornerRadius: radius, style: .continuous).path(in: rect))
+        return path
     }
 }
