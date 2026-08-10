@@ -12,9 +12,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private struct DragState {
         var translation: CGFloat = 0
 
-        /// The translation the drag was armed at. Measured from there rather
-        /// than from touch-down, so the drawer doesn't snap open by
-        /// `minimumDistance` the instant the gesture recognises.
         var origin: CGFloat = 0
 
         /// Latched on the first horizontal-dominant update. The dominance
@@ -113,9 +110,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         isOpen || drag.isArmed || isSettling
     }
 
-    /// A gradient strip hugging the page's leading edge, not a blurred rect.
-    /// The blur was a full-screen gaussian pass re-evaluated on every drag
-    /// frame, and everything but this sliver sat behind the opaque page.
     private var shadow: some View {
         LinearGradient(
             colors: [Palette.black.opacity(0), Palette.black],
@@ -174,16 +168,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         width > 0 ? min(offset / width, 1) : 0
     }
 
-    /// Rounded to whole points. A `.continuous` corner is a mask path, so a
-    /// radius that tracked `progress` exactly rebuilt the full-screen mask on
-    /// every drag frame — for a step no eye resolves.
     private var cornerRadius: CGFloat {
         (Radii.xxxl * progress).rounded()
     }
 
-    /// Full a third of the way in. Below 1 the pane needs a group-opacity pass
-    /// over the whole list every frame; landing early confines that to the
-    /// first sliver of travel instead of all of it.
     private var paneOpacity: Double {
         min(Double(progress) * 3, 1)
     }
