@@ -16,5 +16,5 @@ public enum Motion {
     public static let mediaIn: Animation = .easeOut(duration: 0.35)
 
     /// Gesture-driven surfaces settling into place.
-    public static let drawer: Animation = .interactiveSpring(response: 0.4, dampingFraction: 0.85)
+    public static let drawer: Animation = .interactiveSpring(response: 0.3, dampingFraction: 0.9)
 }
