@@ -9,7 +9,6 @@ struct SidebarView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var externalTaps = 0
-    @State private var jumpTaps = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -18,7 +17,6 @@ struct SidebarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
-        .sensoryFeedback(.selection, trigger: jumpTaps)
         .task(id: app.isSidebarOpen) {
             guard app.isSidebarOpen else { return }
             await app.workIndex.load()
@@ -41,31 +39,17 @@ struct SidebarView: View {
     }
 
     private var projects: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    listLabel
-
-                    if app.workIndex.workByYear.count > 1 {
-                        SidebarYearIndex(groups: app.workIndex.workByYear) { year in
-                            jumpTaps += 1
-                            withAnimation(Motion.navigate) {
-                                proxy.scrollTo(year, anchor: .top)
-                            }
-                        }
-                        .padding(.top, Spacing.s1)
-                        .padding(.bottom, Spacing.s2)
-                    }
-
-                    listBody
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, PageLayout.gutter)
-                .padding(.bottom, Spacing.s8)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                listLabel
+                listBody
             }
-            .scrollIndicators(.hidden)
-            .softScrollEdges()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, PageLayout.gutter)
+            .padding(.bottom, Spacing.s8)
         }
+        .scrollIndicators(.hidden)
+        .softScrollEdges()
     }
 
     private var listLabel: some View {
@@ -132,7 +116,6 @@ struct SidebarView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(group.accessibilityLabel), \(countLabel(group.items.count))")
         .accessibilityAddTraits(.isHeader)
-        .id(group.year)
     }
 
     @ViewBuilder
