@@ -12,6 +12,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private struct DragState {
         var translation: CGFloat = 0
 
+        /// The translation the drag was armed at. Measured from there rather
+        /// than from touch-down, so the drawer doesn't snap open by
+        /// `minimumDistance` the instant the gesture recognises.
+        var origin: CGFloat = 0
+
         /// Latched on the first horizontal-dominant update. The dominance
         /// check only arms the drag; gating every update on it froze the
         /// drawer mid-travel whenever an arcing thumb drifted vertical.
@@ -77,7 +82,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
             .offset(x: (progress - 1) * Self.parallax)
-            .opacity(Double(progress))
+            .opacity(paneOpacity)
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
@@ -94,7 +99,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
             }
-            .clipShape(RoundedRectangle(cornerRadius: Radii.xxxl * progress, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .background(shadow)
             .scaleEffect(1 - Self.scaleDrop * progress)
             .offset(x: offset)
@@ -108,12 +113,19 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         isOpen || drag.isArmed || isSettling
     }
 
+    /// A gradient strip hugging the page's leading edge, not a blurred rect.
+    /// The blur was a full-screen gaussian pass re-evaluated on every drag
+    /// frame, and everything but this sliver sat behind the opaque page.
     private var shadow: some View {
-        RoundedRectangle(cornerRadius: Radii.xxxl, style: .continuous)
-            .fill(Palette.black)
-            .blur(radius: Spacing.s6)
-            .offset(x: -Spacing.s2)
-            .opacity(0.35 * Double(progress))
+        LinearGradient(
+            colors: [Palette.black.opacity(0), Palette.black],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .frame(width: Spacing.s6)
+        .offset(x: -Spacing.s6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .opacity(0.35 * Double(progress))
     }
 
     private var openEdge: some View {
@@ -129,8 +141,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         DragGesture(minimumDistance: 10)
             .updating($drag) { value, state, _ in
                 guard state.isArmed || tracks(value) else { return }
-                state.isArmed = true
-                state.translation = value.translation.width
+                if !state.isArmed {
+                    state.isArmed = true
+                    state.origin = value.translation.width
+                }
+                state.translation = value.translation.width - state.origin
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
@@ -159,6 +174,20 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         width > 0 ? min(offset / width, 1) : 0
     }
 
+    /// Rounded to whole points. A `.continuous` corner is a mask path, so a
+    /// radius that tracked `progress` exactly rebuilt the full-screen mask on
+    /// every drag frame — for a step no eye resolves.
+    private var cornerRadius: CGFloat {
+        (Radii.xxxl * progress).rounded()
+    }
+
+    /// Full a third of the way in. Below 1 the pane needs a group-opacity pass
+    /// over the whole list every frame; landing early confines that to the
+    /// first sliver of travel instead of all of it.
+    private var paneOpacity: Double {
+        min(Double(progress) * 3, 1)
+    }
+
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
     }
@@ -166,7 +195,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private func shouldOpen(after value: DragGesture.Value) -> Bool {
         let velocity = value.velocity.width
         guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
-        return base + value.translation.width > width / 2
+        return base + value.translation.width - drag.origin > width / 2
     }
 
     private func tracks(_ value: DragGesture.Value) -> Bool {
