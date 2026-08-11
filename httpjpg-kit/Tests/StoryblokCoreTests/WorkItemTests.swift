@@ -133,6 +133,24 @@ final class WorkItemTests: XCTestCase {
         XCTAssertFalse(item.isListedInApp)
     }
 
+    func testNullShowInAppStaysListed() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","show_in_app":null}"#
+        ))
+        XCTAssertTrue(item.isListedInApp)
+    }
+
+    func testClearedShowInAppStaysListed() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","show_in_app":""}"#
+        ))
+        XCTAssertTrue(item.isListedInApp)
+    }
+
     func testUnlistedWorkLeavesTheListButStaysInTheSidebarPool() throws {
         let listed = WorkItem(story: try story(slug: "a", fullSlug: "work/a", content: workContent))
         let unlisted = WorkItem(story: try story(
