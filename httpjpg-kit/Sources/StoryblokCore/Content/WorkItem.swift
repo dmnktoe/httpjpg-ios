@@ -16,6 +16,10 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let media: [WorkMedia]
     public let isDraft: Bool
     public let isExternal: Bool
+
+    /// Whether the CMS lists this work in the app's work list. The sidebar
+    /// ignores it and keeps showing every published work.
+    public let isListedInApp: Bool
     public let isDark: Bool
     public let externalURL: URL?
     public let date: Date?
@@ -32,6 +36,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         media: [WorkMedia] = [],
         isDraft: Bool,
         isExternal: Bool,
+        isListedInApp: Bool = true,
         isDark: Bool = false,
         externalURL: URL?,
         date: Date?,
@@ -47,6 +52,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.media = media.isEmpty ? imageFilenames.map { WorkMedia(filename: $0, isVideo: false) } : media
         self.isDraft = isDraft
         self.isExternal = isExternal
+        self.isListedInApp = isListedInApp
         self.isDark = isDark
         self.externalURL = externalURL
         self.date = date
@@ -91,6 +97,7 @@ public extension WorkItem {
             media: media,
             isDraft: story.firstPublishedAt == nil,
             isExternal: content.isExternalOnly,
+            isListedInApp: content.isListedInApp,
             isDark: content.isDark,
             externalURL: externalURL,
             date: StoryblokDate.parse(content.date),
@@ -115,6 +122,12 @@ public struct WorkCollection: Sendable {
         case .projects: return projects
         case .websites: return websites
         }
+    }
+
+    /// The work list is not hand-curated the way the website's `work_list`
+    /// bloks are, so the CMS toggle decides what lands in it.
+    public func listedItems(for variant: MenuLink.Variant) -> [WorkItem] {
+        items(for: variant).filter(\.isListedInApp)
     }
 }
 

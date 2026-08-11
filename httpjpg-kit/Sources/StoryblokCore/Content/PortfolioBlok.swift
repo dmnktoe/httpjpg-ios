@@ -217,6 +217,7 @@ public struct WorkBlok: Decodable, Identifiable {
     public let dateEnd: String?
     public let link: StoryblokLink?
     public let isExternalOnly: Bool
+    public let isListedInApp: Bool
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
@@ -228,6 +229,7 @@ public struct WorkBlok: Decodable, Identifiable {
         case dateEnd = "date_end"
         case link
         case externalOnly = "external_only"
+        case showInApp = "show_in_app"
         case isDark
         case body
     }
@@ -243,6 +245,9 @@ public struct WorkBlok: Decodable, Identifiable {
         dateEnd = container.cmsString(forKey: .dateEnd)
         link = container.cmsValue(StoryblokLink.self, forKey: .link)
         isExternalOnly = container.cmsBool(forKey: .externalOnly)
+        // Work published before the toggle existed carries no `show_in_app`,
+        // and Storyblok does not backfill defaults into existing stories.
+        isListedInApp = container.cmsBool(forKey: .showInApp, default: true)
         isDark = container.cmsBool(forKey: .isDark)
         body = container.cmsArray(PortfolioBlok.self, forKey: .body)
     }
