@@ -9,8 +9,6 @@ public struct SkeletonBlock: View {
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// A nil height fills whatever container proposes — for media boxes
-    /// waiting on their first frame.
     public init(width: CGFloat? = nil, height: CGFloat? = Typography.Size.base) {
         self.width = width
         self.height = height

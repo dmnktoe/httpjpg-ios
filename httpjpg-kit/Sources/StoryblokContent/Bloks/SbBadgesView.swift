@@ -14,9 +14,6 @@ public struct SbBadgesView: View {
 
     public var body: some View {
         if !blok.items.isEmpty {
-            // `align` is the CSS cross-axis alignment for badges of differing
-            // heights. Every badge here is pinned to the same height, so it has
-            // nothing to resolve and only `justify` is honoured.
             FlowLayout(spacing: Spacing.s2, alignment: rowAlignment) {
                 ForEach(blok.items) { item in
                     badge(item)

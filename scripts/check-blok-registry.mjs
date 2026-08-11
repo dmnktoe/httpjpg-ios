@@ -37,6 +37,7 @@ const CONSCIOUSLY_UNRENDERED = new Map([
   ["config", "decoded as SiteConfig via ContentClient.siteConfig, not a body blok"],
   ["footer_config", "decoded inside SiteConfig for the info footer"],
   ["menu_link", "decoded as MenuLink inside SiteConfig"],
+  ["social_profile", "nested in the site config alongside the header menu; the app has no surface for social links"],
   ["work_card", "work cards are built from work stories, not from the blok"],
   ["accordion_item", "decoded as AccordionItemBlok, rendered by SbAccordionView"],
   ["badge_item", "decoded as BadgeItemBlok, rendered by SbBadgesView"],

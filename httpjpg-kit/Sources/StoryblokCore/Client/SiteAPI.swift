@@ -25,8 +25,6 @@ public actor SiteAPI {
         await get(DiscogsReleasesResponse.self, path: "/api/discogs")?.releases.first
     }
 
-    /// The whole timeline: the profile riding along on the same response
-    /// carries the avatar and the follower count the line leads with.
     public func xTimeline() async -> XTimeline? {
         await get(XTimeline.self, path: "/api/x")
     }
@@ -188,8 +186,6 @@ public struct XProfile: Decodable, Sendable {
         username.isEmpty ? "" : "@\(username)"
     }
 
-    /// 1.2K, 227M — a wide count would push the post text off the row. Pinned
-    /// to en_US like the rest of the footer.
     public var compactFollowerCount: String? {
         guard let followerCount, followerCount >= 0 else { return nil }
         return Double(followerCount).formatted(

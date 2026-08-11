@@ -2,11 +2,6 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// A bare `AVPlayerLayer`. AVKit's `VideoPlayer` always draws transport
-/// controls, so chrome-less playback has to go through the layer directly.
-///
-/// `onReadyChange` reports `isReadyForDisplay`: the layer paints a hard black
-/// box until its first frame decodes, and callers cover that with a skeleton.
 struct PlayerLayerView: UIViewRepresentable {
     let player: AVPlayer
     var onReadyChange: ((Bool) -> Void)?

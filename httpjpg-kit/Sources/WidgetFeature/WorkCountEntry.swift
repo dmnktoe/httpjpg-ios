@@ -45,8 +45,6 @@ struct WorkCountEntry: TimelineEntry {
 
     var total: Int { projects + websites }
 
-    /// Zero-padded to three digits — the index reads as a catalogue number, and the
-    /// width stays put as works are added.
     var stamp: String {
         String(format: "%03d", min(total, 999))
     }
@@ -57,8 +55,6 @@ struct WorkCountEntry: TimelineEntry {
         return "\(firstYear)–\(latestYear)"
     }
 
-    /// Non-zero on purpose: WidgetKit redacts the placeholder, so it only has to carry
-    /// the right shape — a zero total would draw the empty state instead.
     static let placeholder = WorkCountEntry(
         date: Date(timeIntervalSince1970: 0),
         projects: 24,

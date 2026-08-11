@@ -11,8 +11,6 @@ public struct WatchRootView: View {
 
     public var body: some View {
         @Bindable var model = model
-        // The watch has no light appearance to follow, so the dark page theme
-        // is the only one — same palette the site uses for dark art direction.
         return NavigationStack(path: $model.path) {
             WatchWorkListScreen()
                 .navigationDestination(for: WorkItem.self) { item in

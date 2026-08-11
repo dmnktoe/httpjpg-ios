@@ -2,7 +2,6 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// The floating tab pill row.
 struct TabBar: View {
     let selection: AppModel.Tab
 
@@ -25,9 +24,6 @@ struct TabBar: View {
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }
         .sensoryFeedback(.selection, trigger: tapCount)
-        // Scoped animations only: a withAnimation around the tab mutation used
-        // to drag the whole glass container into the transition and flicker
-        // the pills on every switch.
         .animation(Motion.navigate, value: selection)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)

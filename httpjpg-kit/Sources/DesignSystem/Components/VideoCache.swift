@@ -1,28 +1,16 @@
 import CryptoKit
 import Foundation
 
-/// A shared on-disk store for short clips, keyed by their remote URL.
-///
-/// AVFoundation runs its own HTTP stack and never consults `URLCache`, so
-/// `ImageCache` does nothing for video: a clip re-downloads every time it
-/// scrolls back into a carousel. Storyblok asset URLs are content-addressed and
-/// immutable, so a plain file-per-URL store is enough — no revalidation, no
-/// expiry, just an eviction pass once the directory outgrows its budget.
 public actor VideoCache {
     public static let shared = VideoCache()
 
     private static let budget = 128 * 1024 * 1024
 
-    /// Anything larger is left to stream. The store is meant for decorative
-    /// loops; a clip this big is a film, and holding it would evict everything
-    /// else for one entry.
     private static let maxAssetSize = 24 * 1024 * 1024
 
     private let directory: URL
     private let session: URLSession
 
-    /// Carousels mount several cards at once and the same clip can be asked for
-    /// from more than one of them, so downloads are shared rather than raced.
     private var inFlight: [URL: Task<URL, Never>] = [:]
 
     init(directory: URL? = nil) {
@@ -30,17 +18,12 @@ public actor VideoCache {
             .urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Videos", isDirectory: true)
 
-        // This store *is* the cache; letting URLSession keep a second copy in
-        // URLCache would pay the disk cost twice.
         let configuration = URLSessionConfiguration.default
         configuration.urlCache = nil
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         self.session = URLSession(configuration: configuration)
     }
 
-    /// The local copy of `remote`, downloading it first if it isn't stored yet.
-    /// Returns `remote` unchanged when it can't be stored, so playback still
-    /// works — uncached, the way it did before.
     public func localURL(for remote: URL) async -> URL {
         guard !remote.isFileURL else { return remote }
 
@@ -54,8 +37,6 @@ public actor VideoCache {
             return await existing.value
         }
 
-        // Unstructured on purpose: a card that scrolls away cancels its own
-        // task, and the download should still finish and land in the store.
         let task = Task { await download(remote, to: file) }
         inFlight[remote] = task
         let result = await task.value
@@ -90,9 +71,6 @@ public actor VideoCache {
         }
     }
 
-    /// Named after a digest of the whole URL so two assets can share a
-    /// basename, but the extension is kept: AVFoundation infers a file URL's
-    /// container format from it and refuses to open the clip without one.
     func location(for remote: URL) -> URL {
         let digest = SHA256.hash(data: Data(remote.absoluteString.utf8))
             .map { String(format: "%02x", $0) }
@@ -101,8 +79,6 @@ public actor VideoCache {
         return directory.appendingPathComponent(ext.isEmpty ? digest : "\(digest).\(ext)")
     }
 
-    /// Eviction goes by modification date, so a hit has to restamp the file —
-    /// otherwise a clip played on every launch would still age out.
     private func touch(_ file: URL) {
         try? FileManager.default.setAttributes(
             [.modificationDate: Date()],

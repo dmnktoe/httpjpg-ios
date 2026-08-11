@@ -190,8 +190,6 @@ enum MockContentFixtures {
 
     private static let black = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
 
-    /// Same conversion `UIColor(hue:saturation:brightness:alpha:)` does, spelled
-    /// out in CoreGraphics so the fixtures draw on every platform the kit ships to.
     private static func rgb(hue: CGFloat, saturation: CGFloat, brightness: CGFloat) -> CGColor {
         let sector = (hue * 6).truncatingRemainder(dividingBy: 6)
         let fraction = sector - sector.rounded(.down)

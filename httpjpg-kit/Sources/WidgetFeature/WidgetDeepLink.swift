@@ -14,8 +14,6 @@ public enum WidgetDeepLink {
     private static let pageHost = "page"
     private static let infoHost = "info"
 
-    /// Nil for an empty slug: a bare host is the tab root, so building one here would
-    /// quietly turn a missing document into "open the index".
     public static func work(slug: String) -> URL? {
         guard !slug.isEmpty else { return nil }
         return url(host: workHost, slug: slug)
@@ -38,8 +36,6 @@ public enum WidgetDeepLink {
         guard url.scheme == scheme, let host = url.host else { return nil }
         let slug = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 
-        // A bare host is the tab root; a host that carries a slug is a document. Anything
-        // else — `httpjpg://info/imprint`, say — has no screen to land on.
         switch (host, slug.isEmpty) {
         case (workHost, false): return .work(slug: slug)
         case (workHost, true): return .workIndex

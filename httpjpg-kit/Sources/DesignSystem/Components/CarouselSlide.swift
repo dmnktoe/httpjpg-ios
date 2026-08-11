@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The seam a slide uses to take over the rotation around it.
 public struct CarouselSlide {
     public let isActive: Bool
     public let advance: () -> Void

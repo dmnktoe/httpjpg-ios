@@ -18,8 +18,6 @@ final class WatchAppModel {
 
     var variant: MenuLink.Variant = .projects
 
-    /// Driven by the list's links, plus the shuffle row, which pushes a story
-    /// the wearer didn't pick.
     var path: [WorkItem] = []
 
     init(configuration: StoryblokConfiguration) {
@@ -51,8 +49,6 @@ final class WatchAppModel {
         }
 
         do {
-            // The watch screen shows a fraction of the index, and every extra
-            // story is another thumbnail over a phone-tethered connection.
             state = .loaded(try await client.workIndex(perPage: 40, refresh: force))
         } catch {
             guard !Task.isCancelled, !hadContent else { return }

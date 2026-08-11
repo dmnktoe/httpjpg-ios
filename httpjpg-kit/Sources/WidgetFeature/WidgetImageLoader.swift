@@ -6,8 +6,6 @@ enum WidgetImageLoader {
         await data(filename, width: width, scale: scale).flatMap(UIImage.init(data:))
     }
 
-    /// Loads a batch keyed by whatever identifier the caller sorts by — the entry views
-    /// look their artwork up by that key, so a failed download simply drops out of the map.
     static func images(
         _ filenames: [String: String],
         width: CGFloat,

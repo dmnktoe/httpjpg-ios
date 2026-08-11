@@ -30,8 +30,6 @@ let package = Package(
             dependencies: [
                 "Tokens",
 
-                // Both are UIKit-backed and ship iOS slices only; the watch app
-                // reaches for Tokens rather than for these components.
                 .product(name: "MarqueeLabel", package: "MarqueeLabel", condition: .when(platforms: [.iOS])),
                 .product(name: "SVGView", package: "SVGView", condition: .when(platforms: [.iOS])),
             ],

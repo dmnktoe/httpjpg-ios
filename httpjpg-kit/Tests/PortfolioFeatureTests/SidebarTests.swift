@@ -61,7 +61,6 @@ final class SidebarTests: XCTestCase {
 
         let groups = app.workIndex.workByYear
         let years = groups.map(\.year)
-        // The undated placeholder sorts ahead of digits, so only the dated years get the order check.
         let dated = years.filter { $0 != WorkYearGroup.undatedYear }
 
         XCTAssertEqual(dated, dated.sorted(by: >))
@@ -73,7 +72,6 @@ final class SidebarTests: XCTestCase {
     }
 
     func testUndatedWorkTrailsTheDatedYears() {
-        // Mid-year so the year label holds whatever timezone the simulator runs in.
         let dated = makeItem(slug: "dated", date: Date(timeIntervalSince1970: 1_000_000_000))
         let undated = makeItem(slug: "undated", date: nil)
 

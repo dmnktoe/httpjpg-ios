@@ -72,8 +72,6 @@ public struct FlowLayout: Layout {
             total += row.height + (total > 0 ? spacing : 0)
         }
         let width = rows.map(\.width).max() ?? 0
-        // A centred or trailing row needs the full offered width to sit in;
-        // shrinking to content would leave nothing to align against.
         if alignment != .leading, maxWidth.isFinite {
             return CGSize(width: maxWidth, height: height)
         }
@@ -89,8 +87,6 @@ public struct FlowLayout: Layout {
         let rows = layoutRows(subviews: subviews, maxWidth: bounds.width)
         var y = bounds.minY
         for row in rows {
-            // Each row is offset on its own, so centre and trailing hold even
-            // when the rows come out at different widths.
             var x = bounds.minX + (bounds.width - row.width) * leadingFactor
             for index in row.indices {
                 let size = subviews[index].sizeThatFits(.unspecified)

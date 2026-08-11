@@ -3,12 +3,6 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// A badge drawn at a fixed height, with the width following the image's own
-/// aspect ratio — the same contract as the web `Badge`.
-///
-/// shields.io serves SVG, which ImageIO cannot decode, so `AsyncImage` is not
-/// enough here: the bytes are fetched once and then routed to the shields, the
-/// vector or the bitmap renderer.
 public struct BadgeImage: View {
     private let url: URL?
     private let accessibilityText: String
@@ -26,7 +20,6 @@ public struct BadgeImage: View {
         case failed
     }
 
-    /// Falls back to a squat badge shape while the real ratio is unknown.
     static let placeholderAspectRatio: CGFloat = 4
 
     public init(url: URL?, accessibilityText: String, height: CGFloat) {
@@ -65,16 +58,9 @@ public struct BadgeImage: View {
         }
     }
 
-    /// Redraws the badge from the label/message pair instead of rendering its
-    /// artwork. The proportions are shields' own, expressed relative to the
-    /// requested height: 11pt text, 5pt of side padding and a 3pt corner on the
-    /// 20pt badge it serves.
     private func shields(_ badge: ShieldsBadge) -> some View {
         HStack(spacing: 0) {
             ForEach(badge.segments.indices, id: \.self) { index in
-                // Deliberately not Typography.mono: that scales with Dynamic Type,
-                // and the height here is fixed by the caller, so a scaled glyph
-                // would be clipped rather than enlarged.
                 Text(badge.segments[index].text)
                     .font(.system(size: height * 0.55, design: .monospaced))
                     .foregroundStyle(Palette.white)
@@ -120,8 +106,6 @@ public struct BadgeImage: View {
         }
     }
 
-    /// Some CDNs mislabel SVG as text/plain or octet-stream, so the bytes get
-    /// the final say.
     static func looksLikeSVG(_ data: Data) -> Bool {
         guard let head = String(data: data.prefix(512), encoding: .utf8)?.lowercased() else {
             return false

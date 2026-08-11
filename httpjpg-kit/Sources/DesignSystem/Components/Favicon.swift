@@ -6,8 +6,6 @@ private struct FaviconOriginKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Origin serving `/api/favicon`, handed down by the feature layer because
-    /// `DesignSystem` cannot reach the Storyblok configuration that holds it.
     var faviconOrigin: URL? {
         get { self[FaviconOriginKey.self] }
         set { self[FaviconOriginKey.self] = newValue }
@@ -62,14 +60,10 @@ public struct Favicon: View {
             }
     }
 
-    /// `queryItems` only escapes what a query as a whole disallows, so a `&` or
-    /// `=` inside the target URL would cut the parameter short.
     private static let unreserved = CharacterSet(
         charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
     )
 
-    /// Whole URL, not just the host: several projects share one host
-    /// (`dmnktoe.github.io/<project>/`) and collapse onto its icon otherwise.
     private var proxyURL: URL? {
         guard let origin, let url, let scheme = url.scheme?.lowercased(),
               scheme == "http" || scheme == "https",

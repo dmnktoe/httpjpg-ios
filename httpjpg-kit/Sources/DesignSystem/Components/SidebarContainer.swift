@@ -12,9 +12,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private struct DragState {
         var translation: CGFloat = 0
 
-        /// Latched on the first horizontal-dominant update. The dominance
-        /// check only arms the drag; gating every update on it froze the
-        /// drawer mid-travel whenever an arcing thumb drifted vertical.
+        var origin: CGFloat = 0
+
         var isArmed = false
     }
 
@@ -22,6 +21,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private var drag = DragState()
 
     @State private var isSettling = false
+
+    @State private var settleTicket = 0
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -36,6 +37,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private static var flickVelocity: CGFloat { 300 }
 
     private static var overshootDamping: CGFloat { 4 }
+
+    private static var pageCorner: CGFloat { Spacing.s12 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -62,13 +65,15 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
+        .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
-        .task(id: isOpen) {
+        .task(id: settleTicket) {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
             guard !Task.isCancelled else { return }
             isSettling = false
         }
+        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
     private var sidebarPane: some View {
@@ -77,7 +82,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
             .offset(x: (progress - 1) * Self.parallax)
-            .opacity(Double(progress))
+            .opacity(paneOpacity)
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
@@ -93,11 +98,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .opacity(0.35 * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
+                    .ignoresSafeArea()
             }
-            .clipShape(RoundedRectangle(cornerRadius: Radii.xxxl * progress, style: .continuous))
-            .background(shadow)
-            .scaleEffect(1 - Self.scaleDrop * progress)
-            .offset(x: offset)
+            .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
+            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
@@ -106,14 +110,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var ambientHeld: Bool {
         isOpen || drag.isArmed || isSettling
-    }
-
-    private var shadow: some View {
-        RoundedRectangle(cornerRadius: Radii.xxxl, style: .continuous)
-            .fill(Palette.black)
-            .blur(radius: Spacing.s6)
-            .offset(x: -Spacing.s2)
-            .opacity(0.35 * Double(progress))
     }
 
     private var openEdge: some View {
@@ -129,11 +125,15 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         DragGesture(minimumDistance: 10)
             .updating($drag) { value, state, _ in
                 guard state.isArmed || tracks(value) else { return }
-                state.isArmed = true
-                state.translation = value.translation.width
+                if !state.isArmed {
+                    state.isArmed = true
+                    state.origin = value.translation.width
+                }
+                state.translation = value.translation.width - state.origin
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
+                settleTicket += 1
                 withAnimation(motion) {
                     isOpen = shouldOpen(after: value)
                 }
@@ -159,6 +159,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         width > 0 ? min(offset / width, 1) : 0
     }
 
+    private var paneOpacity: Double {
+        min(Double(progress) * 3, 1)
+    }
+
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
     }
@@ -166,7 +170,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private func shouldOpen(after value: DragGesture.Value) -> Bool {
         let velocity = value.velocity.width
         guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
-        return base + value.translation.width > width / 2
+        return base + value.translation.width - drag.origin > width / 2
     }
 
     private func tracks(_ value: DragGesture.Value) -> Bool {
@@ -178,3 +182,28 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         withAnimation(motion) { isOpen = false }
     }
 }
+
+private struct PageTransform: GeometryEffect {
+    var offset: CGFloat
+    var scale: CGFloat
+
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(offset, scale) }
+        set {
+            offset = newValue.first
+            scale = newValue.second
+        }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        let x = size.width / 2
+        let y = size.height / 2
+        return ProjectionTransform(
+            CGAffineTransform(translationX: offset, y: 0)
+                .translatedBy(x: x, y: y)
+                .scaledBy(x: scale, y: scale)
+                .translatedBy(x: -x, y: -y)
+        )
+    }
+}
+

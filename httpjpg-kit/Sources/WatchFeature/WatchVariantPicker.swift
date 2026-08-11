@@ -2,9 +2,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// The phone's slice chips, shrunk to two taps wide. The decorated CMS labels
-/// don't survive at 40mm, so the watch spells the slices out in the same
-/// lowercase mono the rest of the chrome uses.
 struct WatchVariantPicker: View {
     let selection: MenuLink.Variant
     let onSelect: (MenuLink.Variant) -> Void

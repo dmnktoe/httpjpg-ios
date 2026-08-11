@@ -21,7 +21,6 @@ struct FrameOfTheDayProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<FrameOfTheDayEntry>) -> Void) {
         Task {
             let entry = await load(for: context)
-            // A frame stands until the day turns; a failed fetch shouldn't have to.
             let next = entry.image == nil
                 ? Date(timeIntervalSinceNow: Self.retryInterval)
                 : Self.nextMidnight(after: Date())
@@ -43,8 +42,6 @@ struct FrameOfTheDayProvider: TimelineProvider {
             return .failure("no frames published")
         }
 
-        // 2× rather than 3×: this fills the whole widget, and an extra-large frame at
-        // 3× decodes to more than the extension's memory budget likes.
         let image = await WidgetImageLoader.image(
             filename,
             width: context.displaySize.width,
@@ -56,8 +53,6 @@ struct FrameOfTheDayProvider: TimelineProvider {
         return FrameOfTheDayEntry(date: Date(), image: image)
     }
 
-    /// The feed page is the curated pool; the work index stands in while it is
-    /// unreachable so the widget still has something to show.
     private static func pool(from client: ContentClient) async -> [String] {
         if let page = try? await client.page(slug: StorySlug.feed) {
             let filenames = ImagePool.filenames(in: page.body)

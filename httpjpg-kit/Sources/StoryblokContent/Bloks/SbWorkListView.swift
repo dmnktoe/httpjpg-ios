@@ -45,8 +45,6 @@ public struct SbWorkListView: View {
         blok.work.isEmpty && !blok.workUUIDs.isEmpty && fetchedItems == nil
     }
 
-    // The card model carries the external link, so the detail toolbar can
-    // show the preview button without waiting for the load.
     private func route(for model: WorkCardModel) -> WorkRoute {
         WorkRoute(slug: model.slug, title: model.title, previewURL: model.externalURL)
     }

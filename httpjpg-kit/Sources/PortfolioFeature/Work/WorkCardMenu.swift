@@ -2,7 +2,6 @@ import StoryblokCore
 import SwiftUI
 import UIKit
 
-/// Long-press actions for a work card: share, copy link, open the website.
 struct WorkCardMenu: ViewModifier {
     let item: WorkItem
 

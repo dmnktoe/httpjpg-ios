@@ -7,8 +7,6 @@ struct WatchWorkDetailScreen: View {
 
     @Environment(WatchAppModel.self) private var model
 
-    /// Stills only. Storyblok's work galleries mix in video, which the watch
-    /// has no player for — dropping them beats showing a dead frame.
     private var stills: [WorkMedia] {
         item.media.filter { !$0.isVideo }
     }
@@ -80,7 +78,6 @@ struct WatchWorkDetailScreen: View {
         )
     }
 
-    /// Roughly the widest watch face, so the crop covers the 49mm too.
     private static let frameWidth: CGFloat = 180
 
     private static let fallbackRatio: CGFloat = 3.0 / 2.0
@@ -92,8 +89,6 @@ struct WatchWorkDetailScreen: View {
                 .opacity(Opacities.tape)
                 .lineLimit(1)
 
-            // No browser to hand off to on the wrist, so the address is the
-            // affordance: it tells the wearer where to find the full piece.
             Text(canonical)
                 .font(Typography.mono(Typography.Size.xxs))
                 .opacity(Opacities.muted)

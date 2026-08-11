@@ -3,8 +3,6 @@ import XCTest
 @testable import DesignSystem
 
 final class ShieldsBadgeTests: XCTestCase {
-    /// The byte-for-byte response for a `github/v/release` badge with a custom
-    /// label and colours — the shape the portfolio actually requests.
     private let realBadge = """
     <svg xmlns="http://www.w3.org/2000/svg" width="96" height="20" role="img" aria-label="Version: v1.2.1">\
     <title>Version: v1.2.1</title><filter id="blur"><feGaussianBlur stdDeviation="16"/></filter>\
@@ -56,8 +54,6 @@ final class ShieldsBadgeTests: XCTestCase {
     }
 
     func testBailsOutWhenTextAndColoursDoNotPairUp() {
-        // Two halves but only one string — the label was requested empty. Falling
-        // back to the vector renderer beats guessing which half the text belongs to.
         let svg = """
         <svg xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="#555"/>\
         <rect x="20" width="40" height="20" fill="#4c1"/><g font-size="110">\
@@ -67,8 +63,6 @@ final class ShieldsBadgeTests: XCTestCase {
     }
 
     func testLeavesUnrelatedArtworkToTheVectorRenderer() {
-        // A rect and a label, but drawn at its own size — SVGView renders this
-        // correctly, so redrawing it as a two-tone badge would be pure damage.
         let diagram = """
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="60">\
         <rect width="120" height="60" fill="#eeeeee"/>\
@@ -82,7 +76,6 @@ final class ShieldsBadgeTests: XCTestCase {
         XCTAssertNil(
             ShieldsBadge.parse(Data(#"<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h8v8H0z"/></svg>"#.utf8))
         )
-        // PNG magic number — not decodable as text at all.
         XCTAssertNil(ShieldsBadge.parse(Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])))
     }
 }

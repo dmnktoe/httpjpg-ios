@@ -43,8 +43,6 @@ public struct SbListView: View {
         return ListMarker.ordinal(position, style: blok.orderedStyle) + "."
     }
 
-    /// Keeps the item text on one hanging indent instead of stepping right as
-    /// the ordinals get wider.
     private var markerWidth: CGFloat? {
         blok.isOrdered ? Spacing.s6 : nil
     }

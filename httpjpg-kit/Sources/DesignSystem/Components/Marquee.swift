@@ -8,10 +8,6 @@ private struct MarqueeHeldKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Set by an ancestor (e.g. a drag gesture) to freeze every marquee beneath it at its
-    /// home position instead of scrolling — MarqueeLabel restarts from scratch on every
-    /// layout pass, so continuous interactive layout changes (a swipe) would otherwise make
-    /// it look like the scroll keeps restarting.
     var marqueeHeld: Bool {
         get { self[MarqueeHeldKey.self] }
         set { self[MarqueeHeldKey.self] = newValue }

@@ -34,8 +34,6 @@ public final class AppModel {
         didSet { visitedTabs.insert(selectedTab) }
     }
 
-    /// Tabs that have been shown at least once. RootView keeps their roots
-    /// mounted so switching back doesn't rebuild the stack (and flicker).
     private(set) var visitedTabs: Set<Tab> = [.work]
 
     public var workPath: [WorkRoute] = []
@@ -97,10 +95,6 @@ public final class AppModel {
         await info.load(force: true)
         await widgets.load()
 
-        // The widget extension is a separate process with its own data container
-        // and its own ContentClient, so nothing cleared above reaches it. Asking
-        // WidgetKit to reload is the only way in: the providers build a fresh
-        // client per timeline, so their cache dies with it.
         WidgetCenter.shared.reloadAllTimelines()
     }
 
@@ -113,8 +107,6 @@ public final class AppModel {
             workPath.removeAll()
             isSidebarOpen = false
         case .page(let slug):
-            // A link carries the slug and nothing else, so it doubles as the title —
-            // same stand-in the work routes use.
             show(PageRoute(slug: slug, title: slug))
         case .info:
             select(tab: .info)
@@ -158,8 +150,6 @@ public final class AppModel {
         }
     }
 
-    /// Bumped when re-selecting a tab that is already at its root; the tab's
-    /// scroll view scrolls back to the top in response.
     private(set) var scrollToTopTicks: [Tab: Int] = [:]
 
     func scrollToTopTick(for tab: Tab) -> Int {

@@ -8,9 +8,6 @@ private struct MediaHeldKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Set by an ancestor (e.g. the drawer) to pause ambient video beneath it
-    /// without rewinding — every live player layer forces a re-composite of
-    /// the transformed page on each video frame.
     var mediaHeld: Bool {
         get { self[MediaHeldKey.self] }
         set { self[MediaHeldKey.self] = newValue }
@@ -52,8 +49,6 @@ public struct LoopingVideoPlayer: View {
                 }
             }
             .overlay {
-                // The player layer renders a hard black box until its first
-                // frame is decoded; pulse the skeleton over it until then.
                 if !isReady {
                     SkeletonBlock(height: nil)
                         .transition(.opacity)
@@ -62,8 +57,6 @@ public struct LoopingVideoPlayer: View {
             .animation(Motion.mediaIn, value: isReady)
             .clipped()
             .contentShape(Rectangle())
-            // Keyed on isActive: start() suspends, and a plain .task would
-            // resume holding the value from when the slide appeared.
             .task(id: isActive) { await start() }
             .onChange(of: isHeld) { _, held in
                 guard isActive, let player, item != nil else { return }
@@ -74,8 +67,6 @@ public struct LoopingVideoPlayer: View {
                 }
             }
             .onReceive(endOfPlayback) { notification in
-                // A clip that ends as the reader swipes away would otherwise
-                // advance past the slide they just chose.
                 guard isActive, let item,
                       let ended = notification.object as? AVPlayerItem, ended === item
                 else { return }
@@ -85,8 +76,6 @@ public struct LoopingVideoPlayer: View {
             .accessibilityHidden(true)
     }
 
-    /// AVFoundation posts these on whichever thread it is on, and the handler
-    /// advances a carousel. A failed item counts as finished.
     private var endOfPlayback: some Publisher<Notification, Never> {
         let center = NotificationCenter.default
         return center.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)
@@ -94,22 +83,16 @@ public struct LoopingVideoPlayer: View {
             .receive(on: DispatchQueue.main)
     }
 
-    // Explicitly main-actor: resolving the URL suspends, and the player and the
-    // looper have to be assigned back on the main actor when it resumes.
     @MainActor
     private func start() async {
         let isFirstStart = player == nil
         if isFirstStart {
-            // Plays the stored copy rather than the remote URL: AVFoundation
-            // ignores URLCache, so an uncached loop re-downloads on every pass
-            // through the carousel. The skeleton above covers the first fetch.
             let source = await VideoCache.shared.localURL(for: url)
             guard !Task.isCancelled else { return }
 
             let playerItem = AVPlayerItem(url: source)
             let resolved: AVPlayer
             if onFinished == nil {
-                // AVPlayerLooper owns the queue it is given, so it starts empty.
                 let queue = AVQueuePlayer()
                 looper = AVPlayerLooper(player: queue, templateItem: playerItem)
                 resolved = queue
@@ -122,12 +105,9 @@ public struct LoopingVideoPlayer: View {
         }
 
         guard let player else { return }
-        // Seeking a fresh item would only fight the looper.
         settle(player, rewinding: !isFirstStart)
     }
 
-    /// Synchronous on purpose: inside an `async` function the `async` overload
-    /// of `seek(to:)` is the one overload resolution picks.
     @MainActor
     private func settle(_ player: AVPlayer, rewinding: Bool) {
         guard isActive else {

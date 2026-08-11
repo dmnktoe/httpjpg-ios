@@ -18,12 +18,6 @@ public extension View {
 }
 
 public extension View {
-    /// Entrance/exit for glass chrome that appears and disappears. The
-    /// timings are attached to the transition itself so they hold even when
-    /// the element leaves inside a larger transaction — stacked
-    /// .animation(_:value:) modifiers override each other when several
-    /// values change at once, which made the same exit run at two speeds
-    /// depending on what triggered it.
     func glassReveal(
         insertion: Animation = Motion.navigate,
         removal: Animation = Motion.stateChange
@@ -38,11 +32,6 @@ private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            // Deliberately the default materialize transition, not
-            // matchedGeometry: the morph blends a departing pill into its
-            // nearest neighbour, and when a tab switch recolors that
-            // neighbour in the same transaction the pill flashed white and
-            // clipped out hard.
             content.glassEffectID(id, in: namespace)
         } else {
             content
@@ -69,13 +58,29 @@ private struct GlassRevealModifier: ViewModifier {
     }
 }
 
+private struct ChromeHeldKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    var chromeHeld: Bool {
+        get { self[ChromeHeldKey.self] }
+        set { self[ChromeHeldKey.self] = newValue }
+    }
+}
+
 private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
 
+    @Environment(\.chromeHeld) private var isHeld
+    @Environment(\.pageTheme) private var theme
+
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
+        if isHeld {
+            content.background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
+        } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else {
             content

@@ -2,15 +2,9 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// A hard-edged image box: no corner radius, a hairline frame, and the tape
-/// motif holding the space until the bytes land. Same shape as the phone's
-/// `RemoteImage` — a clear box carries the ratio so the row doesn't reflow
-/// when the image decodes.
 struct WatchThumbnail: View {
     let filename: String?
 
-    /// Points of rendered width, so the CDN crop matches what the crown
-    /// scrolls past instead of shipping a phone-sized frame over Bluetooth.
     let targetWidth: CGFloat
 
     var aspectRatio: CGFloat = 1
