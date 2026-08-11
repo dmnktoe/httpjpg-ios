@@ -14,9 +14,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
         var origin: CGFloat = 0
 
-        /// Latched on the first horizontal-dominant update. The dominance
-        /// check only arms the drag; gating every update on it froze the
-        /// drawer mid-travel whenever an arcing thumb drifted vertical.
         var isArmed = false
     }
 
@@ -41,12 +38,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private static var overshootDamping: CGFloat { 4 }
 
-    /// Off the radius scale on purpose: this one answers to the display's own
-    /// corner, not to the type of surface it is. Kept under it, so the cut
-    /// corners stay behind the hardware mask while the drawer is shut.
-    ///
-    /// Constant, not tracked to `progress`: interpolating a `.continuous`
-    /// corner rebuilds the page-sized mask path frame by frame.
     private static var pageCorner: CGFloat { Spacing.s12 }
 
     public init(
@@ -76,9 +67,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .environment(\.mediaHeld, ambientHeld)
         .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
-        // Keyed on the ticket, not on isOpen: a drag that ends where it started
-        // still has a spring to ride out, and keying on isOpen let the ambient
-        // motion back in on top of it.
         .task(id: settleTicket) {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
@@ -104,9 +92,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private var main: some View {
         content
             .scrollDisabled(drag.isArmed || isOpen)
-            // The dim ignores the safe area on its own account: the page's does
-            // not reach overlay content, so it stopped at the insets and left an
-            // undimmed strip of page at each end.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -198,9 +183,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 }
 
-/// A `GeometryEffect` rather than `scaleEffect` + `offset`: those two re-render
-/// the page at the new scale every frame, this hands Core Animation one
-/// projection to apply to what it already has.
 private struct PageTransform: GeometryEffect {
     var offset: CGFloat
     var scale: CGFloat

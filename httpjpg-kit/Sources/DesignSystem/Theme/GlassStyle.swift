@@ -74,11 +74,6 @@ private struct ChromeHeldKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Set by an ancestor (e.g. the drawer) to swap live glass for a flat fill
-    /// while the chrome is in motion. Glass re-samples and re-blurs whatever
-    /// sits behind it every frame, and a page under a transform never hands it
-    /// the same backdrop twice — so it re-blurs the full bar on every frame of
-    /// a drag, which is the one thing a drag cannot afford.
     var chromeHeld: Bool {
         get { self[ChromeHeldKey.self] }
         set { self[ChromeHeldKey.self] = newValue }
@@ -95,8 +90,6 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         if isHeld {
-            // Translucent, no opaque backing: glass lets the page through, so
-            // a solid fill announced the swap every time a drag started.
             content.background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
         } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
