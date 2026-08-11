@@ -42,8 +42,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private static var overshootDamping: CGFloat { 4 }
 
     /// Off the radius scale on purpose: this one answers to the display's own
-    /// corner, not to the type of surface it is. Kept under it, so the wedges
-    /// stay behind the hardware mask while the drawer is shut.
+    /// corner, not to the type of surface it is. Kept under it, so the cut
+    /// corners stay behind the hardware mask while the drawer is shut.
+    ///
+    /// Constant, not tracked to `progress`: interpolating a `.continuous`
+    /// corner rebuilds the page-sized mask path frame by frame.
     private static var pageCorner: CGFloat { Spacing.s12 }
 
     public init(
@@ -101,9 +104,9 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private var main: some View {
         content
             .scrollDisabled(drag.isArmed || isOpen)
-            // Both overlays ignore the safe area on their own account: the
-            // page's does not reach them, so they stopped at the insets and
-            // left a square, undimmed strip of page at each end.
+            // The dim ignores the safe area on its own account: the page's does
+            // not reach overlay content, so it stopped at the insets and left an
+            // undimmed strip of page at each end.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -112,12 +115,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .allowsHitTesting(isOpen)
                     .ignoresSafeArea()
             }
-            .overlay {
-                CornerCutout(radius: Self.pageCorner)
-                    .fill(theme.drawerBackground, style: FillStyle(eoFill: true))
-                    .allowsHitTesting(false)
-                    .ignoresSafeArea()
-            }
+            .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
             .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
@@ -227,21 +225,3 @@ private struct PageTransform: GeometryEffect {
     }
 }
 
-/// The four corner wedges, painted over the page in the drawer's own colour.
-/// Clipping the page to a rounded rect is a mask, and a mask means the whole
-/// screen goes through an offscreen pass on every frame it moves.
-private struct CornerCutout: Shape {
-    let radius: CGFloat
-
-    /// Pushes the outer edge off the inner one. Sharing an edge left the two
-    /// antialiased against each other, and even-odd resolved that to a hairline
-    /// that shimmered along the screen edge as the page moved sub-pixel. What
-    /// the bleed covers is drawer background on every side already.
-    private static var bleed: CGFloat { 2 }
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path(rect.insetBy(dx: -Self.bleed, dy: -Self.bleed))
-        path.addPath(RoundedRectangle(cornerRadius: radius, style: .continuous).path(in: rect))
-        return path
-    }
-}
