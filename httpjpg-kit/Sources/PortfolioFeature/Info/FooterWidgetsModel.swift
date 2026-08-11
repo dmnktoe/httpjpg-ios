@@ -7,7 +7,6 @@ import StoryblokCore
 final class FooterWidgetsModel {
     private let api: SiteAPI
 
-    /// Read by the view too, so a widget switched off holds no loading row.
     let flags: WidgetFlags
 
     private(set) var discord: DiscordPresence?

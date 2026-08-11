@@ -23,8 +23,6 @@ public struct PageTheme: Sendable, Equatable {
 
     public var foreground: Color { isDark ? Palette.white : Palette.black }
 
-    /// The surface the page slides off to reveal: dark mode has nowhere darker
-    /// to dim the page towards, so the drawer lifts instead.
     public var drawerBackground: Color { isDark ? Palette.neutral.s900 : Palette.white }
 
     public var muted: Color { isDark ? Palette.neutral.s300 : Palette.neutral.s700 }
@@ -33,9 +31,6 @@ public struct PageTheme: Sendable, Equatable {
 
     public var link: Color { Palette.primary.s500 }
 
-    /// Floating glass chrome: tab pills, mini player, preview pill. Idle
-    /// elements sit on a quiet grey; the active pill pops to a plain white
-    /// card with a black label in both appearances.
     public var chromeFill: Color { isDark ? Palette.neutral.s800.opacity(0.72) : Palette.neutral.s300.opacity(0.6) }
 
     public var chromeLabel: Color { isDark ? Palette.white.opacity(0.9) : Palette.neutral.s800 }
@@ -46,7 +41,6 @@ public struct PageTheme: Sendable, Equatable {
 
     public var chromeActiveLabel: Color { Palette.black }
 
-    /// The brand lime, ringing the active pill in both appearances.
     public var chromeActiveStroke: Color { Palette.accent.s400 }
 
     public var colorScheme: ColorScheme { isDark ? .dark : .light }
@@ -75,9 +69,6 @@ public extension View {
             .background(theme.background.ignoresSafeArea())
     }
 
-    /// Surface for CMS-driven documents: a page can force dark art direction,
-    /// everything else follows the ambient theme — so system dark mode also
-    /// darkens pages that don't specify.
     func pageSurface(forcingDark: Bool) -> some View {
         modifier(ForcedPageSurface(forcesDark: forcingDark))
     }
@@ -95,8 +86,6 @@ private struct ForcedPageSurface: ViewModifier {
             .pageSurface(theme)
 
         #if os(iOS)
-        // A pinned scheme stops iOS adapting the glass chrome to what scrolls
-        // under it. Forced dark pins anyway: there the environment misses the bar.
         return surface.toolbarColorScheme(forcesDark ? .dark : nil, for: .navigationBar)
         #else
         return surface

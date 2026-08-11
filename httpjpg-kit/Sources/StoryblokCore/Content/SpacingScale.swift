@@ -1,8 +1,6 @@
 import CoreGraphics
 import Foundation
 
-/// The CMS stores margins, gaps and paddings as Panda scale keys rather than
-/// points. Same table as `Spacing`, but keyed the way the schema writes it.
 public enum SpacingScale {
     public static func points(_ key: Int?) -> CGFloat? {
         guard let key else { return nil }

@@ -26,11 +26,6 @@ struct PageScreen: View {
         .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        // toolbarColorScheme doesn't reach the status bar when the bar is
-        // transparent; forcing the scheme does. Tied to the selected tab and
-        // the top of the path: the stack stays mounted across tab switches,
-        // and coupling to the path flips the scene when a pop starts instead
-        // of snapping after the pop animation finishes.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .task {
             if model == nil {
@@ -45,7 +40,6 @@ struct PageScreen: View {
         return page
     }
 
-    // The route's hint bridges the load; the loaded page is the truth.
     private var pageIsDark: Bool {
         loadedPage?.isDark ?? isDarkHint
     }

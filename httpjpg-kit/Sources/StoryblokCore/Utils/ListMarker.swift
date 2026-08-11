@@ -1,6 +1,5 @@
 import Foundation
 
-/// SwiftUI has no list-style-type, so the `list` blok draws its own markers.
 public enum ListMarker {
     public static func bullet(style: String) -> String {
         switch style {
@@ -21,7 +20,6 @@ public enum ListMarker {
         }
     }
 
-    /// Bijective base-26, so 26 is "Z" and 27 is "AA" rather than "A0".
     static func alpha(_ position: Int) -> String {
         guard position > 0 else { return "" }
         var remaining = position

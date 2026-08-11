@@ -18,12 +18,6 @@ public extension View {
 }
 
 public extension View {
-    /// Entrance/exit for glass chrome that appears and disappears. The
-    /// timings are attached to the transition itself so they hold even when
-    /// the element leaves inside a larger transaction — stacked
-    /// .animation(_:value:) modifiers override each other when several
-    /// values change at once, which made the same exit run at two speeds
-    /// depending on what triggered it.
     func glassReveal(
         insertion: Animation = Motion.navigate,
         removal: Animation = Motion.stateChange
@@ -38,11 +32,6 @@ private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            // Deliberately the default materialize transition, not
-            // matchedGeometry: the morph blends a departing pill into its
-            // nearest neighbour, and when a tab switch recolors that
-            // neighbour in the same transaction the pill flashed white and
-            // clipped out hard.
             content.glassEffectID(id, in: namespace)
         } else {
             content

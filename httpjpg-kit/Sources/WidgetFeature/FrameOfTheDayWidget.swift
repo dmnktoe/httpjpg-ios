@@ -37,7 +37,6 @@ struct FrameOfTheDayWidgetView: View {
     @ViewBuilder
     private var content: some View {
         if let image = entry.image {
-            // No caption, no scrim: the frame is the whole widget.
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()

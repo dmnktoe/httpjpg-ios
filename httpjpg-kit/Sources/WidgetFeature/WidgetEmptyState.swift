@@ -2,8 +2,6 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// Shared fallback for the widgets that have nothing to draw — a missing token, an
-/// offline fetch, an empty index all land here.
 struct WidgetEmptyState: View {
     let message: String?
 

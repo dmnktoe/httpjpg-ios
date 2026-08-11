@@ -22,7 +22,6 @@ struct HttpjpgApp: App {
                     ConfigurationErrorView(message: error.localizedDescription)
                 }
             }
-            // Lets Siri resolve the work-title phrase against real entities.
             .task { HttpjpgShortcuts.updateAppShortcutParameters() }
         }
     }

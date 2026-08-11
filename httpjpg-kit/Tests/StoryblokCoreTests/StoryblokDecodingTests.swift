@@ -579,9 +579,6 @@ final class StoryblokDecodingTests: XCTestCase {
     }
 
     func testEveryNewBlokDispatchesInsteadOfFallingBack() throws {
-        // Asserting the typed case, not the component name: the .unknown
-        // fallback preserves both the name and the uid, so a name check would
-        // stay green if a dispatch case were removed.
         func decodeBare(_ component: String) throws -> PortfolioBlok {
             try decode(PortfolioBlok.self, """
             {"_uid":"d-\(component)","component":"\(component)"}

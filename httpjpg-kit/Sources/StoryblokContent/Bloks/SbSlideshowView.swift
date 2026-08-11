@@ -40,8 +40,6 @@ public struct SbSlideshowView: View {
         }
     }
 
-    /// A single slide has nowhere to advance to, and reduced motion has no
-    /// autoplay to hold.
     private var playsThrough: Bool {
         blok.images.count > 1 && !reduceMotion
     }

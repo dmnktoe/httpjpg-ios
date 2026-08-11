@@ -1,8 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// Loading, empty and failure all read the same on the wrist: a small ascii
-/// scene, one line of copy, and a retry when there's something to retry.
 struct WatchStateView: View {
     let art: String
     let message: String

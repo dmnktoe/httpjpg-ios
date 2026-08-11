@@ -29,10 +29,6 @@ struct InfoScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
-                    // In the content like the work masthead, not a UIKit
-                    // large title: that one re-lays out against the moving
-                    // safe area while the sidebar pushes the stack aside
-                    // and visibly jumps to the edge.
                     Headline("info", level: .two)
 
                     pages
@@ -99,8 +95,6 @@ public struct PageRoute: Hashable, Sendable {
     public let slug: String
     public let title: String
 
-    /// Dark-art-direction hint from the index payload, so the page renders
-    /// its scene correctly before its own request lands.
     public let isDark: Bool
 
     init(page: PageSummary) {

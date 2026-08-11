@@ -670,8 +670,6 @@ public struct VideoBlok: Decodable, Identifiable {
 
     public var isEmbed: Bool { source == "youtube" || source == "vimeo" }
 
-    /// Mirrors the web `resolveSrc`: the embed sources read the URL field,
-    /// native prefers the uploaded asset and falls back to the URL.
     public var nativeURL: URL? {
         guard !isEmbed else { return nil }
         return (asset?.filename ?? videoURL).flatMap(URL.init(string:))
@@ -953,9 +951,6 @@ public struct BadgeItemBlok: Decodable, Identifiable {
 
     public var linkURL: URL? {
         guard let href, let url = URL(string: href) else { return nil }
-        // Same scheme allowlist the web Badge applies before linking out. A
-        // scheme-less href is relative to the site, which openURL cannot
-        // resolve, so it stays unlinked rather than becoming a dead button.
         guard let scheme = url.scheme?.lowercased() else { return nil }
         return ["http", "https", "mailto", "tel"].contains(scheme) ? url : nil
     }
@@ -983,7 +978,6 @@ public struct BadgesBlok: Decodable, Identifiable {
         items = container.cmsArray(BadgeItemBlok.self, forKey: .items).filter { !$0.src.isEmpty }
         align = container.cmsString(forKey: .align) ?? "center"
         justify = container.cmsString(forKey: .justify) ?? "start"
-        // The CMS default is "1.5em", which CSSLength resolves against a 16pt root.
         height = CSSLength.points(container.cmsString(forKey: .height)) ?? Self.defaultHeight
     }
 }
@@ -1023,9 +1017,6 @@ public struct ScrollClipImageBlok: Decodable, Identifiable {
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
         width = container.cmsString(forKey: .width)
         isPinned = container.cmsBool(forKey: .pin)
-        // Percent on the CMS side, a 0…1 fraction of each axis here. Clamped
-        // because an unbounded ratio can inset the mask past the whole frame
-        // and leave the image permanently invisible.
         let clipPercent = container.cmsDouble(forKey: .maxClipRatio) ?? 10
         maxClipRatio = CGFloat(min(max(clipPercent, 0), 50)) / 100
         let scale = container.cmsDouble(forKey: .maxScale) ?? 1.1

@@ -36,8 +36,6 @@ public struct SbVideoView: View {
         .blokSpacing(blok.spacing)
     }
 
-    /// AnyView on purpose: `body` renders this in both copyright branches, and
-    /// repeating the full opaque type is what makes type checking blow up.
     private var player: AnyView {
         AnyView(playerContent)
     }
@@ -65,8 +63,6 @@ public struct SbVideoView: View {
         }
     }
 
-    /// There is no in-app YouTube or Vimeo player here, so the embed sources
-    /// hand off to the system browser instead of rendering a web view.
     private func handoff(host: String) -> some View {
         VStack(spacing: Spacing.s3) {
             MonoText("▸ watch on \(host)", size: Typography.Size.sm)

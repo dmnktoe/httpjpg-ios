@@ -2,8 +2,6 @@
 import StoryblokCore
 import UIKit
 
-/// Stand-in content for the `#Preview` timelines — the previews run without a
-/// Storyblok token, so every widget draws from this instead.
 enum WidgetPreviewSample {
     static let items: [WorkItem] = [
         ("shifting baselines", "an archive of coastlines that no longer agree with their maps", 2025),

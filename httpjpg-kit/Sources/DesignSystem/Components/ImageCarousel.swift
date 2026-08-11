@@ -9,8 +9,6 @@ public struct ImageCarousel<Slide: View>: View {
     private let showsArrows: Bool
     private let showsCounter: Bool
 
-    /// Autoplay stands down while such a slide is on screen and waits for its
-    /// `advance`.
     private let ownsRotation: (Int) -> Bool
 
     private let slide: (Int, CarouselSlide) -> Slide
@@ -117,14 +115,11 @@ public struct ImageCarousel<Slide: View>: View {
         count > 1 && !reduceMotion && !isHeld && autoplayInterval != nil
     }
 
-    /// `-1` parks the task; coming off a held slide moves the tick back to an
-    /// index, restarting the timer.
     private var autoplayTick: Int {
         isAutoplayEnabled && !ownsRotation(index) ? index : -1
     }
 
     private func autoplayStep() async {
-        // `.task(id:)` runs for the parked tick too.
         guard autoplayTick >= 0, let interval = autoplayInterval else { return }
         try? await Task.sleep(for: .seconds(interval))
         guard !Task.isCancelled else { return }

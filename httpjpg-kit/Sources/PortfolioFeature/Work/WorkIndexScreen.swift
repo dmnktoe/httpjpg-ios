@@ -135,7 +135,6 @@ struct WorkIndexScreen: View {
     }
 }
 
-/// One crossfade generation per distinct filter state of the list.
 private struct ListGeneration: Hashable {
     let isLoaded: Bool
     let variant: MenuLink.Variant

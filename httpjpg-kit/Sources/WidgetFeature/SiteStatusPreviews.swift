@@ -3,8 +3,6 @@ import SwiftUI
 import WidgetKit
 
 extension SiteStatusEntry {
-    // The status types are decode-only, so the samples go through the same JSON path
-    // the site's endpoints do.
     static let sample = SiteStatusEntry(
         date: Date(timeIntervalSince1970: 0),
         discord: decodeSample(#"{"status": "online", "activity": "Xcode — httpjpg-ios"}"#),

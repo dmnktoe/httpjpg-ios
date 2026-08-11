@@ -38,8 +38,6 @@ public struct RootView: View {
                     .background(theme.background)
             }
         }
-        // Anchored below the theme modifiers so the presented sheet inherits
-        // the page theme through the environment.
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player)
         }
@@ -87,9 +85,6 @@ public struct RootView: View {
             }
         }
         .animation(Motion.navigate, value: player.track)
-        // No animation on pillRowWidth: it is measured from the already-animated
-        // pill row, and re-animating the measurement made the player bar lag and
-        // flicker behind it.
     }
 
     private var content: some View {

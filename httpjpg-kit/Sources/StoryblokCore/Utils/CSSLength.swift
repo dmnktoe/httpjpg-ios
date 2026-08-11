@@ -1,8 +1,6 @@
 import CoreGraphics
 import Foundation
 
-/// The CMS stores a few sizes as free-form CSS lengths (the icon blok asks for
-/// "32px or 2rem"), so they arrive as strings that have to become points.
 enum CSSLength {
     static let rootFontSize: CGFloat = 16
 
@@ -11,7 +9,6 @@ enum CSSLength {
         let value = raw.trimmingCharacters(in: .whitespaces).lowercased()
         guard !value.isEmpty else { return nil }
 
-        // "rem" has to be tested before "em", which is a suffix of it.
         let units: [(String, CGFloat)] = [
             ("px", 1), ("pt", 1), ("rem", rootFontSize), ("em", rootFontSize),
         ]

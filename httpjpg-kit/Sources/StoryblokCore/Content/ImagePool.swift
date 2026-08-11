@@ -1,10 +1,5 @@
 import Foundation
 
-/// Flattens a page body down to the images it renders, in document order.
-///
-/// The feed page is a grid of loose `image` bloks rather than a work with an asset
-/// field, so there is no single place to read its pictures from — they have to be
-/// walked out of the tree.
 public enum ImagePool {
     public static func filenames(in bloks: [PortfolioBlok]) -> [String] {
         var seen = Set<String>()

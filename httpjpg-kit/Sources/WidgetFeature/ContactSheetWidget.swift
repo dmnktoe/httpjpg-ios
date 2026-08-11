@@ -14,7 +14,6 @@ public struct ContactSheetWidget: Widget {
         .configurationDisplayName("Contact sheet")
         .description("The portfolio as a grid of frames. Every frame opens its work.")
 
-        // No small family: only one tap target fits there, and that is the latest-work widget.
         .supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
         .contentMarginsDisabled()
     }

@@ -1,8 +1,6 @@
 import CoreGraphics
 import WidgetKit
 
-/// Tile grid per family. The provider sizes its downloads from this too, so the two
-/// can't drift apart.
 enum ContactSheetLayout {
     static let maximumTiles = 18
 
@@ -25,7 +23,6 @@ enum ContactSheetLayout {
         columns(for: family) * rows(for: family)
     }
 
-    /// Point width of a single tile, used to ask the CDN for a right-sized crop.
     static func tileWidth(for family: WidgetFamily, displayWidth: CGFloat) -> CGFloat {
         max(displayWidth / CGFloat(columns(for: family)), 1)
     }

@@ -25,20 +25,9 @@ struct WorkDetailScreen: View {
         .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
-        // toolbarColorScheme doesn't reach the status bar when the bar is
-        // transparent; forcing the scheme does. Tied to the selected tab and
-        // the top of the path: the stack stays mounted across tab switches,
-        // and coupling to the path flips the scene when a pop starts instead
-        // of snapping after the pop animation finishes.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .toolbar {
-            // One group, one glass cluster: the external preview lives next
-            // to the share button instead of in the bottom pill row, so it
-            // appears and leaves with the screen — no choreography of its own.
             ToolbarItemGroup(placement: .topBarTrailing) {
-                // Monochrome on purpose: iOS forces bar items to monochrome
-                // once content scrolls beneath the glass, so a colored tint
-                // (the global link tint) visibly flipped on the first scroll.
                 if let url = externalPreviewURL {
                     Button {
                         openURL(url)
@@ -61,9 +50,6 @@ struct WorkDetailScreen: View {
         }
     }
 
-    // The route carries the link the index payload already knows, so the
-    // button is there from the first frame; once the detail is loaded its
-    // own link is the truth (the field may have been cleared since).
     private var externalPreviewURL: URL? {
         loadedDetail != nil
             ? validated(loadedDetail?.link?.resolvedURL(siteOrigin: app.configuration.siteOrigin))
@@ -83,14 +69,10 @@ struct WorkDetailScreen: View {
         return detail
     }
 
-    // The route's hint bridges the load; the loaded detail is the truth.
     private var pageIsDark: Bool {
         loadedDetail?.isDark ?? route.isDark
     }
 
-    /// The theme this page renders in, ahead of the ambient one catching up
-    /// through the scene flip — bar items tinted off the ambient theme were
-    /// black-on-dark for the first second.
     private var theme: PageTheme {
         pageIsDark ? .dark : ambientTheme
     }
@@ -103,8 +85,6 @@ struct WorkDetailScreen: View {
         loadedDetail?.title ?? route.title
     }
 
-    // Derived from the route, not the loaded detail, so the button is there
-    // from the first frame — conditional toolbar items pop in unanimated.
     private var shareURL: URL {
         loadedDetail?.canonicalURL(siteOrigin: app.configuration.siteOrigin)
             ?? app.configuration.siteOrigin.appending(path: StorySlug.workPrefix + route.slug)

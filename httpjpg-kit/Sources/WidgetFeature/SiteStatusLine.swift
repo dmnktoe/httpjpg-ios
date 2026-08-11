@@ -2,15 +2,12 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// One footer status row, flattened for the widget: the site renders these as live
-/// components, a widget only ever gets the snapshot.
 struct SiteStatusLine: Identifiable {
     let id: String
     let label: String
     let badge: String
     let text: String
 
-    /// Trails the text at reduced opacity — the activity, the rating, the game.
     let detail: String?
 
     let tint: Color?
@@ -72,8 +69,6 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
-    /// No avatar — a widget refresh would have to fetch it. The follower count
-    /// leads instead, so the post is what truncates.
     init?(profile: XProfile, post: XPost) {
         guard !post.text.isEmpty else { return nil }
         self.init(

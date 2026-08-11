@@ -3,8 +3,6 @@ import StoryblokCore
 import WidgetKit
 
 struct SiteStatusProvider: TimelineProvider {
-    /// The site's own status endpoints move on their own schedule; half-hourly is as
-    /// often as WidgetKit will reliably grant anyway.
     private static let refreshInterval: TimeInterval = 60 * 30
 
     func placeholder(in context: Context) -> SiteStatusEntry {

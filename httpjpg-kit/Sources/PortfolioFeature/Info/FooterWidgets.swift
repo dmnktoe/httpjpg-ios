@@ -143,8 +143,6 @@ private struct XLine: View {
 
     var body: some View {
         FooterStatusLine(label: "x:") {
-            // The handle stays out of the row so the post text is not the
-            // first thing to truncate; the site hides it in a tooltip.
             if let avatar = profile.avatar.flatMap(URL.init(string:)) {
                 FooterThumb(url: avatar, clip: .circle)
                     .accessibilityLabel(profile.handle)
@@ -168,7 +166,6 @@ private struct XLine: View {
     }
 }
 
-/// `RemoteImage` falls back to a glyph that is illegible at this size.
 private struct FooterThumb<Clip: Shape>: View {
     let url: URL
     let clip: Clip
@@ -211,8 +208,6 @@ private struct ClockLine: View {
 
     @State private var now = Date()
 
-    /// The clock reads as "what time it is here", so it is pinned to the site's
-    /// home zone for every reader, the way the website pins it.
     private static let homeTimeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
 
     private static let clock: DateFormatter = {

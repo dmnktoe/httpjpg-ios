@@ -1,11 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// Crossfades between sibling tab roots while keeping every mounted root
-/// alive. Tearing a root down on each switch re-materializes UIKit-backed
-/// chrome (scroll-edge gradients, glass effects) mid-transition — visible
-/// flicker — and throws away scroll position; hiding at zero opacity
-/// avoids both.
 public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
     private let tabs: [Tab]
     private let selection: Tab
@@ -20,9 +15,6 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
     ) {
         self.tabs = tabs
         self.selection = selection
-        // The selection always renders, even if the caller's mounted set
-        // lags a frame behind — a blank frame is exactly the flicker this
-        // view exists to prevent.
         self.mounted = mounted.union([selection])
         self.content = content
     }

@@ -1,7 +1,5 @@
 import Foundation
 
-/// The brand's date stamp: German narrow month, a seasonal glyph and a
-/// two-digit year — the same shape the website prints under a work card.
 public enum WorkCardDate {
     public struct Parts: Equatable, Sendable {
         public let day: String
@@ -12,9 +10,6 @@ public enum WorkCardDate {
 
     private static let monthSymbols = ["❄", "❤", "🌱", "🌸", "☀", "🌊", "🔥", "🌾", "🍂", "🎃", "🍁", "✨"]
 
-    /// Storyblok datetimes carry no zone and `StoryblokDate` reads them as UTC.
-    /// West of UTC, reading them back locally rolls `2026-01-01 00:00` into the
-    /// 31st of the year before.
     public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
 
     nonisolated(unsafe) private static let dayFormatter = formatter("dd")

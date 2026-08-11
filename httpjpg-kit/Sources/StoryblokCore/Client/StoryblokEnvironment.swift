@@ -26,10 +26,6 @@ public struct WorkRoute: Hashable, Identifiable, Sendable {
     public let slug: String
     public let title: String
 
-    /// Hints the index payload already knows — the external link and the
-    /// page's dark art direction — so the detail renders its toolbar,
-    /// surface and scene correctly from the first frame instead of after
-    /// the detail request lands.
     public let previewURL: URL?
 
     public let isDark: Bool

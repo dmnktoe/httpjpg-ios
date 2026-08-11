@@ -50,18 +50,12 @@ public struct SbScrollClipImageView: View {
         )
     }
 
-    /// Returns AnyView on purpose. The reveal's opaque type — a GeometryReader
-    /// wrapping a mask and three overlays — is large enough that repeating it
-    /// across the link/no-link branches sends type checking superlinear.
     private func surface(_ asset: StoryblokAsset) -> AnyView {
         AnyView(reveal(asset))
     }
 
     private func reveal(_ asset: StoryblokAsset) -> some View {
         GeometryReader { proxy in
-            // Hoisted and annotated on purpose: the same arithmetic written
-            // inline inside padding(_:_:), which takes a CGFloat?, sends the
-            // type checker into a hang.
             let size: CGSize = proxy.size
             let horizontal: CGFloat = size.width * clipFraction
             let vertical: CGFloat = size.height * clipFraction
@@ -79,8 +73,6 @@ public struct SbScrollClipImageView: View {
         }
         .aspectRatio(aspectRatio, contentMode: .fit)
         .frame(width: configuredWidth)
-        // The reveal is driven by how far the frame has travelled up the
-        // window, so the whole rect — not just its origin — has to be read.
         .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .global) }) { update(with: $0) }
     }
 
@@ -121,9 +113,6 @@ public struct SbScrollClipImageView: View {
             .shadow(color: .black.opacity(Opacities.subtle), radius: 1, y: 1)
     }
 
-    /// Pinning needs sticky positioning, which a plain SwiftUI ScrollView has
-    /// no equivalent for, so the pinned layout falls back to the same
-    /// entry-driven reveal. The counter still tracks it, as it does on the web.
     @ViewBuilder
     private var progressLabel: some View {
         if blok.isPinned, blok.showsProgress {
@@ -155,13 +144,9 @@ public struct SbScrollClipImageView: View {
 
     private func update(with rect: CGRect) {
         guard !reduceMotion else {
-            // onGeometryChange fires per scroll frame; the reveal is fixed here,
-            // so only write once.
             if progress != 1 { progress = 1 }
             return
         }
-        // Ported from the web `getEntryProgress`: 0 when the top edge sits at
-        // the bottom of the viewport, 1 once the frame is vertically centred.
         let start: CGFloat = viewportHeight
         let end: CGFloat = (viewportHeight - rect.height) / 2
         let travel: CGFloat = start - end
