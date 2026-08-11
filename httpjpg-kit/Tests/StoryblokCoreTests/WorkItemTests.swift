@@ -118,6 +118,52 @@ final class WorkItemTests: XCTestCase {
         XCTAssertEqual(collection.items(for: .projects).map(\.slug), ["a"])
         XCTAssertEqual(collection.items(for: .websites).map(\.slug), ["b"])
     }
+
+    func testWorkPublishedBeforeTheToggleStaysListed() throws {
+        let item = WorkItem(story: try story(slug: "atlas", fullSlug: "work/atlas", content: workContent))
+        XCTAssertTrue(item.isListedInApp)
+    }
+
+    func testShowInAppOffTakesTheWorkOutOfTheList() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","show_in_app":false}"#
+        ))
+        XCTAssertFalse(item.isListedInApp)
+    }
+
+    func testNullShowInAppStaysListed() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","show_in_app":null}"#
+        ))
+        XCTAssertTrue(item.isListedInApp)
+    }
+
+    func testClearedShowInAppStaysListed() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","show_in_app":""}"#
+        ))
+        XCTAssertTrue(item.isListedInApp)
+    }
+
+    func testUnlistedWorkLeavesTheListButStaysInTheSidebarPool() throws {
+        let listed = WorkItem(story: try story(slug: "a", fullSlug: "work/a", content: workContent))
+        let unlisted = WorkItem(story: try story(
+            slug: "b",
+            fullSlug: "work/b",
+            content: #"{"_uid":"w2","component":"work","title":"Hidden","show_in_app":false}"#
+        ))
+
+        let collection = WorkCollection(projects: [listed, unlisted], websites: [])
+
+        XCTAssertEqual(collection.listedItems(for: .projects).map(\.slug), ["a"])
+        XCTAssertEqual(collection.items(for: .projects).map(\.slug), ["a", "b"])
+    }
 }
 
 final class StoryblokDateTests: XCTestCase {

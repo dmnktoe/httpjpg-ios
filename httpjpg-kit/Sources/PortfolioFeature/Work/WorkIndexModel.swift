@@ -24,7 +24,7 @@ final class WorkIndexModel {
 
     var visibleItems: [WorkItem] {
         guard case .loaded(let collection) = state else { return [] }
-        let items = collection.items(for: variant)
+        let items = collection.listedItems(for: variant)
         guard !selectedTags.isEmpty else { return items }
         return items.filter { !selectedTags.isDisjoint(with: $0.tags) }
     }
@@ -44,7 +44,7 @@ final class WorkIndexModel {
     var availableTags: [String] {
         guard case .loaded(let collection) = state else { return [] }
         var seen = Set<String>()
-        return collection.items(for: variant)
+        return collection.listedItems(for: variant)
             .flatMap(\.tags)
             .filter { !Self.sliceTagNames.contains($0.lowercased()) }
             .filter { seen.insert($0).inserted }
