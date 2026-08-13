@@ -28,7 +28,7 @@ public struct SbVideoView: View {
                     }
                 }
             }
-            if blok.caption != nil {
+            if blok.caption?.hasContent == true {
                 StoryRichText(blok.caption, size: Typography.Size.xs)
                     .opacity(Opacities.muted)
             }
