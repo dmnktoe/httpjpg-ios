@@ -23,7 +23,7 @@ public struct SbImageView: View {
                 )
                 .frame(width: configuredWidth)
             }
-            if blok.caption != nil {
+            if blok.caption?.hasContent == true {
                 StoryRichText(blok.caption, size: Typography.Size.sm)
                     .opacity(Opacities.muted)
             }

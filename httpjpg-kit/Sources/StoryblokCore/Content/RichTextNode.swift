@@ -111,6 +111,26 @@ public indirect enum RichTextNode: Decodable {
             return []
         }
     }
+
+    /// A cleared richtext field still arrives as a `doc` wrapping one blank paragraph.
+    public var hasContent: Bool {
+        switch self {
+        case .text(let value, _):
+            return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case .emoji(let value):
+            return !value.isEmpty
+        case .horizontalRule:
+            return true
+        case .image(let source, _):
+            return !(source ?? "").isEmpty
+        case .blok(let bloks):
+            return !bloks.isEmpty
+        case .hardBreak, .unknown:
+            return false
+        default:
+            return children.contains(where: \.hasContent)
+        }
+    }
 }
 
 public enum RichTextAlignment: String, Sendable {

@@ -330,6 +330,24 @@ final class StoryblokDecodingTests: XCTestCase {
         }
     }
 
+    func testClearedCaptionDecodesButHasNoContent() throws {
+        let cleared = try decode(RichTextNode.self, #"{"type":"doc","content":[{"type":"paragraph"}]}"#)
+        XCTAssertFalse(cleared.hasContent)
+
+        let blank = try decode(RichTextNode.self, """
+        {"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"  "}]}]}
+        """)
+        XCTAssertFalse(blank.hasContent)
+
+        let written = try decode(RichTextNode.self, """
+        {"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Foto: Lucas Melzer"}]}]}
+        """)
+        XCTAssertTrue(written.hasContent)
+
+        let rule = try decode(RichTextNode.self, #"{"type":"doc","content":[{"type":"horizontal_rule"}]}"#)
+        XCTAssertTrue(rule.hasContent)
+    }
+
     func testHeadingLevelFallsBackWhenAttrsAreMissing() throws {
         let node = try decode(RichTextNode.self, #"{"type":"heading","content":[]}"#)
         guard case .heading(let level, _) = node else {
