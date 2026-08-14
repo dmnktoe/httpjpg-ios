@@ -377,10 +377,46 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(config.headerMenu.first?.variant, .websites)
         XCTAssertEqual(config.footer?.copyrightText, "© httpjpg")
         XCTAssertEqual(config.seoTitle, "httpjpg")
+        XCTAssertNil(config.siteName)
+        XCTAssertTrue(config.features.isRelatedWorkEnabled)
+        XCTAssertTrue(config.features.isPrevNextWorkEnabled)
+        XCTAssertTrue(config.features.isLastUpdatedBadgeEnabled)
+        XCTAssertTrue(config.features.isRSSFeedEnabled)
+        XCTAssertFalse(config.features.isWebVitalsBadgeEnabled)
+        XCTAssertFalse(config.features.isBuildBadgeEnabled)
+    }
+
+    func testFeatureFlagsHonorTheCMSToggles() throws {
+        let config = try decode(SiteConfig.self, """
+        {"site_name":"㋡httpjpg.com",
+         "related_work_enabled":false,"prev_next_work_enabled":"false",
+         "last_updated_badge_enabled":false,"rss_feed_enabled":"0",
+         "web_vitals_badge_enabled":true,"build_badge_enabled":"true"}
+        """)
+        XCTAssertEqual(config.siteName, "㋡httpjpg.com")
+        XCTAssertFalse(config.features.isRelatedWorkEnabled)
+        XCTAssertFalse(config.features.isPrevNextWorkEnabled)
+        XCTAssertFalse(config.features.isLastUpdatedBadgeEnabled)
+        XCTAssertFalse(config.features.isRSSFeedEnabled)
+        XCTAssertTrue(config.features.isWebVitalsBadgeEnabled)
+        XCTAssertTrue(config.features.isBuildBadgeEnabled)
+    }
+
+    func testClearedFeatureFlagsFallBackToTheirDefaults() throws {
+        let config = try decode(SiteConfig.self, """
+        {"related_work_enabled":"","prev_next_work_enabled":"",
+         "web_vitals_badge_enabled":"","build_badge_enabled":""}
+        """)
+        XCTAssertTrue(config.features.isRelatedWorkEnabled, "a cleared field is not an off switch")
+        XCTAssertTrue(config.features.isPrevNextWorkEnabled)
+        XCTAssertFalse(config.features.isWebVitalsBadgeEnabled)
+        XCTAssertFalse(config.features.isBuildBadgeEnabled)
     }
 
     func testFallbackConfigOffersBothVariants() {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
+        XCTAssertTrue(SiteConfig.fallback.features.isRelatedWorkEnabled)
+        XCTAssertTrue(SiteConfig.fallback.features.isPrevNextWorkEnabled)
     }
 
     func testWidgetFlagsDefaultTheSameWayTheWebDoes() throws {

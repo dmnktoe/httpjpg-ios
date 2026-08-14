@@ -64,7 +64,7 @@ public final class AppModel {
     public var configuration: StoryblokConfiguration { client.configuration }
 
     public var siteName: String {
-        config.seoTitle ?? "㋡httpjpg.com"
+        config.siteName ?? config.seoTitle ?? "㋡httpjpg.com"
     }
 
     public func loadConfig() async {

@@ -50,6 +50,7 @@ final class MockContentTests: XCTestCase {
         XCTAssertEqual(config.headerMenu.map(\.variant), [.projects, .websites])
         XCTAssertEqual(config.seoTitle?.contains("mock"), true)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
+        XCTAssertTrue(config.features.isRelatedWorkEnabled, "the fixture omits the flag, so the web default applies")
         XCTAssertNotNil(config.footer?.copyrightText)
     }
 

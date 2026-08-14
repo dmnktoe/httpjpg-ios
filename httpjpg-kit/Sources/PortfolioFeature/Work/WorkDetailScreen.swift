@@ -119,15 +119,17 @@ struct WorkDetailScreen: View {
                         .padding(.horizontal, PageLayout.gutter)
                 }
 
-                RelatedWorkSection(
-                    tags: detail.tags,
-                    matches: RelatedWork.neighbours(
-                        id: detail.id,
-                        tagValues: detail.tagValues,
-                        in: app.workIndex.allWork
+                if app.config.features.isRelatedWorkEnabled {
+                    RelatedWorkSection(
+                        tags: detail.tags,
+                        matches: RelatedWork.neighbours(
+                            id: detail.id,
+                            tagValues: detail.tagValues,
+                            in: app.workIndex.allWork
+                        )
                     )
-                )
-                .padding(.horizontal, PageLayout.gutter)
+                    .padding(.horizontal, PageLayout.gutter)
+                }
             }
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)

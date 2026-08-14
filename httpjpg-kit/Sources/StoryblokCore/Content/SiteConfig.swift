@@ -3,15 +3,18 @@ import Foundation
 public struct SiteConfig: Decodable, Sendable {
     public let headerMenu: [MenuLink]
     public let footer: FooterConfig?
+    public let siteName: String?
     public let seoTitle: String?
     public let seoDescription: String?
     public let authorName: String?
     public let authorURL: String?
     public let widgets: WidgetFlags
+    public let features: FeatureFlags
 
     private enum CodingKeys: String, CodingKey {
         case headerMenu = "header_menu"
         case footerConfig = "footer_config"
+        case siteName = "site_name"
         case seoTitle = "seo_title"
         case seoDescription = "seo_description"
         case authorName = "author_name"
@@ -22,12 +25,14 @@ public struct SiteConfig: Decodable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         headerMenu = container.cmsArray(MenuLink.self, forKey: .headerMenu)
         footer = container.cmsArray(FooterConfig.self, forKey: .footerConfig).first
+        siteName = container.cmsString(forKey: .siteName)
         seoTitle = container.cmsString(forKey: .seoTitle)
         seoDescription = container.cmsString(forKey: .seoDescription)
         authorName = container.cmsString(forKey: .authorName)
         authorURL = container.cmsString(forKey: .authorURL)
 
         widgets = try WidgetFlags(from: decoder)
+        features = try FeatureFlags(from: decoder)
     }
 
     public static let fallback = SiteConfig(
@@ -36,30 +41,84 @@ public struct SiteConfig: Decodable, Sendable {
             MenuLink(id: "websites", label: "Websites", variant: .websites, link: nil),
         ],
         footer: nil,
+        siteName: nil,
         seoTitle: nil,
         seoDescription: nil,
         authorName: nil,
         authorURL: nil,
-        widgets: .allOff
+        widgets: .allOff,
+        features: .defaults
     )
 
     public init(
         headerMenu: [MenuLink],
         footer: FooterConfig?,
+        siteName: String? = nil,
         seoTitle: String?,
         seoDescription: String?,
         authorName: String?,
         authorURL: String?,
-        widgets: WidgetFlags = .allOff
+        widgets: WidgetFlags = .allOff,
+        features: FeatureFlags = .defaults
     ) {
         self.headerMenu = headerMenu
         self.footer = footer
+        self.siteName = siteName
         self.seoTitle = seoTitle
         self.seoDescription = seoDescription
         self.authorName = authorName
         self.authorURL = authorURL
         self.widgets = widgets
+        self.features = features
     }
+}
+
+/// The Features tab on the config story. Defaults match the website: established
+/// surfaces stay on, opt-in badges stay off, until the CMS says otherwise.
+public struct FeatureFlags: Decodable, Sendable {
+    public let isLastUpdatedBadgeEnabled: Bool
+    public let isWebVitalsBadgeEnabled: Bool
+    public let isBuildBadgeEnabled: Bool
+    public let isPrevNextWorkEnabled: Bool
+    public let isRelatedWorkEnabled: Bool
+    public let isRSSFeedEnabled: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case lastUpdatedBadgeEnabled = "last_updated_badge_enabled"
+        case webVitalsBadgeEnabled = "web_vitals_badge_enabled"
+        case buildBadgeEnabled = "build_badge_enabled"
+        case prevNextWorkEnabled = "prev_next_work_enabled"
+        case relatedWorkEnabled = "related_work_enabled"
+        case rssFeedEnabled = "rss_feed_enabled"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        isLastUpdatedBadgeEnabled = container.cmsBool(forKey: .lastUpdatedBadgeEnabled, default: true)
+        isWebVitalsBadgeEnabled = container.cmsBool(forKey: .webVitalsBadgeEnabled)
+        isBuildBadgeEnabled = container.cmsBool(forKey: .buildBadgeEnabled)
+        isPrevNextWorkEnabled = container.cmsBool(forKey: .prevNextWorkEnabled, default: true)
+        isRelatedWorkEnabled = container.cmsBool(forKey: .relatedWorkEnabled, default: true)
+        isRSSFeedEnabled = container.cmsBool(forKey: .rssFeedEnabled, default: true)
+    }
+
+    public init(
+        isLastUpdatedBadgeEnabled: Bool = true,
+        isWebVitalsBadgeEnabled: Bool = false,
+        isBuildBadgeEnabled: Bool = false,
+        isPrevNextWorkEnabled: Bool = true,
+        isRelatedWorkEnabled: Bool = true,
+        isRSSFeedEnabled: Bool = true
+    ) {
+        self.isLastUpdatedBadgeEnabled = isLastUpdatedBadgeEnabled
+        self.isWebVitalsBadgeEnabled = isWebVitalsBadgeEnabled
+        self.isBuildBadgeEnabled = isBuildBadgeEnabled
+        self.isPrevNextWorkEnabled = isPrevNextWorkEnabled
+        self.isRelatedWorkEnabled = isRelatedWorkEnabled
+        self.isRSSFeedEnabled = isRSSFeedEnabled
+    }
+
+    public static let defaults = FeatureFlags()
 }
 
 public struct WidgetFlags: Decodable, Sendable {
