@@ -56,6 +56,11 @@ public enum ImageService {
             processed(filename, crop: "20x0", focus: focus)
         }
 
+        public static func square(_ filename: String?, points: CGFloat, scale: CGFloat, focus: String = "") -> String {
+            let px = pixelWidth(for: points, scale: scale)
+            return processed(filename, crop: "\(px)x\(px)/smart", focus: focus)
+        }
+
         public static func width(_ filename: String?, _ points: CGFloat, scale: CGFloat, focus: String = "") -> String {
             processed(filename, crop: "\(pixelWidth(for: points, scale: scale))x0", focus: focus)
         }

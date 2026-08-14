@@ -18,6 +18,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
     case image(ImageBlok)
     case divider(DividerBlok)
     case button(ButtonBlok)
+    case buttonGroup(ButtonGroupBlok)
     case callout(CalloutBlok)
     case codeBlock(CodeBlok)
     case list(ListBlok)
@@ -51,6 +52,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .image(let blok): return blok.id
         case .divider(let blok): return blok.id
         case .button(let blok): return blok.id
+        case .buttonGroup(let blok): return blok.id
         case .callout(let blok): return blok.id
         case .codeBlock(let blok): return blok.id
         case .list(let blok): return blok.id
@@ -83,6 +85,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case .image: return "image"
         case .divider: return "divider"
         case .button: return "button"
+        case .buttonGroup: return "button_group"
         case .callout: return "callout"
         case .codeBlock: return "code_block"
         case .list: return "list"
@@ -124,6 +127,7 @@ public enum PortfolioBlok: Decodable, Identifiable {
         case "image": self = .image(try ImageBlok(from: decoder))
         case "divider": self = .divider(try DividerBlok(from: decoder))
         case "button": self = .button(try ButtonBlok(from: decoder))
+        case "button_group": self = .buttonGroup(try ButtonGroupBlok(from: decoder))
         case "callout": self = .callout(try CalloutBlok(from: decoder))
         case "code_block": self = .codeBlock(try CodeBlok(from: decoder))
         case "list": self = .list(try ListBlok(from: decoder))
@@ -221,10 +225,15 @@ public struct WorkBlok: Decodable, Identifiable {
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
+    /// Topic tags from the CMS vocabulary. Separate from the story's
+    /// Storyblok `tag_list`, which decides Projects vs Websites.
+    public let tags: [String]
+
     private enum CodingKeys: String, CodingKey {
         case title
         case description
         case images
+        case tags
         case date
         case dateEnd = "date_end"
         case link
@@ -250,6 +259,7 @@ public struct WorkBlok: Decodable, Identifiable {
         isListedInApp = container.cmsBool(forKey: .showInApp, default: true)
         isDark = container.cmsBool(forKey: .isDark)
         body = container.cmsArray(PortfolioBlok.self, forKey: .body)
+        tags = container.cmsArray(String.self, forKey: .tags)
     }
 }
 
@@ -520,6 +530,36 @@ public struct ButtonBlok: Decodable, Identifiable {
     }
 }
 
+public struct ButtonGroupBlok: Decodable, Identifiable {
+    public let id: String
+    public let spacing: BlokSpacing
+    public let buttons: [ButtonBlok]
+    public let direction: String
+    public let align: String
+    public let justify: String
+    public let gap: CGFloat
+    public let wraps: Bool
+    public let stretches: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case buttons, direction, align, justify, gap, wrap, stretch
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let envelope = try BlokEnvelope(from: decoder)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = envelope.uid
+        spacing = envelope.spacing
+        buttons = container.cmsArray(ButtonBlok.self, forKey: .buttons)
+        direction = container.cmsString(forKey: .direction) ?? "row"
+        align = container.cmsString(forKey: .align) ?? "center"
+        justify = container.cmsString(forKey: .justify) ?? "start"
+        gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s3
+        wraps = container.cmsBool(forKey: .wrap, default: true)
+        stretches = container.cmsBool(forKey: .stretch)
+    }
+}
+
 public struct CalloutBlok: Decodable, Identifiable {
     public let id: String
     public let spacing: BlokSpacing
@@ -686,8 +726,11 @@ public struct VideoBlok: Decodable, Identifiable {
     }
 
     public var copyright: String? {
-        guard let copyright = asset?.copyright, !copyright.isEmpty else { return nil }
-        return copyright
+        asset?.copyrightText
+    }
+
+    public var copyrightSource: String? {
+        asset?.sourceText
     }
 }
 

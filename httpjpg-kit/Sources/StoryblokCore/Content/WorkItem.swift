@@ -23,7 +23,9 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let isDark: Bool
     public let externalURL: URL?
     public let date: Date?
+    public let sliceTags: [String]
     public let tags: [String]
+    public let tagValues: [String]
 
     public init(
         id: String,
@@ -40,7 +42,9 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         isDark: Bool = false,
         externalURL: URL?,
         date: Date?,
-        tags: [String]
+        sliceTags: [String] = [],
+        tags: [String] = [],
+        tagValues: [String] = []
     ) {
         self.id = id
         self.slug = slug
@@ -56,7 +60,9 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.isDark = isDark
         self.externalURL = externalURL
         self.date = date
+        self.sliceTags = sliceTags
         self.tags = tags
+        self.tagValues = tagValues
     }
 }
 
@@ -101,7 +107,9 @@ public extension WorkItem {
             isDark: content.isDark,
             externalURL: externalURL,
             date: StoryblokDate.parse(content.date),
-            tags: story.tagList
+            sliceTags: story.tagList,
+            tags: WorkTopicTag.labels(for: content.tags),
+            tagValues: WorkTopicTag.resolve(content.tags).map(\.value)
         )
     }
 }

@@ -17,13 +17,13 @@ public struct SbVideoView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
-            if let copyright = blok.copyright, copyrightPosition == .below {
+            if blok.copyright != nil || blok.copyrightSource != nil, copyrightPosition == .below {
                 player
-                CopyrightLabel(copyright, position: .below)
+                CopyrightLabel(blok.copyright, source: blok.copyrightSource, position: .below)
             } else {
                 player.overlay(alignment: overlayAlignment) {
-                    if let copyright = blok.copyright {
-                        CopyrightLabel(copyright, position: copyrightPosition)
+                    if blok.copyright != nil || blok.copyrightSource != nil {
+                        CopyrightLabel(blok.copyright, source: blok.copyrightSource, position: copyrightPosition)
                             .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
                     }
                 }

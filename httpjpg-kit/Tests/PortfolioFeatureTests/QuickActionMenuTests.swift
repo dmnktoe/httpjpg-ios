@@ -25,14 +25,14 @@ final class QuickActionMenuTests: XCTestCase {
             isExternal: isExternal,
             externalURL: nil,
             date: daysAgo.map { now.addingTimeInterval(-$0 * 86_400) },
-            tags: tags
+            sliceTags: tags
         )
     }
 
     private func collection(_ items: [WorkItem]) -> WorkCollection {
         WorkCollection(
-            projects: items.filter { !$0.tags.contains("Websites") },
-            websites: items.filter { $0.tags.contains("Websites") }
+            projects: items.filter { !$0.sliceTags.contains("Websites") },
+            websites: items.filter { $0.sliceTags.contains("Websites") }
         )
     }
 

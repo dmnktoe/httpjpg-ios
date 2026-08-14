@@ -101,6 +101,7 @@ struct WorkIndexScreen: View {
             if !model.availableTags.isEmpty {
                 TagChipRow(
                     tags: model.availableTags,
+                    counts: model.tagCounts,
                     selected: model.selectedTags,
                     onSelect: { model.toggle(tag: $0) }
                 )

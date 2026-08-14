@@ -35,6 +35,9 @@ public struct WorkCardView: View {
                 WorkCardImages(images: model.images, accessibilityText: model.title)
             }
             title
+            if !model.tags.isEmpty {
+                TagChipRow(tags: model.tags)
+            }
             meta
             if variant.showsDescription, let description = model.description, !description.isEmpty {
                 BodyText(description, size: .sm, lineLimit: 5, lineHeight: 1.35)
@@ -135,6 +138,7 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
     public let aspectRatio: CGFloat?
     public let accessibilityText: String?
     public let copyright: String?
+    public let copyrightSource: String?
 
     public let videoURL: URL?
 
@@ -145,6 +149,7 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
         aspectRatio: CGFloat? = nil,
         accessibilityText: String? = nil,
         copyright: String? = nil,
+        copyrightSource: String? = nil,
         videoURL: URL? = nil
     ) {
         self.id = id
@@ -153,6 +158,7 @@ public struct WorkCardImage: Identifiable, Hashable, Sendable {
         self.aspectRatio = aspectRatio
         self.accessibilityText = accessibilityText
         self.copyright = copyright
+        self.copyrightSource = copyrightSource
         self.videoURL = videoURL
     }
 }
@@ -187,8 +193,8 @@ private struct WorkCardImages: View {
             }
         }
         .overlay(alignment: .bottomTrailing) {
-            if let copyright = image.copyright, !copyright.isEmpty {
-                CopyrightLabel(copyright, position: .inlineWhite)
+            if image.copyright != nil || image.copyrightSource != nil {
+                CopyrightLabel(image.copyright, source: image.copyrightSource, position: .inlineWhite)
                     .padding(Spacing.s2)
             }
         }

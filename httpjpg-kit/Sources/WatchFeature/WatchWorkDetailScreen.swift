@@ -99,7 +99,7 @@ struct WatchWorkDetailScreen: View {
     }
 
     private var tags: String {
-        item.tags.map { "#" + $0.lowercased() }.joined(separator: " ")
+        item.tags.map { "#" + $0 }.joined(separator: " ")
     }
 
     private var canonical: String {

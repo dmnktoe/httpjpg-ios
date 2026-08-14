@@ -31,15 +31,15 @@ public struct AssetImage: View {
 
     public var body: some View {
         Group {
-            if let copyright, copyrightPosition == .below {
+            if asset.hasCredit, copyrightPosition == .below {
                 VStack(alignment: .leading, spacing: Spacing.s1) {
                     image
-                    CopyrightLabel(copyright, position: .below)
+                    CopyrightLabel(asset.copyrightText, source: asset.sourceText, position: .below)
                 }
             } else {
                 image.overlay(alignment: overlayAlignment) {
-                    if let copyright {
-                        CopyrightLabel(copyright, position: copyrightPosition)
+                    if asset.hasCredit {
+                        CopyrightLabel(asset.copyrightText, source: asset.sourceText, position: copyrightPosition)
                             .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
                     }
                 }
@@ -73,11 +73,6 @@ public struct AssetImage: View {
             contentMode: contentMode,
             accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
         )
-    }
-
-    private var copyright: String? {
-        guard let copyright = asset.copyright, !copyright.isEmpty else { return nil }
-        return copyright
     }
 
     private var overlayAlignment: Alignment {

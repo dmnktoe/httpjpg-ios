@@ -90,14 +90,19 @@ public struct StoryRichText: View {
                     .padding(.vertical, Spacing.s4)
             )
 
-        case .image(let source, let alt):
+        case .image(let source, let alt, let copyright, let credit):
             guard let source, !source.isEmpty else { return AnyView(EmptyView()) }
             return AnyView(
-                RemoteImage(
-                    url: URL(string: source),
-                    aspectRatio: ImageService.aspectRatio(of: source),
-                    accessibilityText: alt
-                )
+                VStack(alignment: .leading, spacing: Spacing.s1) {
+                    RemoteImage(
+                        url: URL(string: source),
+                        aspectRatio: ImageService.aspectRatio(of: source),
+                        accessibilityText: alt
+                    )
+                    if copyright != nil || credit != nil {
+                        CopyrightLabel(copyright, source: credit, position: .below)
+                    }
+                }
             )
 
         case .blok(let bloks):

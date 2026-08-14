@@ -270,6 +270,14 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(blok.dateEnd)
         XCTAssertEqual(blok.images.count, 1)
         XCTAssertEqual(extractPlainText(blok.details), "Hello")
+        XCTAssertEqual(blok.tags, [])
+    }
+
+    func testWorkBlokReadsTheTopicTagVocabulary() throws {
+        let blok = try decode(WorkBlok.self, """
+        {"_uid":"w1","component":"work","title":"Atlas","tags":["swift","ios"]}
+        """)
+        XCTAssertEqual(blok.tags, ["swift", "ios"])
     }
 
     func testMalformedNodesDoNotDiscardTheDocument() throws {
@@ -608,6 +616,7 @@ final class StoryblokDecodingTests: XCTestCase {
         guard case .stats = try decodeBare("stats") else { return XCTFail("stats") }
         guard case .accordion = try decodeBare("accordion") else { return XCTFail("accordion") }
         guard case .badges = try decodeBare("badges") else { return XCTFail("badges") }
+        guard case .buttonGroup = try decodeBare("button_group") else { return XCTFail("button_group") }
         guard case .scrollClipImage = try decodeBare("scroll_clip_image") else {
             return XCTFail("scroll_clip_image")
         }
@@ -645,5 +654,79 @@ final class StoryblokDecodingTests: XCTestCase {
                 "\(region) must point at the v2 CDN root"
             )
         }
+    }
+
+    func testAssetSourceDecodesBesideCopyright() throws {
+        let asset = try decode(StoryblokAsset.self, """
+        {"filename":"https://a.storyblok.com/f/1/x/p.jpg","copyright":"Studio XYZ",
+         "source":"flickr.com/photo"}
+        """)
+        XCTAssertEqual(asset.copyrightText, "Studio XYZ")
+        XCTAssertEqual(asset.sourceText, "flickr.com/photo")
+        XCTAssertTrue(asset.hasCredit)
+    }
+
+    func testClearedAssetSourceIsDropped() throws {
+        let asset = try decode(StoryblokAsset.self, """
+        {"filename":"https://a.storyblok.com/f/1/x/p.jpg","copyright":"","source":""}
+        """)
+        XCTAssertFalse(asset.hasCredit)
+        XCTAssertNil(asset.copyrightText)
+        XCTAssertNil(asset.sourceText)
+    }
+
+    func testButtonGroupDecodesNestedButtonsAndLayout() throws {
+        let blok = try decode(PortfolioBlok.self, """
+        {"_uid":"g1","component":"button_group","direction":"column","align":"start",
+         "justify":"center","gap":"4","wrap":false,"stretch":true,
+         "buttons":[{"_uid":"b1","component":"button","text":"Get in touch","variant":"primary",
+                     "size":"md","link":{"linktype":"url","url":"https://example.com","fieldtype":"multilink"}},
+                    {"_uid":"b2","component":"button","text":"See the work","variant":"secondary",
+                     "size":"sm"}]}
+        """)
+        guard case .buttonGroup(let group) = blok else {
+            return XCTFail("expected a button_group blok, got \(blok.component)")
+        }
+        XCTAssertEqual(group.buttons.map(\.text), ["Get in touch", "See the work"])
+        XCTAssertEqual(group.direction, "column")
+        XCTAssertEqual(group.align, "start")
+        XCTAssertEqual(group.justify, "center")
+        XCTAssertEqual(group.gap, 16)
+        XCTAssertFalse(group.wraps)
+        XCTAssertTrue(group.stretches)
+    }
+
+    func testButtonGroupFallsBackToTheSchemaDefaults() throws {
+        let blok = try decode(ButtonGroupBlok.self, """
+        {"_uid":"g2","component":"button_group","buttons":[]}
+        """)
+        XCTAssertEqual(blok.direction, "row")
+        XCTAssertEqual(blok.align, "center")
+        XCTAssertEqual(blok.justify, "start")
+        XCTAssertEqual(blok.gap, 12)
+        XCTAssertTrue(blok.wraps)
+        XCTAssertFalse(blok.stretches)
+    }
+
+    func testRichTextImageKeepsCopyrightAndSource() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"image","attrs":{
+            "src":"https://a.storyblok.com/f/1/800x600/x/p.jpg",
+            "alt":"A print",
+            "copyright":"Studio XYZ",
+            "source":"flickr.com/photo"
+          }}
+        ]}
+        """)
+        guard case .document(let children) = document,
+              case .image(let source, let alt, let copyright, let credit) = children.first
+        else {
+            return XCTFail("expected a richtext image")
+        }
+        XCTAssertEqual(source, "https://a.storyblok.com/f/1/800x600/x/p.jpg")
+        XCTAssertEqual(alt, "A print")
+        XCTAssertEqual(copyright, "Studio XYZ")
+        XCTAssertEqual(credit, "flickr.com/photo")
     }
 }

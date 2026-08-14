@@ -4,38 +4,59 @@ import Tokens
 public struct TagChip: View {
     private let tag: String
     private let isSelected: Bool
+    private let count: Int?
 
     @Environment(\.pageTheme) private var theme
 
-    public init(_ tag: String, isSelected: Bool = false) {
+    public init(_ tag: String, isSelected: Bool = false, count: Int? = nil) {
         self.tag = tag
         self.isSelected = isSelected
+        self.count = count
     }
 
     public var body: some View {
-        Text("#\(tag.lowercased())")
-            .font(Typography.mono(Typography.Size.xs))
-            .tracking(Typography.Size.xs * 0.05)
-            .padding(.horizontal, Spacing.s2)
-            .padding(.vertical, Spacing.s1 / 2)
-            .foregroundStyle(isSelected ? theme.background : theme.foreground)
-            .background(isSelected ? theme.foreground : Color.clear)
-            .overlay(
-                Rectangle().stroke(Palette.neutral.s400, lineWidth: 1)
-            )
-            .opacity(isSelected ? 1 : Opacities.muted)
-            .animation(Motion.stateChange, value: isSelected)
+        HStack(spacing: Spacing.s1) {
+            Text("#\(tag)")
+            if let count {
+                Text(GlyphDigits.format(count))
+                    .accessibilityHidden(true)
+            }
+        }
+        .font(Typography.mono(Typography.Size.xs))
+        .tracking(Typography.Size.xs * 0.05)
+        .padding(.horizontal, Spacing.s2)
+        .padding(.vertical, Spacing.s1 / 2)
+        .foregroundStyle(isSelected ? theme.background : theme.foreground)
+        .background(isSelected ? theme.foreground : Color.clear)
+        .overlay(
+            Rectangle().stroke(Palette.neutral.s400, lineWidth: 1)
+        )
+        .opacity(isSelected ? 1 : Opacities.muted)
+        .animation(Motion.stateChange, value: isSelected)
+        .accessibilityLabel(accessibilityName)
+    }
+
+    private var accessibilityName: String {
+        guard let count else { return tag }
+        return "\(tag), \(count)"
     }
 }
 
 public struct TagChipRow: View {
     private let tags: [String]
+    private let counts: [String: Int]
     private let selected: Set<String>
     private let onSelect: ((String) -> Void)?
 
-    public init(tags: [String], selected: Set<String> = [], onSelect: ((String) -> Void)? = nil) {
+    public init(
+        tags: [String],
+        counts: [String: Int] = [:],
+        selected: Set<String> = [],
+        onSelect: ((String) -> Void)? = nil
+    ) {
         var seen = Set<String>()
         self.tags = tags.filter { seen.insert($0).inserted }
+        self.counts = counts
         self.selected = selected
         self.onSelect = onSelect
     }
@@ -45,11 +66,11 @@ public struct TagChipRow: View {
             ForEach(tags, id: \.self) { tag in
                 if let onSelect {
                     Button { onSelect(tag) } label: {
-                        TagChip(tag, isSelected: selected.contains(tag))
+                        TagChip(tag, isSelected: selected.contains(tag), count: counts[tag])
                     }
                     .buttonStyle(.plain)
                 } else {
-                    TagChip(tag)
+                    TagChip(tag, count: counts[tag])
                 }
             }
         }

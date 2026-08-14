@@ -14,6 +14,7 @@ public struct WorkDetail: Identifiable {
     public let dateEnd: Date?
     public let link: StoryblokLink?
     public let tags: [String]
+    public let tagValues: [String]
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
@@ -29,7 +30,9 @@ public struct WorkDetail: Identifiable {
         date = StoryblokDate.parse(content.date)
         dateEnd = StoryblokDate.parse(content.dateEnd)
         link = content.link?.isEmpty == true ? nil : content.link
-        tags = story.tagList
+        let topics = WorkTopicTag.resolve(content.tags)
+        tags = topics.map(\.label)
+        tagValues = topics.map(\.value)
         isDark = content.isDark
         body = content.body
     }

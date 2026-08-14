@@ -42,16 +42,24 @@ final class WorkIndexModel {
     }
 
     var availableTags: [String] {
-        guard case .loaded(let collection) = state else { return [] }
-        var seen = Set<String>()
-        return collection.listedItems(for: variant)
-            .flatMap(\.tags)
-            .filter { !Self.sliceTagNames.contains($0.lowercased()) }
-            .filter { seen.insert($0).inserted }
-            .sorted()
+        tagCounts
+            .sorted { lhs, rhs in
+                if lhs.value != rhs.value { return lhs.value > rhs.value }
+                return lhs.key.localizedStandardCompare(rhs.key) == .orderedAscending
+            }
+            .map(\.key)
     }
 
-    private static let sliceTagNames = Set(MenuLink.Variant.allVariants.map(\.rawValue))
+    var tagCounts: [String: Int] {
+        guard case .loaded(let collection) = state else { return [:] }
+        var counts: [String: Int] = [:]
+        for item in collection.listedItems(for: variant) {
+            for tag in Set(item.tags) {
+                counts[tag, default: 0] += 1
+            }
+        }
+        return counts
+    }
 
     var isLoaded: Bool {
         if case .loaded = state { return true }

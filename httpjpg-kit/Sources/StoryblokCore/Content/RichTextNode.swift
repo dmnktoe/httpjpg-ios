@@ -12,7 +12,7 @@ public indirect enum RichTextNode: Decodable {
     case horizontalRule
     case hardBreak
     case text(String, marks: [RichTextMark])
-    case image(source: String?, alt: String?)
+    case image(source: String?, alt: String?, copyright: String?, credit: String?)
     case emoji(String)
 
     case blok([PortfolioBlok])
@@ -27,6 +27,8 @@ public indirect enum RichTextNode: Decodable {
         let textAlign: String?
         let src: String?
         let alt: String?
+        let copyright: String?
+        let source: String?
         let name: String?
         let emoji: String?
         let language: String?
@@ -38,6 +40,8 @@ public indirect enum RichTextNode: Decodable {
             textAlign = container.cmsString(forKey: .textAlign)
             src = container.cmsString(forKey: .src)
             alt = container.cmsString(forKey: .alt)
+            copyright = container.cmsString(forKey: .copyright)
+            source = container.cmsString(forKey: .source)
             name = container.cmsString(forKey: .name)
             emoji = container.cmsString(forKey: .emoji)
             language = container.cmsString(forKey: .language)
@@ -45,7 +49,7 @@ public indirect enum RichTextNode: Decodable {
         }
 
         private enum AttributeKeys: String, CodingKey {
-            case level, textAlign, src, alt, name, emoji, language, body
+            case level, textAlign, src, alt, copyright, source, name, emoji, language, body
         }
     }
 
@@ -85,7 +89,12 @@ public indirect enum RichTextNode: Decodable {
                 marks: container.cmsArray(RichTextMark.self, forKey: .marks)
             )
         case "image":
-            self = .image(source: attributes?.src, alt: attributes?.alt)
+            self = .image(
+                source: attributes?.src,
+                alt: attributes?.alt,
+                copyright: attributes?.copyright,
+                credit: attributes?.source
+            )
         case "emoji":
             self = .emoji(attributes?.emoji ?? attributes?.name ?? "")
         case "blok":
@@ -121,7 +130,7 @@ public indirect enum RichTextNode: Decodable {
             return !value.isEmpty
         case .horizontalRule:
             return true
-        case .image(let source, _):
+        case .image(let source, _, _, _):
             return !(source ?? "").isEmpty
         case .blok(let bloks):
             return !bloks.isEmpty
