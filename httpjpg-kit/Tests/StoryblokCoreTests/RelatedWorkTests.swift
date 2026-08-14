@@ -13,25 +13,31 @@ final class RelatedWorkTests: XCTestCase {
         XCTAssertTrue(neighbours.isEmpty)
     }
 
+    /// `shader` is the only neighbour that shares the rare `swift` tag, so it
+    /// ranks first. `a`/`b`/`c`/`site` all share equally common `web`; the
+    /// remaining slots fill alphabetically among them (default limit is 3).
     func testScoresByTheRarityOfSharedTags() {
         let current = item("atlas", tags: ["swift", "web"])
-        let glslTwin = item("shader", tags: ["swift"])
-        let webTwin = item("site", tags: ["web"])
+        let rareTwin = item("shader", tags: ["swift"])
         let matches = RelatedWork.neighbours(
             id: current.id,
             tagValues: current.tagValues,
             in: [
                 current,
-                glslTwin,
-                webTwin,
+                rareTwin,
+                item("site", tags: ["web"]),
                 item("a", tags: ["web"]),
                 item("b", tags: ["web"]),
                 item("c", tags: ["web"]),
             ]
         )
-        XCTAssertEqual(matches.map(\.item.slug), ["shader", "site"])
-        XCTAssertEqual(matches[0].sharedTags, ["Swift"])
-        XCTAssertEqual(matches[1].sharedTags, ["Web"])
+        XCTAssertEqual(matches.first?.item.slug, "shader")
+        XCTAssertEqual(matches.first?.sharedTags, ["Swift"])
+        XCTAssertEqual(matches.count, 3)
+        XCTAssertTrue(
+            matches.dropFirst().allSatisfy { $0.sharedTags == ["Web"] },
+            "the common tag fills the remaining slots, never outranking the rare one"
+        )
     }
 
     func testSkipsUnlistedWork() {
