@@ -79,23 +79,29 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         if isHeld {
-            content.background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
+            // Flat fallback while the sidebar scrim is up — only paint when tinted.
+            content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
         } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
-        } else {
+        } else if let tint {
             content
-                .background(tint?.opacity(0.55) ?? .clear, in: shape)
+                .background(tint.opacity(0.55), in: shape)
                 .background(.ultraThinMaterial, in: shape)
+        } else {
+            // No CMS / caller tint: skip the frosted material so we don't
+            // leave a grey disc on light pages.
+            content
         }
     }
 
     @available(iOS 26.0, *)
     private var glass: Glass {
-        var glass = Glass.regular
-        if let tint {
-            glass = glass.tint(tint)
+        guard let tint else {
+            // Untinted regular glass still reads as a grey fill on white.
+            return .identity
         }
-        return isInteractive ? glass.interactive() : glass
+        let tinted = Glass.regular.tint(tint)
+        return isInteractive ? tinted.interactive() : tinted
     }
 }
 
