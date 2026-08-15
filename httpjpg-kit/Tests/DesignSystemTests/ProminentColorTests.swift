@@ -59,9 +59,15 @@ final class ProminentColorTests: XCTestCase {
         XCTAssertGreaterThan(Double(r - g), 0.25)
     }
 
-    func testLuminancePicksLightOrDarkForeground() {
-        XCTAssertTrue(ProminentColor.prefersLightForeground(red: 0.1, green: 0.2, blue: 0.8))
-        XCTAssertFalse(ProminentColor.prefersLightForeground(red: 0.95, green: 0.9, blue: 0.2))
+    func testFallsBackToProminentWhenNothingIsVibrant() throws {
+        let image = swatch(UIColor(red: 0.35, green: 0.32, blue: 0.4, alpha: 1), size: 24)
+        let sample = try XCTUnwrap(ProminentColor.sample(from: image))
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        XCTAssertTrue(UIColor(sample.color).getRed(&r, green: &g, blue: &b, alpha: &a))
+        XCTAssertGreaterThan(Double(max(r, g, b) - min(r, g, b)), 0.2)
     }
 
     private func swatch(_ color: UIColor, size: CGFloat) -> UIImage {
