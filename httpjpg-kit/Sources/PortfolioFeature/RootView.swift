@@ -7,7 +7,6 @@ import Tokens
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
-    @State private var featuredTint = FeaturedChromeTint()
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -41,12 +40,10 @@ public struct RootView: View {
         }
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player, glass: chrome)
-                .chromeAccent(featuredTint.color, onAccent: featuredTint.onColor)
                 .pageTheme(theme)
         }
         .pageTheme(theme)
         .pageSurface(theme)
-        .chromeAccent(featuredTint.color, onAccent: featuredTint.onColor)
         .glassNamespace(chrome)
         .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)
@@ -66,14 +63,10 @@ public struct RootView: View {
             guard action != nil else { return }
             openPendingQuickAction()
         }
-        .task(id: featuredThumbnailKey) {
-            featuredTint.update(url: FeaturedChromeTint.sampleURL(for: tintSourceItem))
-        }
         .task {
             openPendingQuickAction()
             await model.loadConfig()
             await model.workIndex.load()
-            featuredTint.update(url: FeaturedChromeTint.sampleURL(for: tintSourceItem))
         }
     }
 
@@ -115,20 +108,6 @@ public struct RootView: View {
 
     private var theme: PageTheme {
         systemScheme == .dark ? .dark : .light
-    }
-
-    /// On a work detail route, tint from that work’s first still; otherwise the list hero.
-    private var tintSourceItem: WorkItem? {
-        if let slug = model.workPath.last?.slug {
-            return model.workIndex.allWork.first { $0.slug == slug }
-        }
-        return model.workIndex.visibleItems.first
-    }
-
-    private var featuredThumbnailKey: String {
-        let slug = model.workPath.last?.slug ?? ""
-        let thumb = FeaturedChromeTint.sampleURL(for: tintSourceItem)?.absoluteString ?? ""
-        return "\(slug)|\(thumb)"
     }
 
     private var bottomBarClearance: CGFloat {

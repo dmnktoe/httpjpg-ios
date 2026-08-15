@@ -139,7 +139,7 @@ struct WorkDetailScreen: View {
     }
 }
 
-/// Applies chrome accent only once a still has been sampled, so we don't wipe the parent tint while loading.
+/// Applies work-detail chrome accent only after a still is sampled (scoped to this screen).
 private struct DetailChromeAccent: ViewModifier {
     let color: Color?
     let onAccent: Color?

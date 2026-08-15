@@ -6,7 +6,7 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// Loads a work still and publishes a chrome accent + on-color.
+/// Loads a work-detail still and publishes accent + on-color for that screen’s glass only.
 @MainActor
 @Observable
 final class FeaturedChromeTint {

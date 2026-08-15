@@ -14,7 +14,7 @@ private struct GlassNamespaceKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Soft tint derived from the first featured work image (or nil for theme chrome).
+    /// Soft tint for work-detail glass only (slideshow arrows, zoom close). Nil elsewhere.
     var chromeAccent: Color? {
         get { self[ChromeAccentKey.self] }
         set { self[ChromeAccentKey.self] = newValue }
