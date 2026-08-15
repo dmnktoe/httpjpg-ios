@@ -22,7 +22,7 @@ struct NavGlassButton: View {
                 .contentShape(.circle)
                 .glassBackground(
                     in: .circle,
-                    tint: tint ?? theme.chromeFill,
+                    tint: tint,
                     interactive: true
                 )
         }
@@ -48,7 +48,7 @@ struct NavGlassIcon: View {
             .contentShape(.circle)
             .glassBackground(
                 in: .circle,
-                tint: tint ?? theme.chromeFill,
+                tint: tint,
                 interactive: true
             )
     }
