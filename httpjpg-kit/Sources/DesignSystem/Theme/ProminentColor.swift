@@ -48,8 +48,9 @@ public enum ProminentColor {
                 let saturation = maxC == 0 ? 0 : (maxC - minC) / maxC
                 let brightness = maxC
 
-                // Skip near-white / near-black pixels so chrome stays vivid.
-                guard saturation > 0.12, brightness > 0.18, brightness < 0.92 else { continue }
+                // Skip near-black and desaturated pixels (greys / near-white).
+                // Bright saturated hues (sky blue, lime, etc.) must stay eligible.
+                guard saturation > 0.12, brightness > 0.12 else { continue }
 
                 let weight = saturation * saturation * alpha
                 totalWeight += weight

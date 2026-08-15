@@ -43,6 +43,7 @@ const CONSCIOUSLY_UNRENDERED = new Map([
   ["badge_item", "decoded as BadgeItemBlok, rendered by SbBadgesView"],
   ["list_item", "decoded as ListItemBlok, rendered by SbListView"],
   ["stat_item", "decoded as StatItemBlok, rendered by SbStatsView"],
+  ["button_group", "web-only CTA cluster; iOS has no button_group surface yet"],
 ]);
 
 const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
