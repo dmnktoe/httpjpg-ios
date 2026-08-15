@@ -2,7 +2,6 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// Circular liquid-glass control for navigation-bar items (back, share, …).
 struct NavGlassButton: View {
     private static let diameter: CGFloat = Spacing.s9
 
