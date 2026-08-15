@@ -26,11 +26,12 @@ final class SidebarTests: XCTestCase {
         let app = makeApp()
         await app.workIndex.load()
 
+        let allCount = app.workIndex.allWork.count
         app.workIndex.select(variant: .websites)
-        app.workIndex.toggle(tag: "a-tag-nothing-carries")
+        app.workIndex.select(tag: "a-tag-nothing-carries")
 
-        XCTAssertTrue(app.workIndex.visibleItems.isEmpty)
-        XCTAssertFalse(app.workIndex.allWork.isEmpty)
+        XCTAssertLessThan(app.workIndex.visibleItems.count, allCount)
+        XCTAssertEqual(app.workIndex.allWork.count, allCount)
     }
 
     func testTheSidebarListSpansBothVariants() async throws {

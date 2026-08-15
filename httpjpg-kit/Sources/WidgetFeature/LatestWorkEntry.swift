@@ -51,7 +51,7 @@ struct LatestWorkEntry: TimelineEntry {
                 isExternal: false,
                 externalURL: nil,
                 date: nil,
-                tags: ["Projects"]
+                sliceTags: ["Projects"]
             )
         }
     )

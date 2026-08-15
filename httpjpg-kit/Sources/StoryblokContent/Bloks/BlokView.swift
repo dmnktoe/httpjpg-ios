@@ -40,6 +40,8 @@ extension PortfolioBlok: View {
             return AnyView(SbDividerView(blok: blok))
         case .button(let blok):
             return AnyView(SbButtonView(blok: blok))
+        case .buttonGroup(let blok):
+            return AnyView(SbButtonGroupView(blok: blok))
         case .callout(let blok):
             return AnyView(SbCalloutView(blok: blok))
         case .codeBlock(let blok):

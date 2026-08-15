@@ -22,9 +22,9 @@ public struct SbScrollClipImageView: View {
     public var body: some View {
         if let asset = blok.image, !asset.isEmpty {
             VStack(alignment: .leading, spacing: Spacing.s2) {
-                if let copyright = asset.copyright, !copyright.isEmpty, copyrightPosition == .below {
+                if asset.hasCredit, copyrightPosition == .below {
                     linked(asset)
-                    CopyrightLabel(copyright, position: .below)
+                    CopyrightLabel(asset.copyrightText, source: asset.sourceText, position: .below)
                 } else {
                     linked(asset)
                 }
@@ -130,8 +130,8 @@ public struct SbScrollClipImageView: View {
 
     @ViewBuilder
     private func inlineCopyright(_ asset: StoryblokAsset) -> some View {
-        if let copyright = asset.copyright, !copyright.isEmpty, copyrightPosition != .below {
-            CopyrightLabel(copyright, position: copyrightPosition)
+        if asset.hasCredit, copyrightPosition != .below {
+            CopyrightLabel(asset.copyrightText, source: asset.sourceText, position: copyrightPosition)
                 .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
         }
     }

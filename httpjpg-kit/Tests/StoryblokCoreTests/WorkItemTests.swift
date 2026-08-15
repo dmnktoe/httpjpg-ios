@@ -38,7 +38,8 @@ final class WorkItemTests: XCTestCase {
         XCTAssertEqual(item.slug, "atlas")
         XCTAssertEqual(item.fullSlug, "work/atlas")
         XCTAssertEqual(item.title, "Atlas")
-        XCTAssertEqual(item.tags, ["Projects"])
+        XCTAssertEqual(item.sliceTags, ["Projects"])
+        XCTAssertEqual(item.tags, [])
         XCTAssertFalse(item.isDraft)
         XCTAssertFalse(item.isExternal)
         XCTAssertEqual(item.imageFilenames.count, 2)
@@ -111,12 +112,27 @@ final class WorkItemTests: XCTestCase {
         let items = [untagged, websites]
 
         let collection = WorkCollection(
-            projects: items.filter { $0.tags.isEmpty || $0.tags.contains(WorkTag.projects) },
-            websites: items.filter { $0.tags.contains(WorkTag.websites) }
+            projects: items.filter { $0.sliceTags.isEmpty || $0.sliceTags.contains(WorkTag.projects) },
+            websites: items.filter { $0.sliceTags.contains(WorkTag.websites) }
         )
 
         XCTAssertEqual(collection.items(for: .projects).map(\.slug), ["a"])
         XCTAssertEqual(collection.items(for: .websites).map(\.slug), ["b"])
+    }
+
+    func testTopicTagsComeFromTheCMSFieldNotTheStoryTagList() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            tags: ["Projects"],
+            content: """
+            {"_uid":"w1","component":"work","title":"Atlas",
+             "tags":["swift","ios","cobol","react"]}
+            """
+        ))
+        XCTAssertEqual(item.sliceTags, ["Projects"])
+        XCTAssertEqual(item.tagValues, ["swift", "react", "ios"])
+        XCTAssertEqual(item.tags, ["Swift", "React", "iOS"])
     }
 
     func testWorkPublishedBeforeTheToggleStaysListed() throws {

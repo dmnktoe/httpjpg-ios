@@ -16,18 +16,19 @@ final class WorkIndexModel {
     private(set) var state: LoadState = .idle
     private var isLoading = false
     var variant: MenuLink.Variant = .projects
-    var selectedTags: Set<String> = []
+    var selectedTag: String?
 
     init(client: ContentClient) {
         self.client = client
     }
 
     var visibleItems: [WorkItem] {
-        guard case .loaded(let collection) = state else { return [] }
-        let items = collection.listedItems(for: variant)
-        guard !selectedTags.isEmpty else { return items }
-        return items.filter { !selectedTags.isDisjoint(with: $0.tags) }
+        let items = listedItems
+        guard let activeTag else { return items }
+        return items.filter { $0.tags.contains(activeTag) }
     }
+
+    var listedCount: Int { listedItems.count }
 
     var allWork: [WorkItem] {
         guard case .loaded(let collection) = state else { return [] }
@@ -42,16 +43,30 @@ final class WorkIndexModel {
     }
 
     var availableTags: [String] {
-        guard case .loaded(let collection) = state else { return [] }
-        var seen = Set<String>()
-        return collection.listedItems(for: variant)
-            .flatMap(\.tags)
-            .filter { !Self.sliceTagNames.contains($0.lowercased()) }
-            .filter { seen.insert($0).inserted }
-            .sorted()
+        tagCounts
+            .sorted { lhs, rhs in
+                if lhs.value != rhs.value { return lhs.value > rhs.value }
+                return lhs.key.localizedStandardCompare(rhs.key) == .orderedAscending
+            }
+            .map(\.key)
     }
 
-    private static let sliceTagNames = Set(MenuLink.Variant.allVariants.map(\.rawValue))
+    var tagCounts: [String: Int] {
+        var counts: [String: Int] = [:]
+        for item in listedItems {
+            for tag in Set(item.tags) {
+                counts[tag, default: 0] += 1
+            }
+        }
+        return counts
+    }
+
+    /// Derived against the tags currently on offer, so a payload that drops the
+    /// selected tag cannot leave an empty list behind an active chip.
+    var activeTag: String? {
+        guard let selectedTag, availableTags.contains(selectedTag) else { return nil }
+        return selectedTag
+    }
 
     var isLoaded: Bool {
         if case .loaded = state { return true }
@@ -79,17 +94,18 @@ final class WorkIndexModel {
         }
     }
 
-    func toggle(tag: String) {
-        if selectedTags.contains(tag) {
-            selectedTags.remove(tag)
-        } else {
-            selectedTags.insert(tag)
-        }
+    func select(tag: String?) {
+        selectedTag = tag
     }
 
     func select(variant newValue: MenuLink.Variant) {
         guard newValue != variant else { return }
         variant = newValue
-        selectedTags.removeAll()
+        selectedTag = nil
+    }
+
+    private var listedItems: [WorkItem] {
+        guard case .loaded(let collection) = state else { return [] }
+        return collection.listedItems(for: variant)
     }
 }

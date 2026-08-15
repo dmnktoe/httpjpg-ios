@@ -47,6 +47,7 @@ struct WorkDetailScreen: View {
                 Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
                 await model?.load()
             }
+            await app.workIndex.load()
         }
     }
 
@@ -116,6 +117,18 @@ struct WorkDetailScreen: View {
                 if detail.body.isEmpty {
                     fallbackBody(detail)
                         .padding(.horizontal, PageLayout.gutter)
+                }
+
+                if app.config.features.isRelatedWorkEnabled {
+                    RelatedWorkSection(
+                        tags: detail.tags,
+                        matches: RelatedWork.neighbours(
+                            id: detail.id,
+                            tagValues: detail.tagValues,
+                            in: app.workIndex.allWork
+                        )
+                    )
+                    .padding(.horizontal, PageLayout.gutter)
                 }
             }
             .padding(.top, Spacing.s6)

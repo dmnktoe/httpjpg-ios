@@ -12,6 +12,7 @@ final class QuickActionMenuTests: XCTestCase {
         _ slug: String,
         daysAgo: Double?,
         tags: [String] = ["Projects"],
+        topicTags: [String] = [],
         isExternal: Bool = false
     ) -> WorkItem {
         WorkItem(
@@ -25,14 +26,15 @@ final class QuickActionMenuTests: XCTestCase {
             isExternal: isExternal,
             externalURL: nil,
             date: daysAgo.map { now.addingTimeInterval(-$0 * 86_400) },
-            tags: tags
+            sliceTags: tags,
+            tags: topicTags
         )
     }
 
     private func collection(_ items: [WorkItem]) -> WorkCollection {
         WorkCollection(
-            projects: items.filter { !$0.tags.contains("Websites") },
-            websites: items.filter { $0.tags.contains("Websites") }
+            projects: items.filter { !$0.sliceTags.contains("Websites") },
+            websites: items.filter { $0.sliceTags.contains("Websites") }
         )
     }
 
@@ -112,11 +114,11 @@ final class QuickActionMenuTests: XCTestCase {
 
     func testUndatedWorkFallsBackToItsTag() {
         let items = QuickActionMenu.items(
-            for: collection([work("undated", daysAgo: nil, tags: ["Websites"])]),
+            for: collection([work("undated", daysAgo: nil, tags: ["Websites"], topicTags: ["Web"])]),
             now: now
         )
 
-        XCTAssertEqual(items[0].localizedSubtitle, "websites")
+        XCTAssertEqual(items[0].localizedSubtitle, "web")
     }
 
     func testAWorkDatedInTheFutureIsNotFresh() {

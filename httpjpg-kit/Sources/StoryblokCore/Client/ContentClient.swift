@@ -47,8 +47,8 @@ public final class ContentClient: @unchecked Sendable {
         let items = direct.map(WorkItem.init(story:))
 
         return WorkCollection(
-            projects: items.filter { $0.tags.isEmpty || $0.tags.contains(WorkTag.projects) },
-            websites: items.filter { $0.tags.contains(WorkTag.websites) }
+            projects: items.filter { $0.sliceTags.isEmpty || $0.sliceTags.contains(WorkTag.projects) },
+            websites: items.filter { $0.sliceTags.contains(WorkTag.websites) }
         )
     }
 

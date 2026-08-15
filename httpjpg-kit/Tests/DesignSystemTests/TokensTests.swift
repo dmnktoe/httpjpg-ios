@@ -79,6 +79,12 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Ascii.sparkles, "·°•. ⋆ ✦ ⋆ .•°·")
         XCTAssertEqual(Ascii.dividerDots, "· ─ · ─ · ─ · ─ ·")
     }
+
+    func testGlyphDigitsMatchTheWebLookalikes() {
+        XCTAssertEqual(GlyphDigits.format(4), "५")
+        XCTAssertEqual(GlyphDigits.format(10), "𝟙⊘")
+        XCTAssertEqual(GlyphDigits.format(0), "⊘")
+    }
 }
 
 final class WorkCardDateTests: XCTestCase {

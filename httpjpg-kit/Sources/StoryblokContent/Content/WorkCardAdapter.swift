@@ -73,7 +73,7 @@ public enum WorkCardAdapter {
             description: extractPlainText(blok.details, maxLength: 240),
             date: StoryblokDate.parse(blok.date),
             dateEnd: StoryblokDate.parse(blok.dateEnd),
-            tags: story.tagList,
+            tags: WorkTopicTag.labels(for: blok.tags),
             images: blok.images.filter { !$0.isEmpty }.map { asset in
                 slide(for: asset, fallbackAlt: title, targetWidth: targetWidth, scale: scale)
             },
@@ -91,7 +91,8 @@ public enum WorkCardAdapter {
             return WorkCardImage(
                 id: asset.filename ?? UUID().uuidString,
                 url: nil,
-                copyright: asset.copyright,
+                copyright: asset.copyrightText,
+                copyrightSource: asset.sourceText,
                 videoURL: asset.filename.flatMap(URL.init(string:))
             )
         }
@@ -101,7 +102,8 @@ public enum WorkCardAdapter {
             alt: asset.accessibilityText(fallback: fallbackAlt),
             targetWidth: targetWidth,
             scale: scale,
-            copyright: asset.copyright
+            copyright: asset.copyrightText,
+            copyrightSource: asset.sourceText
         )
     }
 
@@ -111,7 +113,8 @@ public enum WorkCardAdapter {
         alt: String,
         targetWidth: CGFloat,
         scale: CGFloat,
-        copyright: String? = nil
+        copyright: String? = nil,
+        copyrightSource: String? = nil
     ) -> WorkCardImage {
         WorkCardImage(
             id: filename ?? UUID().uuidString,
@@ -119,7 +122,8 @@ public enum WorkCardAdapter {
             placeholderURL: URL(string: ImageService.Preset.blur(filename, focus: focus ?? "")),
             aspectRatio: ImageService.aspectRatio(of: filename),
             accessibilityText: alt,
-            copyright: copyright
+            copyright: copyright,
+            copyrightSource: copyrightSource
         )
     }
 }

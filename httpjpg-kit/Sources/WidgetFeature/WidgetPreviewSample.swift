@@ -36,7 +36,7 @@ enum WidgetPreviewSample {
             isExternal: false,
             externalURL: nil,
             date: DateComponents(calendar: .current, year: year, month: 6, day: 1).date,
-            tags: position.isMultiple(of: 2) ? ["Projects"] : ["Websites"]
+            sliceTags: position.isMultiple(of: 2) ? ["Projects"] : ["Websites"]
         )
     }
 
