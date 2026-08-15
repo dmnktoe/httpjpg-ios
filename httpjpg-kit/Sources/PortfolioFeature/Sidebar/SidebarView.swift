@@ -6,6 +6,7 @@ import Tokens
 struct SidebarView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
     @Environment(\.openURL) private var openURL
 
     @State private var externalTaps = 0
@@ -29,13 +30,34 @@ struct SidebarView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
 
-            SidebarGlassButton(glyph: "✕", label: "Close menu") {
-                app.toggleSidebar()
+            Spacer(minLength: 0)
+
+            GlassGroup(spacing: Spacing.s2) {
+                HStack(spacing: Spacing.s2) {
+                    if projectCount > 0 {
+                        Text("\(projectCount)")
+                            .font(Typography.mono(Typography.Size.xs))
+                            .foregroundStyle(theme.chromeLabel)
+                            .padding(.horizontal, Spacing.s3)
+                            .frame(height: Spacing.s11)
+                            .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent), interactive: false)
+                            .overlay(Capsule().stroke(theme.chromeStroke(accent: accent), lineWidth: 1))
+                            .accessibilityLabel(countLabel(projectCount))
+                    }
+
+                    SidebarGlassButton(glyph: "✕", label: "Close menu", morphID: "sidebar-toggle") {
+                        app.toggleSidebar()
+                    }
+                }
             }
         }
         .padding(.horizontal, PageLayout.gutter)
         .padding(.top, Spacing.s2)
         .padding(.bottom, Spacing.s5)
+    }
+
+    private var projectCount: Int {
+        app.workIndex.allWork.count
     }
 
     private var projects: some View {
@@ -50,10 +72,11 @@ struct SidebarView: View {
         }
         .scrollIndicators(.hidden)
         .softScrollEdges()
+        .holdsChromeWhileScrolling()
     }
 
     private var listLabel: some View {
-        let count = app.workIndex.allWork.count
+        let count = projectCount
         return HStack(alignment: .firstTextBaseline, spacing: Spacing.s3) {
             InfoSectionLabel("all work")
 

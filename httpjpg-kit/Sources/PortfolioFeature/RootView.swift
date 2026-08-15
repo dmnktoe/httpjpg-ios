@@ -7,6 +7,7 @@ import Tokens
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
+    @State private var featuredTint = FeaturedChromeTint()
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -39,10 +40,14 @@ public struct RootView: View {
             }
         }
         .sheet(isPresented: $player.isExpanded) {
-            PlayerScreen(player: player)
+            PlayerScreen(player: player, glass: chrome)
+                .chromeAccent(featuredTint.color)
+                .pageTheme(theme)
         }
         .pageTheme(theme)
         .pageSurface(theme)
+        .chromeAccent(featuredTint.color)
+        .glassNamespace(chrome)
         .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
@@ -61,9 +66,14 @@ public struct RootView: View {
             guard action != nil else { return }
             openPendingQuickAction()
         }
+        .task(id: featuredThumbnailKey) {
+            featuredTint.update(url: model.workIndex.visibleItems.first?.thumbnailURL)
+        }
         .task {
             openPendingQuickAction()
             await model.loadConfig()
+            await model.workIndex.load()
+            featuredTint.update(url: model.workIndex.visibleItems.first?.thumbnailURL)
         }
     }
 
@@ -75,7 +85,9 @@ public struct RootView: View {
     private func bottomBar(_ player: AudioPlayerModel) -> some View {
         GlassGroup(spacing: Spacing.s2) {
             VStack(spacing: Spacing.s2) {
-                MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
+                if !player.isExpanded {
+                    MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
+                }
                 TabBar(
                     selection: model.selectedTab,
                     glass: chrome,
@@ -85,6 +97,7 @@ public struct RootView: View {
             }
         }
         .animation(Motion.navigate, value: player.track)
+        .animation(Motion.navigate, value: player.isExpanded)
     }
 
     private var content: some View {
@@ -106,9 +119,17 @@ public struct RootView: View {
         systemScheme == .dark ? .dark : .light
     }
 
+    private var featuredThumbnailKey: String {
+        let variant = model.workIndex.variant.rawValue
+        let tags = model.workIndex.selectedTags.sorted().joined(separator: ",")
+        let thumb = model.workIndex.visibleItems.first?.thumbnailURL?.absoluteString ?? ""
+        return "\(variant)|\(tags)|\(thumb)"
+    }
+
     private var bottomBarClearance: CGFloat {
-        player.track == nil
-            ? BottomBarClearance.tabBar
-            : BottomBarClearance.tabBar + BottomBarClearance.miniPlayer
+        if player.track == nil || player.isExpanded {
+            return BottomBarClearance.tabBar
+        }
+        return BottomBarClearance.tabBar + BottomBarClearance.miniPlayer
     }
 }

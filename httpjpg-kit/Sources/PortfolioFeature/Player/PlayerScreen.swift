@@ -5,15 +5,20 @@ import Tokens
 
 struct PlayerScreen: View {
     let player: AudioPlayerModel
+    let glass: Namespace.ID
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
+    @Environment(\.dismiss) private var dismiss
 
     @State private var playPauseTaps = 0
+    @State private var isScrubbing = false
 
     var body: some View {
         VStack(spacing: Spacing.s6) {
+            chromeHandle
+
             MonoText(Ascii.dividerMusic, size: Typography.Size.sm, opacity: Opacities.muted)
-                .padding(.top, Spacing.s8)
 
             if let track = player.track {
                 artwork(track, theme: theme)
@@ -27,7 +32,7 @@ struct PlayerScreen: View {
                 }
                 .padding(.horizontal, PageLayout.gutter)
 
-                scrubber(theme: theme)
+                scrubber
                 transport
 
                 AirPlayPicker(tint: theme.foreground)
@@ -44,7 +49,39 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .pageTheme(theme)
         .pageSurface(theme)
-        .presentationDragIndicator(.visible)
+        .presentationDragIndicator(.hidden)
+    }
+
+    private var chromeHandle: some View {
+        HStack(spacing: Spacing.s3) {
+            Text(Ascii.sparkles)
+                .font(Typography.mono(Typography.Size.xxs))
+                .opacity(Opacities.subtle)
+                .lineLimit(1)
+                .minimumScaleFactor(0.3)
+
+            Spacer(minLength: 0)
+
+            Button {
+                dismiss()
+            } label: {
+                Text("✕")
+                    .font(Typography.mono(Typography.Size.sm))
+                    .frame(width: Spacing.s9, height: Spacing.s9)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close player")
+        }
+        .foregroundStyle(theme.chromeLabel)
+        .padding(.horizontal, Spacing.s4)
+        .padding(.vertical, Spacing.s2)
+        .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent))
+        .glassMorph(id: "player", in: glass)
+        .overlay(Capsule().stroke(theme.chromeStroke(accent: accent), lineWidth: 1))
+        .padding(.horizontal, PageLayout.gutter)
+        .padding(.top, Spacing.s4)
+        .glassReveal()
     }
 
     private func artwork(_ track: AudioTrack, theme: PageTheme) -> some View {
@@ -68,16 +105,19 @@ struct PlayerScreen: View {
         .padding(.horizontal, Spacing.s10)
     }
 
-    private func scrubber(theme: PageTheme) -> some View {
+    private var scrubber: some View {
         VStack(spacing: Spacing.s1) {
-            Slider(
+            GlassScrubber(
                 value: Binding(
                     get: { player.currentTime },
                     set: { player.seek(to: $0) }
                 ),
-                in: 0 ... max(player.duration, 1)
-            )
-            .tint(theme.foreground)
+                in: 0 ... max(player.duration, 1),
+                tint: accent ?? theme.foreground
+            ) { editing in
+                isScrubbing = editing
+            }
+            .environment(\.chromeHeld, isScrubbing)
 
             HStack {
                 MonoText(timestamp(player.currentTime), size: Typography.Size.xxs, opacity: Opacities.muted)
@@ -89,25 +129,26 @@ struct PlayerScreen: View {
     }
 
     private var transport: some View {
-        HStack(spacing: Spacing.s8) {
-            skipButton(by: -15, label: "↺15", accessibility: "Back 15 seconds")
-            Button {
-                playPauseTaps += 1
-                player.togglePlayPause()
-            } label: {
-                Text(player.isPlaying ? "▮▮" : "▸")
-                    .font(Typography.mono(28, weight: .bold))
-                    .frame(width: 64, height: 64)
-                    .contentShape(Rectangle())
-
-                    .contentTransition(.opacity)
-                    .animation(Motion.pressed, value: player.isPlaying)
+        GlassGroup(spacing: Spacing.s4) {
+            HStack(spacing: Spacing.s8) {
+                skipButton(by: -15, label: "↺15", accessibility: "Back 15 seconds")
+                Button {
+                    playPauseTaps += 1
+                    player.togglePlayPause()
+                } label: {
+                    Text(player.isPlaying ? "▮▮" : "▸")
+                        .font(Typography.mono(28, weight: .bold))
+                        .frame(width: 64, height: 64)
+                        .contentShape(Circle())
+                        .contentTransition(.opacity)
+                        .animation(Motion.pressed, value: player.isPlaying)
+                        .glassBackground(in: .circle, tint: theme.chromeFill(accent: accent), interactive: true)
+                }
+                .buttonStyle(.plain)
+                .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
+                .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+                skipButton(by: 15, label: "↻15", accessibility: "Forward 15 seconds")
             }
-            .buttonStyle(.plain)
-
-            .sensoryFeedback(.impact(weight: .light), trigger: playPauseTaps)
-            .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
-            skipButton(by: 15, label: "↻15", accessibility: "Forward 15 seconds")
         }
     }
 
@@ -119,7 +160,8 @@ struct PlayerScreen: View {
                 .font(Typography.mono(Typography.Size.md))
                 .opacity(Opacities.muted)
                 .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+                .contentShape(Circle())
+                .glassBackground(in: .circle, tint: theme.chromeFill(accent: accent), interactive: true)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibility)

@@ -20,6 +20,7 @@ public struct ImageCarousel<Slide: View>: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.mediaHeld) private var isHeld
+    @Environment(\.chromeAccent) private var accent
 
     public init(
         count: Int,
@@ -84,7 +85,11 @@ public struct ImageCarousel<Slide: View>: View {
                 .foregroundStyle(.white)
                 .frame(width: 34, height: 34)
                 .contentShape(Circle())
-                .glassBackground(in: .circle, tint: .black.opacity(0.55), interactive: true)
+                .glassBackground(
+                    in: .circle,
+                    tint: accent?.opacity(0.5) ?? Palette.black.opacity(0.55),
+                    interactive: true
+                )
         }
         .buttonStyle(.plain)
         .shadow(color: .black.opacity(0.35), radius: 6)

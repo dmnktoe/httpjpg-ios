@@ -122,6 +122,7 @@ struct WorkDetailScreen: View {
             .padding(.bottom, bottomBarClearance)
         }
         .softScrollEdges()
+        .holdsChromeWhileScrolling()
     }
 
     @ViewBuilder

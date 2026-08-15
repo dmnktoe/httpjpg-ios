@@ -12,6 +12,9 @@ struct InfoResetCacheButton: View {
     }
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
+    @Namespace private var glass
+
     @State private var phase: Phase = .idle
     @State private var taps = 0
 
@@ -32,19 +35,30 @@ struct InfoResetCacheButton: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
-                .foregroundStyle(theme.chromeLabel)
-                .glassPill(tint: theme.chromeFill, stroke: theme.chromeStroke)
+                .foregroundStyle(phase == .done ? theme.chromeActiveLabel : theme.chromeLabel)
+                .glassPill(
+                    tint: pillTint,
+                    stroke: pillStroke,
+                    morphID: "cache-reset",
+                    glass: glass
+                )
             }
             .buttonStyle(.plain)
             .disabled(phase == .reloading)
             .sensoryFeedback(.impact(weight: .light), trigger: taps)
             .animation(Motion.stateChange, value: phase)
+            .glassReveal()
 
-            MonoText(
-                "drops cached stories & images",
-                size: Typography.Size.xs,
-                opacity: Opacities.dimmed
-            )
+            if phase == .done {
+                MonoText("cache dropped — fresh stories inbound", size: Typography.Size.xs, opacity: Opacities.muted)
+                    .glassReveal()
+            } else {
+                MonoText(
+                    "drops cached stories & images",
+                    size: Typography.Size.xs,
+                    opacity: Opacities.dimmed
+                )
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, PageLayout.gutter)
@@ -62,6 +76,21 @@ struct InfoResetCacheButton: View {
         case .reloading: return "reloading…"
         case .done: return "up to date"
         }
+    }
+
+    private var pillTint: Color {
+        switch phase {
+        case .idle, .reloading:
+            return theme.chromeFill(accent: accent)
+        case .done:
+            return (accent ?? Palette.accent.s400).opacity(0.85)
+        }
+    }
+
+    private var pillStroke: Color {
+        phase == .done
+            ? theme.chromeActiveStroke(accent: accent)
+            : theme.chromeStroke(accent: accent)
     }
 
     private var spin: Animation {

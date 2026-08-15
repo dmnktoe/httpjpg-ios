@@ -5,9 +5,15 @@ public extension View {
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false
+        interactive: Bool = false,
+        asciiUnderlay: Bool = true
     ) -> some View {
-        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
+        modifier(GlassBackgroundModifier(
+            shape: shape,
+            tint: tint,
+            isInteractive: interactive,
+            asciiUnderlay: asciiUnderlay
+        ))
     }
 }
 
@@ -73,28 +79,53 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
+    let asciiUnderlay: Bool
 
     @Environment(\.chromeHeld) private var isHeld
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
 
     func body(content: Content) -> some View {
+        let fill = resolvedTint
         if isHeld {
-            content.background(tint?.opacity(0.55) ?? theme.chromeFill, in: shape)
+            content
+                .background { underlay }
+                .background(fill, in: shape)
         } else if #available(iOS 26.0, *) {
-            content.glassEffect(glass, in: shape)
+            content
+                .background { underlay }
+                .glassEffect(glass(fill), in: shape)
         } else {
             content
-                .background(tint?.opacity(0.55) ?? .clear, in: shape)
+                .background { underlay }
+                .background(fill.opacity(0.55), in: shape)
                 .background(.ultraThinMaterial, in: shape)
         }
     }
 
-    @available(iOS 26.0, *)
-    private var glass: Glass {
-        var glass = Glass.regular
-        if let tint {
-            glass = glass.tint(tint)
+    private var resolvedTint: Color {
+        if let tint { return tint }
+        return theme.chromeFill(accent: accent)
+    }
+
+    @ViewBuilder
+    private var underlay: some View {
+        if asciiUnderlay {
+            Text(Ascii.sparkles)
+                .font(Typography.mono(Typography.Size.xxs))
+                .foregroundStyle(theme.foreground.opacity(0.14))
+                .lineLimit(1)
+                .minimumScaleFactor(0.2)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                .clipShape(shape)
         }
+    }
+
+    @available(iOS 26.0, *)
+    private func glass(_ fill: Color) -> Glass {
+        var glass = Glass.regular.tint(fill)
         return isInteractive ? glass.interactive() : glass
     }
 }

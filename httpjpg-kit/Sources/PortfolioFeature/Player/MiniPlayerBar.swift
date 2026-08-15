@@ -15,6 +15,7 @@ struct MiniPlayerBar: View {
     static let height: CGFloat = rowHeight + Spacing.s2 * 2
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
     @State private var playPauseTaps = 0
 
     var body: some View {
@@ -38,7 +39,6 @@ struct MiniPlayerBar: View {
                         .font(Typography.mono(Typography.Size.md, weight: .bold))
                         .frame(width: Self.rowHeight, height: Self.rowHeight)
                         .contentShape(Rectangle())
-
                         .contentTransition(.opacity)
                         .animation(Motion.pressed, value: player.isPlaying)
                 }
@@ -62,10 +62,10 @@ struct MiniPlayerBar: View {
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)
-            .glassBackground(in: .capsule, tint: theme.chromeFill)
+            .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent))
             .glassMorph(id: "player", in: glass)
             .clipShape(Capsule())
-            .overlay(Capsule().stroke(theme.chromeStroke, lineWidth: 1))
+            .overlay(Capsule().stroke(theme.chromeStroke(accent: accent), lineWidth: 1))
             .contentShape(Capsule())
             .onTapGesture { player.isExpanded = true }
             .gesture(
@@ -95,7 +95,7 @@ struct MiniPlayerBar: View {
         }
         .frame(width: Self.rowHeight, height: Self.rowHeight)
         .clipped()
-        .overlay(Rectangle().stroke(theme.chromeStroke, lineWidth: 1))
+        .overlay(Rectangle().stroke(theme.chromeStroke(accent: accent), lineWidth: 1))
     }
 
     private func marqueeText(_ track: AudioTrack) -> String {

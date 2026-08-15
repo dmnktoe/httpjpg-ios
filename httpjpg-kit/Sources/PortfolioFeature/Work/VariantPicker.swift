@@ -6,9 +6,11 @@ import Tokens
 struct VariantPicker: View {
     let links: [MenuLink]
     let selection: MenuLink.Variant
+    let glass: Namespace.ID
     let onSelect: (MenuLink.Variant) -> Void
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
 
     var body: some View {
         GlassGroup(spacing: Spacing.s2) {
@@ -35,10 +37,12 @@ struct VariantPicker: View {
                 .minimumScaleFactor(0.7)
                 .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel)
                 .glassPill(
-                    tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
-                    stroke: isSelected ? theme.chromeActiveStroke : nil,
+                    tint: isSelected ? theme.chromeActiveFill(accent: accent) : theme.chromeFill(accent: accent),
+                    stroke: isSelected ? theme.chromeActiveStroke(accent: accent) : nil,
                     horizontalPadding: Spacing.s3,
-                    verticalPadding: Spacing.s2
+                    verticalPadding: Spacing.s2,
+                    morphID: variant.rawValue,
+                    glass: glass
                 )
         }
         .buttonStyle(.plain)

@@ -9,8 +9,11 @@ struct WorkIndexScreen: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
     @Environment(\.bottomBarClearance) private var bottomBarClearance
+    @Environment(\.pageTheme) private var theme
+    @Environment(\.chromeAccent) private var accent
 
     @Namespace private var cardZoom
+    @Namespace private var variantGlass
 
     var body: some View {
         @Bindable var app = app
@@ -65,6 +68,7 @@ struct WorkIndexScreen: View {
                 .scrollToTopAnchor()
             }
             .softScrollEdges()
+            .holdsChromeWhileScrolling()
             .refreshable { await model.load(force: true) }
         }
     }
@@ -77,7 +81,7 @@ struct WorkIndexScreen: View {
                     .frame(minHeight: 240)
             } else {
                 ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
-                    row(for: entry.element)
+                    row(for: entry.element, isFeatured: entry.offset == 0, variant: model.variant)
                     if entry.offset < model.visibleItems.count - 1 {
                         BrutalDivider(variant: .ascii)
                     }
@@ -95,6 +99,7 @@ struct WorkIndexScreen: View {
             VariantPicker(
                 links: app.config.headerMenu,
                 selection: model.variant,
+                glass: variantGlass,
                 onSelect: { model.select(variant: $0) }
             )
 
@@ -112,26 +117,64 @@ struct WorkIndexScreen: View {
     }
 
     @ViewBuilder
-    private func row(for item: WorkItem) -> some View {
+    private func row(for item: WorkItem, isFeatured: Bool, variant: MenuLink.Variant) -> some View {
         let card = WorkCardAdapter.model(
             for: item,
             targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
             scale: displayScale
         )
+        let meta = item.date.map(WorkCardDate.year(of:))
+
         if item.isExternal, let url = item.externalURL {
             Link(destination: url) {
-                WorkCardView(card)
+                cardBody(card, isFeatured: isFeatured, variant: variant, meta: meta)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(WorkCardPressStyle(title: item.title, meta: meta))
             .workCardMenu(for: item)
         } else {
             NavigationLink(value: WorkRoute(item: item)) {
-                WorkCardView(card)
+                cardBody(card, isFeatured: isFeatured, variant: variant, meta: meta)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(WorkCardPressStyle(title: item.title, meta: meta))
             .zoomTransitionSource(id: item.slug, in: cardZoom)
             .workCardMenu(for: item)
         }
+    }
+
+    private func cardBody(
+        _ card: WorkCardModel,
+        isFeatured: Bool,
+        variant: MenuLink.Variant,
+        meta: String?
+    ) -> some View {
+        WorkCardView(card)
+            .overlay(alignment: .topLeading) {
+                if isFeatured {
+                    heroChrome(variant: variant, year: meta)
+                }
+            }
+    }
+
+    private func heroChrome(variant: MenuLink.Variant, year: String?) -> some View {
+        HStack(spacing: Spacing.s2) {
+            Text(variant.accessibilityLabel.lowercased())
+                .font(Typography.mono(Typography.Size.xs))
+            if let year {
+                Text("·")
+                    .opacity(Opacities.subtle)
+                Text(year)
+                    .font(Typography.mono(Typography.Size.xs))
+                    .opacity(Opacities.muted)
+            }
+        }
+        .foregroundStyle(theme.chromeLabel)
+        .padding(.horizontal, Spacing.s3)
+        .padding(.vertical, Spacing.s2)
+        .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent), interactive: false)
+        .overlay(Capsule().stroke(theme.chromeStroke(accent: accent), lineWidth: 1))
+        .padding(Spacing.s3)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
