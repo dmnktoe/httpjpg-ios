@@ -75,7 +75,6 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let isInteractive: Bool
 
     @Environment(\.chromeHeld) private var isHeld
-    @Environment(\.pageTheme) private var theme
 
     func body(content: Content) -> some View {
         if isHeld {
