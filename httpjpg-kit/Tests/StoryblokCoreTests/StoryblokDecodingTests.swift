@@ -417,6 +417,29 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
         XCTAssertTrue(SiteConfig.fallback.features.isRelatedWorkEnabled)
         XCTAssertTrue(SiteConfig.fallback.features.isPrevNextWorkEnabled)
+        XCTAssertEqual(SiteConfig.fallback.defaultPageTitle, SiteConfig.fallbackName)
+        XCTAssertEqual(SiteConfig.fallback.displayName, SiteConfig.fallbackName)
+    }
+
+    func testDefaultPageTitleComesFromTheSEOTabNotTheSiteName() throws {
+        let config = try decode(
+            SiteConfig.self,
+            #"{"site_name":"㋡httpjpg.com","seo_title":"Domenik Toefflinger"}"#
+        )
+        XCTAssertEqual(config.displayName, "㋡httpjpg.com")
+        XCTAssertEqual(config.defaultPageTitle, "Domenik Toefflinger")
+    }
+
+    func testDefaultPageTitleFallsBackToTheSiteName() throws {
+        let config = try decode(SiteConfig.self, #"{"site_name":"㋡httpjpg.com"}"#)
+        XCTAssertEqual(config.defaultPageTitle, "㋡httpjpg.com")
+        XCTAssertEqual(config.displayName, "㋡httpjpg.com")
+    }
+
+    func testDisplayNameFallsBackThroughTheSEOTitle() throws {
+        let config = try decode(SiteConfig.self, #"{"seo_title":"httpjpg"}"#)
+        XCTAssertEqual(config.displayName, "httpjpg")
+        XCTAssertEqual(config.defaultPageTitle, "httpjpg")
     }
 
     func testWidgetFlagsDefaultTheSameWayTheWebDoes() throws {

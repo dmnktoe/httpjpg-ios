@@ -19,6 +19,7 @@
     "content": {
       "_uid": "7279510f-cc51-5e20-8a70-bb377f45df9d",
       "component": "config",
+      "site_name": "㋡httpjpg.com",
       "seo_title": "㋡httpjpg.com ▚ mock",
       "seo_description": "Fixture content served by the mock provider.",
       "author_name": "Domenik Töfflinger",

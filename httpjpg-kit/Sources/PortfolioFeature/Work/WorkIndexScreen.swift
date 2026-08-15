@@ -88,7 +88,7 @@ struct WorkIndexScreen: View {
 
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Headline(app.siteName, level: .two, lineSpacing: -0.45)
+            Headline(app.defaultPageTitle, level: .two, lineSpacing: -0.45)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
 

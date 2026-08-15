@@ -71,6 +71,23 @@ public struct SiteConfig: Decodable, Sendable {
         self.widgets = widgets
         self.features = features
     }
+
+    /// Matches the CMS default on `site_name`. Used when neither General nor SEO
+    /// has a title, so the chrome still has a wordmark.
+    public static let fallbackName = "㋡httpjpg.com"
+
+    /// Brand from the General tab. Falls back through the SEO title for spaces
+    /// that predate `site_name`.
+    public var displayName: String {
+        siteName ?? seoTitle ?? Self.fallbackName
+    }
+
+    /// Homepage title from the SEO tab (`seo_title` / Default Page Title).
+    /// The website uses this as the root document title, then suffixes
+    /// `site_name`; the work index is that homepage on iOS.
+    public var defaultPageTitle: String {
+        seoTitle ?? siteName ?? Self.fallbackName
+    }
 }
 
 /// The Features tab on the config story. Defaults match the website: established
