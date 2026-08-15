@@ -90,7 +90,11 @@ private func firstStillFilename(in bloks: [PortfolioBlok]) -> String? {
         case .section(let section):
             if let filename = firstStillFilename(in: section.content) { return filename }
         case .container(let container):
-            if let filename = firstStillFilename(in: container.content) { return filename }
+            if let filename = firstStillFilename(in: container.body) { return filename }
+        case .grid(let grid):
+            if let filename = firstStillFilename(in: grid.items) { return filename }
+        case .gridItem(let item):
+            if let filename = firstStillFilename(in: item.content) { return filename }
         default:
             continue
         }
