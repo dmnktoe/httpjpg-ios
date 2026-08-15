@@ -139,7 +139,7 @@ final class WorkItemTests: XCTestCase {
         let item = WorkItem(story: try story(
             slug: "atlas",
             fullSlug: "work/atlas",
-            content: #"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#A3E635"}"#
+            content: ##"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#A3E635"}"##
         ))
         XCTAssertEqual(item.accentColor, "#A3E635")
         XCTAssertEqual(WorkRoute(item: item).accentColor, "#A3E635")
@@ -149,7 +149,7 @@ final class WorkItemTests: XCTestCase {
         let item = WorkItem(story: try story(
             slug: "atlas",
             fullSlug: "work/atlas",
-            content: #"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#0af"}"#
+            content: ##"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#0af"}"##
         ))
         XCTAssertEqual(item.accentColor, "#0af")
     }
