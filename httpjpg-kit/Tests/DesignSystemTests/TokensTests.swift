@@ -21,6 +21,20 @@ final class TokensTests: XCTestCase {
         XCTAssertNil(Palette.named("primary"))
     }
 
+    func testOnNamedContrastsCMSHexValues() {
+        XCTAssertEqual(Palette.onNamed("#1E3A8A"), Palette.white)
+        XCTAssertEqual(Palette.onNamed("#FBBF24"), Palette.black)
+        XCTAssertEqual(Palette.onNamed("black"), Palette.white)
+        XCTAssertEqual(Palette.onNamed("white"), Palette.black)
+        XCTAssertNil(Palette.onNamed(nil))
+        XCTAssertNil(Palette.onNamed("primary.500"), "token keys are not color-options values")
+    }
+
+    func testNamedAcceptsCMSHexValues() {
+        XCTAssertEqual(Palette.named("#3B82F6"), Color(hex: 0x3B82F6))
+        XCTAssertEqual(Palette.named("#A3E635"), Color(hex: 0xA3E635))
+    }
+
     func testSpacingScaleMatchesRemValues() {
         XCTAssertEqual(Spacing.step(4), 16)
         XCTAssertEqual(Spacing.step(12), 48)

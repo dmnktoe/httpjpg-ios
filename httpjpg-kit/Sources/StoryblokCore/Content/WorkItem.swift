@@ -20,6 +20,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     /// Whether the CMS lists this work in the app's work list. The sidebar
     /// ignores it and keeps showing every published work.
     public let isListedInApp: Bool
+    public let accentColor: String?
     public let isDark: Bool
     public let externalURL: URL?
     public let date: Date?
@@ -39,6 +40,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         isDraft: Bool,
         isExternal: Bool,
         isListedInApp: Bool = true,
+        accentColor: String? = nil,
         isDark: Bool = false,
         externalURL: URL?,
         date: Date?,
@@ -57,6 +59,7 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
         self.isDraft = isDraft
         self.isExternal = isExternal
         self.isListedInApp = isListedInApp
+        self.accentColor = accentColor
         self.isDark = isDark
         self.externalURL = externalURL
         self.date = date
@@ -104,6 +107,7 @@ public extension WorkItem {
             isDraft: story.firstPublishedAt == nil,
             isExternal: content.isExternalOnly,
             isListedInApp: content.isListedInApp,
+            accentColor: content.accentColor,
             isDark: content.isDark,
             externalURL: externalURL,
             date: StoryblokDate.parse(content.date),

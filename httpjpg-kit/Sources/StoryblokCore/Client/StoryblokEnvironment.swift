@@ -28,18 +28,32 @@ public struct WorkRoute: Hashable, Identifiable, Sendable {
 
     public let previewURL: URL?
 
+    public let accentColor: String?
     public let isDark: Bool
 
     public var id: String { slug }
 
-    public init(slug: String, title: String, previewURL: URL? = nil, isDark: Bool = false) {
+    public init(
+        slug: String,
+        title: String,
+        previewURL: URL? = nil,
+        accentColor: String? = nil,
+        isDark: Bool = false
+    ) {
         self.slug = slug
         self.title = title
         self.previewURL = previewURL
+        self.accentColor = accentColor
         self.isDark = isDark
     }
 
     public init(item: WorkItem) {
-        self.init(slug: item.slug, title: item.title, previewURL: item.externalURL, isDark: item.isDark)
+        self.init(
+            slug: item.slug,
+            title: item.title,
+            previewURL: item.externalURL,
+            accentColor: item.accentColor,
+            isDark: item.isDark
+        )
     }
 }

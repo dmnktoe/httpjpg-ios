@@ -258,7 +258,7 @@ final class StoryblokDecodingTests: XCTestCase {
     func testWorkBlokDecodesEveryField() throws {
         let blok = try decode(WorkBlok.self, """
         {"_uid":"w1","component":"work","title":"Atlas","date":"2024-06-15 00:00",
-         "date_end":"","external_only":false,"isDark":true,
+         "date_end":"","external_only":false,"isDark":true,"accentColor":"#3B82F6",
          "images":[{"filename":"https://a.storyblok.com/f/1/x/a.jpg","alt":"A"}],
          "description":{"type":"doc","content":[
            {"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]},
@@ -266,6 +266,7 @@ final class StoryblokDecodingTests: XCTestCase {
         """)
         XCTAssertEqual(blok.title, "Atlas")
         XCTAssertTrue(blok.isDark)
+        XCTAssertEqual(blok.accentColor, "#3B82F6")
         XCTAssertFalse(blok.isExternalOnly)
         XCTAssertNil(blok.dateEnd)
         XCTAssertEqual(blok.images.count, 1)

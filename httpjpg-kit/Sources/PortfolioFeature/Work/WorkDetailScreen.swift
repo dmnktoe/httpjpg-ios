@@ -11,10 +11,8 @@ struct WorkDetailScreen: View {
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.pageTheme) private var ambientTheme
 
     @State private var model: WorkDetailModel?
-    @State private var imageTint = FeaturedChromeTint()
 
     var body: some View {
         Group {
@@ -29,14 +27,14 @@ struct WorkDetailScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
-        .chromeAccent(imageTint.color, onAccent: imageTint.onColor)
+        .chromeAccent(chromeTint, onAccent: chromeOnTint)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 NavGlassButton(
                     systemName: "chevron.left",
                     label: "Back",
-                    tint: imageTint.color,
-                    onTint: imageTint.onColor,
+                    tint: chromeTint,
+                    onTint: chromeOnTint,
                     action: { dismiss() }
                 )
             }
@@ -46,8 +44,8 @@ struct WorkDetailScreen: View {
                     NavGlassButton(
                         systemName: "safari",
                         label: "Open external preview",
-                        tint: imageTint.color,
-                        onTint: imageTint.onColor,
+                        tint: chromeTint,
+                        onTint: chromeOnTint,
                         action: { openURL(url) }
                     )
                 }
@@ -55,16 +53,13 @@ struct WorkDetailScreen: View {
                 ShareLink(item: shareURL) {
                     NavGlassIcon(
                         systemName: "square.and.arrow.up",
-                        tint: imageTint.color,
-                        onTint: imageTint.onColor
+                        tint: chromeTint,
+                        onTint: chromeOnTint
                     )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Share")
             }
-        }
-        .task(id: route.slug) {
-            imageTint.update(url: FeaturedChromeTint.sampleURL(for: indexItem))
         }
         .task {
             if model == nil {
@@ -74,13 +69,23 @@ struct WorkDetailScreen: View {
             }
             await app.workIndex.load()
         }
-        .task(id: loadedDetail?.id) {
-            imageTint.update(url: FeaturedChromeTint.sampleURL(for: loadedDetail))
-        }
     }
 
     private var indexItem: WorkItem? {
         app.workIndex.allWork.first { $0.slug == route.slug }
+    }
+
+    /// Prefer the loaded detail, then the index card, then the route payload.
+    private var accentToken: String? {
+        loadedDetail?.accentColor ?? indexItem?.accentColor ?? route.accentColor
+    }
+
+    private var chromeTint: Color? {
+        Palette.named(accentToken)
+    }
+
+    private var chromeOnTint: Color? {
+        Palette.onNamed(accentToken)
     }
 
     private var externalPreviewURL: URL? {
@@ -104,10 +109,6 @@ struct WorkDetailScreen: View {
 
     private var pageIsDark: Bool {
         loadedDetail?.isDark ?? route.isDark
-    }
-
-    private var theme: PageTheme {
-        pageIsDark ? .dark : ambientTheme
     }
 
     private var forcesDark: Bool {
