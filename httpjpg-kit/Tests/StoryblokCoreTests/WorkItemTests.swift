@@ -135,6 +135,34 @@ final class WorkItemTests: XCTestCase {
         XCTAssertEqual(item.tags, ["Swift", "React", "iOS"])
     }
 
+    func testMapsAccentColorFromWorkStory() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: ##"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#A3E635"}"##
+        ))
+        XCTAssertEqual(item.accentColor, "#A3E635")
+        XCTAssertEqual(WorkRoute(item: item).accentColor, "#A3E635")
+    }
+
+    func testShortAccentColorHexDecodes() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: ##"{"_uid":"w1","component":"work","title":"Atlas","accentColor":"#0af"}"##
+        ))
+        XCTAssertEqual(item.accentColor, "#0af")
+    }
+
+    func testClearedAccentColorIsNil() throws {
+        let item = WorkItem(story: try story(
+            slug: "atlas",
+            fullSlug: "work/atlas",
+            content: #"{"_uid":"w1","component":"work","title":"Atlas","accentColor":""}"#
+        ))
+        XCTAssertNil(item.accentColor)
+    }
+
     func testWorkPublishedBeforeTheToggleStaysListed() throws {
         let item = WorkItem(story: try story(slug: "atlas", fullSlug: "work/atlas", content: workContent))
         XCTAssertTrue(item.isListedInApp)

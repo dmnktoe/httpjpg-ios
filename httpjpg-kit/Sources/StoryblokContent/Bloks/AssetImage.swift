@@ -12,6 +12,8 @@ public struct AssetImage: View {
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     @State private var isZoomed = false
 
@@ -57,6 +59,7 @@ public struct AssetImage: View {
                 )),
                 accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
             )
+            .chromeAccent(accent, onAccent: onAccent)
         }
     }
 

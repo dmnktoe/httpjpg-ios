@@ -10,7 +10,7 @@ struct WorkDetailScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.openURL) private var openURL
-    @Environment(\.pageTheme) private var ambientTheme
+    @Environment(\.dismiss) private var dismiss
 
     @State private var model: WorkDetailModel?
 
@@ -25,20 +25,40 @@ struct WorkDetailScreen: View {
         .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
+        .chromeAccent(chromeTint, onAccent: chromeOnTint)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NavGlassButton(
+                    systemName: "chevron.left",
+                    label: "Back",
+                    tint: chromeTint,
+                    onTint: chromeOnTint,
+                    action: { dismiss() }
+                )
+            }
+
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
-                    Button {
-                        openURL(url)
-                    } label: {
-                        Label("Open external preview", systemImage: "safari")
-                    }
-                    .tint(theme.foreground)
+                    NavGlassButton(
+                        systemName: "safari",
+                        label: "Open external preview",
+                        tint: chromeTint,
+                        onTint: chromeOnTint,
+                        action: { openURL(url) }
+                    )
                 }
 
-                ShareLink(item: shareURL)
-                    .tint(theme.foreground)
+                ShareLink(item: shareURL) {
+                    NavGlassIcon(
+                        systemName: "square.and.arrow.up",
+                        tint: chromeTint,
+                        onTint: chromeOnTint
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Share")
             }
         }
         .task {
@@ -49,6 +69,23 @@ struct WorkDetailScreen: View {
             }
             await app.workIndex.load()
         }
+    }
+
+    private var indexItem: WorkItem? {
+        app.workIndex.allWork.first { $0.slug == route.slug }
+    }
+
+    /// Prefer the loaded detail, then the index card, then the route payload.
+    private var accentToken: String? {
+        loadedDetail?.accentColor ?? indexItem?.accentColor ?? route.accentColor
+    }
+
+    private var chromeTint: Color? {
+        Palette.named(accentToken)
+    }
+
+    private var chromeOnTint: Color? {
+        Palette.onNamed(accentToken)
     }
 
     private var externalPreviewURL: URL? {
@@ -72,10 +109,6 @@ struct WorkDetailScreen: View {
 
     private var pageIsDark: Bool {
         loadedDetail?.isDark ?? route.isDark
-    }
-
-    private var theme: PageTheme {
-        pageIsDark ? .dark : ambientTheme
     }
 
     private var forcesDark: Bool {

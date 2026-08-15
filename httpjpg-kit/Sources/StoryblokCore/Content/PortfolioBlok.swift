@@ -222,6 +222,9 @@ public struct WorkBlok: Decodable, Identifiable {
     public let link: StoryblokLink?
     public let isExternalOnly: Bool
     public let isListedInApp: Bool
+    /// Free-text Project Accent Color from the work page (`#RGB` / `#RRGGBB`).
+    /// Nil when unset or cleared.
+    public let accentColor: String?
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
@@ -239,6 +242,7 @@ public struct WorkBlok: Decodable, Identifiable {
         case link
         case externalOnly = "external_only"
         case showInApp = "show_in_app"
+        case accentColor
         case isDark
         case body
     }
@@ -257,6 +261,7 @@ public struct WorkBlok: Decodable, Identifiable {
         // Work published before the toggle existed carries no `show_in_app`,
         // and Storyblok does not backfill defaults into existing stories.
         isListedInApp = container.cmsBool(forKey: .showInApp, default: true)
+        accentColor = container.cmsString(forKey: .accentColor)
         isDark = container.cmsBool(forKey: .isDark)
         body = container.cmsArray(PortfolioBlok.self, forKey: .body)
         tags = container.cmsArray(String.self, forKey: .tags)

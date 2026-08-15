@@ -15,6 +15,7 @@ public struct WorkDetail: Identifiable {
     public let link: StoryblokLink?
     public let tags: [String]
     public let tagValues: [String]
+    public let accentColor: String?
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
@@ -33,6 +34,7 @@ public struct WorkDetail: Identifiable {
         let topics = WorkTopicTag.resolve(content.tags)
         tags = topics.map(\.label)
         tagValues = topics.map(\.value)
+        accentColor = content.accentColor
         isDark = content.isDark
         body = content.body
     }

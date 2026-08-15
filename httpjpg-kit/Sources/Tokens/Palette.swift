@@ -114,6 +114,20 @@ public enum Palette {
         }
     }
 
+    /// Black or white glyph color that contrasts with a CMS hex accent
+    /// (`#RGB`, `#RRGGBB`, `black`, or `white`).
+    public static func onNamed(_ value: String?) -> Color? {
+        guard let value, !value.isEmpty else { return nil }
+        let hex: UInt32?
+        switch value {
+        case "black": hex = 0x000000
+        case "white": hex = 0xFFFFFF
+        default: hex = hexValue(value)
+        }
+        guard let hex else { return nil }
+        return prefersLightForeground(hex: hex) ? white : black
+    }
+
     static func hexValue(_ value: String) -> UInt32? {
         var digits = Substring(value)
         if digits.hasPrefix("#") {
@@ -126,6 +140,20 @@ public enum Palette {
             ? digits.map { String(repeating: $0, count: 2) }.joined()
             : String(digits)
         return UInt32(expanded, radix: 16)
+    }
+
+    private static func prefersLightForeground(hex: UInt32) -> Bool {
+        let r = Double((hex >> 16) & 0xFF) / 255
+        let g = Double((hex >> 8) & 0xFF) / 255
+        let b = Double(hex & 0xFF) / 255
+        return relativeLuminance(red: r, green: g, blue: b) < 0.179
+    }
+
+    private static func relativeLuminance(red: Double, green: Double, blue: Double) -> Double {
+        func linear(_ channel: Double) -> Double {
+            channel <= 0.03928 ? channel / 12.92 : pow((channel + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
     }
 }
 
