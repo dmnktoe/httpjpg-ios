@@ -17,7 +17,6 @@ public struct ProminentSwatch: Equatable, Sendable {
     }
 }
 
-/// Histogram prominent color — same idea as UIImageColors / ColorThief, no dependency.
 public enum ProminentColor {
     private static let quantize = 8.0
     private static let minSaturation = 0.15
@@ -131,7 +130,7 @@ public enum ProminentColor {
         )
     }
 
-    /// UIImageColors-style saturation floor so muted greys don't win the glass tint.
+    /// UIImageColors-style floor so muted greys don't win the glass tint.
     private static func ensureMinSaturation(r: Double, g: Double, b: Double) -> (r: Double, g: Double, b: Double) {
         let maxC = max(r, g, b)
         let minC = min(r, g, b)
