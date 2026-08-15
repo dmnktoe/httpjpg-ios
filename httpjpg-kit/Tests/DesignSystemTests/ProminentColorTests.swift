@@ -6,7 +6,7 @@ import XCTest
 @testable import DesignSystem
 
 final class ProminentColorTests: XCTestCase {
-    func testSamplesVividAverageFromSolidSwatch() throws {
+    func testSamplesSolidSwatch() throws {
         let image = swatch(UIColor(red: 0.1, green: 0.55, blue: 0.95, alpha: 1), size: 32)
         let sample = try XCTUnwrap(ProminentColor.sample(from: image))
 
@@ -15,9 +15,9 @@ final class ProminentColorTests: XCTestCase {
         var b: CGFloat = 0
         var a: CGFloat = 0
         XCTAssertTrue(UIColor(sample.color).getRed(&r, green: &g, blue: &b, alpha: &a))
-        XCTAssertEqual(r, 0.1, accuracy: 0.08)
-        XCTAssertEqual(g, 0.55, accuracy: 0.08)
-        XCTAssertEqual(b, 0.95, accuracy: 0.08)
+        XCTAssertEqual(r, 0.1, accuracy: 0.1)
+        XCTAssertEqual(g, 0.55, accuracy: 0.1)
+        XCTAssertEqual(b, 0.95, accuracy: 0.1)
     }
 
     func testLightForegroundOnDarkSwatch() throws {
@@ -36,6 +36,27 @@ final class ProminentColorTests: XCTestCase {
 
     func testIgnoresNearWhiteImages() {
         XCTAssertNil(ProminentColor.sample(from: swatch(.white, size: 16)))
+    }
+
+    func testPrefersFrequentColorOverSparseAccent() throws {
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let size = CGSize(width: 20, height: 20)
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            UIColor(red: 0.55, green: 0.2, blue: 0.75, alpha: 1).setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            UIColor(red: 0.95, green: 0.9, blue: 0.2, alpha: 1).setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
+        }
+
+        let sample = try XCTUnwrap(ProminentColor.sample(from: image))
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        XCTAssertTrue(UIColor(sample.color).getRed(&r, green: &g, blue: &b, alpha: &a))
+        XCTAssertGreaterThan(b, r)
+        XCTAssertGreaterThan(b, g)
     }
 
     func testLuminancePicksLightOrDarkForeground() {

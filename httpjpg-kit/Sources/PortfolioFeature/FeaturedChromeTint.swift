@@ -40,7 +40,7 @@ final class FeaturedChromeTint {
             guard let http = response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {
                 return nil
             }
-            return ProminentColor.sample(data: data, maxDimension: 48)
+            return ProminentColor.sample(data: data, maxDimension: 80)
         } catch {
             return nil
         }
