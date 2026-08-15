@@ -19,7 +19,9 @@ public struct ProminentSwatch: Equatable, Sendable {
 
 public enum ProminentColor {
     private static let quantize = 8.0
-    private static let minSaturation = 0.15
+    private static let minSaturation = 0.25
+    private static let targetValue = 0.55
+    private static let minPopulation = 0.02
 
     public static func sample(from image: UIImage, maxDimension: CGFloat = 64) -> ProminentSwatch? {
         guard let cgImage = resized(image, maxDimension: maxDimension) else { return nil }
@@ -45,6 +47,7 @@ public enum ProminentColor {
 
         var counts: [UInt32: Int] = [:]
         counts.reserveCapacity(min(512, width * height / 4))
+        var eligiblePixels = 0
 
         for y in 0 ..< height {
             for x in 0 ..< width {
@@ -57,6 +60,7 @@ public enum ProminentColor {
                 let b = Double(data[offset + 2]) / alpha
                 guard !isNearBlackOrWhite(r: r, g: g, b: b) else { continue }
 
+                eligiblePixels += 1
                 let key = pack(
                     quantizeChannel(r),
                     quantizeChannel(g),
@@ -66,17 +70,18 @@ public enum ProminentColor {
             }
         }
 
-        guard let best = counts.max(by: { lhs, rhs in
-            score(lhs.key, count: lhs.value) < score(rhs.key, count: rhs.value)
-        }) else { return nil }
+        guard eligiblePixels > 0 else { return nil }
+        let floor = max(1, Int((Double(eligiblePixels) * minPopulation).rounded(.up)))
 
-        let (qr, qg, qb) = unpack(best.key)
-        let boosted = ensureMinSaturation(r: qr / 255, g: qg / 255, b: qb / 255)
-        guard saturation(r: boosted.r, g: boosted.g, b: boosted.b) >= minSaturation * 0.5 else {
+        guard let best = counts.max(by: { lhs, rhs in
+            vibrantScore(lhs.key, count: lhs.value, floor: floor)
+                < vibrantScore(rhs.key, count: rhs.value, floor: floor)
+        }), vibrantScore(best.key, count: best.value, floor: floor) > 0 else {
             return nil
         }
 
-        return ProminentSwatch(red: boosted.r, green: boosted.g, blue: boosted.b)
+        let (qr, qg, qb) = unpack(best.key)
+        return ProminentSwatch(red: qr / 255, green: qg / 255, blue: qb / 255)
     }
 
     public static func sample(data: Data, maxDimension: CGFloat = 64) -> ProminentSwatch? {
@@ -94,14 +99,21 @@ public enum ProminentColor {
         return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
     }
 
-    private static func score(_ key: UInt32, count: Int) -> Double {
+    /// node-vibrant-ish: high saturation, mid value, enough population.
+    private static func vibrantScore(_ key: UInt32, count: Int, floor: Int) -> Double {
+        guard count >= floor else { return 0 }
         let (r, g, b) = unpack(key)
         let rn = r / 255
         let gn = g / 255
         let bn = b / 255
         let sat = saturation(r: rn, g: gn, b: bn)
-        guard sat >= minSaturation else { return 0 }
-        return Double(count) * (0.35 + sat * sat)
+        let value = max(rn, gn, bn)
+        guard sat >= minSaturation, value > 0.15, value < 0.95 else { return 0 }
+
+        let satScore = sat * sat
+        let valueScore = 1 - abs(value - targetValue)
+        let populationScore = log2(1 + Double(count))
+        return satScore * valueScore * populationScore
     }
 
     private static func saturation(r: Double, g: Double, b: Double) -> Double {
@@ -128,42 +140,6 @@ public enum ProminentColor {
             Double((key >> 8) & 0xFF),
             Double(key & 0xFF)
         )
-    }
-
-    /// UIImageColors-style floor so muted greys don't win the glass tint.
-    private static func ensureMinSaturation(r: Double, g: Double, b: Double) -> (r: Double, g: Double, b: Double) {
-        let maxC = max(r, g, b)
-        let minC = min(r, g, b)
-        let value = maxC
-        var chroma = maxC - minC
-        let sat = value == 0 ? 0 : chroma / value
-        guard sat < minSaturation, value > 0 else { return (r, g, b) }
-
-        var hue: Double
-        if chroma == 0 {
-            hue = 0
-        } else if maxC == r {
-            hue = ((g - b) / chroma).truncatingRemainder(dividingBy: 6)
-        } else if maxC == g {
-            hue = 2 + (b - r) / chroma
-        } else {
-            hue = 4 + (r - g) / chroma
-        }
-        if hue < 0 { hue += 6 }
-
-        chroma = value * minSaturation
-        let x = chroma * (1 - abs(hue.truncatingRemainder(dividingBy: 2) - 1))
-        let (r1, g1, b1): (Double, Double, Double)
-        switch hue {
-        case 0 ..< 1: (r1, g1, b1) = (chroma, x, 0)
-        case 1 ..< 2: (r1, g1, b1) = (x, chroma, 0)
-        case 2 ..< 3: (r1, g1, b1) = (0, chroma, x)
-        case 3 ..< 4: (r1, g1, b1) = (0, x, chroma)
-        case 4 ..< 5: (r1, g1, b1) = (x, 0, chroma)
-        default: (r1, g1, b1) = (chroma, 0, x)
-        }
-        let m = value - chroma
-        return (r1 + m, g1 + m, b1 + m)
     }
 
     private static func resized(_ image: UIImage, maxDimension: CGFloat) -> CGImage? {

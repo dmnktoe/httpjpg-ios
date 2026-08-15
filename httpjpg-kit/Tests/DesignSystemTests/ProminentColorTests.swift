@@ -38,15 +38,15 @@ final class ProminentColorTests: XCTestCase {
         XCTAssertNil(ProminentColor.sample(from: swatch(.white, size: 16)))
     }
 
-    func testPrefersFrequentColorOverSparseAccent() throws {
+    func testPrefersVibrantOverMutedMajority() throws {
         let format = UIGraphicsImageRendererFormat.default()
         format.scale = 1
         let size = CGSize(width: 20, height: 20)
         let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
-            UIColor(red: 0.55, green: 0.2, blue: 0.75, alpha: 1).setFill()
+            UIColor(red: 0.45, green: 0.42, blue: 0.48, alpha: 1).setFill()
             context.fill(CGRect(origin: .zero, size: size))
-            UIColor(red: 0.95, green: 0.9, blue: 0.2, alpha: 1).setFill()
-            context.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
+            UIColor(red: 0.95, green: 0.15, blue: 0.55, alpha: 1).setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 8, height: 20))
         }
 
         let sample = try XCTUnwrap(ProminentColor.sample(from: image))
@@ -55,8 +55,8 @@ final class ProminentColorTests: XCTestCase {
         var b: CGFloat = 0
         var a: CGFloat = 0
         XCTAssertTrue(UIColor(sample.color).getRed(&r, green: &g, blue: &b, alpha: &a))
-        XCTAssertGreaterThan(b, r)
-        XCTAssertGreaterThan(b, g)
+        XCTAssertGreaterThan(r, g)
+        XCTAssertGreaterThan(Double(r - g), 0.25)
     }
 
     func testLuminancePicksLightOrDarkForeground() {
