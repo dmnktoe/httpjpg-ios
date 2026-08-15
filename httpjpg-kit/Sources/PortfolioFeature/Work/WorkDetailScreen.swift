@@ -13,6 +13,7 @@ struct WorkDetailScreen: View {
     @Environment(\.pageTheme) private var ambientTheme
 
     @State private var model: WorkDetailModel?
+    @State private var imageTint = FeaturedChromeTint()
 
     var body: some View {
         Group {
@@ -26,6 +27,7 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(forcesDark ? .dark : nil)
+        .chromeAccent(imageTint.color, onAccent: imageTint.onColor)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
@@ -41,6 +43,9 @@ struct WorkDetailScreen: View {
                     .tint(theme.foreground)
             }
         }
+        .task(id: route.slug) {
+            imageTint.update(url: FeaturedChromeTint.sampleURL(for: indexItem))
+        }
         .task {
             if model == nil {
                 model = WorkDetailModel(client: app.client, slug: route.slug)
@@ -49,6 +54,13 @@ struct WorkDetailScreen: View {
             }
             await app.workIndex.load()
         }
+        .task(id: loadedDetail?.id) {
+            imageTint.update(url: FeaturedChromeTint.sampleURL(for: loadedDetail))
+        }
+    }
+
+    private var indexItem: WorkItem? {
+        app.workIndex.allWork.first { $0.slug == route.slug }
     }
 
     private var externalPreviewURL: URL? {
