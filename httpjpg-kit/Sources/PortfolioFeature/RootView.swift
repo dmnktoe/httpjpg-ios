@@ -7,7 +7,6 @@ import Tokens
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
-    @State private var detailTint = FeaturedChromeTint()
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -44,7 +43,6 @@ public struct RootView: View {
         }
         .pageTheme(theme)
         .pageSurface(theme)
-        .chromeAccent(detailTint.color, onAccent: detailTint.onColor)
         .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)
@@ -66,30 +64,12 @@ public struct RootView: View {
         .task {
             openPendingQuickAction()
             await model.loadConfig()
-            await model.workIndex.load()
-        }
-        .task(id: detailTintKey) {
-            await refreshDetailTint()
         }
     }
 
     private func openPendingQuickAction() {
         guard let action = QuickActionInbox.shared.take() else { return }
         model.perform(action)
-    }
-
-    private func refreshDetailTint() async {
-        guard let slug = model.workPath.last?.slug else {
-            detailTint.update(url: nil)
-            return
-        }
-        await model.workIndex.load()
-        let item = model.workIndex.allWork.first { $0.slug == slug }
-        detailTint.update(url: FeaturedChromeTint.sampleURL(for: item))
-    }
-
-    private var detailTintKey: String {
-        model.workPath.last?.slug ?? ""
     }
 
     private func bottomBar(_ player: AudioPlayerModel) -> some View {

@@ -12,8 +12,6 @@ struct TabBar: View {
     let onRowWidthChange: (CGFloat) -> Void
 
     @Environment(\.pageTheme) private var theme
-    @Environment(\.chromeAccent) private var accent
-    @Environment(\.chromeOnAccent) private var onAccent
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     @State private var tapCount = 0
@@ -36,9 +34,9 @@ struct TabBar: View {
 
         return ChromePillButton(
             text: tab.label,
-            tint: isSelected ? theme.chromeActiveFill(accent: accent) : theme.chromeFill(accent: accent),
-            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel(onAccent: onAccent),
-            stroke: isSelected ? theme.chromeActiveStroke(accent: accent) : nil,
+            tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
+            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
+            stroke: isSelected ? theme.chromeActiveStroke : nil,
             morphID: tab.id,
             glass: glass
         ) {
