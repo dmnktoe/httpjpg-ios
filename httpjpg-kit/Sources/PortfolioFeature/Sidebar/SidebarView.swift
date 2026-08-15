@@ -32,7 +32,7 @@ struct SidebarView: View {
 
             Spacer(minLength: 0)
 
-            GlassGroup(spacing: Spacing.s2) {
+            GlassGroup {
                 HStack(spacing: Spacing.s2) {
                     if projectCount > 0 {
                         Text("\(projectCount)")
@@ -72,7 +72,6 @@ struct SidebarView: View {
         }
         .scrollIndicators(.hidden)
         .softScrollEdges()
-        .holdsChromeWhileScrolling()
     }
 
     private var listLabel: some View {

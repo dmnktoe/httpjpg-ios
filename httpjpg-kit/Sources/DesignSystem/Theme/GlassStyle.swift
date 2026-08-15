@@ -5,15 +5,9 @@ public extension View {
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false,
-        asciiUnderlay: Bool = true
+        interactive: Bool = false
     ) -> some View {
-        modifier(GlassBackgroundModifier(
-            shape: shape,
-            tint: tint,
-            isInteractive: interactive,
-            asciiUnderlay: asciiUnderlay
-        ))
+        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
     }
 }
 
@@ -79,53 +73,37 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
-    let asciiUnderlay: Bool
 
     @Environment(\.chromeHeld) private var isHeld
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
 
     func body(content: Content) -> some View {
-        let fill = resolvedTint
-        if isHeld {
-            content
-                .background { underlay }
-                .background(fill, in: shape)
-        } else if #available(iOS 26.0, *) {
-            content
-                .background { underlay }
-                .glassEffect(glass(fill), in: shape)
+        // Keep one rendering path while scrolling. Swapping glassEffect ↔ solid
+        // fill on every scroll/settle tick is what made chrome flicker.
+        if #available(iOS 26.0, *), !isHeld {
+            content.glassEffect(glass, in: shape)
         } else {
             content
-                .background { underlay }
-                .background(fill.opacity(0.55), in: shape)
+                .background(fallbackFill, in: shape)
                 .background(.ultraThinMaterial, in: shape)
         }
     }
 
-    private var resolvedTint: Color {
-        if let tint { return tint }
-        return theme.chromeFill(accent: accent)
+    private var fallbackFill: Color {
+        resolvedTint.opacity(0.55)
     }
 
-    @ViewBuilder
-    private var underlay: some View {
-        if asciiUnderlay {
-            Text(Ascii.sparkles)
-                .font(Typography.mono(Typography.Size.xxs))
-                .foregroundStyle(theme.foreground.opacity(0.14))
-                .lineLimit(1)
-                .minimumScaleFactor(0.2)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-                .clipShape(shape)
-        }
+    /// Callers that already baked accent into `tint` win; otherwise fall back to accent / theme.
+    private var resolvedTint: Color {
+        if let tint { return tint }
+        if let accent { return theme.chromeFill(accent: accent) }
+        return theme.chromeFill
     }
 
     @available(iOS 26.0, *)
-    private func glass(_ fill: Color) -> Glass {
-        var glass = Glass.regular.tint(fill)
+    private var glass: Glass {
+        var glass = Glass.regular.tint(resolvedTint)
         return isInteractive ? glass.interactive() : glass
     }
 }
@@ -134,7 +112,9 @@ public struct GlassGroup<Content: View>: View {
     private let spacing: CGFloat?
     private let content: Content
 
-    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    /// Merge threshold. Keep this *below* the inner stack spacing so neighbouring
+    /// pills stay distinct at rest — equal values sit on the blend boundary and shimmer.
+    public init(spacing: CGFloat? = 0, @ViewBuilder content: () -> Content) {
         self.spacing = spacing
         self.content = content()
     }

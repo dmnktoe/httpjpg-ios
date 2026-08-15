@@ -65,7 +65,7 @@ public struct ImageCarousel<Slide: View>: View {
     @ViewBuilder
     private var navigation: some View {
         if showsArrows {
-            GlassGroup(spacing: Spacing.s2) {
+            GlassGroup {
                 HStack(spacing: Spacing.s2) {
                     arrow("chevron.left", step: -1)
                     arrow("chevron.right", step: 1)

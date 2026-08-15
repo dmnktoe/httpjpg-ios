@@ -38,7 +38,7 @@ public struct ImageZoomViewer: View {
             }
             .ignoresSafeArea()
 
-            GlassGroup(spacing: Spacing.s2) {
+            GlassGroup {
                 Button {
                     dismiss()
                 } label: {

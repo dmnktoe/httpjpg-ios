@@ -54,7 +54,6 @@ struct InfoScreen: View {
             .scrollToTopAnchor()
         }
         .softScrollEdges()
-        .holdsChromeWhileScrolling()
         .refreshable {
             await app.info.load(force: true)
             await app.footerWidgets?.load()

@@ -13,7 +13,7 @@ struct VariantPicker: View {
     @Environment(\.chromeAccent) private var accent
 
     var body: some View {
-        GlassGroup(spacing: Spacing.s2) {
+        GlassGroup {
             HStack(spacing: Spacing.s2) {
                 ForEach(entries) { link in
                     chip(for: link.variant)

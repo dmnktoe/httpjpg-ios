@@ -24,8 +24,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     @State private var settleTicket = 0
 
-    @State private var scrollHeld = false
-
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
@@ -67,9 +65,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, chromeHeld)
+        // Only freeze glass while the drawer is actively dragged — settle/open
+        // flags were swapping every liquid-glass surface to solid and back.
+        .environment(\.chromeHeld, drag.isArmed)
         .animation(motion, value: isOpen)
-        .onPreferenceChange(ChromeScrollHoldKey.self) { scrollHeld = $0 }
         .task(id: settleTicket) {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
@@ -113,10 +112,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var ambientHeld: Bool {
         isOpen || drag.isArmed || isSettling
-    }
-
-    private var chromeHeld: Bool {
-        ambientHeld || scrollHeld
     }
 
     private var openEdge: some View {

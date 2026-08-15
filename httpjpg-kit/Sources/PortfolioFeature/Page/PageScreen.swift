@@ -81,7 +81,6 @@ struct PageScreen: View {
                     .padding(.bottom, bottomBarClearance)
             }
             .softScrollEdges()
-            .holdsChromeWhileScrolling()
         }
     }
 }

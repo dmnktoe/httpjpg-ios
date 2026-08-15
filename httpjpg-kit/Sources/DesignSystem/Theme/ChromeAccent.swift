@@ -37,10 +37,10 @@ public extension PageTheme {
     /// Inactive chrome fill — accent-tinted when a featured color is present.
     func chromeFill(accent: Color?) -> Color {
         guard let accent else { return chromeFill }
-        return accent.opacity(isDark ? 0.42 : 0.32)
+        // Strong enough to read through Liquid Glass vibrancy.
+        return accent.opacity(isDark ? 0.62 : 0.5)
     }
 
-    /// Selected chrome fill — keeps high contrast, with a whisper of accent on the stroke side.
     func chromeActiveFill(accent: Color?) -> Color {
         guard accent != nil else { return chromeActiveFill }
         return Palette.white.opacity(isDark ? 0.92 : 0.96)
@@ -48,10 +48,10 @@ public extension PageTheme {
 
     func chromeStroke(accent: Color?) -> Color {
         guard let accent else { return chromeStroke }
-        return accent.opacity(isDark ? 0.55 : 0.4)
+        return accent.opacity(isDark ? 0.7 : 0.55)
     }
 
     func chromeActiveStroke(accent: Color?) -> Color {
-        accent?.opacity(0.85) ?? chromeActiveStroke
+        accent ?? chromeActiveStroke
     }
 }

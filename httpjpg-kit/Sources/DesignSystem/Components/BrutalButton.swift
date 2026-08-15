@@ -73,8 +73,7 @@ public struct BrutalButtonStyle: ButtonStyle {
             .glassBackground(
                 in: .capsule,
                 tint: variant.fill.opacity(configuration.isPressed ? 1 : 0.9),
-                interactive: true,
-                asciiUnderlay: false
+                interactive: true
             )
             .shadow(color: variant.fill.opacity(0.3), radius: 10)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)

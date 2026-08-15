@@ -18,9 +18,11 @@ struct TabBar: View {
     @State private var tapCount = 0
 
     var body: some View {
-        HStack(spacing: Spacing.s2) {
-            ForEach(AppModel.Tab.allCases) { tab in
-                pill(for: tab)
+        GlassGroup {
+            HStack(spacing: Spacing.s2) {
+                ForEach(AppModel.Tab.allCases) { tab in
+                    pill(for: tab)
+                }
             }
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { onRowWidthChange($0) }

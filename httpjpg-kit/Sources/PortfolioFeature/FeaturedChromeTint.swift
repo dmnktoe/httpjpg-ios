@@ -5,7 +5,7 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// Loads the first featured work thumbnail and publishes a soft chrome accent.
+/// Loads the first featured work thumbnail and publishes a chrome accent.
 @MainActor
 @Observable
 final class FeaturedChromeTint {
@@ -15,21 +15,21 @@ final class FeaturedChromeTint {
     @ObservationIgnored private var loadedURL: URL?
 
     func update(url: URL?) {
-        guard url != loadedURL else { return }
-        loadedURL = url
+        let normalized = url.flatMap(Self.normalized)
+        guard normalized != loadedURL else { return }
+        loadedURL = normalized
         task?.cancel()
 
-        guard let url else {
+        guard let normalized else {
             color = nil
             return
         }
 
         task = Task {
-            let sample = await Self.load(url: url)
+            let sample = await Self.load(url: normalized)
             guard !Task.isCancelled else { return }
-            withAnimation(Motion.stateChange) {
-                color = sample
-            }
+            // No animation — animating glass tint rebuilds every effect and flickers.
+            color = sample
         }
     }
 
@@ -39,9 +39,24 @@ final class FeaturedChromeTint {
             guard let http = response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {
                 return nil
             }
-            return ProminentColor.sample(data: data)
+            return ProminentColor.sample(data: data, maxDimension: 48)
         } catch {
             return nil
         }
+    }
+
+    /// Storyblok filenames often arrive protocol-relative (`//a.storyblok.com/…`).
+    static func normalized(_ url: URL) -> URL? {
+        if let scheme = url.scheme, scheme == "http" || scheme == "https" {
+            return url
+        }
+        let raw = url.absoluteString
+        if raw.hasPrefix("//") {
+            return URL(string: "https:" + raw)
+        }
+        if raw.hasPrefix("a.storyblok.com/") || raw.hasPrefix("img2.storyblok.com/") {
+            return URL(string: "https://" + raw)
+        }
+        return nil
     }
 }

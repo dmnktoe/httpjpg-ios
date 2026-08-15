@@ -68,7 +68,6 @@ struct WorkIndexScreen: View {
                 .scrollToTopAnchor()
             }
             .softScrollEdges()
-            .holdsChromeWhileScrolling()
             .refreshable { await model.load(force: true) }
         }
     }

@@ -12,7 +12,6 @@ struct PlayerScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var playPauseTaps = 0
-    @State private var isScrubbing = false
 
     var body: some View {
         VStack(spacing: Spacing.s6) {
@@ -114,10 +113,7 @@ struct PlayerScreen: View {
                 ),
                 in: 0 ... max(player.duration, 1),
                 tint: accent ?? theme.foreground
-            ) { editing in
-                isScrubbing = editing
-            }
-            .environment(\.chromeHeld, isScrubbing)
+            )
 
             HStack {
                 MonoText(timestamp(player.currentTime), size: Typography.Size.xxs, opacity: Opacities.muted)
@@ -129,7 +125,7 @@ struct PlayerScreen: View {
     }
 
     private var transport: some View {
-        GlassGroup(spacing: Spacing.s4) {
+        GlassGroup {
             HStack(spacing: Spacing.s8) {
                 skipButton(by: -15, label: "↺15", accessibility: "Back 15 seconds")
                 Button {
