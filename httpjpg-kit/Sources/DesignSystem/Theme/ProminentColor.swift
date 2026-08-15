@@ -4,9 +4,23 @@ import Tokens
 #if os(iOS)
 import UIKit
 
+/// Vibrant average + readable foreground, mirroring web `extractVibrantColor`.
+public struct ProminentSwatch: Equatable, Sendable {
+    public let color: Color
+    /// Black or white over `color` — web `textColor`.
+    public let onColor: Color
+    public let prefersLightForeground: Bool
+
+    public init(color: Color, prefersLightForeground: Bool) {
+        self.color = color
+        self.prefersLightForeground = prefersLightForeground
+        self.onColor = prefersLightForeground ? Palette.white : Palette.black
+    }
+}
+
 /// Samples a downscaled bitmap for a vivid average suitable as a glass tint.
 public enum ProminentColor {
-    public static func sample(from image: UIImage, maxDimension: CGFloat = 24) -> Color? {
+    public static func sample(from image: UIImage, maxDimension: CGFloat = 24) -> ProminentSwatch? {
         guard let cgImage = resized(image, maxDimension: maxDimension) else { return nil }
 
         let width = cgImage.width
@@ -62,15 +76,29 @@ public enum ProminentColor {
 
         guard totalWeight > 0 else { return nil }
 
-        return Color(
-            red: sumR / totalWeight,
-            green: sumG / totalWeight,
-            blue: sumB / totalWeight
+        let r = sumR / totalWeight
+        let g = sumG / totalWeight
+        let b = sumB / totalWeight
+        return ProminentSwatch(
+            color: Color(red: r, green: g, blue: b),
+            prefersLightForeground: prefersLightForeground(red: r, green: g, blue: b)
         )
     }
 
-    public static func sample(data: Data, maxDimension: CGFloat = 24) -> Color? {
+    public static func sample(data: Data, maxDimension: CGFloat = 24) -> ProminentSwatch? {
         UIImage(data: data).flatMap { sample(from: $0, maxDimension: maxDimension) }
+    }
+
+    /// WCAG relative luminance — light glyphs on dark swatches, dark on light (colorthief `textColor`).
+    public static func prefersLightForeground(red: Double, green: Double, blue: Double) -> Bool {
+        relativeLuminance(red: red, green: green, blue: blue) < 0.179
+    }
+
+    public static func relativeLuminance(red: Double, green: Double, blue: Double) -> Double {
+        func linear(_ channel: Double) -> Double {
+            channel <= 0.03928 ? channel / 12.92 : pow((channel + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
     }
 
     private static func resized(_ image: UIImage, maxDimension: CGFloat) -> CGImage? {

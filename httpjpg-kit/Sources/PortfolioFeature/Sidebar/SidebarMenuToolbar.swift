@@ -6,6 +6,7 @@ struct SidebarMenuToolbar: ViewModifier {
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @Environment(\.glassNamespace) private var glass
 
     private static let diameter: CGFloat = Spacing.s9
@@ -18,7 +19,7 @@ struct SidebarMenuToolbar: ViewModifier {
                 } label: {
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: Typography.Size.md, weight: .semibold))
-                        .foregroundStyle(theme.chromeLabel)
+                        .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
                         .frame(width: Self.diameter, height: Self.diameter)
                         .contentShape(.circle)
                         .glassBackground(in: .circle, tint: theme.chromeFill(accent: accent), interactive: true)

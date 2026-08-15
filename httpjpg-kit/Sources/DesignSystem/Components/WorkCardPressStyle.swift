@@ -8,6 +8,7 @@ public struct WorkCardPressStyle: ButtonStyle {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     public init(title: String, meta: String? = nil) {
         self.title = title
@@ -40,7 +41,7 @@ public struct WorkCardPressStyle: ButtonStyle {
                     .lineLimit(1)
             }
         }
-        .foregroundStyle(theme.chromeLabel)
+        .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
         .padding(.horizontal, Spacing.s3)
         .padding(.vertical, Spacing.s2)
         .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent), interactive: true)

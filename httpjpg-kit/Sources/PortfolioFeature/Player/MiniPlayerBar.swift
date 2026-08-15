@@ -16,6 +16,7 @@ struct MiniPlayerBar: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @State private var playPauseTaps = 0
 
     var body: some View {
@@ -27,7 +28,7 @@ struct MiniPlayerBar: View {
                     marqueeText(track),
                     font: Typography.uiMono(Typography.Size.xs),
                     speed: .rate(20),
-                    color: theme.chromeLabel
+                    color: theme.chromeLabel(onAccent: onAccent)
                 )
                 .frame(maxWidth: .infinity)
 
@@ -58,7 +59,7 @@ struct MiniPlayerBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Stop playback")
             }
-            .foregroundStyle(theme.chromeLabel)
+            .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)

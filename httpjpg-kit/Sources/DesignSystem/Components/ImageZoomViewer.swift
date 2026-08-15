@@ -7,6 +7,7 @@ public struct ImageZoomViewer: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     public init(url: URL?, accessibilityText: String? = nil) {
         self.url = url
@@ -44,7 +45,7 @@ public struct ImageZoomViewer: View {
                 } label: {
                     Text("✕")
                         .font(Typography.mono(Typography.Size.md))
-                        .foregroundStyle(Palette.white)
+                        .foregroundStyle(onAccent ?? Palette.white)
                         .frame(width: 44, height: 44)
                         .contentShape(Circle())
                         .glassBackground(

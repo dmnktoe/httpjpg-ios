@@ -41,12 +41,12 @@ public struct RootView: View {
         }
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player, glass: chrome)
-                .chromeAccent(featuredTint.color)
+                .chromeAccent(featuredTint.color, onAccent: featuredTint.onColor)
                 .pageTheme(theme)
         }
         .pageTheme(theme)
         .pageSurface(theme)
-        .chromeAccent(featuredTint.color)
+        .chromeAccent(featuredTint.color, onAccent: featuredTint.onColor)
         .glassNamespace(chrome)
         .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)

@@ -7,6 +7,7 @@ struct SidebarView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @Environment(\.openURL) private var openURL
 
     @State private var externalTaps = 0
@@ -37,7 +38,7 @@ struct SidebarView: View {
                     if projectCount > 0 {
                         Text("\(projectCount)")
                             .font(Typography.mono(Typography.Size.xs))
-                            .foregroundStyle(theme.chromeLabel)
+                            .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
                             .padding(.horizontal, Spacing.s3)
                             .frame(height: Spacing.s11)
                             .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent), interactive: false)

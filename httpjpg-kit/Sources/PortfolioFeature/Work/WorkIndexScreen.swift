@@ -11,6 +11,7 @@ struct WorkIndexScreen: View {
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     @Namespace private var cardZoom
     @Namespace private var variantGlass
@@ -166,7 +167,7 @@ struct WorkIndexScreen: View {
                     .opacity(Opacities.muted)
             }
         }
-        .foregroundStyle(theme.chromeLabel)
+        .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
         .padding(.horizontal, Spacing.s3)
         .padding(.vertical, Spacing.s2)
         .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent), interactive: false)

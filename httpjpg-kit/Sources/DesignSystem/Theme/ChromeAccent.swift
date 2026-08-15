@@ -5,6 +5,10 @@ private struct ChromeAccentKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }
 
+private struct ChromeOnAccentKey: EnvironmentKey {
+    static let defaultValue: Color? = nil
+}
+
 private struct GlassNamespaceKey: EnvironmentKey {
     static let defaultValue: Namespace.ID? = nil
 }
@@ -16,6 +20,12 @@ public extension EnvironmentValues {
         set { self[ChromeAccentKey.self] = newValue }
     }
 
+    /// Readable foreground over `chromeAccent` — black or white (web `textColor`).
+    var chromeOnAccent: Color? {
+        get { self[ChromeOnAccentKey.self] }
+        set { self[ChromeOnAccentKey.self] = newValue }
+    }
+
     /// Shared liquid-glass morph namespace for chrome across sidebar / tabs / player.
     var glassNamespace: Namespace.ID? {
         get { self[GlassNamespaceKey.self] }
@@ -24,8 +34,9 @@ public extension EnvironmentValues {
 }
 
 public extension View {
-    func chromeAccent(_ color: Color?) -> some View {
+    func chromeAccent(_ color: Color?, onAccent: Color? = nil) -> some View {
         environment(\.chromeAccent, color)
+            .environment(\.chromeOnAccent, onAccent)
     }
 
     func glassNamespace(_ id: Namespace.ID) -> some View {
@@ -53,5 +64,10 @@ public extension PageTheme {
 
     func chromeActiveStroke(accent: Color?) -> Color {
         accent ?? chromeActiveStroke
+    }
+
+    /// Label over inactive accent-tinted chrome; falls back to theme chrome label.
+    func chromeLabel(onAccent: Color?) -> Color {
+        onAccent ?? chromeLabel
     }
 }

@@ -21,6 +21,7 @@ public struct ImageCarousel<Slide: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.mediaHeld) private var isHeld
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     public init(
         count: Int,
@@ -82,7 +83,7 @@ public struct ImageCarousel<Slide: View>: View {
         } label: {
             Image(systemName: symbol)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(onAccent ?? Palette.white)
                 .frame(width: 34, height: 34)
                 .contentShape(Circle())
                 .glassBackground(

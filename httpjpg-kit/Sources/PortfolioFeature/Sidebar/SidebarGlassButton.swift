@@ -12,13 +12,14 @@ struct SidebarGlassButton: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @Environment(\.glassNamespace) private var glass
 
     var body: some View {
         Button(action: action) {
             Text(glyph)
                 .font(Typography.mono(Typography.Size.base, weight: .medium))
-                .foregroundStyle(theme.foreground)
+                .foregroundStyle(onAccent ?? theme.foreground)
                 .frame(width: Self.diameter, height: Self.diameter)
                 .contentShape(.circle)
                 .glassBackground(in: .circle, tint: theme.chromeFill(accent: accent), interactive: true)

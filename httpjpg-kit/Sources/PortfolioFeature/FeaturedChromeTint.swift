@@ -5,11 +5,12 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// Loads the first featured work thumbnail and publishes a chrome accent.
+/// Loads the first featured work thumbnail and publishes a chrome accent + on-color.
 @MainActor
 @Observable
 final class FeaturedChromeTint {
     private(set) var color: Color?
+    private(set) var onColor: Color?
 
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var loadedURL: URL?
@@ -22,6 +23,7 @@ final class FeaturedChromeTint {
 
         guard let normalized else {
             color = nil
+            onColor = nil
             return
         }
 
@@ -29,11 +31,12 @@ final class FeaturedChromeTint {
             let sample = await Self.load(url: normalized)
             guard !Task.isCancelled else { return }
             // No animation — animating glass tint rebuilds every effect and flickers.
-            color = sample
+            color = sample?.color
+            onColor = sample?.onColor
         }
     }
 
-    private static func load(url: URL) async -> Color? {
+    private static func load(url: URL) async -> ProminentSwatch? {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             guard let http = response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {

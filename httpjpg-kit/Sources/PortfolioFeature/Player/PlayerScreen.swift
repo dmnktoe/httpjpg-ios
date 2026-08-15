@@ -9,6 +9,7 @@ struct PlayerScreen: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @Environment(\.dismiss) private var dismiss
 
     @State private var playPauseTaps = 0
@@ -72,7 +73,7 @@ struct PlayerScreen: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Close player")
         }
-        .foregroundStyle(theme.chromeLabel)
+        .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s2)
         .glassBackground(in: .capsule, tint: theme.chromeFill(accent: accent))
@@ -134,6 +135,7 @@ struct PlayerScreen: View {
                 } label: {
                     Text(player.isPlaying ? "▮▮" : "▸")
                         .font(Typography.mono(28, weight: .bold))
+                        .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
                         .frame(width: 64, height: 64)
                         .contentShape(Circle())
                         .contentTransition(.opacity)
@@ -154,6 +156,7 @@ struct PlayerScreen: View {
         } label: {
             Text(label)
                 .font(Typography.mono(Typography.Size.md))
+                .foregroundStyle(theme.chromeLabel(onAccent: onAccent))
                 .opacity(Opacities.muted)
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())

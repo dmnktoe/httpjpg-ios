@@ -11,6 +11,7 @@ struct VariantPicker: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     var body: some View {
         GlassGroup {
@@ -35,7 +36,7 @@ struct VariantPicker: View {
                 .font(Typography.mono(Typography.Size.sm))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel)
+                .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel(onAccent: onAccent))
                 .glassPill(
                     tint: isSelected ? theme.chromeActiveFill(accent: accent) : theme.chromeFill(accent: accent),
                     stroke: isSelected ? theme.chromeActiveStroke(accent: accent) : nil,

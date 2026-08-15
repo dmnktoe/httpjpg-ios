@@ -13,6 +13,7 @@ struct InfoResetCacheButton: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
     @Namespace private var glass
 
     @State private var phase: Phase = .idle
@@ -35,7 +36,7 @@ struct InfoResetCacheButton: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
-                .foregroundStyle(phase == .done ? theme.chromeActiveLabel : theme.chromeLabel)
+                .foregroundStyle(phase == .done ? theme.chromeActiveLabel : theme.chromeLabel(onAccent: onAccent))
                 .glassPill(
                     tint: pillTint,
                     stroke: pillStroke,
