@@ -53,7 +53,22 @@ public struct SbVideoView: View {
                 isMuted: blok.isMuted,
                 accessibilityText: blok.poster?.alt
             )
+        } else if let source = EmbedVideoSurface.Source(rawValue: blok.source),
+                  let urlString = blok.videoURL,
+                  EmbedVideoSurface.playerURL(source: source, from: urlString) != nil {
+            EmbedVideoSurface(
+                source: source,
+                urlString: urlString,
+                posterURL: posterURL,
+                aspectRatio: aspectRatio,
+                showsControls: blok.showsControls,
+                autoPlays: blok.autoPlays,
+                loops: blok.loops,
+                isMuted: blok.isMuted,
+                accessibilityText: blok.poster?.alt
+            )
         } else if let url = blok.embedURL {
+            // Unparseable YouTube/Vimeo URL — keep the Safari handoff rather than a blank frame.
             Button {
                 openURL(url)
             } label: {
