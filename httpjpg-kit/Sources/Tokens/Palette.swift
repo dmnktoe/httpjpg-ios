@@ -114,8 +114,8 @@ public enum Palette {
         }
     }
 
-    /// Black or white glyph color that contrasts with a CMS color-options value
-    /// (hex, `black`, or `white`).
+    /// Black or white glyph color that contrasts with a CMS hex accent
+    /// (`#RGB`, `#RRGGBB`, `black`, or `white`).
     public static func onNamed(_ value: String?) -> Color? {
         guard let value, !value.isEmpty else { return nil }
         let hex: UInt32?

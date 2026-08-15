@@ -24,15 +24,17 @@ final class TokensTests: XCTestCase {
     func testOnNamedContrastsCMSHexValues() {
         XCTAssertEqual(Palette.onNamed("#1E3A8A"), Palette.white)
         XCTAssertEqual(Palette.onNamed("#FBBF24"), Palette.black)
+        XCTAssertEqual(Palette.onNamed("#0af"), Palette.white, "3-digit #RGB matches the CMS regex")
         XCTAssertEqual(Palette.onNamed("black"), Palette.white)
         XCTAssertEqual(Palette.onNamed("white"), Palette.black)
         XCTAssertNil(Palette.onNamed(nil))
-        XCTAssertNil(Palette.onNamed("primary.500"), "token keys are not color-options values")
+        XCTAssertNil(Palette.onNamed("primary.500"), "token keys are not Project Accent Color values")
     }
 
     func testNamedAcceptsCMSHexValues() {
         XCTAssertEqual(Palette.named("#3B82F6"), Color(hex: 0x3B82F6))
         XCTAssertEqual(Palette.named("#A3E635"), Color(hex: 0xA3E635))
+        XCTAssertEqual(Palette.named("#f00"), Color(hex: 0xFF0000))
     }
 
     func testSpacingScaleMatchesRemValues() {

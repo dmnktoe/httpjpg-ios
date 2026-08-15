@@ -222,7 +222,8 @@ public struct WorkBlok: Decodable, Identifiable {
     public let link: StoryblokLink?
     public let isExternalOnly: Bool
     public let isListedInApp: Bool
-    /// CMS color-options value (hex) for work chrome tint. Nil when unset.
+    /// Free-text Project Accent Color from the work page (`#RGB` / `#RRGGBB`).
+    /// Nil when unset or cleared.
     public let accentColor: String?
     public let isDark: Bool
     public let body: [PortfolioBlok]
