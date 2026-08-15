@@ -87,9 +87,11 @@ struct SidebarView: View {
     private var sections: some View {
         ForEach(app.workIndex.workByYear) { group in
             Section {
-                ForEach(group.items) { item in
-                    row(for: item)
-                    BrutalDivider(variant: .dotted)
+                ForEach(Array(group.items.enumerated()), id: \.element.id) { entry in
+                    row(for: entry.element)
+                    if entry.offset < group.items.count - 1 {
+                        BrutalDivider(variant: .dotted)
+                    }
                 }
             } header: {
                 yearHeader(group)
