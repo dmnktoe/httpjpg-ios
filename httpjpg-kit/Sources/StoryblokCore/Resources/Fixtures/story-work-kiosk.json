@@ -22,6 +22,7 @@
       "_uid": "4e3dd990-a2d1-5e1a-9ce5-9934d77fba1b",
       "component": "work",
       "title": "Kiosk",
+      "tags": ["web"],
       "date": "2025-11-08 00:00",
       "date_end": "",
       "external_only": true,

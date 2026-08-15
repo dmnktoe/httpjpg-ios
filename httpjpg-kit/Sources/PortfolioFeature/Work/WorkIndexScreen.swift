@@ -51,7 +51,7 @@ struct WorkIndexScreen: View {
                     FadeSwap(key: ListGeneration(
                         isLoaded: model.isLoaded,
                         variant: model.variant,
-                        tags: model.selectedTags
+                        tags: model.activeTag
                     )) {
                         if model.isLoaded {
                             rows(model)
@@ -99,13 +99,14 @@ struct WorkIndexScreen: View {
             )
 
             if !model.availableTags.isEmpty {
-                TagChipRow(
+                WorkTagFilter(
                     tags: model.availableTags,
                     counts: model.tagCounts,
-                    selected: model.selectedTags,
-                    onSelect: { model.toggle(tag: $0) }
+                    totalCount: model.listedCount,
+                    active: model.activeTag,
+                    onChange: { model.select(tag: $0) }
                 )
-                .sensoryFeedback(.selection, trigger: model.selectedTags)
+                .sensoryFeedback(.selection, trigger: model.activeTag)
             }
         }
         .padding(.top, Spacing.s2)
@@ -139,5 +140,5 @@ struct WorkIndexScreen: View {
 private struct ListGeneration: Hashable {
     let isLoaded: Bool
     let variant: MenuLink.Variant
-    let tags: Set<String>
+    let tags: String?
 }

@@ -1,38 +1,64 @@
 import SwiftUI
 import Tokens
 
+/// One chip behind every tag on cards, related work and the filter. Matches the
+/// web `Tag` / `TagButton` recipe: sans label, pill border, page colours, and a
+/// dimmed `#` that assistive tech skips so the authored casing is what is read.
 public struct TagChip: View {
     private let tag: String
     private let isSelected: Bool
     private let count: Int?
+    private let showsMarker: Bool
 
     @Environment(\.pageTheme) private var theme
 
-    public init(_ tag: String, isSelected: Bool = false, count: Int? = nil) {
+    /// Opacity of the `#` marker. Off-palette on purpose: the web `TagMarker` is
+    /// `0.45`, between `Opacities.dimmed` and `Opacities.subtle`.
+    private static let markerOpacity: Double = 0.45
+
+    public init(
+        _ tag: String,
+        isSelected: Bool = false,
+        count: Int? = nil,
+        showsMarker: Bool = true
+    ) {
         self.tag = tag
         self.isSelected = isSelected
         self.count = count
+        self.showsMarker = showsMarker
     }
 
     public var body: some View {
         HStack(spacing: Spacing.s1) {
-            Text("#\(tag)")
+            if showsMarker {
+                Text("#")
+                    .font(Typography.mono(Typography.Size.xs))
+                    .opacity(Self.markerOpacity)
+                    .accessibilityHidden(true)
+            }
+
+            Text(tag)
+                .font(Typography.sans(Typography.Size.sm))
+                .lineLimit(1)
+
             if let count {
                 Text(GlyphDigits.format(count))
+                    .font(Typography.mono(Typography.Size.xs))
+                    .opacity(Opacities.subtle)
+                    .padding(.leading, Spacing.s1)
                     .accessibilityHidden(true)
             }
         }
-        .font(Typography.mono(Typography.Size.xs))
-        .tracking(Typography.Size.xs * 0.05)
-        .padding(.horizontal, Spacing.s2)
-        .padding(.vertical, Spacing.s1 / 2)
+        .padding(.horizontal, Spacing.s3)
+        .padding(.vertical, Spacing.s1)
         .foregroundStyle(isSelected ? theme.background : theme.foreground)
         .background(isSelected ? theme.foreground : Color.clear)
+        .clipShape(Capsule())
         .overlay(
-            Rectangle().stroke(Palette.neutral.s400, lineWidth: 1)
+            Capsule().stroke(isSelected ? theme.foreground : theme.border, lineWidth: 1)
         )
-        .opacity(isSelected ? 1 : Opacities.muted)
         .animation(Motion.stateChange, value: isSelected)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityName)
     }
 
@@ -46,18 +72,21 @@ public struct TagChipRow: View {
     private let tags: [String]
     private let counts: [String: Int]
     private let selected: Set<String>
+    private let showsMarker: Bool
     private let onSelect: ((String) -> Void)?
 
     public init(
         tags: [String],
         counts: [String: Int] = [:],
         selected: Set<String> = [],
+        showsMarker: Bool = true,
         onSelect: ((String) -> Void)? = nil
     ) {
         var seen = Set<String>()
         self.tags = tags.filter { seen.insert($0).inserted }
         self.counts = counts
         self.selected = selected
+        self.showsMarker = showsMarker
         self.onSelect = onSelect
     }
 
@@ -66,11 +95,17 @@ public struct TagChipRow: View {
             ForEach(tags, id: \.self) { tag in
                 if let onSelect {
                     Button { onSelect(tag) } label: {
-                        TagChip(tag, isSelected: selected.contains(tag), count: counts[tag])
+                        TagChip(
+                            tag,
+                            isSelected: selected.contains(tag),
+                            count: counts[tag],
+                            showsMarker: showsMarker
+                        )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityAddTraits(selected.contains(tag) ? .isSelected : [])
                 } else {
-                    TagChip(tag, count: counts[tag])
+                    TagChip(tag, count: counts[tag], showsMarker: showsMarker)
                 }
             }
         }

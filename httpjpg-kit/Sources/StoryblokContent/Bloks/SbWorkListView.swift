@@ -11,7 +11,7 @@ public struct SbWorkListView: View {
     @Environment(\.contentClient) private var client
 
     @State private var fetchedItems: [WorkItem]?
-    @State private var selectedTags: Set<String> = []
+    @State private var selectedTag: String?
 
     public init(blok: WorkListBlok) {
         self.blok = blok
@@ -20,17 +20,12 @@ public struct SbWorkListView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s6) {
             if blok.showsTagFilter, !availableTags.isEmpty {
-                TagChipRow(
+                WorkTagFilter(
                     tags: availableTags,
                     counts: tagCounts,
-                    selected: selectedTags,
-                    onSelect: { tag in
-                        if selectedTags.contains(tag) {
-                            selectedTags.remove(tag)
-                        } else {
-                            selectedTags.insert(tag)
-                        }
-                    }
+                    totalCount: models.count,
+                    active: activeTag,
+                    onChange: { selectedTag = $0 }
                 )
             }
 
@@ -85,8 +80,13 @@ public struct SbWorkListView: View {
     }
 
     private var visibleModels: [WorkCardModel] {
-        guard !selectedTags.isEmpty else { return models }
-        return models.filter { !selectedTags.isDisjoint(with: $0.tags) }
+        guard let activeTag else { return models }
+        return models.filter { $0.tags.contains(activeTag) }
+    }
+
+    private var activeTag: String? {
+        guard let selectedTag, availableTags.contains(selectedTag) else { return nil }
+        return selectedTag
     }
 
     private var tagCounts: [String: Int] {
