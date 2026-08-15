@@ -67,13 +67,13 @@ public struct RootView: View {
             openPendingQuickAction()
         }
         .task(id: featuredThumbnailKey) {
-            featuredTint.update(url: Self.sampleURL(for: model.workIndex.visibleItems.first))
+            featuredTint.update(url: FeaturedChromeTint.sampleURL(for: tintSourceItem))
         }
         .task {
             openPendingQuickAction()
             await model.loadConfig()
             await model.workIndex.load()
-            featuredTint.update(url: Self.sampleURL(for: model.workIndex.visibleItems.first))
+            featuredTint.update(url: FeaturedChromeTint.sampleURL(for: tintSourceItem))
         }
     }
 
@@ -117,23 +117,18 @@ public struct RootView: View {
         systemScheme == .dark ? .dark : .light
     }
 
-    private var featuredThumbnailKey: String {
-        let variant = model.workIndex.variant.rawValue
-        let tags = model.workIndex.selectedTags.sorted().joined(separator: ",")
-        let thumb = Self.sampleURL(for: model.workIndex.visibleItems.first)?.absoluteString ?? ""
-        return "\(variant)|\(tags)|\(thumb)"
+    /// On a work detail route, tint from that work’s first still; otherwise the list hero.
+    private var tintSourceItem: WorkItem? {
+        if let slug = model.workPath.last?.slug {
+            return model.workIndex.allWork.first { $0.slug == slug }
+        }
+        return model.workIndex.visibleItems.first
     }
 
-    /// Prefer a mid-size still over the 200px list thumb so prominent-color has signal.
-    private static func sampleURL(for item: WorkItem?) -> URL? {
-        guard let item else { return nil }
-        let filename = item.imageFilenames.first {
-            !ImageService.isVideo(filename: $0, contentType: nil)
-        }
-        let raw = filename.map { ImageService.Preset.width($0, 360, scale: 2) }
-            ?? item.thumbnailURL?.absoluteString
-        guard let raw, let url = URL(string: raw) else { return nil }
-        return FeaturedChromeTint.normalized(url)
+    private var featuredThumbnailKey: String {
+        let slug = model.workPath.last?.slug ?? ""
+        let thumb = FeaturedChromeTint.sampleURL(for: tintSourceItem)?.absoluteString ?? ""
+        return "\(slug)|\(thumb)"
     }
 
     private var bottomBarClearance: CGFloat {

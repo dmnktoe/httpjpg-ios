@@ -13,6 +13,7 @@ struct WorkDetailScreen: View {
     @Environment(\.pageTheme) private var ambientTheme
 
     @State private var model: WorkDetailModel?
+    @State private var imageTint = FeaturedChromeTint()
 
     var body: some View {
         Group {
@@ -26,6 +27,7 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(forcesDark ? .dark : nil)
+        .modifier(DetailChromeAccent(color: imageTint.color, onAccent: imageTint.onColor))
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
@@ -47,6 +49,9 @@ struct WorkDetailScreen: View {
                 Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
                 await model?.load()
             }
+        }
+        .task(id: loadedDetail?.id) {
+            imageTint.update(url: FeaturedChromeTint.sampleURL(for: loadedDetail))
         }
     }
 
@@ -130,6 +135,20 @@ struct WorkDetailScreen: View {
         StoryRichText(detail.details)
         ForEach(Array(detail.images.enumerated()), id: \.offset) { entry in
             AssetImage(asset: entry.element, fallbackAlt: detail.title)
+        }
+    }
+}
+
+/// Applies chrome accent only once a still has been sampled, so we don't wipe the parent tint while loading.
+private struct DetailChromeAccent: ViewModifier {
+    let color: Color?
+    let onAccent: Color?
+
+    func body(content: Content) -> some View {
+        if let color {
+            content.chromeAccent(color, onAccent: onAccent)
+        } else {
+            content
         }
     }
 }
