@@ -6,7 +6,6 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// Loads a work-detail still and publishes accent + on-color for that screen’s glass only.
 @MainActor
 @Observable
 final class FeaturedChromeTint {
@@ -31,7 +30,6 @@ final class FeaturedChromeTint {
         task = Task {
             let sample = await Self.load(url: normalized)
             guard !Task.isCancelled else { return }
-            // No animation — animating glass tint rebuilds every effect and flickers.
             color = sample?.color
             onColor = sample?.onColor
         }
@@ -49,31 +47,15 @@ final class FeaturedChromeTint {
         }
     }
 
-    /// Mid-size still from a work index card (avoids the tiny 200px thumb).
-    static func sampleURL(for item: WorkItem?) -> URL? {
-        guard let item else { return nil }
-        let filename = item.imageFilenames.first {
-            !ImageService.isVideo(filename: $0, contentType: nil)
-        }
-        return processedSampleURL(
-            filename: filename,
-            fallback: item.thumbnailURL?.absoluteString
-        )
-    }
-
-    /// First still on a loaded work detail — `images`, else first image/slideshow in body.
     static func sampleURL(for detail: WorkDetail?) -> URL? {
         guard let detail else { return nil }
-        return processedSampleURL(filename: detail.featuredStillFilename, fallback: nil)
-    }
-
-    private static func processedSampleURL(filename: String?, fallback: String?) -> URL? {
-        let raw = filename.map { ImageService.Preset.width($0, 360, scale: 2) } ?? fallback
+        let filename = detail.featuredStillFilename
+        let raw = filename.map { ImageService.Preset.width($0, 360, scale: 2) }
         guard let raw, let url = URL(string: raw) else { return nil }
         return normalized(url)
     }
 
-    /// Storyblok filenames often arrive protocol-relative (`//a.storyblok.com/…`).
+    /// Storyblok assets often arrive as `//a.storyblok.com/…`.
     static func normalized(_ url: URL) -> URL? {
         if let scheme = url.scheme, scheme == "http" || scheme == "https" {
             return url
@@ -90,7 +72,6 @@ final class FeaturedChromeTint {
 }
 
 extension WorkDetail {
-    /// Featured still: CMS `images` first, otherwise the first image/slideshow in body.
     var featuredStillFilename: String? {
         if let filename = images.firstImageFilename { return filename }
         return firstStillFilename(in: body)

@@ -1,7 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// Press overlay: a short glass capsule with title + meta over the card media.
 public struct WorkCardPressStyle: ButtonStyle {
     private let title: String
     private let meta: String?

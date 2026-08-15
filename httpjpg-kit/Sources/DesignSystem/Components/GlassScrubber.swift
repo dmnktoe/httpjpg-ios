@@ -1,7 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// Capsule progress control with liquid-glass chrome — used by the full audio player.
 public struct GlassScrubber: View {
     @Binding private var value: Double
     private let range: ClosedRange<Double>

@@ -45,7 +45,7 @@ final class ProminentColorTests: XCTestCase {
         XCTAssertNotNil(ProminentColor.sample(data: data))
     }
 
-    func testLuminanceThresholdMatchesColorthiefStyleTextColor() {
+    func testLuminancePicksLightOrDarkForeground() {
         XCTAssertTrue(ProminentColor.prefersLightForeground(red: 0.1, green: 0.2, blue: 0.8))
         XCTAssertFalse(ProminentColor.prefersLightForeground(red: 0.95, green: 0.9, blue: 0.2))
     }

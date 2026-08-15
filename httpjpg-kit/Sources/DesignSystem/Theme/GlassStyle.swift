@@ -79,8 +79,7 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     @Environment(\.chromeAccent) private var accent
 
     func body(content: Content) -> some View {
-        // Keep one rendering path while scrolling. Swapping glassEffect ↔ solid
-        // fill on every scroll/settle tick is what made chrome flicker.
+        // Don't swap glassEffect ↔ solid on scroll ticks — that flickered.
         if #available(iOS 26.0, *), !isHeld {
             content.glassEffect(glass, in: shape)
         } else {
@@ -94,7 +93,6 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         resolvedTint.opacity(0.55)
     }
 
-    /// Callers that already baked accent into `tint` win; otherwise fall back to accent / theme.
     private var resolvedTint: Color {
         if let tint { return tint }
         if let accent { return theme.chromeFill(accent: accent) }
@@ -112,8 +110,7 @@ public struct GlassGroup<Content: View>: View {
     private let spacing: CGFloat?
     private let content: Content
 
-    /// Merge threshold. Keep this *below* the inner stack spacing so neighbouring
-    /// pills stay distinct at rest — equal values sit on the blend boundary and shimmer.
+    // Below inner HStack spacing so pills don't sit on the merge boundary.
     public init(spacing: CGFloat? = 0, @ViewBuilder content: () -> Content) {
         self.spacing = spacing
         self.content = content()

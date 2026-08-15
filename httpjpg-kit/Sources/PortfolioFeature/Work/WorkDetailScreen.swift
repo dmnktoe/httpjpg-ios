@@ -27,7 +27,7 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(forcesDark ? .dark : nil)
-        .modifier(DetailChromeAccent(color: imageTint.color, onAccent: imageTint.onColor))
+        .chromeAccent(imageTint.color, onAccent: imageTint.onColor)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
@@ -135,20 +135,6 @@ struct WorkDetailScreen: View {
         StoryRichText(detail.details)
         ForEach(Array(detail.images.enumerated()), id: \.offset) { entry in
             AssetImage(asset: entry.element, fallbackAlt: detail.title)
-        }
-    }
-}
-
-/// Applies work-detail chrome accent only after a still is sampled (scoped to this screen).
-private struct DetailChromeAccent: ViewModifier {
-    let color: Color?
-    let onAccent: Color?
-
-    func body(content: Content) -> some View {
-        if let color {
-            content.chromeAccent(color, onAccent: onAccent)
-        } else {
-            content
         }
     }
 }

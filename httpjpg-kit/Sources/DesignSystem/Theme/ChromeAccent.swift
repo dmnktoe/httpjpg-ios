@@ -14,19 +14,16 @@ private struct GlassNamespaceKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// Soft tint for work-detail glass only (slideshow arrows, zoom close). Nil elsewhere.
     var chromeAccent: Color? {
         get { self[ChromeAccentKey.self] }
         set { self[ChromeAccentKey.self] = newValue }
     }
 
-    /// Readable foreground over `chromeAccent` — black or white (web `textColor`).
     var chromeOnAccent: Color? {
         get { self[ChromeOnAccentKey.self] }
         set { self[ChromeOnAccentKey.self] = newValue }
     }
 
-    /// Shared liquid-glass morph namespace for chrome across sidebar / tabs / player.
     var glassNamespace: Namespace.ID? {
         get { self[GlassNamespaceKey.self] }
         set { self[GlassNamespaceKey.self] = newValue }
@@ -45,10 +42,8 @@ public extension View {
 }
 
 public extension PageTheme {
-    /// Inactive chrome fill — accent-tinted when a featured color is present.
     func chromeFill(accent: Color?) -> Color {
         guard let accent else { return chromeFill }
-        // Strong enough to read through Liquid Glass vibrancy.
         return accent.opacity(isDark ? 0.62 : 0.5)
     }
 
@@ -66,7 +61,6 @@ public extension PageTheme {
         accent ?? chromeActiveStroke
     }
 
-    /// Label over inactive accent-tinted chrome; falls back to theme chrome label.
     func chromeLabel(onAccent: Color?) -> Color {
         onAccent ?? chromeLabel
     }

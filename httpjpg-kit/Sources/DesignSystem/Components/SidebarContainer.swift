@@ -65,8 +65,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        // Only freeze glass while the drawer is actively dragged — settle/open
-        // flags were swapping every liquid-glass surface to solid and back.
+        // Freeze glass only while dragging — settle/open was flickering every surface.
         .environment(\.chromeHeld, drag.isArmed)
         .animation(motion, value: isOpen)
         .task(id: settleTicket) {

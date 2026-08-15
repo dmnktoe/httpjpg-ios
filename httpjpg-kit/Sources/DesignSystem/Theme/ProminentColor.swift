@@ -4,10 +4,8 @@ import Tokens
 #if os(iOS)
 import UIKit
 
-/// Vibrant average + readable foreground, mirroring web `extractVibrantColor`.
 public struct ProminentSwatch: Equatable, Sendable {
     public let color: Color
-    /// Black or white over `color` — web `textColor`.
     public let onColor: Color
     public let prefersLightForeground: Bool
 
@@ -18,7 +16,6 @@ public struct ProminentSwatch: Equatable, Sendable {
     }
 }
 
-/// Samples a downscaled bitmap for a vivid average suitable as a glass tint.
 public enum ProminentColor {
     public static func sample(from image: UIImage, maxDimension: CGFloat = 24) -> ProminentSwatch? {
         guard let cgImage = resized(image, maxDimension: maxDimension) else { return nil }
@@ -61,9 +58,6 @@ public enum ProminentColor {
                 let minC = min(r, g, b)
                 let saturation = maxC == 0 ? 0 : (maxC - minC) / maxC
                 let brightness = maxC
-
-                // Skip near-black and desaturated pixels (greys / near-white).
-                // Bright saturated hues (sky blue, lime, etc.) must stay eligible.
                 guard saturation > 0.12, brightness > 0.12 else { continue }
 
                 let weight = saturation * saturation * alpha
@@ -89,7 +83,6 @@ public enum ProminentColor {
         UIImage(data: data).flatMap { sample(from: $0, maxDimension: maxDimension) }
     }
 
-    /// WCAG relative luminance — light glyphs on dark swatches, dark on light (colorthief `textColor`).
     public static func prefersLightForeground(red: Double, green: Double, blue: Double) -> Bool {
         relativeLuminance(red: red, green: green, blue: blue) < 0.179
     }
