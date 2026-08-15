@@ -24,7 +24,8 @@ final class TokensTests: XCTestCase {
     func testOnNamedContrastsCMSHexValues() {
         XCTAssertEqual(Palette.onNamed("#1E3A8A"), Palette.white)
         XCTAssertEqual(Palette.onNamed("#FBBF24"), Palette.black)
-        XCTAssertEqual(Palette.onNamed("#0af"), Palette.white, "3-digit #RGB matches the CMS regex")
+        XCTAssertEqual(Palette.onNamed("#108"), Palette.white, "3-digit #RGB matches the CMS regex")
+        XCTAssertEqual(Palette.onNamed("#fc0"), Palette.black)
         XCTAssertEqual(Palette.onNamed("black"), Palette.white)
         XCTAssertEqual(Palette.onNamed("white"), Palette.black)
         XCTAssertNil(Palette.onNamed(nil))
