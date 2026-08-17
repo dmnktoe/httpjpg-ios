@@ -23,6 +23,8 @@ final class TokensTests: XCTestCase {
 
     func testOnNamedContrastsCMSHexValues() {
         XCTAssertEqual(Palette.onNamed("#1E3A8A"), Palette.white)
+        XCTAssertEqual(Palette.onNamed("#D97706"), Palette.white, "terracotta / warning.600")
+        XCTAssertEqual(Palette.onNamed("#3B82F6"), Palette.white, "primary.500")
         XCTAssertEqual(Palette.onNamed("#FBBF24"), Palette.black)
         XCTAssertEqual(Palette.onNamed("#108"), Palette.white, "3-digit #RGB matches the CMS regex")
         XCTAssertEqual(Palette.onNamed("#fc0"), Palette.black)
