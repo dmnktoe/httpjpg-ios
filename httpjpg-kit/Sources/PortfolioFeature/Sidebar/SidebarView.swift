@@ -27,7 +27,7 @@ struct SidebarView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
 
-            SidebarMenuButton(systemName: "xmark", label: "Close menu") {
+            SidebarMenuButton(systemName: "chevron.left", label: "Close menu", style: .inverse) {
                 app.toggleSidebar()
             }
         }
