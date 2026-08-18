@@ -27,7 +27,7 @@ struct SidebarView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
 
-            SidebarGlassButton(glyph: "✕", label: "Close menu") {
+            SidebarMenuButton(systemName: "xmark", label: "Close menu") {
                 app.toggleSidebar()
             }
         }
