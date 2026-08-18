@@ -11,16 +11,14 @@ struct SidebarView: View {
     @State private var externalTaps = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header
-            projects
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
-        .task(id: app.isSidebarOpen) {
-            guard app.isSidebarOpen else { return }
-            await app.workIndex.load()
-        }
+        projects
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .floatingTopBar { header }
+            .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
+            .task(id: app.isSidebarOpen) {
+                guard app.isSidebarOpen else { return }
+                await app.workIndex.load()
+            }
     }
 
     private var header: some View {
@@ -29,18 +27,19 @@ struct SidebarView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
 
-            SidebarGlassButton(glyph: "✕", label: "Close menu") {
+            SidebarMenuButton(systemName: "chevron.left", label: "Close menu", style: .inverse) {
                 app.toggleSidebar()
             }
         }
         .padding(.horizontal, PageLayout.gutter)
         .padding(.top, Spacing.s2)
         .padding(.bottom, Spacing.s5)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var projects: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+            LazyVStack(alignment: .leading, spacing: 0) {
                 listLabel
                 listBody
             }
@@ -114,7 +113,6 @@ struct SidebarView: View {
         }
         .padding(.top, Spacing.s4)
         .padding(.bottom, Spacing.s2)
-        .background(theme.drawerBackground)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(group.accessibilityLabel), \(countLabel(group.items.count))")
         .accessibilityAddTraits(.isHeader)
