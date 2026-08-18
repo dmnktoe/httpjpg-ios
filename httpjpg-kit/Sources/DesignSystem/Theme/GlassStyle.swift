@@ -77,19 +77,30 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     @Environment(\.chromeHeld) private var isHeld
 
     func body(content: Content) -> some View {
-        if isHeld {
-            // Flat fallback while the sidebar scrim is up — only paint when tinted.
-            content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
-        } else if #available(iOS 26.0, *) {
-            content.glassEffect(glass, in: shape)
-        } else if let tint {
-            content
-                .background(tint.opacity(0.55), in: shape)
-                .background(.ultraThinMaterial, in: shape)
+        let glassed: some View = Group {
+            if isHeld {
+                // Flat fallback while the sidebar scrim is up — only paint when tinted.
+                content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
+            } else if #available(iOS 26.0, *) {
+                content.glassEffect(glass, in: shape)
+            } else if let tint {
+                content
+                    .background(tint.opacity(0.55), in: shape)
+                    .background(.ultraThinMaterial, in: shape)
+            } else {
+                // No CMS / caller tint: skip the frosted material so we don't
+                // leave a grey disc on light pages.
+                content
+            }
+        }
+
+        // Interactive glass draws its touch highlight from the view bounds, which
+        // defaults to a rounded rect on small square frames — clip to the declared
+        // shape so press-and-drag stays circular (see GlassPill).
+        if isInteractive {
+            glassed.clipShape(shape)
         } else {
-            // No CMS / caller tint: skip the frosted material so we don't
-            // leave a grey disc on light pages.
-            content
+            glassed
         }
     }
 

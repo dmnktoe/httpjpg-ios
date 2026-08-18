@@ -142,11 +142,16 @@ public enum Palette {
         return UInt32(expanded, radix: 16)
     }
 
+    /// White glyphs once the fill is mid-dark — WCAG's black/white flip is 0.179,
+    /// which left terracotta and primary.500 on black. 0.4 catches those while
+    /// keeping lime/yellow on black.
+    private static let lightForegroundLuminance = 0.4
+
     private static func prefersLightForeground(hex: UInt32) -> Bool {
         let r = Double((hex >> 16) & 0xFF) / 255
         let g = Double((hex >> 8) & 0xFF) / 255
         let b = Double(hex & 0xFF) / 255
-        return relativeLuminance(red: r, green: g, blue: b) < 0.179
+        return relativeLuminance(red: r, green: g, blue: b) < lightForegroundLuminance
     }
 
     private static func relativeLuminance(red: Double, green: Double, blue: Double) -> Double {
