@@ -11,16 +11,14 @@ struct SidebarView: View {
     @State private var externalTaps = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header
-            projects
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
-        .task(id: app.isSidebarOpen) {
-            guard app.isSidebarOpen else { return }
-            await app.workIndex.load()
-        }
+        projects
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .floatingTopBar { header }
+            .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
+            .task(id: app.isSidebarOpen) {
+                guard app.isSidebarOpen else { return }
+                await app.workIndex.load()
+            }
     }
 
     private var header: some View {
@@ -36,6 +34,7 @@ struct SidebarView: View {
         .padding(.horizontal, PageLayout.gutter)
         .padding(.top, Spacing.s2)
         .padding(.bottom, Spacing.s5)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var projects: some View {
