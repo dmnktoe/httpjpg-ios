@@ -91,6 +91,9 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
+            // The drawer is the active layer; drain color from the scaled page
+            // so it reads as a still, monochrome shell.
+            .grayscale(Double(progress))
             .scrollDisabled(drag.isArmed || isOpen)
             .overlay {
                 Rectangle()
@@ -103,7 +106,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
             // The scaled page sits over the drawer; without this the left edge
             // reads flush against the sidebar.
-            .shadow(color: pageShadow, radius: Spacing.s6 * progress)
+            .shadow(color: pageShadow, radius: Spacing.s3 * progress)
             .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
