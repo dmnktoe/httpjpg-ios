@@ -48,8 +48,8 @@ public struct SbCalloutView: View {
         blok.align == "center" ? .center : .leading
     }
 
-    private var textAlignment: TextAlignment {
-        blok.align == "center" ? .center : .leading
+    private var textAlignment: TextAlign {
+        blok.align == "center" ? .center : .left
     }
 
     private var isBrutalist: Bool { blok.tone == "brutalist" }

@@ -63,5 +63,5 @@ public struct SbStatsView: View {
 
     private var frameAlignment: Alignment { isCentered ? .center : .leading }
 
-    private var textAlignment: TextAlignment { isCentered ? .center : .leading }
+    private var textAlignment: TextAlign { isCentered ? .center : .left }
 }

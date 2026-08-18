@@ -359,10 +359,65 @@ final class StoryblokDecodingTests: XCTestCase {
 
     func testHeadingLevelFallsBackWhenAttrsAreMissing() throws {
         let node = try decode(RichTextNode.self, #"{"type":"heading","content":[]}"#)
-        guard case .heading(let level, _) = node else {
+        guard case .heading(let level, _, _) = node else {
             return XCTFail("expected a heading")
         }
         XCTAssertEqual(level, 2, "an attrs-less heading reads as h2, not a decoding failure")
+    }
+
+    func testRichTextAppliesTextAlignOnParagraphsAndHeadings() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"paragraph","attrs":{"textAlign":"right"},"content":[
+            {"type":"text","text":"flush right"}]},
+          {"type":"heading","attrs":{"level":2,"textAlign":"center"},"content":[
+            {"type":"text","text":"centred"}]},
+          {"type":"paragraph","attrs":{"textAlign":"justify"},"content":[
+            {"type":"text","text":"justified"}]}
+        ]}
+        """)
+        guard case .document(let children) = document, children.count == 3 else {
+            return XCTFail("expected three aligned blocks")
+        }
+        guard case .paragraph(let paragraphAlign, _) = children[0] else {
+            return XCTFail("expected a right-aligned paragraph")
+        }
+        XCTAssertEqual(paragraphAlign, .right)
+        guard case .heading(_, let headingAlign, _) = children[1] else {
+            return XCTFail("expected a centred heading")
+        }
+        XCTAssertEqual(headingAlign, .center)
+        guard case .paragraph(let justified, _) = children[2] else {
+            return XCTFail("expected a justified paragraph")
+        }
+        XCTAssertEqual(justified, .justify)
+    }
+
+    func testRichTextIgnoresUnknownTextAlign() throws {
+        let paragraph = try decode(RichTextNode.self, """
+        {"type":"paragraph","attrs":{"textAlign":"start"},"content":[{"type":"text","text":"x"}]}
+        """)
+        guard case .paragraph(let paragraphAlign, _) = paragraph else {
+            return XCTFail("expected a paragraph")
+        }
+        XCTAssertNil(paragraphAlign, "Storyblok's start is not a CMS align value")
+
+        let heading = try decode(RichTextNode.self, """
+        {"type":"heading","attrs":{"level":3,"textAlign":"start"},"content":[{"type":"text","text":"x"}]}
+        """)
+        guard case .heading(let level, let headingAlign, _) = heading else {
+            return XCTFail("expected a heading")
+        }
+        XCTAssertEqual(level, 3)
+        XCTAssertNil(headingAlign)
+    }
+
+    func testParagraphBlokReadsAlignIncludingJustify() throws {
+        let blok = try decode(ParagraphBlok.self, """
+        {"_uid":"p1","component":"paragraph","text":"Hello","align":"justify","size":"md"}
+        """)
+        XCTAssertEqual(blok.align, "justify")
+        XCTAssertEqual(blok.size, "md")
     }
 
     func testConfigDecodesMenuAndFooter() throws {
