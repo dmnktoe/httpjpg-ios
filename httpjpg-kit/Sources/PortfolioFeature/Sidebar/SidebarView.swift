@@ -39,7 +39,7 @@ struct SidebarView: View {
 
     private var projects: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+            LazyVStack(alignment: .leading, spacing: 0) {
                 listLabel
                 listBody
             }
@@ -113,7 +113,6 @@ struct SidebarView: View {
         }
         .padding(.top, Spacing.s4)
         .padding(.bottom, Spacing.s2)
-        .background(theme.drawerBackground)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(group.accessibilityLabel), \(countLabel(group.items.count))")
         .accessibilityAddTraits(.isHeader)
