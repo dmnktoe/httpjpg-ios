@@ -1,5 +1,6 @@
 import SwiftUI
 import Tokens
+import UIKit
 
 public struct BodyText: View {
     public enum Size: Sendable {
@@ -43,16 +44,18 @@ public struct BodyText: View {
     private let size: Size
     private let emphasis: Emphasis
     private let weight: Font.Weight
-    private let alignment: TextAlignment
+    private let alignment: TextAlign
     private let lineLimit: Int?
     private let lineHeight: CGFloat?
+
+    @Environment(\.pageTheme) private var theme
 
     public init(
         _ text: String,
         size: Size = .sm,
         emphasis: Emphasis = .default,
         weight: Font.Weight = .regular,
-        alignment: TextAlignment = .leading,
+        alignment: TextAlign = .left,
         lineLimit: Int? = nil,
         lineHeight: CGFloat? = nil
     ) {
@@ -66,13 +69,40 @@ public struct BodyText: View {
     }
 
     public var body: some View {
-        Text(text)
-            .font(Typography.sans(size.points).weight(weight))
-            .lineSpacing(lineHeight.map { size.points * ($0 - 1) } ?? size.lineSpacing)
-            .multilineTextAlignment(alignment)
-            .opacity(emphasis.opacity)
-            .lineLimit(lineLimit)
-            .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
+        Group {
+            if alignment == .justify {
+                AlignedText(
+                    text,
+                    align: alignment,
+                    font: Typography.uiSans(size.points, weight: uiWeight),
+                    color: theme.foreground,
+                    lineSpacing: resolvedLineSpacing
+                )
+                .opacity(emphasis.opacity)
+            } else {
+                Text(text)
+                    .font(Typography.sans(size.points).weight(weight))
+                    .lineSpacing(resolvedLineSpacing)
+                    .multilineTextAlignment(alignment.multiline)
+                    .opacity(emphasis.opacity)
+                    .lineLimit(lineLimit)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment.frame)
+    }
+
+    private var resolvedLineSpacing: CGFloat {
+        lineHeight.map { size.points * ($0 - 1) } ?? size.lineSpacing
+    }
+
+    private var uiWeight: UIFont.Weight {
+        switch weight {
+        case .light: return .light
+        case .medium: return .medium
+        case .semibold: return .semibold
+        case .bold: return .bold
+        default: return .regular
+        }
     }
 }
 

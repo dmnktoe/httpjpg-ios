@@ -3,7 +3,7 @@ import Foundation
 public indirect enum RichTextNode: Decodable {
     case document([RichTextNode])
     case paragraph(alignment: RichTextAlignment?, content: [RichTextNode])
-    case heading(level: Int, content: [RichTextNode])
+    case heading(level: Int, alignment: RichTextAlignment?, content: [RichTextNode])
     case bulletList([RichTextNode])
     case orderedList([RichTextNode])
     case listItem([RichTextNode])
@@ -64,11 +64,15 @@ public indirect enum RichTextNode: Decodable {
             self = .document(children)
         case "paragraph":
             self = .paragraph(
-                alignment: attributes?.textAlign.flatMap(RichTextAlignment.init(rawValue:)),
+                alignment: RichTextAlignment(cmsValue: attributes?.textAlign),
                 content: children
             )
         case "heading":
-            self = .heading(level: attributes?.level ?? 2, content: children)
+            self = .heading(
+                level: attributes?.level ?? 2,
+                alignment: RichTextAlignment(cmsValue: attributes?.textAlign),
+                content: children
+            )
         case "bullet_list":
             self = .bulletList(children)
         case "ordered_list":
@@ -113,7 +117,7 @@ public indirect enum RichTextNode: Decodable {
              .blockquote(let nodes):
             return nodes
         case .paragraph(_, let nodes),
-             .heading(_, let nodes),
+             .heading(_, _, let nodes),
              .codeBlock(_, let nodes):
             return nodes
         case .horizontalRule, .hardBreak, .text, .image, .emoji, .blok, .unknown:
@@ -146,6 +150,14 @@ public enum RichTextAlignment: String, Sendable {
     case left
     case center
     case right
+    case justify
+
+    /// Storyblok emits `left` / `center` / `right` / `justify`. Anything else
+    /// (including the editor's `start`) is treated as unset, matching the web.
+    public init?(cmsValue: String?) {
+        guard let cmsValue else { return nil }
+        self.init(rawValue: cmsValue)
+    }
 }
 
 public struct RichTextMark: Decodable {

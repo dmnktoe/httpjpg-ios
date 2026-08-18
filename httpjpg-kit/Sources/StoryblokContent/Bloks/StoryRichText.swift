@@ -6,12 +6,14 @@ import Tokens
 public struct StoryRichText: View {
     private let document: RichTextNode?
     private let size: CGFloat
+    private let color: Color?
 
     @Environment(\.pageTheme) private var theme
 
-    public init(_ document: RichTextNode?, size: CGFloat = Typography.Size.sm) {
+    public init(_ document: RichTextNode?, size: CGFloat = Typography.Size.sm, color: Color? = nil) {
         self.document = document
         self.size = size
+        self.color = color
     }
 
     public var body: some View {
@@ -41,11 +43,12 @@ public struct StoryRichText: View {
         case .paragraph(let alignment, let content):
             return AnyView(paragraph(content, alignment: alignment))
 
-        case .heading(let level, let content):
+        case .heading(let level, let alignment, let content):
             return AnyView(
                 Headline(
                     RichTextInline.plainText(content),
-                    level: Headline.Level(rawValue: level) ?? .three
+                    level: Headline.Level(rawValue: level) ?? .three,
+                    alignment: TextAlign(richText: alignment)
                 )
             )
 
@@ -124,11 +127,26 @@ public struct StoryRichText: View {
     }
 
     private func paragraph(_ content: [RichTextNode], alignment: RichTextAlignment?) -> some View {
-        Text(RichTextInline.attributed(content, size: size, linkColor: theme.link))
-            .font(Typography.sans(size))
-            .lineSpacing(size * 0.35)
-            .multilineTextAlignment(TextAlignment(richText: alignment))
-            .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
+        let align = TextAlign(richText: alignment)
+        let attributed = RichTextInline.attributed(content, size: size, linkColor: theme.link)
+        if align == .justify {
+            return AnyView(
+                AlignedText(
+                    attributed,
+                    align: align,
+                    font: Typography.uiSans(size),
+                    color: color ?? theme.foreground,
+                    lineSpacing: size * 0.35
+                )
+            )
+        }
+        return AnyView(
+            Text(attributed)
+                .font(Typography.sans(size))
+                .lineSpacing(size * 0.35)
+                .multilineTextAlignment(align.multiline)
+                .frame(maxWidth: .infinity, alignment: align.frame)
+        )
     }
 
     private func list(_ items: [RichTextNode], marker: @escaping (Int) -> String) -> some View {
@@ -146,12 +164,13 @@ public struct StoryRichText: View {
     }
 }
 
-extension TextAlignment {
+extension TextAlign {
     init(richText: RichTextAlignment?) {
         switch richText {
         case .center: self = .center
-        case .right: self = .trailing
-        case .left, .none: self = .leading
+        case .right: self = .right
+        case .justify: self = .justify
+        case .left, .none: self = .left
         }
     }
 }

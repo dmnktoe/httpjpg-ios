@@ -17,7 +17,7 @@ public struct SbParagraphView: View {
             blok.text,
             size: BodyText.Size(cmsSize: blok.size),
             weight: Font.Weight(cmsWeight: blok.weight),
-            alignment: TextAlignment(cmsAlign: blok.align)
+            alignment: TextAlign(cmsValue: blok.align)
         )
         .foregroundStyle(Palette.named(blok.color) ?? theme.foreground)
         .blokSpacing(blok.spacing)

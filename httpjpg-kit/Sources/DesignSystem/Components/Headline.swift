@@ -25,15 +25,16 @@ public struct Headline: View {
 
     private let text: String
     private let level: Level
-    private let alignment: TextAlignment
+    private let alignment: TextAlign
     private let lineSpacingRatio: CGFloat
 
     @Environment(\.viewportWidth) private var viewportWidth
+    @Environment(\.pageTheme) private var theme
 
     public init(
         _ text: String,
         level: Level = .one,
-        alignment: TextAlignment = .leading,
+        alignment: TextAlign = .left,
         lineSpacing: CGFloat = -0.25
     ) {
         self.text = text
@@ -44,13 +45,24 @@ public struct Headline: View {
 
     public var body: some View {
         let size = resolvedSize
-        Text(text)
-            .font(Typography.headline(size))
-            .tracking(size * level.trackingRatio)
-            .lineSpacing(size * lineSpacingRatio)
-            .multilineTextAlignment(alignment)
-            .frame(maxWidth: .infinity, alignment: frameAlignment)
-            .accessibilityAddTraits(.isHeader)
+        Group {
+            if alignment == .justify {
+                AlignedText(
+                    text,
+                    align: alignment,
+                    font: Typography.uiHeadline(size),
+                    color: theme.foreground
+                )
+            } else {
+                Text(text)
+                    .font(Typography.headline(size))
+                    .tracking(size * level.trackingRatio)
+                    .lineSpacing(size * lineSpacingRatio)
+                    .multilineTextAlignment(alignment.multiline)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment.frame)
+        .accessibilityAddTraits(.isHeader)
     }
 
     private var resolvedSize: CGFloat {
@@ -62,14 +74,6 @@ public struct Headline: View {
             max: spec.max,
             width: viewportWidth
         )
-    }
-
-    private var frameAlignment: Alignment {
-        switch alignment {
-        case .leading: return .leading
-        case .center: return .center
-        case .trailing: return .trailing
-        }
     }
 }
 

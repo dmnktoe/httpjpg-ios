@@ -16,19 +16,9 @@ public struct SbHeadlineView: View {
         Headline(
             blok.text,
             level: Headline.Level(rawValue: blok.level) ?? .two,
-            alignment: TextAlignment(cmsAlign: blok.align)
+            alignment: TextAlign(cmsValue: blok.align)
         )
         .foregroundStyle(Palette.named(blok.color) ?? theme.foreground)
         .blokSpacing(blok.spacing)
-    }
-}
-
-extension TextAlignment {
-    init(cmsAlign: String?) {
-        switch cmsAlign {
-        case "center": self = .center
-        case "right": self = .trailing
-        default: self = .leading
-        }
     }
 }
