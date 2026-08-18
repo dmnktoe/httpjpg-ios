@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import XCTest
 
 @testable import DesignSystem
@@ -23,6 +24,9 @@ final class TextAlignTests: XCTestCase {
         XCTAssertEqual(TextAlign.left.frame, .leading)
         XCTAssertEqual(TextAlign.justify.frame, .leading)
         XCTAssertEqual(TextAlign.right.multiline, .trailing)
-        XCTAssertEqual(TextAlign.justify.multiline, .leading)
+        XCTAssertEqual(TextAlign.justify.nsAlignment, .justified)
+        XCTAssertEqual(TextAlign.right.nsAlignment, .right)
+        XCTAssertEqual(TextAlign.center.nsAlignment, .center)
+        XCTAssertEqual(TextAlign.left.nsAlignment, .left)
     }
 }

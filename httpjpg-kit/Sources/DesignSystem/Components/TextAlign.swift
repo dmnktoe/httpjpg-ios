@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 /// CMS text alignment (`left` / `center` / `right` / `justify`).
-/// SwiftUI has no native justify, so that case goes through `NSParagraphStyle`.
+/// SwiftUI `Text` cannot justify, so that case is drawn with `AlignedText`.
 public enum TextAlign: String, Sendable {
     case left
     case center
@@ -29,16 +29,12 @@ public enum TextAlign: String, Sendable {
         }
     }
 
-    public func applying(to attributed: AttributedString) -> AttributedString {
-        guard self == .justify else { return attributed }
-        var copy = attributed
-        let style = NSMutableParagraphStyle()
-        style.alignment = .justified
-        copy.mergeAttributes(AttributeContainer([.paragraphStyle: style]))
-        return copy
-    }
-
-    public func styled(_ string: String) -> Text {
-        self == .justify ? Text(applying(to: AttributedString(string))) : Text(string)
+    public var nsAlignment: NSTextAlignment {
+        switch self {
+        case .left: return .left
+        case .center: return .center
+        case .right: return .right
+        case .justify: return .justified
+        }
     }
 }

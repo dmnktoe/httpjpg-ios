@@ -12,7 +12,7 @@ public struct SbRichTextView: View {
     }
 
     public var body: some View {
-        StoryRichText(blok.content)
+        StoryRichText(blok.content, color: Palette.named(blok.color))
             .foregroundStyle(Palette.named(blok.color) ?? theme.foreground)
             .blokSpacing(blok.spacing)
     }

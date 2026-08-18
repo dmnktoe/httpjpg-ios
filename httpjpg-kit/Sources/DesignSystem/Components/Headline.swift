@@ -29,6 +29,7 @@ public struct Headline: View {
     private let lineSpacingRatio: CGFloat
 
     @Environment(\.viewportWidth) private var viewportWidth
+    @Environment(\.pageTheme) private var theme
 
     public init(
         _ text: String,
@@ -44,13 +45,24 @@ public struct Headline: View {
 
     public var body: some View {
         let size = resolvedSize
-        alignment.styled(text)
-            .font(Typography.headline(size))
-            .tracking(size * level.trackingRatio)
-            .lineSpacing(size * lineSpacingRatio)
-            .multilineTextAlignment(alignment.multiline)
-            .frame(maxWidth: .infinity, alignment: alignment.frame)
-            .accessibilityAddTraits(.isHeader)
+        Group {
+            if alignment == .justify {
+                AlignedText(
+                    text,
+                    align: alignment,
+                    font: Typography.uiHeadline(size),
+                    color: theme.foreground
+                )
+            } else {
+                Text(text)
+                    .font(Typography.headline(size))
+                    .tracking(size * level.trackingRatio)
+                    .lineSpacing(size * lineSpacingRatio)
+                    .multilineTextAlignment(alignment.multiline)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment.frame)
+        .accessibilityAddTraits(.isHeader)
     }
 
     private var resolvedSize: CGFloat {
