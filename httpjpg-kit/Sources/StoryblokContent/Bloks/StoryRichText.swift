@@ -126,7 +126,7 @@ public struct StoryRichText: View {
 
     private func paragraph(_ content: [RichTextNode], alignment: RichTextAlignment?) -> some View {
         let align = TextAlign(richText: alignment)
-        Text(align.applying(to: RichTextInline.attributed(content, size: size, linkColor: theme.link)))
+        return Text(align.applying(to: RichTextInline.attributed(content, size: size, linkColor: theme.link)))
             .font(Typography.sans(size))
             .lineSpacing(size * 0.35)
             .multilineTextAlignment(align.multiline)
