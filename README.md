@@ -8,7 +8,7 @@
 
 **swiftui · storyblok · swiftpm · xcodegen**
 
-Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, a slide-over drawer holding every project, a home-screen widget, the three latest works one long-press away on the app icon, and a watchOS companion that puts the index on the wrist.
+Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, a slide-over drawer holding every project, a home-screen widget, the three latest works one long-press away on the app icon, the archive in Spotlight, and a watchOS companion that puts the index on the wrist. Ask Siri to shuffle and the work comes back as a snippet rather than a launch.
 
 ```bash
 cp Config/Secrets.example.xcconfig Config/Secrets.xcconfig   # fill in STORYBLOK_ACCESS_TOKEN

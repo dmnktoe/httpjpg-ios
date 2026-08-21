@@ -79,7 +79,7 @@ public struct EmbedVideoSurface: View {
     }
 
     private var shouldAutoPlay: Bool {
-        autoPlays && !reduceMotion
+        autoPlays && !reduceMotion && !LowPowerMode.shared.isEnabled
     }
 
     /// Builds the vendor embed URL the web `Video` component loads in an iframe.

@@ -1,7 +1,15 @@
+import DesignSystem
 import StoryblokCore
 import UIKit
 
 enum WidgetImageLoader {
+    /// The app and the extension read remote images out of the same store, so a
+    /// timeline refresh usually costs nothing. Installed before the first
+    /// `URLSession.shared` request, which is the one below.
+    private static let sharedCache: Void = ImageCache.install(
+        sharedContainer: AppGroup.cachesURL(AppGroup.CacheName.images)
+    )
+
     static func image(_ filename: String?, width: CGFloat, scale: CGFloat) async -> UIImage? {
         await data(filename, width: width, scale: scale).flatMap(UIImage.init(data:))
     }
@@ -31,6 +39,7 @@ enum WidgetImageLoader {
     }
 
     private static func data(_ filename: String?, width: CGFloat, scale: CGFloat) async -> Data? {
+        _ = sharedCache
         guard let filename, !filename.isEmpty else { return nil }
 
         let url = URL(string: ImageService.Preset.width(filename, width, scale: scale))

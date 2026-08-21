@@ -44,7 +44,7 @@ public struct VideoSurface: View {
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay { poster }
             .clipped()
-            .onAppear(perform: start)
+            .task(id: shouldAutoPlay) { start() }
             .onDisappear { player.pause() }
             .onReceive(player.publisher(for: \.timeControlStatus)) { status in
                 if status == .playing { isPosterVisible = false }
@@ -70,6 +70,12 @@ public struct VideoSurface: View {
         }
     }
 
+    /// Reduce Motion and Low Power Mode both take the decision away from the
+    /// CMS flag: the frame stays on the poster until someone asks for it.
+    private var shouldAutoPlay: Bool {
+        autoPlays && !reduceMotion && !LowPowerMode.shared.isEnabled
+    }
+
     private func start() {
         if !isConfigured {
             isConfigured = true
@@ -81,8 +87,13 @@ public struct VideoSurface: View {
                 player.replaceCurrentItem(with: item)
             }
         }
-        guard autoPlays, !reduceMotion else { return }
-        player.play()
+
+        if shouldAutoPlay {
+            player.play()
+        } else if autoPlays {
+            // The setting flipped while an autoplaying frame was on screen.
+            player.pause()
+        }
     }
 }
 

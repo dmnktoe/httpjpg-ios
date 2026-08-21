@@ -3,6 +3,7 @@
 PRODUCT_NAME = httpjpg-widgets
 PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg.widgets
 INFOPLIST_FILE = httpjpg-widgets/Info.plist
+CODE_SIGN_ENTITLEMENTS = Config/Widgets.entitlements
 
 INFOPLIST_KEY_CFBundleDisplayName = httpjpg
 INFOPLIST_KEY_UILaunchScreen_Generation =

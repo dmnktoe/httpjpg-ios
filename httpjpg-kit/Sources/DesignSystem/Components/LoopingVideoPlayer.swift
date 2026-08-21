@@ -57,9 +57,9 @@ public struct LoopingVideoPlayer: View {
             .animation(Motion.mediaIn, value: isReady)
             .clipped()
             .contentShape(Rectangle())
-            .task(id: isActive) { await start() }
+            .task(id: shouldPlay) { await start() }
             .onChange(of: isHeld) { _, held in
-                guard isActive, let player, item != nil else { return }
+                guard shouldPlay, let player, item != nil else { return }
                 if held {
                     player.pause()
                 } else {
@@ -81,6 +81,12 @@ public struct LoopingVideoPlayer: View {
         return center.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)
             .merge(with: center.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification))
             .receive(on: DispatchQueue.main)
+    }
+
+    /// A decorative loop is pure battery burn in Low Power Mode; the layer
+    /// still gets its first frame, it just never moves.
+    private var shouldPlay: Bool {
+        isActive && !LowPowerMode.shared.isEnabled
     }
 
     @MainActor
@@ -110,7 +116,7 @@ public struct LoopingVideoPlayer: View {
 
     @MainActor
     private func settle(_ player: AVPlayer, rewinding: Bool) {
-        guard isActive else {
+        guard shouldPlay else {
             player.pause()
             player.seek(to: .zero)
             return

@@ -13,4 +13,7 @@ INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents =
 INFOPLIST_KEY_UISupportedInterfaceOrientations =
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad =
 
+// watchOS cannot join the iOS app group, so the watch app keeps its own caches.
+CODE_SIGN_ENTITLEMENTS =
+
 SKIP_INSTALL = YES

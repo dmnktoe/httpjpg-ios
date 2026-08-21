@@ -16,7 +16,7 @@ public struct RootView: View {
     public init(configuration: StoryblokConfiguration) {
         model = AppModel(configuration: configuration)
         NavigationBarStyle.install()
-        ImageCache.install()
+        ImageCache.install(sharedContainer: AppGroup.cachesURL(AppGroup.CacheName.images))
         Telemetry.start()
     }
 

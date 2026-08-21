@@ -10,6 +10,12 @@ final class PortfolioSceneDelegate: NSObject, UIWindowSceneDelegate {
         QuickActionInbox.shared.post(item)
     }
 
+    /// The scene lifecycle owns backgrounding here — `UIApplicationDelegate`
+    /// never sees it once a scene manifest is present.
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        ContentRefreshTask.schedule()
+    }
+
     func windowScene(
         _ windowScene: UIWindowScene,
         performActionFor shortcutItem: UIApplicationShortcutItem,

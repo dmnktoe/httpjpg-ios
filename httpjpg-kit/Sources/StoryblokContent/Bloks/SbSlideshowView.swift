@@ -18,7 +18,7 @@ public struct SbSlideshowView: View {
                 aspectRatio: aspectRatio,
                 autoplayInterval: 7,
                 showsCounter: blok.showsCounter,
-                ownsRotation: { blok.images[$0].isVideo }
+                ownsRotation: { blok.images[$0].isVideo && playsThrough }
             ) { position, context in
                 slide(blok.images[position], context)
             }
@@ -40,8 +40,10 @@ public struct SbSlideshowView: View {
         }
     }
 
+    /// A video slide hands the carousel back when it ends. It cannot when it
+    /// never plays, so the timer has to keep the rotation in those cases.
     private var playsThrough: Bool {
-        blok.images.count > 1 && !reduceMotion
+        blok.images.count > 1 && !reduceMotion && !LowPowerMode.shared.isEnabled
     }
 
     private var aspectRatio: CGFloat {

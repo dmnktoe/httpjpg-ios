@@ -16,7 +16,8 @@ same Storyblok space the website reads. The website lives in a separate repo,
 - **XcodeGen** — `project.yml` is the source of truth for target structure; the
   `.xcodeproj` is checked in, regenerate with `xcodegen generate`
 - **xcconfig** build settings in `Config/`; secrets in the git-ignored
-  `Config/Secrets.xcconfig`
+  `Config/Secrets.xcconfig`; entitlements next to them, wired through
+  `CODE_SIGN_ENTITLEMENTS`
 - Dependencies: `storyblok-swift` (the `Story` envelope only), `MarqueeLabel`,
   `TelemetryDeck`, `SVGView` (badge artwork — ImageIO cannot decode SVG)
 
@@ -42,6 +43,13 @@ No umbrella re-exports: a file imports the modules it actually names, so
 `import Tokens` sits beside `import DesignSystem` wherever a view reaches for
 both, and a file that only wants the palette imports `Tokens` alone. Reading
 the import block should tell you which layers a file touches.
+
+**Shared container.** The app and the widget extension join
+`group.com.yl33ly.httpjpg` and pull Storyblok responses and remote images out of
+the same `URLCache` — see `AppGroup` in `StoryblokCore`. Fixtures stay out of it,
+so a mock build can never serve a network build. Every lookup into the container
+is optional and has to keep working when it comes back `nil`: there is no
+entitlement in the tests, in previews or on the watch.
 
 **Platforms.** The package builds for iOS and watchOS, but only `Tokens`,
 `StoryblokCore` and `WatchFeature` are ever compiled for the watch — nothing on

@@ -26,8 +26,25 @@ public final class ContentClient: @unchecked Sendable {
         self.session = URLSession(configuration: sessionConfiguration)
 
         self.cache = ResponseCache(
-            cache: URLCache(memoryCapacity: 8 * 1024 * 1024, diskCapacity: 64 * 1024 * 1024),
+            cache: Self.responseCache(sharing: configuration.source == .network),
             ttl: Self.cacheDuration
+        )
+    }
+
+    /// Network responses live in the app group so the widget timelines reuse
+    /// what the app already fetched. Fixtures never do — a mock build must not
+    /// leave payloads behind that a network build would then serve.
+    private static func responseCache(sharing: Bool) -> URLCache {
+        let memoryCapacity = 8 * 1024 * 1024
+        let diskCapacity = 64 * 1024 * 1024
+
+        guard sharing, let directory = AppGroup.cachesURL(AppGroup.CacheName.content) else {
+            return URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity)
+        }
+        return URLCache(
+            memoryCapacity: memoryCapacity,
+            diskCapacity: diskCapacity,
+            directory: directory
         )
     }
 
