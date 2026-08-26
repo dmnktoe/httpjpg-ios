@@ -38,7 +38,6 @@ public final class AppModel {
 
     public var workPath: [WorkRoute] = []
 
-    /// Bumped whenever external routing targets a work detail so reused screens reload.
     private(set) var workRouteToken = 0
 
     public var infoPath: [PageRoute] = []
