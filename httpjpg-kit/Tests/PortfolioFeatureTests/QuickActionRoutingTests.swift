@@ -29,6 +29,18 @@ final class QuickActionRoutingTests: XCTestCase {
         XCTAssertEqual(app.workPath.map(\.slug), ["two"])
     }
 
+    func testRepeatingTheSameWorkActionStillBumpsTheRouteToken() {
+        let app = makeApp()
+
+        app.perform(.work(slug: "atlas", title: "ATLAS"))
+        let token = app.workRouteToken
+
+        app.perform(.work(slug: "atlas", title: "ATLAS"))
+
+        XCTAssertEqual(app.workPath.map(\.slug), ["atlas"])
+        XCTAssertGreaterThan(app.workRouteToken, token)
+    }
+
     func testAShuffleLandsSomewhereInsideItsPool() {
         let app = makeApp()
         let pool = ["one", "two", "three"]

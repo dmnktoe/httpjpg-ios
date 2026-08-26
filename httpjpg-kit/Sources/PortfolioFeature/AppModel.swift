@@ -38,6 +38,9 @@ public final class AppModel {
 
     public var workPath: [WorkRoute] = []
 
+    /// Bumped whenever external routing targets a work detail so reused screens reload.
+    private(set) var workRouteToken = 0
+
     public var infoPath: [PageRoute] = []
 
     public var isSidebarOpen = false {
@@ -130,6 +133,7 @@ public final class AppModel {
     private func show(_ route: WorkRoute) {
         selectedTab = .work
         workPath = [route]
+        workRouteToken &+= 1
         isSidebarOpen = false
     }
 
