@@ -4,14 +4,16 @@ import Tokens
 public struct ImageZoomViewer: View {
     private let url: URL?
     private let accessibilityText: String?
+    private let animated: Bool
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.chromeAccent) private var accent
     @Environment(\.chromeOnAccent) private var onAccent
 
-    public init(url: URL?, accessibilityText: String? = nil) {
+    public init(url: URL?, accessibilityText: String? = nil, animated: Bool = false) {
         self.url = url
         self.accessibilityText = accessibilityText
+        self.animated = animated
     }
 
     public var body: some View {
@@ -19,23 +21,10 @@ public struct ImageZoomViewer: View {
             Color.black.ignoresSafeArea()
 
             ZoomableScrollView {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFit()
-                    case .failure:
-                        AsciiArt(Ascii.offline, label: "Image unavailable", size: Typography.Size.xxs, opacity: 0.6)
-                            .foregroundStyle(Palette.white)
-                    default:
-                        ProgressView()
-                            .tint(Palette.white)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .accessibilityLabel(accessibilityText ?? "")
-                .accessibilityHidden(accessibilityText == nil)
+                zoomedImage
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel(accessibilityText ?? "")
+                    .accessibilityHidden(accessibilityText == nil)
             }
             .ignoresSafeArea()
 
@@ -56,6 +45,28 @@ public struct ImageZoomViewer: View {
             .buttonStyle(.plain)
             .padding(.trailing, PageLayout.gutter)
             .accessibilityLabel("Close image viewer")
+        }
+    }
+
+    @ViewBuilder
+    private var zoomedImage: some View {
+        if animated {
+            AnimatedGIFView(url: url, contentMode: .fit)
+        } else {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                case .failure:
+                    AsciiArt(Ascii.offline, label: "Image unavailable", size: Typography.Size.xxs, opacity: 0.6)
+                        .foregroundStyle(Palette.white)
+                default:
+                    ProgressView()
+                        .tint(Palette.white)
+                }
+            }
         }
     }
 }

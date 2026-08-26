@@ -23,7 +23,8 @@ public enum ImageService {
         let height = dimensions.count > 1 ? String(dimensions[1]) : ""
 
         var params = "/m"
-        var imageFilters = "/filters:quality(75)"
+        let isGIF = Self.isGIF(filename: source, contentType: nil)
+        var imageFilters = isGIF ? "" : "/filters:quality(75)"
 
         if !crop.isEmpty {
             params += "/\(crop)"
@@ -91,6 +92,18 @@ public enum ImageService {
     }
 
     private static let videoExtensions: Set<String> = ["mp4", "webm", "ogg", "mov", "avi", "mkv"]
+
+    private static let gifExtensions: Set<String> = ["gif"]
+
+    public static func isGIF(filename: String?, contentType: String?) -> Bool {
+        if let contentType, contentType == "image/gif" {
+            return true
+        }
+        guard let filename else { return false }
+        let path = filename.split(separator: "?").first.map(String.init) ?? filename
+        guard let ext = path.split(separator: ".").last else { return false }
+        return gifExtensions.contains(ext.lowercased())
+    }
 
     public static func isVideo(filename: String?, contentType: String?) -> Bool {
         if let contentType, contentType.hasPrefix("video/") {
