@@ -16,6 +16,7 @@ public struct AssetImage: View {
     @Environment(\.chromeOnAccent) private var onAccent
 
     @State private var isZoomed = false
+    @State private var isSettling = false
 
     public init(
         asset: StoryblokAsset,
@@ -48,6 +49,15 @@ public struct AssetImage: View {
             }
         }
 
+        .preference(key: ImageViewerHeldKey.self, value: isZoomed || isSettling)
+        .onChange(of: isZoomed) { wasOpen, isOpen in
+            guard wasOpen, !isOpen else { return }
+            isSettling = true
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                isSettling = false
+            }
+        }
         .onTapGesture { isZoomed = true }
         .fullScreenCover(isPresented: $isZoomed) {
             ImageZoomViewer(
