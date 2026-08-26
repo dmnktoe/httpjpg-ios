@@ -15,12 +15,17 @@ public struct SbImageView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
             if let asset = blok.image, !asset.isEmpty {
-                AssetImage(
-                    asset: asset,
-                    fallbackAlt: blok.alt ?? "",
-                    aspectRatio: AspectRatio.parse(blok.aspectRatio),
-                    copyrightPosition: blok.copyrightPosition
-                )
+                ParallaxImage(speed: blok.parallax) {
+                    AssetImage(
+                        asset: asset,
+                        fallbackAlt: blok.alt ?? "",
+                        aspectRatio: AspectRatio.parse(blok.aspectRatio),
+                        copyrightPosition: blok.copyrightPosition,
+                        blurOnLoad: blok.blurOnLoad,
+                        opensLightbox: blok.opensLightbox,
+                        overlayPattern: blok.overlay
+                    )
+                }
                 .frame(width: configuredWidth)
             }
             if blok.caption?.hasContent == true {
@@ -29,12 +34,13 @@ public struct SbImageView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-
         .padding(.bottom, blok.spacing.marginBottom == nil ? Spacing.s4 : 0)
         .blokSpacing(blok.spacing)
     }
 
     private var configuredWidth: CGFloat? {
-        blok.widthFraction.map { PageLayout.cardWidth(viewport: viewportWidth) * $0 }
+        blok.widthFraction(viewportWidth: viewportWidth).map {
+            PageLayout.cardWidth(viewport: viewportWidth) * $0
+        }
     }
 }

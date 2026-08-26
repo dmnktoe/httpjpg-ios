@@ -129,13 +129,20 @@ final class StoryblokDecodingTests: XCTestCase {
     func testSlideshowDecodesPresentationFieldsOnly() throws {
         let blok = try decode(SlideshowBlok.self, """
         {"_uid":"s1","component":"slideshow","aspectRatio":"4/3","showCounter":true,
-         "autoplayDelay":"5","speed":200,"showNavigation":"false",
+         "effect":"fade","autoplayDelay":"5000","speed":200,"showNavigation":"false",
+         "overlay":"stars","overlayInset":"4",
          "images":[{"filename":"https://a.storyblok.com/f/1/1200x900/x/a.jpg"},
                    {"filename":"https://a.storyblok.com/f/1/1200x900/x/b.jpg"}]}
         """)
         XCTAssertEqual(blok.images.count, 2)
         XCTAssertTrue(blok.showsCounter)
         XCTAssertEqual(blok.aspectRatio ?? 0, 4.0 / 3.0, accuracy: 0.001)
+        XCTAssertEqual(blok.effect, "fade")
+        XCTAssertEqual(blok.autoplayDelay, 5, accuracy: 0.001)
+        XCTAssertEqual(blok.transitionSpeed, 0.2, accuracy: 0.001)
+        XCTAssertFalse(blok.showsNavigation)
+        XCTAssertEqual(blok.overlay, "stars")
+        XCTAssertEqual(blok.overlayInset, 4, accuracy: 0.001)
     }
 
     func testMusicPlayerMp3BecomesAPlayableTrack() throws {
@@ -171,19 +178,46 @@ final class StoryblokDecodingTests: XCTestCase {
         {"_uid":"i2","component":"image","width":"5%",
          "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
         """)
-        XCTAssertEqual(scaled.widthFraction ?? 0, 0.05, accuracy: 0.0001)
+        XCTAssertEqual(scaled.widthFraction(viewportWidth: 393) ?? 0, 0.05, accuracy: 0.0001)
 
         let full = try decode(ImageBlok.self, """
         {"_uid":"i3","component":"image","width":"100%",
          "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
         """)
-        XCTAssertNil(full.widthFraction)
+        XCTAssertNil(full.widthFraction(viewportWidth: 393))
 
         let unset = try decode(ImageBlok.self, """
         {"_uid":"i4","component":"image","width":"",
          "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
         """)
-        XCTAssertNil(unset.widthFraction)
+        XCTAssertNil(unset.widthFraction(viewportWidth: 393))
+
+        let tablet = try decode(ImageBlok.self, """
+        {"_uid":"i5","component":"image","width":"100%","widthMd":"50%",
+         "image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
+        """)
+        XCTAssertEqual(tablet.widthFraction(viewportWidth: 800), 0.5)
+        XCTAssertNil(tablet.widthFraction(viewportWidth: 393))
+    }
+
+    func testImageHonoursLightboxParallaxAndBlurToggles() throws {
+        let blok = try decode(ImageBlok.self, """
+        {"_uid":"i6","component":"image","lightbox":true,"blurOnLoad":false,"parallax":"0.2",
+         "overlay":"tape","image":{"filename":"https://a.storyblok.com/f/1/512x512/x/logo.png"}}
+        """)
+        XCTAssertTrue(blok.opensLightbox)
+        XCTAssertFalse(blok.blurOnLoad)
+        XCTAssertEqual(blok.parallax, 0.2, accuracy: 0.001)
+        XCTAssertEqual(blok.overlay, "tape")
+    }
+
+    func testVideoLightboxToggleDecodes() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v5","component":"video","source":"native","lightbox":true,
+         "video":{"filename":"https://a.storyblok.com/f/1/1920x200/x/banner.mp4"}}
+        """)
+        XCTAssertTrue(blok.opensLightbox)
+        XCTAssertEqual(ImageService.aspectRatio(of: blok.asset?.filename), 1920.0 / 200.0, accuracy: 0.001)
     }
 
     func testExternalDropboxClipIsDetectedAsVideo() throws {
@@ -434,10 +468,10 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(config.footer?.copyrightText, "© httpjpg")
         XCTAssertEqual(config.seoTitle, "httpjpg")
         XCTAssertNil(config.siteName)
-        XCTAssertTrue(config.features.isRelatedWorkEnabled)
-        XCTAssertTrue(config.features.isPrevNextWorkEnabled)
-        XCTAssertTrue(config.features.isLastUpdatedBadgeEnabled)
-        XCTAssertTrue(config.features.isRSSFeedEnabled)
+        XCTAssertFalse(config.features.isRelatedWorkEnabled)
+        XCTAssertFalse(config.features.isPrevNextWorkEnabled)
+        XCTAssertFalse(config.features.isLastUpdatedBadgeEnabled)
+        XCTAssertFalse(config.features.isRSSFeedEnabled)
         XCTAssertFalse(config.features.isWebVitalsBadgeEnabled)
         XCTAssertFalse(config.features.isBuildBadgeEnabled)
     }
@@ -463,16 +497,16 @@ final class StoryblokDecodingTests: XCTestCase {
         {"related_work_enabled":"","prev_next_work_enabled":"",
          "web_vitals_badge_enabled":"","build_badge_enabled":""}
         """)
-        XCTAssertTrue(config.features.isRelatedWorkEnabled, "a cleared field is not an off switch")
-        XCTAssertTrue(config.features.isPrevNextWorkEnabled)
+        XCTAssertFalse(config.features.isRelatedWorkEnabled)
+        XCTAssertFalse(config.features.isPrevNextWorkEnabled)
         XCTAssertFalse(config.features.isWebVitalsBadgeEnabled)
         XCTAssertFalse(config.features.isBuildBadgeEnabled)
     }
 
     func testFallbackConfigOffersBothVariants() {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
-        XCTAssertTrue(SiteConfig.fallback.features.isRelatedWorkEnabled)
-        XCTAssertTrue(SiteConfig.fallback.features.isPrevNextWorkEnabled)
+        XCTAssertFalse(SiteConfig.fallback.features.isRelatedWorkEnabled)
+        XCTAssertFalse(SiteConfig.fallback.features.isPrevNextWorkEnabled)
         XCTAssertEqual(SiteConfig.fallback.defaultPageTitle, SiteConfig.fallbackName)
         XCTAssertEqual(SiteConfig.fallback.displayName, SiteConfig.fallbackName)
     }

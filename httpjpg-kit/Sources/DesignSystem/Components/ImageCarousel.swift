@@ -8,6 +8,7 @@ public struct ImageCarousel<Slide: View>: View {
     private let transitionDuration: TimeInterval
     private let showsArrows: Bool
     private let showsCounter: Bool
+    private let usesFadeTransition: Bool
 
     private let ownsRotation: (Int) -> Bool
 
@@ -30,6 +31,7 @@ public struct ImageCarousel<Slide: View>: View {
         transitionDuration: TimeInterval = 0.3,
         showsArrows: Bool = true,
         showsCounter: Bool = false,
+        usesFadeTransition: Bool = false,
         ownsRotation: @escaping (Int) -> Bool = { _ in false },
         @ViewBuilder slide: @escaping (Int, CarouselSlide) -> Slide
     ) {
@@ -39,6 +41,7 @@ public struct ImageCarousel<Slide: View>: View {
         self.transitionDuration = transitionDuration
         self.showsArrows = showsArrows
         self.showsCounter = showsCounter
+        self.usesFadeTransition = usesFadeTransition
         self.ownsRotation = ownsRotation
         self.slide = slide
     }
@@ -47,20 +50,42 @@ public struct ImageCarousel<Slide: View>: View {
         if count == 1 {
             slide(0, .standalone)
         } else if count > 1 {
-            TabView(selection: $index) {
-                ForEach(0 ..< count, id: \.self) { position in
-                    slide(position, context(for: position))
-                        .tag(position)
+            Group {
+                if usesFadeTransition && !reduceMotion {
+                    fadeCarousel
+                } else {
+                    tabCarousel
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
-            .overlay(alignment: .bottomLeading) { counter }
-            .overlay(alignment: .topTrailing) { navigation }
-
             .task(id: autoplayTick) { await autoplayStep() }
             .sensoryFeedback(.impact(weight: .light), trigger: arrowTaps)
         }
+    }
+
+    private var tabCarousel: some View {
+        TabView(selection: $index) {
+            ForEach(0 ..< count, id: \.self) { position in
+                slide(position, context(for: position))
+                    .tag(position)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
+        .overlay(alignment: .bottomLeading) { counter }
+        .overlay(alignment: .topTrailing) { navigation }
+    }
+
+    private var fadeCarousel: some View {
+        ZStack {
+            ForEach(0 ..< count, id: \.self) { position in
+                slide(position, context(for: position))
+                    .opacity(position == index ? 1 : 0)
+                    .animation(.easeInOut(duration: transitionDuration), value: index)
+            }
+        }
+        .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
+        .overlay(alignment: .bottomLeading) { counter }
+        .overlay(alignment: .topTrailing) { navigation }
     }
 
     @ViewBuilder

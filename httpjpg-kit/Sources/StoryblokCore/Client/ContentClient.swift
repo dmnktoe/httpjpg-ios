@@ -60,8 +60,8 @@ public final class ContentClient: @unchecked Sendable {
         return WorkDetail(story: story)
     }
 
-    public func page(slug: String, refresh: Bool = false) async throws -> PageDocument {
-        let story: Story<PageBlok> = try await story(at: slug, refresh: refresh)
+    public func page(slug: String, locale: AppLocale = .en, refresh: Bool = false) async throws -> PageDocument {
+        let story: Story<PageBlok> = try await story(at: slug, locale: locale, refresh: refresh)
         return PageDocument(story: story)
     }
 
@@ -108,12 +108,33 @@ public final class ContentClient: @unchecked Sendable {
 
     private func story<Content: Decodable>(
         at slug: String,
+        locale: AppLocale = .en,
         refresh: Bool
     ) async throws -> Story<Content> {
-        let request = buildRequest(
-            path: "stories/\(slug)",
-            queryItems: [URLQueryItem(name: "resolve_relations", value: PortfolioBlok.relations)]
-        )
+        do {
+            return try await fetchStory(at: slug, locale: locale, refresh: refresh)
+        } catch let error as ContentError {
+            if case .notFound = error, locale.storyblokLanguageParam != nil {
+                return try await fetchStory(at: slug, locale: .en, refresh: refresh)
+            }
+            throw error
+        }
+    }
+
+    private func fetchStory<Content: Decodable>(
+        at slug: String,
+        locale: AppLocale,
+        refresh: Bool
+    ) async throws -> Story<Content> {
+        var queryItems = [
+            URLQueryItem(name: "resolve_relations", value: PortfolioBlok.relations),
+        ]
+        if let language = locale.storyblokLanguageParam {
+            queryItems.append(URLQueryItem(name: "language", value: language))
+            queryItems.append(URLQueryItem(name: "fallback_lang", value: "default"))
+        }
+
+        let request = buildRequest(path: "stories/\(slug)", queryItems: queryItems)
         let data = try await load(request, refresh: refresh)
         do {
             return try Self.decoder().decode(StoryResponse<Content>.self, from: data).story

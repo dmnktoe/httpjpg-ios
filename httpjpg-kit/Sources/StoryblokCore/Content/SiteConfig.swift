@@ -90,8 +90,8 @@ public struct SiteConfig: Decodable, Sendable {
     }
 }
 
-/// The Features tab on the config story. Defaults match the website: established
-/// surfaces stay on, opt-in badges stay off, until the CMS says otherwise.
+/// The Features tab on the config story. Defaults match the website: every
+/// toggle is off until the CMS explicitly enables it.
 public struct FeatureFlags: Decodable, Sendable {
     public let isLastUpdatedBadgeEnabled: Bool
     public let isWebVitalsBadgeEnabled: Bool
@@ -111,21 +111,21 @@ public struct FeatureFlags: Decodable, Sendable {
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        isLastUpdatedBadgeEnabled = container.cmsBool(forKey: .lastUpdatedBadgeEnabled, default: true)
+        isLastUpdatedBadgeEnabled = container.cmsBool(forKey: .lastUpdatedBadgeEnabled)
         isWebVitalsBadgeEnabled = container.cmsBool(forKey: .webVitalsBadgeEnabled)
         isBuildBadgeEnabled = container.cmsBool(forKey: .buildBadgeEnabled)
-        isPrevNextWorkEnabled = container.cmsBool(forKey: .prevNextWorkEnabled, default: true)
-        isRelatedWorkEnabled = container.cmsBool(forKey: .relatedWorkEnabled, default: true)
-        isRSSFeedEnabled = container.cmsBool(forKey: .rssFeedEnabled, default: true)
+        isPrevNextWorkEnabled = container.cmsBool(forKey: .prevNextWorkEnabled)
+        isRelatedWorkEnabled = container.cmsBool(forKey: .relatedWorkEnabled)
+        isRSSFeedEnabled = container.cmsBool(forKey: .rssFeedEnabled)
     }
 
     public init(
-        isLastUpdatedBadgeEnabled: Bool = true,
+        isLastUpdatedBadgeEnabled: Bool = false,
         isWebVitalsBadgeEnabled: Bool = false,
         isBuildBadgeEnabled: Bool = false,
-        isPrevNextWorkEnabled: Bool = true,
-        isRelatedWorkEnabled: Bool = true,
-        isRSSFeedEnabled: Bool = true
+        isPrevNextWorkEnabled: Bool = false,
+        isRelatedWorkEnabled: Bool = false,
+        isRSSFeedEnabled: Bool = false
     ) {
         self.isLastUpdatedBadgeEnabled = isLastUpdatedBadgeEnabled
         self.isWebVitalsBadgeEnabled = isWebVitalsBadgeEnabled
