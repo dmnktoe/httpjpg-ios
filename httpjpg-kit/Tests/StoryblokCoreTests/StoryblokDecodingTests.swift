@@ -217,7 +217,11 @@ final class StoryblokDecodingTests: XCTestCase {
          "video":{"filename":"https://a.storyblok.com/f/1/1920x200/x/banner.mp4"}}
         """)
         XCTAssertTrue(blok.opensLightbox)
-        XCTAssertEqual(ImageService.aspectRatio(of: blok.asset?.filename), 1920.0 / 200.0, accuracy: 0.001)
+        XCTAssertEqual(
+            try XCTUnwrap(ImageService.aspectRatio(of: blok.asset?.filename)),
+            1920.0 / 200.0,
+            accuracy: 0.001
+        )
     }
 
     func testExternalDropboxClipIsDetectedAsVideo() throws {
