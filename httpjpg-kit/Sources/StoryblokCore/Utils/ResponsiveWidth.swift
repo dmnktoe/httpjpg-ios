@@ -22,10 +22,11 @@ public enum ResponsiveWidth {
         return parsePercent(chosen)
     }
 
+    /// `nil` for a full-width value: 100% is the layout default, not a constraint.
     public static func parsePercent(_ raw: String?) -> CGFloat? {
         guard let raw, raw.hasSuffix("%"),
               let value = Double(raw.dropLast()),
-              value > 0, value <= 100
+              value > 0, value < 100
         else { return nil }
         return CGFloat(value) / 100
     }
