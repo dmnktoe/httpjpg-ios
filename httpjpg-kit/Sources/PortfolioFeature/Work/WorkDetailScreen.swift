@@ -4,6 +4,11 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
+private struct WorkDetailLoadID: Hashable {
+    let slug: String
+    let token: Int
+}
+
 struct WorkDetailScreen: View {
     let route: WorkRoute
 
@@ -61,12 +66,10 @@ struct WorkDetailScreen: View {
                 .accessibilityLabel("Share")
             }
         }
-        .task {
-            if model == nil {
-                model = WorkDetailModel(client: app.client, slug: route.slug)
-                Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
-                await model?.load()
-            }
+        .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
+            model = WorkDetailModel(client: app.client, slug: route.slug)
+            Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
+            await model?.load()
             await app.workIndex.load()
         }
     }

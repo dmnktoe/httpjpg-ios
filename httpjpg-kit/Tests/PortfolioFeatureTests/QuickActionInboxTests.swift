@@ -74,4 +74,13 @@ final class QuickActionInboxTests: XCTestCase {
 
         XCTAssertEqual(inbox.pending, .shuffle(pool: ["one", "two"]))
     }
+
+    func testEveryPostAdvancesTheDeliverySequence() {
+        let start = inbox.deliverySequence
+
+        inbox.post(item())
+        inbox.post(item())
+
+        XCTAssertEqual(inbox.deliverySequence, start + 2)
+    }
 }
