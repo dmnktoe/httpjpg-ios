@@ -18,6 +18,7 @@ struct WorkDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: WorkDetailModel?
+    @State private var imageViewerHeld = false
 
     var body: some View {
         Group {
@@ -33,6 +34,7 @@ struct WorkDetailScreen: View {
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
+        .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 NavGlassButton(
@@ -42,6 +44,7 @@ struct WorkDetailScreen: View {
                     onTint: chromeOnTint,
                     action: { dismiss() }
                 )
+                .disabled(imageViewerHeld)
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -53,6 +56,7 @@ struct WorkDetailScreen: View {
                         onTint: chromeOnTint,
                         action: { openURL(url) }
                     )
+                    .disabled(imageViewerHeld)
                 }
 
                 ShareLink(item: shareURL) {
@@ -63,6 +67,7 @@ struct WorkDetailScreen: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
         }
