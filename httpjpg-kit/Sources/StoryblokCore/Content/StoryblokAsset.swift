@@ -55,6 +55,10 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
         ImageService.isVideo(filename: filename, contentType: contentType)
     }
 
+    public var isGIF: Bool {
+        ImageService.isGIF(filename: filename, contentType: contentType)
+    }
+
     public func accessibilityText(fallback: String) -> String {
         for candidate in [alt, title, name] {
             if let candidate, !candidate.isEmpty { return candidate }

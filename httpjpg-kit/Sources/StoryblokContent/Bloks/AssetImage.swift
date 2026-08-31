@@ -57,7 +57,8 @@ public struct AssetImage: View {
                     scale: displayScale,
                     focus: ""
                 )),
-                accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
+                accessibilityText: asset.accessibilityText(fallback: fallbackAlt),
+                animated: asset.isGIF
             )
             .chromeAccent(accent, onAccent: onAccent)
         }
@@ -71,10 +72,13 @@ public struct AssetImage: View {
                 scale: displayScale,
                 focus: asset.focus ?? ""
             )),
-            placeholderURL: URL(string: ImageService.Preset.blur(asset.filename, focus: asset.focus ?? "")),
+            placeholderURL: asset.isGIF
+                ? nil
+                : URL(string: ImageService.Preset.blur(asset.filename, focus: asset.focus ?? "")),
             aspectRatio: aspectRatioOverride ?? ImageService.aspectRatio(of: asset.filename),
             contentMode: contentMode,
-            accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
+            accessibilityText: asset.accessibilityText(fallback: fallbackAlt),
+            animated: asset.isGIF
         )
     }
 
