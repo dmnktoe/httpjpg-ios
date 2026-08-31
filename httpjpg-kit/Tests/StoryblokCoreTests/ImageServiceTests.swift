@@ -104,4 +104,17 @@ final class ImageServiceTests: XCTestCase {
         XCTAssertFalse(ImageService.isVideo(filename: "photo.jpg", contentType: nil))
         XCTAssertFalse(ImageService.isVideo(filename: nil, contentType: nil))
     }
+
+    func testDetectsGIFByContentTypeAndExtension() {
+        XCTAssertTrue(ImageService.isGIF(filename: "loop.bin", contentType: "image/gif"))
+        XCTAssertTrue(ImageService.isGIF(filename: "loop.GIF?v=2", contentType: nil))
+        XCTAssertFalse(ImageService.isGIF(filename: "photo.jpg", contentType: nil))
+        XCTAssertFalse(ImageService.isGIF(filename: nil, contentType: nil))
+    }
+
+    func testGIFTransformsSkipQualityFilter() {
+        let gif = "https://a.storyblok.com/f/1/800x600/abc/loop.gif"
+        XCTAssertEqual(ImageService.processed(gif, crop: "400x0"), gif + "/m/400x0")
+        XCTAssertEqual(ImageService.Preset.blur(gif), gif + "/m/20x0")
+    }
 }

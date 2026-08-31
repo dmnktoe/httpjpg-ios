@@ -4,6 +4,11 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
+private struct WorkDetailLoadID: Hashable {
+    let slug: String
+    let token: Int
+}
+
 struct WorkDetailScreen: View {
     let route: WorkRoute
 
@@ -13,6 +18,7 @@ struct WorkDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: WorkDetailModel?
+    @State private var imageViewerHeld = false
 
     var body: some View {
         Group {
@@ -28,6 +34,7 @@ struct WorkDetailScreen: View {
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
+        .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 NavGlassButton(
@@ -37,6 +44,7 @@ struct WorkDetailScreen: View {
                     onTint: chromeOnTint,
                     action: { dismiss() }
                 )
+                .disabled(imageViewerHeld)
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -48,6 +56,7 @@ struct WorkDetailScreen: View {
                         onTint: chromeOnTint,
                         action: { openURL(url) }
                     )
+                    .disabled(imageViewerHeld)
                 }
 
                 ShareLink(item: shareURL) {
@@ -58,15 +67,14 @@ struct WorkDetailScreen: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
         }
-        .task {
-            if model == nil {
-                model = WorkDetailModel(client: app.client, slug: route.slug)
-                Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
-                await model?.load()
-            }
+        .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
+            model = WorkDetailModel(client: app.client, slug: route.slug)
+            Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
+            await model?.load()
             await app.workIndex.load()
         }
     }

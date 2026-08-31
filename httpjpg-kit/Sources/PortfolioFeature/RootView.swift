@@ -7,6 +7,7 @@ import Tokens
 public struct RootView: View {
     @State private var model: AppModel
     @State private var player = AudioPlayerModel()
+    @State private var quickActionInbox = QuickActionInbox.shared
 
     @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
@@ -55,10 +56,9 @@ public struct RootView: View {
         .onOpenURL { model.open($0) }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
             guard let slug = WorkSpotlightIndex.slug(from: activity) else { return }
-            QuickActionInbox.shared.post(.work(slug: slug, title: slug))
+            quickActionInbox.post(.work(slug: slug, title: slug))
         }
-        .onChange(of: QuickActionInbox.shared.pending) { _, action in
-            guard action != nil else { return }
+        .onChange(of: quickActionInbox.deliverySequence) { _, _ in
             openPendingQuickAction()
         }
         .task {
@@ -68,7 +68,7 @@ public struct RootView: View {
     }
 
     private func openPendingQuickAction() {
-        guard let action = QuickActionInbox.shared.take() else { return }
+        guard let action = quickActionInbox.take() else { return }
         model.perform(action)
     }
 

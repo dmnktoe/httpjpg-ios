@@ -7,6 +7,7 @@ public struct RemoteImage: View {
     private let aspectRatio: CGFloat
     private let contentMode: ContentMode
     private let accessibilityText: String?
+    private let animated: Bool
 
     @Environment(\.pageTheme) private var theme
 
@@ -15,13 +16,15 @@ public struct RemoteImage: View {
         placeholderURL: URL? = nil,
         aspectRatio: CGFloat? = nil,
         contentMode: ContentMode = .fill,
-        accessibilityText: String? = nil
+        accessibilityText: String? = nil,
+        animated: Bool = false
     ) {
         self.url = url
         self.placeholderURL = placeholderURL
         self.aspectRatio = aspectRatio ?? 3.0 / 2.0
         self.contentMode = contentMode
         self.accessibilityText = accessibilityText
+        self.animated = animated
     }
 
     public var body: some View {
@@ -37,18 +40,25 @@ public struct RemoteImage: View {
 
     @ViewBuilder
     private var image: some View {
-        AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-            case .failure:
-                placeholder(showsGlyph: true)
-            case .empty:
+        if animated {
+            ZStack {
                 blurPlaceholder
-            @unknown default:
-                placeholder(showsGlyph: false)
+                AnimatedGIFView(url: url, contentMode: contentMode)
+            }
+        } else {
+            AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: contentMode)
+                case .failure:
+                    placeholder(showsGlyph: true)
+                case .empty:
+                    blurPlaceholder
+                @unknown default:
+                    placeholder(showsGlyph: false)
+                }
             }
         }
     }

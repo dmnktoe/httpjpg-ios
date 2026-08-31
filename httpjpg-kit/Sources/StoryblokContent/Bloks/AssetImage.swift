@@ -20,6 +20,7 @@ public struct AssetImage: View {
     @Environment(\.chromeOnAccent) private var onAccent
 
     @State private var isZoomed = false
+    @State private var isSettling = false
 
     public init(
         asset: StoryblokAsset,
@@ -59,11 +60,21 @@ public struct AssetImage: View {
                 }
             }
         }
+        .preference(key: ImageViewerHeldKey.self, value: isZoomed || isSettling)
+        .onChange(of: isZoomed) { wasOpen, isOpen in
+            guard wasOpen, !isOpen else { return }
+            isSettling = true
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                isSettling = false
+            }
+        }
         .modifier(LightboxTapModifier(
             isEnabled: opensLightbox,
             isPresented: $isZoomed,
             url: zoomURL,
             accessibilityText: asset.accessibilityText(fallback: fallbackAlt),
+            animated: asset.isGIF,
             accent: accent,
             onAccent: onAccent
         ))
@@ -90,12 +101,13 @@ public struct AssetImage: View {
                 scale: displayScale,
                 focus: asset.focus ?? ""
             )),
-            placeholderURL: blurOnLoad
+            placeholderURL: blurOnLoad && !asset.isGIF
                 ? URL(string: ImageService.Preset.blur(asset.filename, focus: asset.focus ?? ""))
                 : nil,
             aspectRatio: aspectRatioOverride ?? ImageService.aspectRatio(of: asset.filename),
             contentMode: contentMode,
-            accessibilityText: asset.accessibilityText(fallback: fallbackAlt)
+            accessibilityText: asset.accessibilityText(fallback: fallbackAlt),
+            animated: asset.isGIF
         )
     }
 
@@ -118,6 +130,7 @@ private struct LightboxTapModifier: ViewModifier {
     @Binding var isPresented: Bool
     let url: URL?
     let accessibilityText: String
+    let animated: Bool
     let accent: Color?
     let onAccent: Color?
 
@@ -126,8 +139,12 @@ private struct LightboxTapModifier: ViewModifier {
             content
                 .onTapGesture { isPresented = true }
                 .fullScreenCover(isPresented: $isPresented) {
-                    ImageZoomViewer(url: url, accessibilityText: accessibilityText)
-                        .chromeAccent(accent, onAccent: onAccent)
+                    ImageZoomViewer(
+                        url: url,
+                        accessibilityText: accessibilityText,
+                        animated: animated
+                    )
+                    .chromeAccent(accent, onAccent: onAccent)
                 }
         } else {
             content

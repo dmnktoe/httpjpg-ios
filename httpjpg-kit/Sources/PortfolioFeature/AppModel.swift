@@ -38,6 +38,8 @@ public final class AppModel {
 
     public var workPath: [WorkRoute] = []
 
+    private(set) var workRouteToken = 0
+
     public var infoPath: [PageRoute] = []
 
     public var isSidebarOpen = false {
@@ -130,6 +132,7 @@ public final class AppModel {
     private func show(_ route: WorkRoute) {
         selectedTab = .work
         workPath = [route]
+        workRouteToken &+= 1
         isSidebarOpen = false
     }
 
