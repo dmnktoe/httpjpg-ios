@@ -23,7 +23,8 @@ struct NavGlassButton: View {
                 .glassBackground(
                     in: .circle,
                     tint: tint,
-                    interactive: true
+                    interactive: true,
+                    holdWithChrome: false
                 )
         }
         .buttonStyle(.plain)
@@ -49,7 +50,8 @@ struct NavGlassIcon: View {
             .glassBackground(
                 in: .circle,
                 tint: tint,
-                interactive: true
+                interactive: true,
+                holdWithChrome: false
             )
     }
 }

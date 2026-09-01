@@ -66,6 +66,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
         .environment(\.chromeHeld, ambientHeld)
+        .environment(\.chromeHoldSnaps, drag.isArmed)
         .animation(motion, value: isOpen)
         .task(id: settleTicket) {
             isSettling = true

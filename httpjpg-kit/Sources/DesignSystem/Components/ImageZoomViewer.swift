@@ -41,7 +41,8 @@ public struct ImageZoomViewer: View {
                     .glassBackground(
                         in: .circle,
                         tint: accent,
-                        interactive: true
+                        interactive: true,
+                        holdWithChrome: false
                     )
             }
             .buttonStyle(.plain)

@@ -76,7 +76,8 @@ public struct SbVideoView: View {
                 .glassBackground(
                     in: .circle,
                     tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
-                    interactive: true
+                    interactive: true,
+                    holdWithChrome: false
                 )
         }
         .buttonStyle(.plain)

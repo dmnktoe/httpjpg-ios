@@ -5,9 +5,15 @@ public extension View {
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false
+        interactive: Bool = false,
+        holdWithChrome: Bool = true
     ) -> some View {
-        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
+        modifier(GlassBackgroundModifier(
+            shape: shape,
+            tint: tint,
+            isInteractive: interactive,
+            holdWithChrome: holdWithChrome
+        ))
     }
 }
 
@@ -62,10 +68,19 @@ private struct ChromeHeldKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct ChromeHoldSnapsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 public extension EnvironmentValues {
     var chromeHeld: Bool {
         get { self[ChromeHeldKey.self] }
         set { self[ChromeHeldKey.self] = newValue }
+    }
+
+    var chromeHoldSnaps: Bool {
+        get { self[ChromeHoldSnapsKey.self] }
+        set { self[ChromeHoldSnapsKey.self] = newValue }
     }
 }
 
@@ -73,8 +88,12 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
+    let holdWithChrome: Bool
 
     @Environment(\.chromeHeld) private var isHeld
+    @Environment(\.chromeHoldSnaps) private var snaps
+
+    private var flatten: Bool { holdWithChrome && isHeld }
 
     func body(content: Content) -> some View {
         let glassed: some View = Group {
@@ -82,11 +101,12 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                 content
                     .background(heldFill, in: shape)
                     .glassEffect(glass, in: shape)
-                    // Flatten instantly on hold so a live material does not
-                    // re-blur during the drawer drag; materialize on release
-                    // so the glass shadow does not slam back in.
-                    .glassEffectTransition(isHeld ? .identity : .materialize)
-            } else if isHeld {
+                    // Drag snaps so the moving backdrop does not re-blur every
+                    // frame. Button open/close materializes so the glass
+                    // shadow eases both ways — in-content controls opt out
+                    // via `holdWithChrome` so they are not part of that fade.
+                    .glassEffectTransition(snaps && flatten ? .identity : .materialize)
+            } else if flatten {
                 content.background(heldFill, in: shape)
             } else if let tint {
                 content
@@ -109,18 +129,14 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                 glassed
             }
         }
-        // Opening shares the drawer spring with `isOpen`. Kill that
-        // interpolation on the way in so glass drops out in one frame
-        // (and the drag stays at 60fps). Leave the way out animated so
-        // `.materialize` can fade the shadow back.
-        .transaction(value: isHeld) { transaction in
-            guard isHeld else { return }
+        .transaction(value: flatten) { transaction in
+            guard snaps else { return }
             transaction.animation = nil
         }
     }
 
     private var heldFill: Color {
-        isHeld ? (tint ?? Color.clear) : Color.clear
+        flatten ? (tint ?? Color.clear) : Color.clear
     }
 
     @available(iOS 26.0, *)
@@ -129,7 +145,7 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         // backdrop made live glass re-blur every frame, and tearing the
         // modifier out made selected pills rematerialize as a hollow stroke
         // that filled in a beat after the page settled.
-        guard !isHeld, let tint else {
+        guard !flatten, let tint else {
             // Untinted regular glass still reads as a grey fill on white.
             return .identity
         }
