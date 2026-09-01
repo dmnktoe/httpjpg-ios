@@ -71,7 +71,9 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
             guard !Task.isCancelled else { return }
-            isSettling = false
+            withAnimation(Motion.stateChange) {
+                isSettling = false
+            }
         }
         .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }

@@ -82,7 +82,10 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                 content
                     .background(heldFill, in: shape)
                     .glassEffect(glass, in: shape)
-                    .glassEffectTransition(.identity)
+                    // Flatten instantly on hold so a live material does not
+                    // re-blur during the drawer drag; materialize on release
+                    // so the glass shadow does not slam back in.
+                    .glassEffectTransition(isHeld ? .identity : .materialize)
             } else if isHeld {
                 content.background(heldFill, in: shape)
             } else if let tint {
@@ -106,9 +109,14 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                 glassed
             }
         }
-        // The drawer spring is on `isOpen`; without this the same transaction
-        // interpolates the hold swap and the pills empty / refill over it.
-        .transaction(value: isHeld) { $0.animation = nil }
+        // Opening shares the drawer spring with `isOpen`. Kill that
+        // interpolation on the way in so glass drops out in one frame
+        // (and the drag stays at 60fps). Leave the way out animated so
+        // `.materialize` can fade the shadow back.
+        .transaction(value: isHeld) { transaction in
+            guard isHeld else { return }
+            transaction.animation = nil
+        }
     }
 
     private var heldFill: Color {
