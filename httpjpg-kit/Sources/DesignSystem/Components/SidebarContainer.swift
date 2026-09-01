@@ -65,16 +65,17 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, ambientHeld)
+        // Flatten glass only while the finger is down. `isOpen` used to hold
+        // chromeHeld the whole time the drawer sat out, which swapped the
+        // inactive pills from frosted glass to an opaque tint.
+        .environment(\.chromeHeld, drag.isArmed)
         .environment(\.chromeHoldSnaps, drag.isArmed)
         .animation(motion, value: isOpen)
         .task(id: settleTicket) {
             isSettling = true
             try? await Task.sleep(for: .milliseconds(600))
             guard !Task.isCancelled else { return }
-            withAnimation(Motion.stateChange) {
-                isSettling = false
-            }
+            isSettling = false
         }
         .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }

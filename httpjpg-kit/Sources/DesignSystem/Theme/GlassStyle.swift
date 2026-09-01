@@ -101,10 +101,9 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                 content
                     .background(heldFill, in: shape)
                     .glassEffect(glass, in: shape)
-                    // Drag snaps so the moving backdrop does not re-blur every
-                    // frame. Button open/close materializes so the glass
-                    // shadow eases both ways — in-content controls opt out
-                    // via `holdWithChrome` so they are not part of that fade.
+                    // Snap while a drag is live so the moving backdrop does not
+                    // re-blur every frame. Outside a drag the material stays
+                    // up, so inactive pills keep their frosted look.
                     .glassEffectTransition(snaps && flatten ? .identity : .materialize)
             } else if flatten {
                 content.background(heldFill, in: shape)
