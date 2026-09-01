@@ -171,6 +171,12 @@ struct WorkDetailScreen: View {
                     )
                     .padding(.horizontal, PageLayout.gutter)
                 }
+
+                if app.config.features.isPrevNextWorkEnabled {
+                    let adjacent = AdjacentWork.neighbours(for: route.slug, in: app.workIndex.allWork)
+                    WorkNavSection(previous: adjacent.prev, next: adjacent.next)
+                        .padding(.horizontal, PageLayout.gutter)
+                }
             }
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)

@@ -10,6 +10,10 @@ public struct SbVideoView: View {
     @Environment(\.pageTheme) private var theme
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
+
+    @State private var isLightboxPresented = false
 
     public init(blok: VideoBlok) {
         self.blok = blok
@@ -18,10 +22,10 @@ public struct SbVideoView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
             if blok.copyright != nil || blok.copyrightSource != nil, copyrightPosition == .below {
-                player
+                playerStack
                 CopyrightLabel(blok.copyright, source: blok.copyrightSource, position: .below)
             } else {
-                player.overlay(alignment: overlayAlignment) {
+                playerStack.overlay(alignment: overlayAlignment) {
                     if blok.copyright != nil || blok.copyrightSource != nil {
                         CopyrightLabel(blok.copyright, source: blok.copyrightSource, position: copyrightPosition)
                             .padding(copyrightPosition == .overlay ? 0 : Spacing.s2)
@@ -36,6 +40,49 @@ public struct SbVideoView: View {
         .blokSpacing(blok.spacing)
     }
 
+    private var playerStack: some View {
+        player
+            .overlay(alignment: .topTrailing) {
+                if blok.opensLightbox, blok.nativeURL != nil {
+                    lightboxTrigger
+                        .padding(Spacing.s3)
+                }
+            }
+            .fullScreenCover(isPresented: $isLightboxPresented) {
+                if let url = blok.nativeURL {
+                    VideoLightboxViewer(
+                        url: url,
+                        posterURL: posterURL,
+                        showsControls: blok.showsControls,
+                        autoPlays: true,
+                        loops: blok.loops,
+                        isMuted: blok.isMuted,
+                        aspectRatio: resolvedAspectRatio
+                    )
+                    .chromeAccent(accent, onAccent: onAccent)
+                }
+            }
+    }
+
+    private var lightboxTrigger: some View {
+        Button {
+            isLightboxPresented = true
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(onAccent ?? .white)
+                .frame(width: 34, height: 34)
+                .contentShape(Circle())
+                .glassBackground(
+                    in: .circle,
+                    tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
+                    interactive: true
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Play the video at full size")
+    }
+
     private var player: AnyView {
         AnyView(playerContent)
     }
@@ -46,7 +93,7 @@ public struct SbVideoView: View {
             VideoSurface(
                 url: url,
                 posterURL: posterURL,
-                aspectRatio: aspectRatio,
+                aspectRatio: resolvedAspectRatio,
                 showsControls: blok.showsControls,
                 autoPlays: blok.autoPlays,
                 loops: blok.loops,
@@ -60,7 +107,7 @@ public struct SbVideoView: View {
                 source: source,
                 urlString: urlString,
                 posterURL: posterURL,
-                aspectRatio: aspectRatio,
+                aspectRatio: resolvedAspectRatio ?? PageLayout.mediaAspectRatio,
                 showsControls: blok.showsControls,
                 autoPlays: blok.autoPlays,
                 loops: blok.loops,
@@ -68,7 +115,6 @@ public struct SbVideoView: View {
                 accessibilityText: blok.poster?.alt
             )
         } else if let url = blok.embedURL {
-            // Unparseable YouTube/Vimeo URL — keep the Safari handoff rather than a blank frame.
             Button {
                 openURL(url)
             } label: {
@@ -85,13 +131,15 @@ public struct SbVideoView: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-        .aspectRatio(aspectRatio, contentMode: .fit)
+        .aspectRatio(resolvedAspectRatio ?? PageLayout.mediaAspectRatio, contentMode: .fit)
         .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
         .contentShape(Rectangle())
     }
 
-    private var aspectRatio: CGFloat {
-        blok.aspectRatio ?? PageLayout.mediaAspectRatio
+    /// CMS ratio first, then Storyblok asset dimensions, then nil for intrinsic layout.
+    private var resolvedAspectRatio: CGFloat? {
+        if let cms = blok.aspectRatio { return cms }
+        return ImageService.aspectRatio(of: blok.asset?.filename)
     }
 
     private var copyrightPosition: CopyrightLabel.Position {
@@ -110,5 +158,46 @@ public struct SbVideoView: View {
             scale: displayScale,
             focus: poster.focus ?? ""
         ))
+    }
+}
+
+private struct VideoLightboxViewer: View {
+    let url: URL
+    let posterURL: URL?
+    let showsControls: Bool
+    let autoPlays: Bool
+    let loops: Bool
+    let isMuted: Bool
+    let aspectRatio: CGFloat?
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color.black.ignoresSafeArea()
+            VideoSurface(
+                url: url,
+                posterURL: posterURL,
+                aspectRatio: aspectRatio,
+                showsControls: showsControls,
+                autoPlays: autoPlays,
+                loops: loops,
+                isMuted: isMuted
+            )
+            .padding(.horizontal, PageLayout.gutter)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Button {
+                dismiss()
+            } label: {
+                Text("✕")
+                    .font(Typography.mono(Typography.Size.md))
+                    .foregroundStyle(Palette.white)
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, PageLayout.gutter)
+            .accessibilityLabel("Close video viewer")
+        }
     }
 }

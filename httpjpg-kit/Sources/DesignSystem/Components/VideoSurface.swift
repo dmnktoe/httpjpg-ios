@@ -5,7 +5,7 @@ import SwiftUI
 public struct VideoSurface: View {
     private let url: URL
     private let posterURL: URL?
-    private let aspectRatio: CGFloat
+    private let aspectRatio: CGFloat?
     private let showsControls: Bool
     private let autoPlays: Bool
     private let loops: Bool
@@ -22,7 +22,7 @@ public struct VideoSurface: View {
     public init(
         url: URL,
         posterURL: URL? = nil,
-        aspectRatio: CGFloat = PageLayout.mediaAspectRatio,
+        aspectRatio: CGFloat? = PageLayout.mediaAspectRatio,
         showsControls: Bool = true,
         autoPlays: Bool = false,
         loops: Bool = false,
@@ -40,16 +40,23 @@ public struct VideoSurface: View {
     }
 
     public var body: some View {
-        surface
-            .aspectRatio(aspectRatio, contentMode: .fit)
-            .overlay { poster }
-            .clipped()
-            .onAppear(perform: start)
-            .onDisappear { player.pause() }
-            .onReceive(player.publisher(for: \.timeControlStatus)) { status in
-                if status == .playing { isPosterVisible = false }
+        Group {
+            if let aspectRatio {
+                surface
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+            } else {
+                surface
+                    .frame(maxWidth: .infinity)
             }
-            .modifier(OptionalAccessibilityLabel(text: accessibilityText))
+        }
+        .overlay { poster }
+        .clipped()
+        .onAppear(perform: start)
+        .onDisappear { player.pause() }
+        .onReceive(player.publisher(for: \.timeControlStatus)) { status in
+            if status == .playing { isPosterVisible = false }
+        }
+        .modifier(OptionalAccessibilityLabel(text: accessibilityText))
     }
 
     @ViewBuilder
@@ -65,8 +72,12 @@ public struct VideoSurface: View {
     @ViewBuilder
     private var poster: some View {
         if isPosterVisible, let posterURL {
-            RemoteImage(url: posterURL, aspectRatio: aspectRatio, contentMode: .fit)
-                .allowsHitTesting(false)
+            RemoteImage(
+                url: posterURL,
+                aspectRatio: aspectRatio ?? PageLayout.mediaAspectRatio,
+                contentMode: .fit
+            )
+            .allowsHitTesting(false)
         }
     }
 

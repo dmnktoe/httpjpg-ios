@@ -454,9 +454,16 @@ public struct ImageBlok: Decodable, Identifiable {
     public let copyrightPosition: String?
 
     public let width: String?
+    public let widthMd: String?
+    public let widthLg: String?
+    public let blurOnLoad: Bool
+    public let parallax: CGFloat
+    public let opensLightbox: Bool
+    public let overlay: String
 
     private enum CodingKeys: String, CodingKey {
-        case image, alt, caption, aspectRatio, copyrightPosition, width
+        case image, alt, caption, aspectRatio, copyrightPosition
+        case width, widthMd, widthLg, blurOnLoad, parallax, lightbox, overlay
     }
 
     public init(from decoder: any Decoder) throws {
@@ -470,13 +477,17 @@ public struct ImageBlok: Decodable, Identifiable {
         aspectRatio = container.cmsString(forKey: .aspectRatio)
         copyrightPosition = container.cmsString(forKey: .copyrightPosition)
         width = container.cmsString(forKey: .width)
+        widthMd = container.cmsString(forKey: .widthMd)
+        widthLg = container.cmsString(forKey: .widthLg)
+        blurOnLoad = container.cmsBool(forKey: .blurOnLoad)
+        let rawParallax = container.cmsDouble(forKey: .parallax) ?? 0
+        parallax = CGFloat(min(max(rawParallax, 0), 0.4))
+        opensLightbox = container.cmsBool(forKey: .lightbox)
+        overlay = container.cmsString(forKey: .overlay) ?? "random"
     }
 
-    public var widthFraction: CGFloat? {
-        guard let width, width.hasSuffix("%"),
-              let value = Double(width.dropLast()), value > 0, value < 100
-        else { return nil }
-        return CGFloat(value) / 100
+    public func widthFraction(viewportWidth: CGFloat) -> CGFloat? {
+        ResponsiveWidth.fraction(base: width, tablet: widthMd, desktop: widthLg, viewportWidth: viewportWidth)
     }
 }
 
@@ -657,10 +668,17 @@ public struct SlideshowBlok: Decodable, Identifiable {
     public let images: [StoryblokAsset]
 
     public let aspectRatio: CGFloat?
+    public let effect: String
+    public let autoplayDelay: TimeInterval
+    public let transitionSpeed: TimeInterval
+    public let showsNavigation: Bool
     public let showsCounter: Bool
+    public let overlay: String
+    public let overlayInset: CGFloat
 
     private enum CodingKeys: String, CodingKey {
-        case images, aspectRatio, showCounter
+        case images, aspectRatio, effect, autoplayDelay, speed, showNavigation, showCounter
+        case overlay, overlayInset
     }
 
     public init(from decoder: any Decoder) throws {
@@ -671,7 +689,15 @@ public struct SlideshowBlok: Decodable, Identifiable {
 
         images = container.cmsArray(StoryblokAsset.self, forKey: .images).filter { !$0.isEmpty }
         aspectRatio = AspectRatio.parse(container.cmsString(forKey: .aspectRatio))
+        effect = container.cmsString(forKey: .effect) ?? "slide"
+        let delayMs = container.cmsDouble(forKey: .autoplayDelay) ?? 7000
+        autoplayDelay = delayMs / 1000
+        let speedMs = container.cmsDouble(forKey: .speed) ?? 300
+        transitionSpeed = speedMs / 1000
+        showsNavigation = container.cmsBool(forKey: .showNavigation, default: true)
         showsCounter = container.cmsBool(forKey: .showCounter)
+        overlay = container.cmsString(forKey: .overlay) ?? "random"
+        overlayInset = CGFloat(container.cmsDouble(forKey: .overlayInset) ?? 0)
     }
 }
 
@@ -692,10 +718,11 @@ public struct VideoBlok: Decodable, Identifiable {
     public let autoPlays: Bool
     public let loops: Bool
     public let isMuted: Bool
+    public let opensLightbox: Bool
 
     private enum CodingKeys: String, CodingKey {
         case video, videoUrl, source, poster, caption, aspectRatio, copyrightPosition
-        case controls, autoPlay, loop, muted
+        case controls, autoPlay, loop, muted, lightbox
     }
 
     public init(from decoder: any Decoder) throws {
@@ -716,6 +743,7 @@ public struct VideoBlok: Decodable, Identifiable {
         autoPlays = container.cmsBool(forKey: .autoPlay)
         loops = container.cmsBool(forKey: .loop)
         isMuted = container.cmsBool(forKey: .muted)
+        opensLightbox = container.cmsBool(forKey: .lightbox)
     }
 
     public var isEmbed: Bool { source == "youtube" || source == "vimeo" }

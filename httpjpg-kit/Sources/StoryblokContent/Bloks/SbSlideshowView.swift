@@ -1,6 +1,7 @@
 import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbSlideshowView: View {
     private let blok: SlideshowBlok
@@ -16,8 +17,11 @@ public struct SbSlideshowView: View {
             ImageCarousel(
                 count: blok.images.count,
                 aspectRatio: aspectRatio,
-                autoplayInterval: 7,
+                autoplayInterval: autoplayInterval,
+                transitionDuration: blok.transitionSpeed,
+                showsArrows: blok.showsNavigation,
                 showsCounter: blok.showsCounter,
+                usesFadeTransition: blok.effect == "fade",
                 ownsRotation: { blok.images[$0].isVideo }
             ) { position, context in
                 slide(blok.images[position], context)
@@ -28,15 +32,23 @@ public struct SbSlideshowView: View {
 
     @ViewBuilder
     private func slide(_ asset: StoryblokAsset, _ context: CarouselSlide) -> some View {
-        if asset.isVideo, let filename = asset.filename, let url = URL(string: filename) {
-            LoopingVideoPlayer(
-                url: url,
-                aspectRatio: aspectRatio,
-                isActive: context.isActive,
-                onFinished: playsThrough ? context.advance : nil
-            )
-        } else {
-            AssetImage(asset: asset, aspectRatio: aspectRatio)
+        Group {
+            if asset.isVideo, let filename = asset.filename, let url = URL(string: filename) {
+                LoopingVideoPlayer(
+                    url: url,
+                    aspectRatio: aspectRatio,
+                    isActive: context.isActive,
+                    onFinished: playsThrough ? context.advance : nil
+                )
+            } else {
+                AssetImage(
+                    asset: asset,
+                    aspectRatio: aspectRatio,
+                    opensLightbox: false,
+                    overlayPattern: blok.overlay,
+                    overlayInset: blok.overlayInset
+                )
+            }
         }
     }
 
@@ -46,5 +58,9 @@ public struct SbSlideshowView: View {
 
     private var aspectRatio: CGFloat {
         blok.aspectRatio ?? PageLayout.mediaAspectRatio
+    }
+
+    private var autoplayInterval: TimeInterval? {
+        blok.autoplayDelay > 0 ? blok.autoplayDelay : nil
     }
 }

@@ -43,6 +43,10 @@ const CONSCIOUSLY_UNRENDERED = new Map([
   ["badge_item", "decoded as BadgeItemBlok, rendered by SbBadgesView"],
   ["list_item", "decoded as ListItemBlok, rendered by SbListView"],
   ["stat_item", "decoded as StatItemBlok, rendered by SbStatsView"],
+  [
+    "image_comparison",
+    "before/after slider — web-only for now; iOS has no interactive comparison surface yet",
+  ],
 ]);
 
 const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
