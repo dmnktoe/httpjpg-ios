@@ -78,11 +78,13 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         let glassed: some View = Group {
-            if isHeld {
-                // Flat fallback while the sidebar scrim is up — only paint when tinted.
-                content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
-            } else if #available(iOS 26.0, *) {
-                content.glassEffect(glass, in: shape)
+            if #available(iOS 26.0, *) {
+                content
+                    .background(heldFill, in: shape)
+                    .glassEffect(glass, in: shape)
+                    .glassEffectTransition(.identity)
+            } else if isHeld {
+                content.background(heldFill, in: shape)
             } else if let tint {
                 content
                     .background(tint.opacity(0.55), in: shape)
@@ -97,16 +99,29 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         // Interactive glass draws its touch highlight from the view bounds, which
         // defaults to a rounded rect on small square frames — clip to the declared
         // shape so press-and-drag stays circular (see GlassPill).
-        if isInteractive {
-            glassed.clipShape(shape)
-        } else {
-            glassed
+        Group {
+            if isInteractive {
+                glassed.clipShape(shape)
+            } else {
+                glassed
+            }
         }
+        // The drawer spring is on `isOpen`; without this the same transaction
+        // interpolates the hold swap and the pills empty / refill over it.
+        .transaction(value: isHeld) { $0.animation = nil }
+    }
+
+    private var heldFill: Color {
+        isHeld ? (tint ?? Color.clear) : Color.clear
     }
 
     @available(iOS 26.0, *)
     private var glass: Glass {
-        guard let tint else {
+        // Identity (not an unmount) while the drawer is in flight: a moving
+        // backdrop made live glass re-blur every frame, and tearing the
+        // modifier out made selected pills rematerialize as a hollow stroke
+        // that filled in a beat after the page settled.
+        guard !isHeld, let tint else {
             // Untinted regular glass still reads as a grey fill on white.
             return .identity
         }
