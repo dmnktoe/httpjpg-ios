@@ -5,9 +5,15 @@ public extension View {
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false
+        interactive: Bool = false,
+        holdWithChrome: Bool = true
     ) -> some View {
-        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
+        modifier(GlassBackgroundModifier(
+            shape: shape,
+            tint: tint,
+            isInteractive: interactive,
+            holdWithChrome: holdWithChrome
+        ))
     }
 }
 
@@ -62,10 +68,19 @@ private struct ChromeHeldKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct ChromeHoldSnapsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 public extension EnvironmentValues {
     var chromeHeld: Bool {
         get { self[ChromeHeldKey.self] }
         set { self[ChromeHeldKey.self] = newValue }
+    }
+
+    var chromeHoldSnaps: Bool {
+        get { self[ChromeHoldSnapsKey.self] }
+        set { self[ChromeHoldSnapsKey.self] = newValue }
     }
 }
 
@@ -73,16 +88,25 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
+    let holdWithChrome: Bool
 
     @Environment(\.chromeHeld) private var isHeld
+    @Environment(\.chromeHoldSnaps) private var snaps
+
+    private var flatten: Bool { holdWithChrome && isHeld }
 
     func body(content: Content) -> some View {
         let glassed: some View = Group {
-            if isHeld {
-                // Flat fallback while the sidebar scrim is up — only paint when tinted.
-                content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
-            } else if #available(iOS 26.0, *) {
-                content.glassEffect(glass, in: shape)
+            if #available(iOS 26.0, *) {
+                content
+                    .background(heldFill, in: shape)
+                    .glassEffect(glass, in: shape)
+                    // Snap while a drag is live so the moving backdrop does not
+                    // re-blur every frame. Outside a drag the material stays
+                    // up, so inactive pills keep their frosted look.
+                    .glassEffectTransition(snaps && flatten ? .identity : .materialize)
+            } else if flatten {
+                content.background(heldFill, in: shape)
             } else if let tint {
                 content
                     .background(tint.opacity(0.55), in: shape)
@@ -97,16 +121,30 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         // Interactive glass draws its touch highlight from the view bounds, which
         // defaults to a rounded rect on small square frames — clip to the declared
         // shape so press-and-drag stays circular (see GlassPill).
-        if isInteractive {
-            glassed.clipShape(shape)
-        } else {
-            glassed
+        Group {
+            if isInteractive {
+                glassed.clipShape(shape)
+            } else {
+                glassed
+            }
         }
+        .transaction(value: flatten) { transaction in
+            guard snaps else { return }
+            transaction.animation = nil
+        }
+    }
+
+    private var heldFill: Color {
+        flatten ? (tint ?? Color.clear) : Color.clear
     }
 
     @available(iOS 26.0, *)
     private var glass: Glass {
-        guard let tint else {
+        // Identity (not an unmount) while the drawer is in flight: a moving
+        // backdrop made live glass re-blur every frame, and tearing the
+        // modifier out made selected pills rematerialize as a hollow stroke
+        // that filled in a beat after the page settled.
+        guard !flatten, let tint else {
             // Untinted regular glass still reads as a grey fill on white.
             return .identity
         }
