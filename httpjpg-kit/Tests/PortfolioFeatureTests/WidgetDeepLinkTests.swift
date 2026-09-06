@@ -1,3 +1,4 @@
+import StoryblokCore
 import WidgetFeature
 import XCTest
 
@@ -53,6 +54,27 @@ final class WidgetDeepLinkTests: XCTestCase {
         )
         XCTAssertNil(
             WidgetDeepLink.destination(from: try XCTUnwrap(URL(string: "httpjpg://shop/atlas")))
+        )
+    }
+
+    func testAPlayLinkRoundTripsTheTrack() throws {
+        let track = AudioTrack(
+            id: "139e6c5f-4c19-4878-9ec3-c195ff071215",
+            title: "mega mashup",
+            artist: "te3shay",
+            streamURL: try XCTUnwrap(URL(string: "https://cdn.httpjpg.com/music/MEGA%20MASHUP.wav")),
+            artworkURL: try XCTUnwrap(URL(string: "https://a.storyblok.com/f/281211/811x811/dffa91ee4a/img_4103.JPG"))
+        )
+
+        let url = try XCTUnwrap(WidgetDeepLink.play(track))
+        XCTAssertEqual(WidgetDeepLink.destination(from: url), .play(track))
+    }
+
+    func testAPlayLinkWithoutAStreamIsDropped() throws {
+        XCTAssertNil(
+            WidgetDeepLink.destination(
+                from: try XCTUnwrap(URL(string: "httpjpg://play/track-1?title=untitled"))
+            )
         )
     }
 }

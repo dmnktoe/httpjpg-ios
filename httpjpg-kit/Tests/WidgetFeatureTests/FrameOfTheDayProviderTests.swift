@@ -1,9 +1,12 @@
+import StoryblokCore
 import XCTest
 
 @testable import WidgetFeature
 
 final class FrameOfTheDayProviderTests: XCTestCase {
-    private let pool = (1 ... 5).map { "frame-\($0).jpg" }
+    private let pool: [FeedPool.Item] = (1 ... 5).map { index in
+        FeedPool.Item(id: "frame-\(index)", kind: .image(filename: "frame-\(index).jpg"))
+    }
 
     private var calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -16,8 +19,8 @@ final class FrameOfTheDayProviderTests: XCTestCase {
         let evening = try date(2026, 8, 5, hour: 23)
 
         XCTAssertEqual(
-            FrameOfTheDayProvider.frame(for: morning, in: pool, calendar: calendar),
-            FrameOfTheDayProvider.frame(for: evening, in: pool, calendar: calendar)
+            FrameOfTheDayProvider.item(for: morning, in: pool, calendar: calendar),
+            FrameOfTheDayProvider.item(for: evening, in: pool, calendar: calendar)
         )
     }
 
@@ -39,7 +42,7 @@ final class FrameOfTheDayProviderTests: XCTestCase {
     func testAWeekOfDaysWalksTheWholePool() throws {
         let picked = try (5 ... 11).map { day in
             try XCTUnwrap(
-                FrameOfTheDayProvider.frame(
+                FrameOfTheDayProvider.item(
                     for: try date(2026, 8, day),
                     in: pool,
                     calendar: calendar
@@ -47,11 +50,32 @@ final class FrameOfTheDayProviderTests: XCTestCase {
             )
         }
 
-        XCTAssertEqual(Set(picked), Set(pool))
+        XCTAssertEqual(Set(picked.map(\.id)), Set(pool.map(\.id)))
     }
 
     func testAnEmptyPoolHasNoFrame() throws {
-        XCTAssertNil(FrameOfTheDayProvider.frame(for: try date(2026, 8, 5), in: [], calendar: calendar))
+        XCTAssertNil(FrameOfTheDayProvider.item(for: try date(2026, 8, 5), in: [], calendar: calendar))
+    }
+
+    func testAMixedPoolCanLandOnATrack() throws {
+        let mixed: [FeedPool.Item] = [
+            FeedPool.Item(id: "photo", kind: .image(filename: "frame.jpg")),
+            FeedPool.Item(
+                id: "track",
+                kind: .music(
+                    title: "mega mashup",
+                    artist: "te3shay",
+                    artworkURL: "https://example.com/art.jpg",
+                    track: nil,
+                    listenURL: URL(string: "https://soundcloud.com/te3shay")
+                )
+            ),
+        ]
+
+        let item = try XCTUnwrap(
+            FrameOfTheDayProvider.item(for: try date(2026, 8, 6), in: mixed, calendar: calendar)
+        )
+        XCTAssertEqual(item.id, mixed[FrameOfTheDayProvider.index(for: try date(2026, 8, 6), count: 2, calendar: calendar)].id)
     }
 
     func testDatesBeforeTheReferenceEpochStayInBounds() throws {

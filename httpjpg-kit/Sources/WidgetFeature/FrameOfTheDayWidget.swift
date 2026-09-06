@@ -12,8 +12,8 @@ public struct FrameOfTheDayWidget: Widget {
         StaticConfiguration(kind: Self.kind, provider: FrameOfTheDayProvider()) { entry in
             FrameOfTheDayWidgetView(entry: entry)
         }
-        .configurationDisplayName("Frame of the day")
-        .description("One picture from the feed, swapped at midnight.")
+        .configurationDisplayName("Feed")
+        .description("A picture, track, or clip from the feed, swapped at midnight.")
 
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge])
         .contentMarginsDisabled()
@@ -36,15 +36,28 @@ struct FrameOfTheDayWidgetView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let image = entry.image {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-                .accessibilityLabel("Frame of the day")
-        } else {
-            WidgetEmptyState(message: entry.message)
+        switch entry.content {
+        case .image:
+            if let image = entry.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+                    .accessibilityLabel("Frame of the day")
+            } else {
+                WidgetEmptyState(message: entry.message)
+            }
+        case .music(let title, let artist, let playURL, let listenURL):
+            FrameOfTheDayMusicView(
+                title: title,
+                artist: artist,
+                artwork: entry.image,
+                actionURL: playURL ?? listenURL,
+                playsInApp: playURL != nil
+            )
+        case .video(let caption):
+            FrameOfTheDayVideoView(image: entry.image, caption: caption)
         }
     }
 

@@ -120,4 +120,22 @@ final class QuickActionRoutingTests: XCTestCase {
 
         XCTAssertTrue(app.workPath.isEmpty)
     }
+
+    func testAPlayLinkOpensTheFeedAndQueuesTheTrack() throws {
+        let app = makeApp()
+        let track = AudioTrack(
+            id: "mashup",
+            title: "mega mashup",
+            artist: "te3shay",
+            streamURL: try XCTUnwrap(URL(string: "https://cdn.httpjpg.com/music/mashup.wav")),
+            artworkURL: nil
+        )
+
+        app.open(try XCTUnwrap(WidgetDeepLink.play(track)))
+
+        XCTAssertEqual(app.selectedTab, .info)
+        XCTAssertEqual(app.infoPath.map(\.slug), ["feed-xml_html"])
+        XCTAssertEqual(app.takePendingPlayback(), track)
+        XCTAssertNil(app.pendingPlayback)
+    }
 }

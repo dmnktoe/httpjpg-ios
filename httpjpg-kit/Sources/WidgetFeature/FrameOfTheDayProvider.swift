@@ -21,7 +21,7 @@ struct FrameOfTheDayProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<FrameOfTheDayEntry>) -> Void) {
         Task {
             let entry = await load(for: context)
-            let next = entry.image == nil
+            let next = entry.message != nil && entry.image == nil
                 ? Date(timeIntervalSinceNow: Self.retryInterval)
                 : Self.nextMidnight(after: Date())
             completion(Timeline(entries: [entry], policy: .after(next)))
@@ -38,34 +38,71 @@ struct FrameOfTheDayProvider: TimelineProvider {
 
         let client = ContentClient(configuration: configuration)
         let pool = await Self.pool(from: client)
-        guard let filename = Self.frame(for: Date(), in: pool) else {
+        guard let item = Self.item(for: Date(), in: pool) else {
             return .failure("no frames published")
         }
 
-        let image = await WidgetImageLoader.image(
-            filename,
-            width: context.displaySize.width,
-            scale: 2
-        )
-        guard let image else {
-            return .failure("frame unavailable")
-        }
-        return FrameOfTheDayEntry(date: Date(), image: image)
+        return await entry(for: item, displayWidth: context.displaySize.width)
     }
 
-    private static func pool(from client: ContentClient) async -> [String] {
+    private func entry(for item: FeedPool.Item, displayWidth: CGFloat) async -> FrameOfTheDayEntry {
+        let imageWidth: CGFloat
+        switch item.kind {
+        case .music:
+            imageWidth = 120
+        case .image, .video:
+            imageWidth = displayWidth
+        }
+
+        let image = await WidgetImageLoader.image(
+            item.imageFilename,
+            width: imageWidth,
+            scale: 2
+        )
+
+        switch item.kind {
+        case .image:
+            guard let image else {
+                return .failure("frame unavailable")
+            }
+            return FrameOfTheDayEntry(date: Date(), image: image, content: .image)
+        case .music(let title, let artist, _, let track, let listenURL):
+            return FrameOfTheDayEntry(
+                date: Date(),
+                image: image,
+                content: .music(
+                    title: title,
+                    artist: artist,
+                    playURL: track.flatMap(WidgetDeepLink.play),
+                    listenURL: listenURL
+                )
+            )
+        case .video(_, let caption):
+            return FrameOfTheDayEntry(
+                date: Date(),
+                image: image,
+                content: .video(caption: caption)
+            )
+        }
+    }
+
+    private static func pool(from client: ContentClient) async -> [FeedPool.Item] {
         if let page = try? await client.page(slug: StorySlug.feed) {
-            let filenames = ImagePool.filenames(in: page.body)
-            if !filenames.isEmpty { return filenames }
+            let items = FeedPool.items(in: page.body)
+            if !items.isEmpty { return items }
         }
 
         guard let collection = try? await client.workIndex(perPage: 40) else { return [] }
         return (collection.projects + collection.websites)
             .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
-            .flatMap(\.imageFilenames)
+            .flatMap { work in
+                work.imageFilenames.enumerated().map { offset, filename in
+                    FeedPool.Item(id: "\(work.id)-\(offset)", kind: .image(filename: filename))
+                }
+            }
     }
 
-    static func frame(for date: Date, in pool: [String], calendar: Calendar = .current) -> String? {
+    static func item(for date: Date, in pool: [FeedPool.Item], calendar: Calendar = .current) -> FeedPool.Item? {
         guard !pool.isEmpty else { return nil }
         return pool[index(for: date, count: pool.count, calendar: calendar)]
     }
