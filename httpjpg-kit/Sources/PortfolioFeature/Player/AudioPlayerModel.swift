@@ -1,4 +1,5 @@
 import AVFoundation
+import DesignSystem
 import Foundation
 import MediaPlayer
 import Observation
@@ -21,11 +22,10 @@ public final class AudioPlayerModel {
     @ObservationIgnored private var timeObserver: Any?
     @ObservationIgnored private var endObserver: NSObjectProtocol?
     @ObservationIgnored private var artworkTask: Task<Void, Never>?
+    @ObservationIgnored private var remoteCommandsInstalled = false
 
-    public init() {
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-        registerRemoteCommands()
-    }
+    /// Session and Control Center stay untouched until a track actually starts.
+    public init() {}
 
     public func play(_ newTrack: AudioTrack) {
         if track != newTrack {
@@ -37,7 +37,7 @@ public final class AudioPlayerModel {
             installObservers()
             loadArtwork(for: newTrack)
         }
-        try? AVAudioSession.sharedInstance().setActive(true)
+        becomeNowPlaying()
         player.play()
         isPlaying = true
         publishNowPlaying()
@@ -49,6 +49,7 @@ public final class AudioPlayerModel {
             player.pause()
             isPlaying = false
         } else {
+            becomeNowPlaying()
             player.play()
             isPlaying = true
         }
@@ -78,9 +79,22 @@ public final class AudioPlayerModel {
         currentTime = 0
         duration = 0
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        resignNowPlaying()
     }
 
-    private func registerRemoteCommands() {
+    private func becomeNowPlaying() {
+        try? MediaAudioSession.activateExclusivePlayback()
+        registerRemoteCommandsIfNeeded()
+    }
+
+    private func resignNowPlaying() {
+        unregisterRemoteCommands()
+        MediaAudioSession.resignExclusivePlayback()
+    }
+
+    private func registerRemoteCommandsIfNeeded() {
+        guard !remoteCommandsInstalled else { return }
+        remoteCommandsInstalled = true
         let center = MPRemoteCommandCenter.shared()
 
         center.playCommand.addTarget { [weak self] _ in
@@ -129,6 +143,19 @@ public final class AudioPlayerModel {
                 return .success
             }
         }
+    }
+
+    private func unregisterRemoteCommands() {
+        guard remoteCommandsInstalled else { return }
+        remoteCommandsInstalled = false
+        let center = MPRemoteCommandCenter.shared()
+        // nil drops every handler this process registered for the command.
+        center.playCommand.removeTarget(nil)
+        center.pauseCommand.removeTarget(nil)
+        center.togglePlayPauseCommand.removeTarget(nil)
+        center.changePlaybackPositionCommand.removeTarget(nil)
+        center.skipForwardCommand.removeTarget(nil)
+        center.skipBackwardCommand.removeTarget(nil)
     }
 
     private func publishNowPlaying() {

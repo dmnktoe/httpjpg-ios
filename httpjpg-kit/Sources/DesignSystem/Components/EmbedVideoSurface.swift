@@ -48,7 +48,7 @@ public struct EmbedVideoSurface: View {
     public var body: some View {
         Group {
             if let playerURL {
-                EmbedWebView(url: playerURL) {
+                EmbedWebView(url: playerURL, mixesWithOthers: isMuted) {
                     isPosterVisible = false
                 }
                 .aspectRatio(aspectRatio, contentMode: .fit)
@@ -168,6 +168,7 @@ public struct EmbedVideoSurface: View {
 
 private struct EmbedWebView: UIViewRepresentable {
     let url: URL
+    let mixesWithOthers: Bool
     let onLoad: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -175,6 +176,9 @@ private struct EmbedWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> WKWebView {
+        if mixesWithOthers {
+            MediaAudioSession.prepareSilentVideo()
+        }
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         // Vendor autoplay is gated by the embed query string; don't add a second prompt.

@@ -63,6 +63,7 @@ public struct LoopingVideoPlayer: View {
                 if held {
                     player.pause()
                 } else {
+                    MediaAudioSession.prepareSilentVideo()
                     player.play()
                 }
             }
@@ -119,6 +120,7 @@ public struct LoopingVideoPlayer: View {
             player.seek(to: .zero)
         }
         if !isHeld {
+            MediaAudioSession.prepareSilentVideo()
             player.play()
         }
     }
