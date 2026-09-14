@@ -93,6 +93,9 @@ public struct VideoSurface: View {
             }
         }
         guard autoPlays, !reduceMotion else { return }
+        if isMuted {
+            MediaAudioSession.prepareSilentVideo()
+        }
         player.play()
     }
 }

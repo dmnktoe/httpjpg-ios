@@ -47,6 +47,10 @@ const CONSCIOUSLY_UNRENDERED = new Map([
     "image_comparison",
     "before/after slider — web-only for now; iOS has no interactive comparison surface yet",
   ],
+  [
+    "userbar",
+    "nested in footer_config as 350×19 pixel bars; the iOS footer has no userbar strip yet",
+  ],
 ]);
 
 const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
