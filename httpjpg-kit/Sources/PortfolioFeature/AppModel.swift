@@ -52,6 +52,8 @@ public final class AppModel {
 
     public private(set) var hasLoadedConfig = false
 
+    private(set) var pendingPlayback: AudioTrack?
+
     let workIndex: WorkIndexModel
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
@@ -118,9 +120,17 @@ public final class AppModel {
             select(tab: .info)
             infoPath.removeAll()
             isSidebarOpen = false
+        case .play(let track):
+            pendingPlayback = track
+            show(PageRoute(slug: StorySlug.feed, title: StorySlug.feed))
         case nil:
             return
         }
+    }
+
+    func takePendingPlayback() -> AudioTrack? {
+        defer { pendingPlayback = nil }
+        return pendingPlayback
     }
 
     func perform(_ action: QuickAction) {

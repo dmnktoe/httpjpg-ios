@@ -2,15 +2,29 @@ import UIKit
 import WidgetKit
 
 struct FrameOfTheDayEntry: TimelineEntry {
+    enum Content: Equatable {
+        case image
+        case music(title: String, artist: String?, playURL: URL?, listenURL: URL?)
+        case video(caption: String?)
+    }
+
     let date: Date
 
     let image: UIImage?
 
+    let content: Content
+
     let message: String?
 
-    init(date: Date, image: UIImage? = nil, message: String? = nil) {
+    init(
+        date: Date,
+        image: UIImage? = nil,
+        content: Content = .image,
+        message: String? = nil
+    ) {
         self.date = date
         self.image = image
+        self.content = content
         self.message = message
     }
 

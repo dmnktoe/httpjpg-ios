@@ -211,6 +211,86 @@
               ]
             }
           ]
+        },
+        {
+          "_uid": "feed-mixed-grid",
+          "component": "grid",
+          "columns": "3",
+          "gap": "6",
+          "items": [
+            {
+              "_uid": "feed-music-item",
+              "component": "grid_item",
+              "colSpan": "1",
+              "content": [
+                {
+                  "_uid": "feed-music-mp3",
+                  "component": "music_player",
+                  "source": "mp3",
+                  "src": "https://a.storyblok.com/f/1000042/0x0/2c29a7aaf79/tape-loop.wav",
+                  "title": "mega mashup (mock)",
+                  "artist": "te3shay",
+                  "artwork": "https://a.storyblok.com/f/281211/811x811/dffa91ee4a/img_4103.JPG",
+                  "showArtwork": true,
+                  "showInfo": true
+                }
+              ]
+            },
+            {
+              "_uid": "feed-video-item",
+              "component": "grid_item",
+              "colSpan": "1",
+              "content": [
+                {
+                  "_uid": "feed-video-native",
+                  "component": "video",
+                  "source": "native",
+                  "video": {
+                    "id": null,
+                    "alt": null,
+                    "name": "",
+                    "filename": "https://cdn.httpjpg.com/feed/blence-live-on-display-at-examen.mp4",
+                    "fieldtype": "asset",
+                    "meta_data": {},
+                    "is_external_url": true
+                  },
+                  "poster": {
+                    "filename": "https://a.storyblok.com/f/281211/1920x1080/9a43fe84ff/video-still-0.png"
+                  },
+                  "caption": {
+                    "type": "doc",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [{ "type": "text", "text": "blence live on display" }]
+                      }
+                    ]
+                  },
+                  "autoPlay": true,
+                  "loop": true,
+                  "muted": true,
+                  "controls": false
+                }
+              ]
+            },
+            {
+              "_uid": "feed-soundcloud-item",
+              "component": "grid_item",
+              "colSpan": "1",
+              "content": [
+                {
+                  "_uid": "feed-music-soundcloud",
+                  "component": "music_player",
+                  "source": "soundcloud",
+                  "src": "https://soundcloud.com/te3shay/sets/star-heart-edits-pt1",
+                  "title": "star heart edits",
+                  "artist": "te3shay",
+                  "showArtwork": true,
+                  "showInfo": true
+                }
+              ]
+            }
+          ]
         }
       ]
     }

@@ -53,7 +53,13 @@ public struct RootView: View {
             Telemetry.signal("player.played")
             player.play($0)
         }
-        .onOpenURL { model.open($0) }
+        .onOpenURL { url in
+            model.open(url)
+            if let track = model.takePendingPlayback() {
+                Telemetry.signal("player.played")
+                player.play(track)
+            }
+        }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
             guard let slug = WorkSpotlightIndex.slug(from: activity) else { return }
             quickActionInbox.post(.work(slug: slug, title: slug))
