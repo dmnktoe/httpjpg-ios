@@ -1,11 +1,9 @@
 import SwiftUI
 import Tokens
 
-/// Liquid Glass control used for chrome: nav icons, tab pills, filter pills.
-///
-/// Uses `glassEffect` (not `.buttonStyle(.glass)`) so `chromeHeld` can freeze
-/// the material in place while the sidebar moves. Swapping to the system glass
-/// button style changed padding and snapped back when the drawer settled.
+/// Liquid Glass chrome control. Fill and type carry selected vs rest; there is
+/// no stroke — a 1pt accent ring read as a hard green border once glass froze
+/// for the sidebar.
 public struct GlassButton<Label: View>: View {
     public enum Prominence: Sendable {
         case regular
@@ -21,7 +19,6 @@ public struct GlassButton<Label: View>: View {
     private let form: Form
     private let tint: Color?
     private let labelColor: Color?
-    private let stroke: Color?
     private let morphID: AnyHashable?
     private let namespace: Namespace.ID?
     private let isClear: Bool
@@ -38,7 +35,6 @@ public struct GlassButton<Label: View>: View {
         shape: Form = .capsule,
         tint: Color? = nil,
         labelColor: Color? = nil,
-        stroke: Color? = nil,
         morphID: AnyHashable? = nil,
         namespace: Namespace.ID? = nil,
         clear: Bool = false,
@@ -52,7 +48,6 @@ public struct GlassButton<Label: View>: View {
         self.form = shape
         self.tint = tint
         self.labelColor = labelColor
-        self.stroke = stroke
         self.morphID = morphID
         self.namespace = namespace
         self.isClear = clear
@@ -64,7 +59,7 @@ public struct GlassButton<Label: View>: View {
     }
 
     public var body: some View {
-        let chrome = morphed(stroked(button))
+        let chrome = morphed(button)
         if let accessibilityName {
             chrome.accessibilityLabel(accessibilityName)
         } else {
@@ -76,15 +71,16 @@ public struct GlassButton<Label: View>: View {
     private var button: some View {
         switch form {
         case .capsule:
-            styled(Capsule())
+            plated(Capsule())
         case .circle:
-            styled(Circle())
+            plated(Circle())
         }
     }
 
-    private func styled<S: Shape>(_ shape: S) -> some View {
+    private func plated<S: Shape>(_ shape: S) -> some View {
         Button(action: action) {
             label
+                .fontWeight(prominence == .prominent ? .semibold : .regular)
                 .foregroundStyle(resolvedLabelColor)
                 .padding(.horizontal, form == .circle ? 0 : horizontalPadding)
                 .padding(.vertical, form == .circle ? 0 : verticalPadding)
@@ -100,24 +96,6 @@ public struct GlassButton<Label: View>: View {
     }
 
     @ViewBuilder
-    private func stroked(_ view: some View) -> some View {
-        switch form {
-        case .capsule:
-            view.overlay {
-                if let stroke {
-                    Capsule().stroke(stroke, lineWidth: 1)
-                }
-            }
-        case .circle:
-            view.overlay {
-                if let stroke {
-                    Circle().stroke(stroke, lineWidth: 1)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
     private func morphed(_ view: some View) -> some View {
         if let morphID, let namespace {
             view.glassMorph(id: morphID, in: namespace)
@@ -126,13 +104,13 @@ public struct GlassButton<Label: View>: View {
         }
     }
 
-    /// Always set — the page tint is the link colour, and glass would
-    /// otherwise inherit a blue fill.
+    /// Always set — the page tint is the link colour.
     private var resolvedTint: Color {
         tint ?? (prominence == .prominent ? theme.chromeActiveFill : theme.chromeFill)
     }
 
     private var resolvedLabelColor: Color {
-        labelColor ?? (prominence == .prominent ? theme.chromeActiveLabel : theme.chromeLabel)
+        labelColor
+            ?? (prominence == .prominent ? theme.chromeActiveLabel : theme.chromeLabel)
     }
 }

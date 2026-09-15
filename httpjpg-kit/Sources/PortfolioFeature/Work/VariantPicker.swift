@@ -8,7 +8,7 @@ struct VariantPicker: View {
     let selection: MenuLink.Variant
     let onSelect: (MenuLink.Variant) -> Void
 
-    @Namespace private var glass
+    @Namespace private var active
     @Environment(\.pageTheme) private var theme
 
     var body: some View {
@@ -27,21 +27,31 @@ struct VariantPicker: View {
     private func chip(for variant: MenuLink.Variant) -> some View {
         let isSelected = variant == selection
 
-        return GlassButton(
-            prominence: isSelected ? .prominent : .regular,
-            tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
-            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
-            stroke: isSelected ? theme.chromeActiveStroke : nil,
-            morphID: variant.rawValue,
-            namespace: glass
-        ) {
+        return Button {
             onSelect(variant)
         } label: {
             Text(variant.filterLabel)
-                .font(Typography.mono(Typography.Size.sm))
+                .font(Typography.mono(Typography.Size.sm, weight: isSelected ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .padding(.horizontal, Spacing.s4)
+                .padding(.vertical, Spacing.s3)
+                .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel.opacity(Opacities.muted))
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(theme.chromeActiveFill)
+                            .matchedGeometryEffect(id: "filter-active", in: active)
+                    }
+                }
+                .contentShape(Capsule())
+                .glassBackground(
+                    in: .capsule,
+                    tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
+                    interactive: true
+                )
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(variant.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }

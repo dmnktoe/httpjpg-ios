@@ -19,8 +19,7 @@ struct InfoResetCacheButton: View {
         VStack(spacing: Spacing.s2) {
             GlassButton(
                 tint: theme.chromeFill,
-                labelColor: theme.chromeLabel,
-                stroke: theme.chromeStroke
+                labelColor: theme.chromeLabel
             ) {
                 taps += 1
                 reload()

@@ -9,7 +9,7 @@ public extension View {
         clear: Bool = false
     ) -> some View {
         modifier(
-            GlassBackgroundModifier(
+            GlassSurface(
                 shape: shape,
                 tint: tint,
                 isInteractive: interactive,
@@ -21,7 +21,7 @@ public extension View {
 
 public extension View {
     func glassMorph(id: some Hashable, in namespace: Namespace.ID) -> some View {
-        modifier(GlassMorphModifier(id: id, namespace: namespace))
+        modifier(GlassMorph(id: id, namespace: namespace))
     }
 }
 
@@ -30,11 +30,92 @@ public extension View {
         insertion: Animation = Motion.navigate,
         removal: Animation = Motion.stateChange
     ) -> some View {
-        modifier(GlassRevealModifier(insertion: insertion, removal: removal))
+        modifier(GlassReveal(insertion: insertion, removal: removal))
     }
 }
 
-private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
+private struct ChromeHeldKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    var chromeHeld: Bool {
+        get { self[ChromeHeldKey.self] }
+        set { self[ChromeHeldKey.self] = newValue }
+    }
+}
+
+/// Live glass while the page is still; a flat fill while the sidebar moves so
+/// the material does not re-lens every drag frame. Layout stays put — identity
+/// glass, not a different control.
+private struct GlassSurface<S: Shape>: ViewModifier {
+    let shape: S
+    let tint: Color?
+    let isInteractive: Bool
+    let isClear: Bool
+
+    @Environment(\.chromeHeld) private var isHeld
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.pageTheme) private var theme
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            plated(content)
+        } else if isLive, let tint {
+            content
+                .background(tint.opacity(0.55), in: shape)
+                .background(.ultraThinMaterial, in: shape)
+        } else if isLive {
+            content
+        } else {
+            content.background(fill, in: shape)
+        }
+    }
+
+    @available(iOS 26.0, *)
+    @ViewBuilder
+    private func plated(_ content: Content) -> some View {
+        let surface = content
+            .background(isLive ? Color.clear : fill, in: shape)
+            .glassEffect(isLive ? material : .identity, in: shape)
+        if isLive, isInteractive {
+            // Interactive glass highlights the view bounds, which default
+            // to a rounded rect on square frames — clip only while live.
+            surface.clipShape(shape)
+        } else {
+            surface
+        }
+    }
+
+    private var isLive: Bool {
+        !isHeld && !reduceTransparency
+    }
+
+    private var fill: Color {
+        (tint ?? theme.chromeFill).opacity(reduceTransparency ? 0.94 : 0.55)
+    }
+
+    @available(iOS 26.0, *)
+    private var material: Glass {
+        let base: Glass
+        if isClear {
+            base = .clear
+        } else if tint != nil {
+            base = .regular
+        } else if #available(iOS 27.0, *) {
+            base = .regular
+        } else {
+            base = .identity
+        }
+        var glass = tint.map { base.tint($0) } ?? base
+        if isInteractive, isLive {
+            glass = glass.interactive()
+        }
+        return glass
+    }
+}
+
+private struct GlassMorph<ID: Hashable>: ViewModifier {
     let id: ID
     let namespace: Namespace.ID
 
@@ -47,7 +128,7 @@ private struct GlassMorphModifier<ID: Hashable>: ViewModifier {
     }
 }
 
-private struct GlassRevealModifier: ViewModifier {
+private struct GlassReveal: ViewModifier {
     let insertion: Animation
     let removal: Animation
 
@@ -63,85 +144,6 @@ private struct GlassRevealModifier: ViewModifier {
                 removal: BlurReplaceTransition(configuration: .downUp).animation(removal)
             ))
         }
-    }
-}
-
-private struct ChromeHeldKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-public extension EnvironmentValues {
-    var chromeHeld: Bool {
-        get { self[ChromeHeldKey.self] }
-        set { self[ChromeHeldKey.self] = newValue }
-    }
-}
-
-private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
-    let shape: S
-    let tint: Color?
-    let isInteractive: Bool
-    let isClear: Bool
-
-    @Environment(\.chromeHeld) private var isHeld
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.pageTheme) private var theme
-
-    func body(content: Content) -> some View {
-        let glassed: some View = Group {
-            if #available(iOS 26.0, *) {
-                content
-                    .glassEffect(showsLiveGlass ? glass : .identity, in: shape)
-                    .background(showsLiveGlass ? Color.clear : flatFill, in: shape)
-            } else if showsLiveGlass, let tint {
-                content
-                    .background(tint.opacity(0.55), in: shape)
-                    .background(.ultraThinMaterial, in: shape)
-            } else if showsLiveGlass {
-                content
-            } else {
-                content.background(flatFill, in: shape)
-            }
-        }
-
-        // Interactive glass draws its touch highlight from the view bounds, which
-        // defaults to a rounded rect on small square frames — clip to the declared
-        // shape so press-and-drag stays circular.
-        if isInteractive {
-            glassed.clipShape(shape)
-        } else {
-            glassed
-        }
-    }
-
-    private var showsLiveGlass: Bool {
-        !isHeld && !reduceTransparency
-    }
-
-    private var flatFill: Color {
-        (tint ?? theme.chromeFill).opacity(reduceTransparency ? 0.94 : 0.55)
-    }
-
-    @available(iOS 26.0, *)
-    private var glass: Glass {
-        let material = tint.map { base.tint($0) } ?? base
-        guard isInteractive else { return material }
-        if tint != nil || isClear { return material.interactive() }
-        if #available(iOS 27.0, *) { return material.interactive() }
-        return material
-    }
-
-    @available(iOS 26.0, *)
-    private var base: Glass {
-        if isClear {
-            return .clear
-        }
-        if #available(iOS 27.0, *) {
-            // iOS 27's readability pass makes untinted regular glass usable on
-            // light pages; iOS 26 still painted a grey disc, so that stays identity.
-            return .regular
-        }
-        return tint == nil ? .identity : .regular
     }
 }
 

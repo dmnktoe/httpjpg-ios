@@ -93,8 +93,7 @@ public struct WorkTagFilter: View {
         GlassButton(
             prominence: isSelected ? .prominent : .regular,
             tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
-            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
-            stroke: isSelected ? theme.chromeActiveStroke : nil,
+            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel.opacity(Opacities.muted),
             morphID: label,
             namespace: glass,
             horizontalPadding: Spacing.s3,
