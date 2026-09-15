@@ -1,7 +1,7 @@
 import SwiftUI
 import Tokens
 
-/// One chip behind every tag on cards, related work and the filter. Matches the
+/// One chip behind every tag on cards and related work. Matches the
 /// web `Tag` / `TagButton` recipe: sans label, pill border, page colours, and a
 /// dimmed `#` that assistive tech skips so the authored casing is what is read.
 public struct TagChip: View {

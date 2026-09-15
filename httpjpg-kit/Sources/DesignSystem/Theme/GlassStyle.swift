@@ -5,9 +5,17 @@ public extension View {
     func glassBackground(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        interactive: Bool = false
+        interactive: Bool = false,
+        clear: Bool = false
     ) -> some View {
-        modifier(GlassBackgroundModifier(shape: shape, tint: tint, isInteractive: interactive))
+        modifier(
+            GlassBackgroundModifier(
+                shape: shape,
+                tint: tint,
+                isInteractive: interactive,
+                isClear: clear
+            )
+        )
     }
 }
 
@@ -73,14 +81,16 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
+    let isClear: Bool
 
     @Environment(\.chromeHeld) private var isHeld
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.pageTheme) private var theme
 
     func body(content: Content) -> some View {
         let glassed: some View = Group {
-            if isHeld {
-                // Flat fallback while the sidebar scrim is up — only paint when tinted.
-                content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
+            if isHeld || reduceTransparency {
+                content.background(flatFill, in: shape)
             } else if #available(iOS 26.0, *) {
                 content.glassEffect(glass, in: shape)
             } else if let tint {
@@ -88,15 +98,13 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
                     .background(tint.opacity(0.55), in: shape)
                     .background(.ultraThinMaterial, in: shape)
             } else {
-                // No CMS / caller tint: skip the frosted material so we don't
-                // leave a grey disc on light pages.
                 content
             }
         }
 
         // Interactive glass draws its touch highlight from the view bounds, which
         // defaults to a rounded rect on small square frames — clip to the declared
-        // shape so press-and-drag stays circular (see GlassPill).
+        // shape so press-and-drag stays circular.
         if isInteractive {
             glassed.clipShape(shape)
         } else {
@@ -104,14 +112,30 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         }
     }
 
+    private var flatFill: Color {
+        (tint ?? theme.chromeFill).opacity(reduceTransparency ? 0.94 : 0.55)
+    }
+
     @available(iOS 26.0, *)
     private var glass: Glass {
-        guard let tint else {
-            // Untinted regular glass still reads as a grey fill on white.
-            return .identity
+        let material = tint.map { base.tint($0) } ?? base
+        guard isInteractive else { return material }
+        if tint != nil || isClear { return material.interactive() }
+        if #available(iOS 27.0, *) { return material.interactive() }
+        return material
+    }
+
+    @available(iOS 26.0, *)
+    private var base: Glass {
+        if isClear {
+            return .clear
         }
-        let tinted = Glass.regular.tint(tint)
-        return isInteractive ? tinted.interactive() : tinted
+        if #available(iOS 27.0, *) {
+            // iOS 27's readability pass makes untinted regular glass usable on
+            // light pages; iOS 26 still painted a grey disc, so that stays identity.
+            return .regular
+        }
+        return tint == nil ? .identity : .regular
     }
 }
 

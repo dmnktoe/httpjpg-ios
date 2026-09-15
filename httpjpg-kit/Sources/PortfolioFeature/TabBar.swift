@@ -4,11 +4,8 @@ import Tokens
 
 struct TabBar: View {
     let selection: AppModel.Tab
-
     let glass: Namespace.ID
-
     let onSelect: (AppModel.Tab) -> Void
-
     let onRowWidthChange: (CGFloat) -> Void
 
     @Environment(\.pageTheme) private var theme
@@ -32,16 +29,22 @@ struct TabBar: View {
     private func pill(for tab: AppModel.Tab) -> some View {
         let isSelected = selection == tab
 
-        return ChromePillButton(
-            text: tab.label,
+        return GlassButton(
+            prominence: isSelected ? .prominent : .regular,
             tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
             labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
             stroke: isSelected ? theme.chromeActiveStroke : nil,
             morphID: tab.id,
-            glass: glass
+            namespace: glass
         ) {
             tapCount += 1
             onSelect(tab)
+        } label: {
+            Text(tab.label)
+                .font(Typography.mono(Typography.Size.xs))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(height: Spacing.s4)
         }
         .accessibilityLabel(tab.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)

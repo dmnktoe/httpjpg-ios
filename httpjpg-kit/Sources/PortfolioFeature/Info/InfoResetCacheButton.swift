@@ -17,7 +17,11 @@ struct InfoResetCacheButton: View {
 
     var body: some View {
         VStack(spacing: Spacing.s2) {
-            Button {
+            GlassButton(
+                tint: theme.chromeFill,
+                labelColor: theme.chromeLabel,
+                stroke: theme.chromeStroke
+            ) {
                 taps += 1
                 reload()
             } label: {
@@ -32,10 +36,7 @@ struct InfoResetCacheButton: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
-                .foregroundStyle(theme.chromeLabel)
-                .glassPill(tint: theme.chromeFill, stroke: theme.chromeStroke)
             }
-            .buttonStyle(.plain)
             .disabled(phase == .reloading)
             .sensoryFeedback(.impact(weight: .light), trigger: taps)
             .animation(Motion.stateChange, value: phase)

@@ -3,8 +3,6 @@ import SwiftUI
 import Tokens
 
 struct NavGlassButton: View {
-    private static let diameter: CGFloat = Spacing.s9
-
     let systemName: String
     let label: String
     var tint: Color?
@@ -14,26 +12,17 @@ struct NavGlassButton: View {
     @Environment(\.pageTheme) private var theme
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: Typography.Size.md, weight: .semibold))
-                .foregroundStyle(onTint ?? theme.foreground)
-                .frame(width: Self.diameter, height: Self.diameter)
-                .contentShape(.circle)
-                .glassBackground(
-                    in: .circle,
-                    tint: tint,
-                    interactive: true
-                )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        GlassButton(
+            systemName: systemName,
+            accessibilityLabel: label,
+            tint: tint,
+            labelColor: onTint ?? theme.foreground,
+            action: action
+        )
     }
 }
 
 struct NavGlassIcon: View {
-    private static let diameter: CGFloat = Spacing.s9
-
     let systemName: String
     var tint: Color?
     var onTint: Color?
@@ -44,12 +33,8 @@ struct NavGlassIcon: View {
         Image(systemName: systemName)
             .font(.system(size: Typography.Size.md, weight: .semibold))
             .foregroundStyle(onTint ?? theme.foreground)
-            .frame(width: Self.diameter, height: Self.diameter)
+            .frame(width: Spacing.s9, height: Spacing.s9)
             .contentShape(.circle)
-            .glassBackground(
-                in: .circle,
-                tint: tint,
-                interactive: true
-            )
+            .glassBackground(in: .circle, tint: tint, interactive: true)
     }
 }

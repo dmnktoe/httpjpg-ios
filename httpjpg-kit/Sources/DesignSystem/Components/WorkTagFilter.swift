@@ -2,7 +2,8 @@ import SwiftUI
 import Tokens
 
 /// The work-list tag filter: a collapsed `[ + ] filter` line that expands into
-/// an `all` chip plus one chip per tag, same shape as the website's `WorkTagFilter`.
+/// glass pills — `all` plus one pill per tag. Card tags stay as `TagChip`;
+/// this control is chrome, so it uses Liquid Glass.
 public struct WorkTagFilter: View {
     private let tags: [String]
     private let counts: [String: Int]
@@ -11,6 +12,8 @@ public struct WorkTagFilter: View {
     private let onChange: (String?) -> Void
 
     @State private var isExpanded: Bool
+    @Namespace private var glass
+    @Environment(\.pageTheme) private var theme
 
     public init(
         tags: [String],
@@ -63,14 +66,16 @@ public struct WorkTagFilter: View {
     }
 
     private var chips: some View {
-        FlowLayout(spacing: Spacing.s2) {
-            chip("all", count: totalCount, isSelected: active == nil, showsMarker: false) {
-                onChange(nil)
-            }
+        GlassGroup(spacing: Spacing.s2) {
+            FlowLayout(spacing: Spacing.s2) {
+                chip("all", count: totalCount, isSelected: active == nil, showsMarker: false) {
+                    onChange(nil)
+                }
 
-            ForEach(tags, id: \.self) { tag in
-                chip(tag, count: counts[tag], isSelected: active == tag, showsMarker: true) {
-                    onChange(active == tag ? nil : tag)
+                ForEach(tags, id: \.self) { tag in
+                    chip(tag, count: counts[tag], isSelected: active == tag, showsMarker: true) {
+                        onChange(active == tag ? nil : tag)
+                    }
                 }
             }
         }
@@ -85,11 +90,49 @@ public struct WorkTagFilter: View {
         showsMarker: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            TagChip(label, isSelected: isSelected, count: count, showsMarker: showsMarker)
+        GlassButton(
+            prominence: isSelected ? .prominent : .regular,
+            tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
+            labelColor: isSelected ? theme.chromeActiveLabel : theme.chromeLabel,
+            stroke: isSelected ? theme.chromeActiveStroke : nil,
+            morphID: label,
+            namespace: glass,
+            controlSize: .mini
+        ) {
+            action()
+        } label: {
+            HStack(spacing: Spacing.s1) {
+                if showsMarker {
+                    Text("#")
+                        .font(Typography.mono(Typography.Size.xs))
+                        .opacity(Self.markerOpacity)
+                        .accessibilityHidden(true)
+                }
+
+                Text(label)
+                    .font(Typography.sans(Typography.Size.sm))
+                    .lineLimit(1)
+
+                if let count {
+                    Text(GlyphDigits.format(count))
+                        .font(Typography.mono(Typography.Size.xs))
+                        .opacity(Opacities.subtle)
+                        .padding(.leading, Spacing.s1)
+                        .accessibilityHidden(true)
+                }
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityLabel(accessibilityName(label, count: count))
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+    }
+
+    /// Opacity of the `#` marker. Off-palette on purpose: the web `TagMarker` is
+    /// `0.45`, between `Opacities.dimmed` and `Opacities.subtle`.
+    private static let markerOpacity: Double = 0.45
+
+    private func accessibilityName(_ label: String, count: Int?) -> String {
+        guard let count else { return label }
+        return "\(label), \(count)"
     }
 
     /// Collapsed with a filter on would otherwise hide the reason the list is

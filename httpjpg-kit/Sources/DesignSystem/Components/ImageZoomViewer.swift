@@ -2,8 +2,6 @@ import SwiftUI
 import Tokens
 
 public struct ImageZoomViewer: View {
-    private static let closeDiameter: CGFloat = Spacing.s9
-
     private let url: URL?
     private let accessibilityText: String?
     private let animated: Bool
@@ -30,24 +28,17 @@ public struct ImageZoomViewer: View {
             }
             .ignoresSafeArea()
 
-            Button {
+            GlassButton(
+                systemName: "xmark",
+                accessibilityLabel: "Close image viewer",
+                tint: accent,
+                labelColor: onAccent ?? Palette.white,
+                clear: true
+            ) {
                 dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: Typography.Size.md, weight: .semibold))
-                    .foregroundStyle(onAccent ?? Palette.white)
-                    .frame(width: Self.closeDiameter, height: Self.closeDiameter)
-                    .contentShape(.circle)
-                    .glassBackground(
-                        in: .circle,
-                        tint: accent,
-                        interactive: true
-                    )
             }
-            .buttonStyle(.plain)
             .padding(.leading, PageLayout.gutter)
             .zIndex(1)
-            .accessibilityLabel("Close image viewer")
         }
     }
 
