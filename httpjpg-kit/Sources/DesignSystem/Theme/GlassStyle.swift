@@ -91,7 +91,7 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         let glassed: some View = Group {
             if #available(iOS 26.0, *) {
                 content
-                    .glassEffect(glass, in: shape, isEnabled: showsLiveGlass)
+                    .glassEffect(showsLiveGlass ? glass : .identity, in: shape)
                     .background(showsLiveGlass ? Color.clear : flatFill, in: shape)
             } else if showsLiveGlass, let tint {
                 content
