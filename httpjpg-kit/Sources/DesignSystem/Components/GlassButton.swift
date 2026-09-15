@@ -3,9 +3,9 @@ import Tokens
 
 /// Liquid Glass control used for chrome: nav icons, tab pills, filter pills.
 ///
-/// On iOS 26+ this is the system `glass` / `glassProminent` button style so the
-/// material, press, disabled state, and the iOS 27 intensity slider come from
-/// the OS. Clear overlay controls and older systems keep a `glassEffect` fallback.
+/// Uses `glassEffect` (not `.buttonStyle(.glass)`) so `chromeHeld` can freeze
+/// the material in place while the sidebar moves. Swapping to the system glass
+/// button style changed padding and snapped back when the drawer settled.
 public struct GlassButton<Label: View>: View {
     public enum Prominence: Sendable {
         case regular
@@ -25,14 +25,13 @@ public struct GlassButton<Label: View>: View {
     private let morphID: AnyHashable?
     private let namespace: Namespace.ID?
     private let isClear: Bool
-    private let controlSize: ControlSize
+    private let horizontalPadding: CGFloat
+    private let verticalPadding: CGFloat
     private let accessibilityName: String?
     private let action: () -> Void
     private let label: Label
 
     @Environment(\.pageTheme) private var theme
-    @Environment(\.chromeHeld) private var isHeld
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     public init(
         prominence: Prominence = .regular,
@@ -43,7 +42,8 @@ public struct GlassButton<Label: View>: View {
         morphID: AnyHashable? = nil,
         namespace: Namespace.ID? = nil,
         clear: Bool = false,
-        controlSize: ControlSize = .small,
+        horizontalPadding: CGFloat = Spacing.s4,
+        verticalPadding: CGFloat = Spacing.s3,
         accessibilityLabel: String? = nil,
         action: @escaping () -> Void,
         @ViewBuilder label: () -> Label
@@ -56,7 +56,8 @@ public struct GlassButton<Label: View>: View {
         self.morphID = morphID
         self.namespace = namespace
         self.isClear = clear
-        self.controlSize = controlSize
+        self.horizontalPadding = horizontalPadding
+        self.verticalPadding = verticalPadding
         self.accessibilityName = accessibilityLabel
         self.action = action
         self.label = label()
@@ -73,56 +74,20 @@ public struct GlassButton<Label: View>: View {
 
     @ViewBuilder
     private var button: some View {
-        if #available(iOS 26.0, *), usesNativeGlass {
-            nativeButton
-        } else {
-            fallbackButton
-        }
-    }
-
-    private var usesNativeGlass: Bool {
-        !isHeld && !reduceTransparency && !isClear
-    }
-
-    @available(iOS 26.0, *)
-    @ViewBuilder
-    private var nativeButton: some View {
-        switch prominence {
-        case .prominent:
-            Button(action: action) {
-                label.foregroundStyle(resolvedLabelColor)
-            }
-            .buttonStyle(.glassProminent)
-            .buttonBorderShape(borderShape)
-            .controlSize(controlSize)
-            .tint(resolvedTint)
-        case .regular:
-            Button(action: action) {
-                label.foregroundStyle(resolvedLabelColor)
-            }
-            .buttonStyle(.glass)
-            .buttonBorderShape(borderShape)
-            .controlSize(controlSize)
-            .tint(resolvedTint)
-        }
-    }
-
-    @ViewBuilder
-    private var fallbackButton: some View {
         switch form {
         case .capsule:
-            fallbackStyled(Capsule())
+            styled(Capsule())
         case .circle:
-            fallbackStyled(Circle())
+            styled(Circle())
         }
     }
 
-    private func fallbackStyled<S: Shape>(_ shape: S) -> some View {
+    private func styled<S: Shape>(_ shape: S) -> some View {
         Button(action: action) {
             label
                 .foregroundStyle(resolvedLabelColor)
-                .padding(.horizontal, form == .circle ? 0 : Spacing.s4)
-                .padding(.vertical, form == .circle ? 0 : Spacing.s3)
+                .padding(.horizontal, form == .circle ? 0 : horizontalPadding)
+                .padding(.vertical, form == .circle ? 0 : verticalPadding)
                 .contentShape(shape)
                 .glassBackground(
                     in: shape,
@@ -161,7 +126,7 @@ public struct GlassButton<Label: View>: View {
         }
     }
 
-    /// Always set — the page tint is the link colour, and glass buttons would
+    /// Always set — the page tint is the link colour, and glass would
     /// otherwise inherit a blue fill.
     private var resolvedTint: Color {
         tint ?? (prominence == .prominent ? theme.chromeActiveFill : theme.chromeFill)
@@ -169,13 +134,5 @@ public struct GlassButton<Label: View>: View {
 
     private var resolvedLabelColor: Color {
         labelColor ?? (prominence == .prominent ? theme.chromeActiveLabel : theme.chromeLabel)
-    }
-
-    @available(iOS 26.0, *)
-    private var borderShape: ButtonBorderShape {
-        switch form {
-        case .capsule: .capsule
-        case .circle: .circle
-        }
     }
 }

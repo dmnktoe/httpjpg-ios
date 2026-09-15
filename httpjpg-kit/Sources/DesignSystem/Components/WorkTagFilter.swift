@@ -97,7 +97,8 @@ public struct WorkTagFilter: View {
             stroke: isSelected ? theme.chromeActiveStroke : nil,
             morphID: label,
             namespace: glass,
-            controlSize: .mini
+            horizontalPadding: Spacing.s3,
+            verticalPadding: Spacing.s2
         ) {
             action()
         } label: {

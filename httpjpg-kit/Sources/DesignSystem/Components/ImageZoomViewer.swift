@@ -33,7 +33,6 @@ public struct ImageZoomViewer: View {
                 tint: accent,
                 labelColor: onAccent ?? Palette.white,
                 clear: true,
-                controlSize: .regular,
                 accessibilityLabel: "Close image viewer"
             ) {
                 dismiss()

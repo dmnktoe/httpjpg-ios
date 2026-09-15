@@ -107,7 +107,6 @@ public struct ImageCarousel<Slide: View>: View {
             tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
             labelColor: onAccent ?? .white,
             clear: true,
-            controlSize: .regular,
             accessibilityLabel: step < 0 ? "Previous slide" : "Next slide"
         ) {
             arrowTaps += 1

@@ -70,7 +70,6 @@ public struct SbVideoView: View {
             tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
             labelColor: onAccent ?? .white,
             clear: true,
-            controlSize: .regular,
             accessibilityLabel: "Play the video at full size"
         ) {
             isLightboxPresented = true

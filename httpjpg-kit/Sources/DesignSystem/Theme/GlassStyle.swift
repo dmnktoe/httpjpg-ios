@@ -89,16 +89,18 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         let glassed: some View = Group {
-            if isHeld || reduceTransparency {
-                content.background(flatFill, in: shape)
-            } else if #available(iOS 26.0, *) {
-                content.glassEffect(glass, in: shape)
-            } else if let tint {
+            if #available(iOS 26.0, *) {
+                content
+                    .glassEffect(glass, in: shape, isEnabled: showsLiveGlass)
+                    .background(showsLiveGlass ? Color.clear : flatFill, in: shape)
+            } else if showsLiveGlass, let tint {
                 content
                     .background(tint.opacity(0.55), in: shape)
                     .background(.ultraThinMaterial, in: shape)
-            } else {
+            } else if showsLiveGlass {
                 content
+            } else {
+                content.background(flatFill, in: shape)
             }
         }
 
@@ -110,6 +112,10 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
         } else {
             glassed
         }
+    }
+
+    private var showsLiveGlass: Bool {
+        !isHeld && !reduceTransparency
     }
 
     private var flatFill: Color {

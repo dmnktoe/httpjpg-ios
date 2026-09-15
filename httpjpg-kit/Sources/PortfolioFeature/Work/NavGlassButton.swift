@@ -16,7 +16,6 @@ struct NavGlassButton: View {
             shape: .circle,
             tint: tint,
             labelColor: onTint ?? theme.foreground,
-            controlSize: .regular,
             accessibilityLabel: label,
             action: action
         ) {
