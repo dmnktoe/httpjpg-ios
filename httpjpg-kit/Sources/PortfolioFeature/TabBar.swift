@@ -34,24 +34,24 @@ struct TabBar: View {
             onSelect(tab)
         } label: {
             Text(tab.label)
-                .font(Typography.mono(Typography.Size.xs, weight: isSelected ? .semibold : .regular))
+                .font(Typography.mono(Typography.Size.xs, weight: isSelected ? .bold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
                 .padding(.horizontal, Spacing.s4)
                 .padding(.vertical, Spacing.s3)
-                .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel.opacity(Opacities.muted))
+                .foregroundStyle(isSelected ? theme.background : theme.chromeLabel.opacity(Opacities.muted))
                 .background {
                     if isSelected {
                         Capsule()
-                            .fill(theme.chromeActiveFill)
+                            .fill(theme.foreground.opacity(0.92))
                             .matchedGeometryEffect(id: "tab-active", in: active)
                     }
                 }
                 .contentShape(Capsule())
                 .glassBackground(
                     in: .capsule,
-                    tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
+                    tint: isSelected ? theme.foreground : theme.chromeFill,
                     interactive: true
                 )
                 .glassMorph(id: tab.id, in: glass)
