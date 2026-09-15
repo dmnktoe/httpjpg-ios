@@ -179,38 +179,3 @@ public struct GlassButton<Label: View>: View {
         }
     }
 }
-
-public extension GlassButton where Label == Image {
-    init(
-        systemName: String,
-        accessibilityLabel: String,
-        prominence: Prominence = .regular,
-        tint: Color? = nil,
-        labelColor: Color? = nil,
-        diameter: CGFloat = Spacing.s9,
-        fontSize: CGFloat = Typography.Size.md,
-        morphID: AnyHashable? = nil,
-        namespace: Namespace.ID? = nil,
-        clear: Bool = false,
-        controlSize: ControlSize = .regular,
-        action: @escaping () -> Void
-    ) {
-        self.init(
-            prominence: prominence,
-            shape: .circle,
-            tint: tint,
-            labelColor: labelColor,
-            morphID: morphID,
-            namespace: namespace,
-            clear: clear,
-            controlSize: controlSize,
-            accessibilityLabel: accessibilityLabel,
-            action: action
-        ) {
-            Image(systemName: systemName)
-                .font(.system(size: fontSize, weight: .semibold))
-                .frame(width: diameter, height: diameter)
-                .contentShape(Circle())
-        }
-    }
-}

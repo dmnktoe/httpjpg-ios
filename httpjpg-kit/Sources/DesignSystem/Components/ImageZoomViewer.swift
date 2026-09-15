@@ -29,13 +29,19 @@ public struct ImageZoomViewer: View {
             .ignoresSafeArea()
 
             GlassButton(
-                systemName: "xmark",
-                accessibilityLabel: "Close image viewer",
+                shape: .circle,
                 tint: accent,
                 labelColor: onAccent ?? Palette.white,
-                clear: true
+                clear: true,
+                controlSize: .regular,
+                accessibilityLabel: "Close image viewer"
             ) {
                 dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: Typography.Size.md, weight: .semibold))
+                    .frame(width: Spacing.s9, height: Spacing.s9)
+                    .contentShape(Circle())
             }
             .padding(.leading, PageLayout.gutter)
             .zIndex(1)

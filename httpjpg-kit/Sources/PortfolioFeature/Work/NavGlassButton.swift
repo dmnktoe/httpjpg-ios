@@ -13,12 +13,18 @@ struct NavGlassButton: View {
 
     var body: some View {
         GlassButton(
-            systemName: systemName,
-            accessibilityLabel: label,
+            shape: .circle,
             tint: tint,
             labelColor: onTint ?? theme.foreground,
+            controlSize: .regular,
+            accessibilityLabel: label,
             action: action
-        )
+        ) {
+            Image(systemName: systemName)
+                .font(.system(size: Typography.Size.md, weight: .semibold))
+                .frame(width: Spacing.s9, height: Spacing.s9)
+                .contentShape(Circle())
+        }
     }
 }
 

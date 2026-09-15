@@ -103,16 +103,20 @@ public struct ImageCarousel<Slide: View>: View {
 
     private func arrow(_ symbol: String, step: Int) -> some View {
         GlassButton(
-            systemName: symbol,
-            accessibilityLabel: step < 0 ? "Previous slide" : "Next slide",
+            shape: .circle,
             tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
             labelColor: onAccent ?? .white,
-            diameter: Spacing.s8,
-            fontSize: Typography.Size.md,
-            clear: true
+            clear: true,
+            controlSize: .regular,
+            accessibilityLabel: step < 0 ? "Previous slide" : "Next slide"
         ) {
             arrowTaps += 1
             advance(by: step)
+        } label: {
+            Image(systemName: symbol)
+                .font(.system(size: Typography.Size.md, weight: .semibold))
+                .frame(width: Spacing.s8, height: Spacing.s8)
+                .contentShape(Circle())
         }
         .shadow(color: .black.opacity(0.35), radius: 6)
     }

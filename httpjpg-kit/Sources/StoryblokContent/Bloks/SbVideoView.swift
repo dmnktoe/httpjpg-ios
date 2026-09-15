@@ -66,15 +66,19 @@ public struct SbVideoView: View {
 
     private var lightboxTrigger: some View {
         GlassButton(
-            systemName: "arrow.up.left.and.arrow.down.right",
-            accessibilityLabel: "Play the video at full size",
+            shape: .circle,
             tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
             labelColor: onAccent ?? .white,
-            diameter: Spacing.s8,
-            fontSize: Typography.Size.md,
-            clear: true
+            clear: true,
+            controlSize: .regular,
+            accessibilityLabel: "Play the video at full size"
         ) {
             isLightboxPresented = true
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: Typography.Size.md, weight: .semibold))
+                .frame(width: Spacing.s8, height: Spacing.s8)
+                .contentShape(Circle())
         }
     }
 
