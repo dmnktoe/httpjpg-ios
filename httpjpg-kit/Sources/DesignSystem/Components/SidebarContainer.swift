@@ -13,32 +13,18 @@ public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View
     private struct DragState {
         var translation: CGFloat = 0
 
-        var origin: CGFloat = 0
-
         var isArmed = false
     }
 
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag = DragState()
 
-    @State private var isSettling = false
-
-    @State private var settleTicket = 0
-
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.viewportHeight) private var viewportHeight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
-    private static var parallax: CGFloat { Spacing.s10 }
-
-    private static var scaleDrop: CGFloat { 0.05 }
-
     private static var edgeWidth: CGFloat { Spacing.s5 }
-
-    private static var flickVelocity: CGFloat { 300 }
-
-    private static var overshootDamping: CGFloat { 4 }
 
     private static var pageCorner: CGFloat { Spacing.s12 }
 
@@ -60,64 +46,51 @@ public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View
 
     public var body: some View {
         ZStack(alignment: .leading) {
-            sidebarPane
-            main
+            sidebarLayer
+            pageLayer
 
-            openEdge
+            edgeLayer
                 .allowsHitTesting(dragEnabled && !isOpen)
         }
-        // Live glass cannot sit inside the pushed NavigationStack: a
-        // transforming ancestor re-lenses it every drag frame, and
-        // drawingGroup() cannot flatten UIKit nav. The pills ride the
-        // same slide/scale as a sibling so the page never snapshots.
         .overlay(alignment: .bottom) {
             chromeLayer
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
-        .environment(\.mediaHeld, ambientHeld)
+        .environment(\.mediaHeld, holdsAmbientContent)
         .animation(motion, value: isOpen)
-        .task(id: settleTicket) {
-            isSettling = true
-            try? await Task.sleep(for: .milliseconds(600))
-            guard !Task.isCancelled else { return }
-            isSettling = false
-        }
-        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
-    private var sidebarPane: some View {
+    private var sidebarLayer: some View {
         sidebar
             .scrollDisabled(drag.isArmed)
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
-            .offset(x: (progress - 1) * Self.parallax)
-            .opacity(paneOpacity)
+            .offset(x: geometry.sidebarOffset)
+            .opacity(geometry.sidebarOpacity)
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
             .accessibilityAction(.escape) { close() }
             .simultaneousGesture(drawerDrag)
     }
 
-    private var main: some View {
+    private var pageLayer: some View {
         content
-            // The drawer is the active layer; drain color from the scaled page
-            // so it reads as a still, monochrome shell.
-            .grayscale(Double(progress))
             .scrollDisabled(drag.isArmed || isOpen)
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
-                    .opacity(0.35 * Double(progress))
+                    .opacity(0.35 * Double(geometry.progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
                     .ignoresSafeArea()
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            .shadow(color: pageShadow, radius: Spacing.s3 * progress)
-            .modifier(pageTransform)
+            .shadow(color: pageShadow, radius: Spacing.s3)
+            .scaleEffect(geometry.pageScale)
+            .offset(x: geometry.position)
             .accessibilityHidden(isOpen)
-            .environment(\.marqueeHeld, ambientHeld)
+            .environment(\.marqueeHeld, holdsAmbientContent)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
             .ignoresSafeArea()
     }
@@ -125,35 +98,31 @@ public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View
     private var chromeLayer: some View {
         chrome
             .frame(maxWidth: .infinity)
-            .grayscale(Double(progress))
-            .overlay {
-                Rectangle()
-                    .fill(Palette.black)
-                    .opacity(0.35 * Double(progress))
-                    .allowsHitTesting(false)
-            }
-            .modifier(
-                PageTransform(
-                    offset: offset,
-                    scale: 1 - Self.scaleDrop * progress,
-                    containerHeight: viewportHeight
-                )
+            .scaleEffect(geometry.pageScale)
+            .offset(
+                x: geometry.position,
+                y: geometry.chromeVerticalOffset(viewportHeight: viewportHeight)
             )
+            .opacity(1 - 0.35 * Double(geometry.progress))
             .allowsHitTesting(!isOpen && !drag.isArmed)
             .accessibilityHidden(isOpen)
-            .environment(\.marqueeHeld, ambientHeld)
+            .environment(\.marqueeHeld, holdsAmbientContent)
             .ignoresSafeArea()
     }
 
-    private var pageTransform: PageTransform {
-        PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress)
+    private var geometry: SidebarDrawerGeometry {
+        SidebarDrawerGeometry(
+            width: width,
+            isOpen: isOpen,
+            translation: drag.translation
+        )
     }
 
-    private var ambientHeld: Bool {
-        isOpen || drag.isArmed || isSettling
+    private var holdsAmbientContent: Bool {
+        isOpen || drag.isArmed
     }
 
-    private var openEdge: some View {
+    private var edgeLayer: some View {
         Color.clear
             .frame(width: Self.edgeWidth)
             .frame(maxHeight: .infinity)
@@ -168,15 +137,15 @@ public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View
                 guard state.isArmed || tracks(value) else { return }
                 if !state.isArmed {
                     state.isArmed = true
-                    state.origin = value.translation.width
                 }
-                state.translation = value.translation.width - state.origin
+                state.translation = value.translation.width
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
-                settleTicket += 1
                 withAnimation(motion) {
-                    isOpen = shouldOpen(after: value)
+                    isOpen = geometry.settlesOpen(
+                        projectedTranslation: value.predictedEndTranslation.width
+                    )
                 }
             }
     }
@@ -185,40 +154,16 @@ public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View
         min(maxWidth, viewportWidth * 0.82)
     }
 
-    private var base: CGFloat {
-        isOpen ? width : 0
-    }
-
-    private var offset: CGFloat {
-        let position = base + drag.translation
-        guard position > 0 else { return 0 }
-        guard position > width else { return position }
-        return width + (position - width) / Self.overshootDamping
-    }
-
-    private var progress: CGFloat {
-        width > 0 ? min(offset / width, 1) : 0
-    }
-
-    private var paneOpacity: Double {
-        min(Double(progress) * 3, 1)
-    }
-
     private var pageShadow: Color {
-        Palette.black.opacity(Opacities.dimmed * Double(progress))
+        Palette.black.opacity(Opacities.dimmed * Double(geometry.progress))
     }
 
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
     }
 
-    private func shouldOpen(after value: DragGesture.Value) -> Bool {
-        let velocity = value.velocity.width
-        guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
-        return base + value.translation.width - drag.origin > width / 2
-    }
-
     private func tracks(_ value: DragGesture.Value) -> Bool {
+        guard dragEnabled || isOpen else { return false }
         guard abs(value.translation.width) > abs(value.translation.height) else { return false }
         return isOpen || value.startLocation.x <= Self.edgeWidth
     }
@@ -247,31 +192,48 @@ extension SidebarContainer where Chrome == EmptyView {
     }
 }
 
-/// Slide + scale the pushed page. `containerHeight` lets a bottom-aligned
-/// sibling (the tab pills) scale around the page center instead of its own.
-private struct PageTransform: GeometryEffect {
-    var offset: CGFloat
-    var scale: CGFloat
-    var containerHeight: CGFloat = 0
+struct SidebarDrawerGeometry {
+    private static let scaleDrop: CGFloat = 0.05
+    private static let sidebarParallax: CGFloat = Spacing.s10
+    private static let overshootDamping: CGFloat = 4
 
-    var animatableData: AnimatablePair<CGFloat, CGFloat> {
-        get { AnimatablePair(offset, scale) }
-        set {
-            offset = newValue.first
-            scale = newValue.second
-        }
+    let width: CGFloat
+    let isOpen: Bool
+    let translation: CGFloat
+
+    var position: CGFloat {
+        let proposed = restingPosition + translation
+        guard proposed > 0 else { return 0 }
+        guard proposed > width else { return proposed }
+        return width + (proposed - width) / Self.overshootDamping
     }
 
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        let x = size.width / 2
-        let y = containerHeight > 0
-            ? size.height - containerHeight / 2
-            : size.height / 2
-        return ProjectionTransform(
-            CGAffineTransform(translationX: offset, y: 0)
-                .translatedBy(x: x, y: y)
-                .scaledBy(x: scale, y: scale)
-                .translatedBy(x: -x, y: -y)
-        )
+    var progress: CGFloat {
+        guard width > 0 else { return 0 }
+        return min(position / width, 1)
+    }
+
+    var pageScale: CGFloat {
+        1 - Self.scaleDrop * progress
+    }
+
+    var sidebarOffset: CGFloat {
+        (progress - 1) * Self.sidebarParallax
+    }
+
+    var sidebarOpacity: Double {
+        min(Double(progress) * 3, 1)
+    }
+
+    func chromeVerticalOffset(viewportHeight: CGFloat) -> CGFloat {
+        -viewportHeight * (1 - pageScale) / 2
+    }
+
+    func settlesOpen(projectedTranslation: CGFloat) -> Bool {
+        restingPosition + projectedTranslation > width / 2
+    }
+
+    private var restingPosition: CGFloat {
+        isOpen ? width : 0
     }
 }
