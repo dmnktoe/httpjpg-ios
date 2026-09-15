@@ -1,11 +1,12 @@
 import SwiftUI
 import Tokens
 
-public struct SidebarContainer<Sidebar: View, Content: View>: View {
+public struct SidebarContainer<Sidebar: View, Content: View, Chrome: View>: View {
     private let maxWidth: CGFloat
     private let dragEnabled: Bool
     private let sidebar: Sidebar
     private let content: Content
+    private let chrome: Chrome
 
     @Binding private var isOpen: Bool
 
@@ -25,6 +26,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @State private var settleTicket = 0
 
     @Environment(\.viewportWidth) private var viewportWidth
+    @Environment(\.viewportHeight) private var viewportHeight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
@@ -45,13 +47,15 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         maxWidth: CGFloat = 320,
         dragEnabled: Bool = true,
         @ViewBuilder sidebar: () -> Sidebar,
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder chrome: () -> Chrome
     ) {
         _isOpen = isOpen
         self.maxWidth = maxWidth
         self.dragEnabled = dragEnabled
         self.sidebar = sidebar()
         self.content = content()
+        self.chrome = chrome()
     }
 
     public var body: some View {
@@ -61,6 +65,13 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
             openEdge
                 .allowsHitTesting(dragEnabled && !isOpen)
+        }
+        // Live glass cannot sit inside the pushed NavigationStack: a
+        // transforming ancestor re-lenses it every drag frame, and
+        // drawingGroup() cannot flatten UIKit nav. The pills ride the
+        // same slide/scale as a sibling so the page never snapshots.
+        .overlay(alignment: .bottom) {
+            chromeLayer
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
@@ -90,12 +101,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            .scrollDisabled(drag.isArmed || isOpen)
-            // Flatten the still page (glass included) into one texture, then
-            // grayscale / slide that bitmap. Live glass stays at rest; the
-            // drawer never asks it to re-lens a moving backdrop.
-            .modifier(PageRasterize(enabled: ambientHeld))
+            // The drawer is the active layer; drain color from the scaled page
+            // so it reads as a still, monochrome shell.
             .grayscale(Double(progress))
+            .scrollDisabled(drag.isArmed || isOpen)
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -106,11 +115,38 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
             .shadow(color: pageShadow, radius: Spacing.s3 * progress)
-            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
+            .modifier(pageTransform)
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
             .ignoresSafeArea()
+    }
+
+    private var chromeLayer: some View {
+        chrome
+            .frame(maxWidth: .infinity)
+            .grayscale(Double(progress))
+            .overlay {
+                Rectangle()
+                    .fill(Palette.black)
+                    .opacity(0.35 * Double(progress))
+                    .allowsHitTesting(false)
+            }
+            .modifier(
+                PageTransform(
+                    offset: offset,
+                    scale: 1 - Self.scaleDrop * progress,
+                    containerHeight: viewportHeight
+                )
+            )
+            .allowsHitTesting(!isOpen && !drag.isArmed)
+            .accessibilityHidden(isOpen)
+            .environment(\.marqueeHeld, ambientHeld)
+            .ignoresSafeArea()
+    }
+
+    private var pageTransform: PageTransform {
+        PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress)
     }
 
     private var ambientHeld: Bool {
@@ -192,23 +228,31 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 }
 
-/// `drawingGroup` snapshots the pushed page, including live glass, so the
-/// drawer can move a texture instead of re-blurring every frame.
-private struct PageRasterize: ViewModifier {
-    let enabled: Bool
-
-    func body(content: Content) -> some View {
-        if enabled {
-            content.drawingGroup()
-        } else {
-            content
-        }
+extension SidebarContainer where Chrome == EmptyView {
+    public init(
+        isOpen: Binding<Bool>,
+        maxWidth: CGFloat = 320,
+        dragEnabled: Bool = true,
+        @ViewBuilder sidebar: () -> Sidebar,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(
+            isOpen: isOpen,
+            maxWidth: maxWidth,
+            dragEnabled: dragEnabled,
+            sidebar: sidebar,
+            content: content,
+            chrome: { EmptyView() }
+        )
     }
 }
 
+/// Slide + scale the pushed page. `containerHeight` lets a bottom-aligned
+/// sibling (the tab pills) scale around the page center instead of its own.
 private struct PageTransform: GeometryEffect {
     var offset: CGFloat
     var scale: CGFloat
+    var containerHeight: CGFloat = 0
 
     var animatableData: AnimatablePair<CGFloat, CGFloat> {
         get { AnimatablePair(offset, scale) }
@@ -220,7 +264,9 @@ private struct PageTransform: GeometryEffect {
 
     func effectValue(size: CGSize) -> ProjectionTransform {
         let x = size.width / 2
-        let y = size.height / 2
+        let y = containerHeight > 0
+            ? size.height - containerHeight / 2
+            : size.height / 2
         return ProjectionTransform(
             CGAffineTransform(translationX: offset, y: 0)
                 .translatedBy(x: x, y: y)

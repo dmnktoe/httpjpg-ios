@@ -33,10 +33,9 @@ public struct RootView: View {
             } content: {
                 content
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .floatingBottomBar {
-                        bottomBar(player)
-                    }
                     .background(theme.background)
+            } chrome: {
+                bottomBar(player)
             }
         }
         .sheet(isPresented: $player.isExpanded) {
