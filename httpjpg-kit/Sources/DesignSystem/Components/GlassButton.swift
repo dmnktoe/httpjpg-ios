@@ -1,9 +1,8 @@
 import SwiftUI
 import Tokens
 
-/// Liquid Glass chrome control. Fill and type carry selected vs rest; there is
-/// no stroke — a 1pt accent ring read as a hard green border once glass froze
-/// for the sidebar.
+/// Liquid Glass chrome control. Fill and type carry selected vs rest — no
+/// stroke; a 1pt accent ring read as a hard green border over glass.
 public struct GlassButton<Label: View>: View {
     public enum Prominence: Sendable {
         case regular

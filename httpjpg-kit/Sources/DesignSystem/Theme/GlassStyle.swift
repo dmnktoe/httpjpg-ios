@@ -34,65 +34,36 @@ public extension View {
     }
 }
 
-private struct ChromeHeldKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-public extension EnvironmentValues {
-    var chromeHeld: Bool {
-        get { self[ChromeHeldKey.self] }
-        set { self[ChromeHeldKey.self] = newValue }
-    }
-}
-
-/// Live glass while the page is still; a flat fill while the sidebar moves so
-/// the material does not re-lens every drag frame. Layout stays put — identity
-/// glass, not a different control.
 private struct GlassSurface<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
     let isClear: Bool
 
-    @Environment(\.chromeHeld) private var isHeld
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.pageTheme) private var theme
 
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            plated(content)
-        } else if isLive, let tint {
+        if reduceTransparency {
+            content.background(fill, in: shape)
+        } else if #available(iOS 26.0, *) {
+            let surface = content.glassEffect(material, in: shape)
+            if isInteractive {
+                surface.clipShape(shape)
+            } else {
+                surface
+            }
+        } else if let tint {
             content
                 .background(tint.opacity(0.55), in: shape)
                 .background(.ultraThinMaterial, in: shape)
-        } else if isLive {
+        } else {
             content
-        } else {
-            content.background(fill, in: shape)
         }
-    }
-
-    @available(iOS 26.0, *)
-    @ViewBuilder
-    private func plated(_ content: Content) -> some View {
-        let surface = content
-            .background(isLive ? Color.clear : fill, in: shape)
-            .glassEffect(isLive ? material : .identity, in: shape)
-        if isLive, isInteractive {
-            // Interactive glass highlights the view bounds, which default
-            // to a rounded rect on square frames — clip only while live.
-            surface.clipShape(shape)
-        } else {
-            surface
-        }
-    }
-
-    private var isLive: Bool {
-        !isHeld && !reduceTransparency
     }
 
     private var fill: Color {
-        (tint ?? theme.chromeFill).opacity(reduceTransparency ? 0.94 : 0.55)
+        (tint ?? theme.chromeFill).opacity(0.94)
     }
 
     @available(iOS 26.0, *)
@@ -108,7 +79,7 @@ private struct GlassSurface<S: Shape>: ViewModifier {
             base = .identity
         }
         var glass = tint.map { base.tint($0) } ?? base
-        if isInteractive, isLive {
+        if isInteractive {
             glass = glass.interactive()
         }
         return glass

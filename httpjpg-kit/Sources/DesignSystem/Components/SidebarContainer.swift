@@ -65,7 +65,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
         .task(id: settleTicket) {
             isSettling = true
@@ -91,10 +90,12 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            // The drawer is the active layer; drain color from the scaled page
-            // so it reads as a still, monochrome shell.
-            .grayscale(Double(progress))
             .scrollDisabled(drag.isArmed || isOpen)
+            // Flatten the still page (glass included) into one texture, then
+            // grayscale / slide that bitmap. Live glass stays at rest; the
+            // drawer never asks it to re-lens a moving backdrop.
+            .modifier(PageRasterize(enabled: ambientHeld))
+            .grayscale(Double(progress))
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -104,8 +105,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .ignoresSafeArea()
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            // The scaled page sits over the drawer; without this the left edge
-            // reads flush against the sidebar.
             .shadow(color: pageShadow, radius: Spacing.s3 * progress)
             .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
             .accessibilityHidden(isOpen)
@@ -193,6 +192,20 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 }
 
+/// `drawingGroup` snapshots the pushed page, including live glass, so the
+/// drawer can move a texture instead of re-blurring every frame.
+private struct PageRasterize: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.drawingGroup()
+        } else {
+            content
+        }
+    }
+}
+
 private struct PageTransform: GeometryEffect {
     var offset: CGFloat
     var scale: CGFloat
@@ -216,4 +229,3 @@ private struct PageTransform: GeometryEffect {
         )
     }
 }
-
