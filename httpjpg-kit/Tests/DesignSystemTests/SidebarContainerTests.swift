@@ -52,6 +52,10 @@ final class SidebarContainerTests: XCTestCase {
             translation: 0
         )
 
-        XCTAssertEqual(geometry.chromeVerticalOffset(viewportHeight: 800), -20)
+        XCTAssertEqual(
+            geometry.chromeVerticalOffset(viewportHeight: 800),
+            -20,
+            accuracy: 0.0001
+        )
     }
 }
