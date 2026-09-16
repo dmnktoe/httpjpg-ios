@@ -1,44 +1,64 @@
 import SwiftUI
 import Tokens
 
+/// The left drawer: the page slides and scales aside, the menu sits underneath
+/// it, and a scrim swallows the taps that would otherwise reach the page.
+///
+/// Every property the page animates on is a layer property — offset, scale,
+/// corner radius. No colour filter (`grayscale`, `opacity`, `shadow`) is applied
+/// to the page itself, because a filter forces SwiftUI to render the whole
+/// subtree into an offscreen buffer, and a `glassEffect` inside that buffer has
+/// no live backdrop left to sample. Keeping the page purely geometric is what
+/// lets the bottom bar stay real glass for the length of the gesture instead of
+/// being swapped out for a flat fill. The page shadow therefore lives on a
+/// sibling plate behind the page, not on the page.
 public struct SidebarContainer<Sidebar: View, Content: View>: View {
+    private enum Metrics {
+        /// The drawer trails the page slightly instead of tracking it 1:1.
+        static let parallax = Spacing.s10
+
+        static let scaleDrop: CGFloat = 0.05
+
+        static let pageCorner = Spacing.s12
+
+        static let grabWidth = Spacing.s5
+
+        static let minimumDrag: CGFloat = 10
+
+        static let flickVelocity: CGFloat = 300
+
+        /// Divides any drag past the open position so the drawer resists instead
+        /// of tearing away from the screen edge.
+        static let rubberBand: CGFloat = 4
+
+        static let widthFraction: CGFloat = 0.82
+
+        static let scrimOpacity = 0.35
+    }
+
+    private struct DragState {
+        var translation: CGFloat = 0
+
+        /// Translation at the moment the drag was accepted. Subtracting it keeps
+        /// the page from jumping by `minimumDrag` on the first update.
+        var origin: CGFloat = 0
+
+        var isActive = false
+    }
+
+    @Binding private var isOpen: Bool
+
     private let maxWidth: CGFloat
     private let dragEnabled: Bool
     private let sidebar: Sidebar
     private let content: Content
 
-    @Binding private var isOpen: Bool
-
-    private struct DragState {
-        var translation: CGFloat = 0
-
-        var origin: CGFloat = 0
-
-        var isArmed = false
-    }
-
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag = DragState()
-
-    @State private var isSettling = false
-
-    @State private var settleTicket = 0
 
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
-
-    private static var parallax: CGFloat { Spacing.s10 }
-
-    private static var scaleDrop: CGFloat { 0.05 }
-
-    private static var edgeWidth: CGFloat { Spacing.s5 }
-
-    private static var flickVelocity: CGFloat { 300 }
-
-    private static var overshootDamping: CGFloat { 4 }
-
-    private static var pageCorner: CGFloat { Spacing.s12 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -56,98 +76,111 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     public var body: some View {
         ZStack(alignment: .leading) {
-            sidebarPane
-            main
-
-            openEdge
-                .allowsHitTesting(dragEnabled && !isOpen)
+            drawer
+            page
+            grabber
         }
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
-        .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, ambientHeld)
+        // Not a glass workaround: a paused video or marquee behind the drawer
+        // looks the same as a running one and costs nothing.
+        .environment(\.mediaHeld, isHolding)
+        .environment(\.marqueeHeld, isHolding)
         .animation(motion, value: isOpen)
-        .task(id: settleTicket) {
-            isSettling = true
-            try? await Task.sleep(for: .milliseconds(600))
-            guard !Task.isCancelled else { return }
-            isSettling = false
-        }
-        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
-    private var sidebarPane: some View {
+    private var drawer: some View {
         sidebar
-            .scrollDisabled(drag.isArmed)
             .frame(width: width)
             .frame(maxHeight: .infinity, alignment: .top)
-            .offset(x: (progress - 1) * Self.parallax)
-            .opacity(paneOpacity)
+            .offset(x: (progress - 1) * Metrics.parallax)
+            .opacity(drawerOpacity)
+            .scrollDisabled(drag.isActive)
             .accessibilityHidden(!isOpen)
             .accessibilityAddTraits(isOpen ? .isModal : [])
-            .accessibilityAction(.escape) { close() }
+            .accessibilityAction(.escape) { setOpen(false) }
             .simultaneousGesture(drawerDrag)
     }
 
-    private var main: some View {
+    private var page: some View {
         content
-            // The drawer is the active layer; drain color from the scaled page
-            // so it reads as a still, monochrome shell.
-            .grayscale(Double(progress))
-            .scrollDisabled(drag.isArmed || isOpen)
-            .overlay {
-                Rectangle()
-                    .fill(Palette.black)
-                    .opacity(0.35 * Double(progress))
-                    .onTapGesture { close() }
-                    .allowsHitTesting(isOpen)
-                    .ignoresSafeArea()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            // The scaled page sits over the drawer; without this the left edge
-            // reads flush against the sidebar.
-            .shadow(color: pageShadow, radius: Spacing.s3 * progress)
-            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
+            .overlay { scrim }
+            .clipShape(pageShape)
+            .background { shadowPlate }
+            .scaleEffect(scale)
+            .offset(x: offset)
+            .scrollDisabled(isOpen || drag.isActive)
             .accessibilityHidden(isOpen)
-            .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
             .ignoresSafeArea()
     }
 
-    private var ambientHeld: Bool {
-        isOpen || drag.isArmed || isSettling
+    private var scrim: some View {
+        Rectangle()
+            .fill(Palette.black.opacity(Metrics.scrimOpacity * Double(progress)))
+            .allowsHitTesting(isOpen)
+            .onTapGesture { setOpen(false) }
+            .accessibilityHidden(true)
+            .ignoresSafeArea()
     }
 
-    private var openEdge: some View {
+    /// The scaled page sits over the drawer; without a shadow its left edge
+    /// reads flush against the menu.
+    private var shadowPlate: some View {
+        pageShape
+            .fill(theme.background)
+            .shadow(
+                color: Palette.black.opacity(Opacities.dimmed * Double(progress)),
+                radius: Spacing.s3 * progress
+            )
+    }
+
+    private var pageShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: Metrics.pageCorner, style: .continuous)
+    }
+
+    private var grabber: some View {
         Color.clear
-            .frame(width: Self.edgeWidth)
+            .frame(width: Metrics.grabWidth)
             .frame(maxHeight: .infinity)
-            .contentShape(Rectangle())
+            .contentShape(.rect)
             .gesture(drawerDrag)
+            .allowsHitTesting(dragEnabled && !isOpen)
             .ignoresSafeArea()
     }
 
     private var drawerDrag: some Gesture {
-        DragGesture(minimumDistance: 10)
+        DragGesture(minimumDistance: Metrics.minimumDrag)
             .updating($drag) { value, state, _ in
-                guard state.isArmed || tracks(value) else { return }
-                if !state.isArmed {
-                    state.isArmed = true
+                guard state.isActive || accepts(value) else { return }
+                if !state.isActive {
+                    state.isActive = true
                     state.origin = value.translation.width
                 }
                 state.translation = value.translation.width - state.origin
             }
             .onEnded { value in
-                guard drag.isArmed || tracks(value) else { return }
-                settleTicket += 1
-                withAnimation(motion) {
-                    isOpen = shouldOpen(after: value)
-                }
+                guard drag.isActive || accepts(value) else { return }
+                setOpen(settlesOpen(after: value))
             }
     }
 
+    private func accepts(_ value: DragGesture.Value) -> Bool {
+        guard abs(value.translation.width) > abs(value.translation.height) else { return false }
+        // Closing is always on offer; opening only from the screen edge, and only
+        // where a navigation stack isn't already claiming the back swipe.
+        guard !isOpen else { return true }
+        return dragEnabled && value.startLocation.x <= Metrics.grabWidth
+    }
+
+    private func settlesOpen(after value: DragGesture.Value) -> Bool {
+        let velocity = value.velocity.width
+        guard abs(velocity) < Metrics.flickVelocity else { return velocity > 0 }
+        return base + value.translation.width - drag.origin > width / 2
+    }
+
     private var width: CGFloat {
-        min(maxWidth, viewportWidth * 0.82)
+        min(maxWidth, viewportWidth * Metrics.widthFraction)
     }
 
     private var base: CGFloat {
@@ -156,64 +189,33 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var offset: CGFloat {
         let position = base + drag.translation
-        guard position > 0 else { return 0 }
-        guard position > width else { return position }
-        return width + (position - width) / Self.overshootDamping
+        guard position > width else { return max(position, 0) }
+        return width + (position - width) / Metrics.rubberBand
     }
 
     private var progress: CGFloat {
         width > 0 ? min(offset / width, 1) : 0
     }
 
-    private var paneOpacity: Double {
+    private var scale: CGFloat {
+        1 - Metrics.scaleDrop * progress
+    }
+
+    /// The closed page covers the drawer apart from its rounded corners, so the
+    /// menu only has to fade in over the first sliver of the gesture.
+    private var drawerOpacity: Double {
         min(Double(progress) * 3, 1)
     }
 
-    private var pageShadow: Color {
-        Palette.black.opacity(Opacities.dimmed * Double(progress))
+    private var isHolding: Bool {
+        isOpen || drag.isActive
     }
 
     private var motion: Animation? {
         reduceMotion ? nil : Motion.drawer
     }
 
-    private func shouldOpen(after value: DragGesture.Value) -> Bool {
-        let velocity = value.velocity.width
-        guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
-        return base + value.translation.width - drag.origin > width / 2
-    }
-
-    private func tracks(_ value: DragGesture.Value) -> Bool {
-        guard abs(value.translation.width) > abs(value.translation.height) else { return false }
-        return isOpen || value.startLocation.x <= Self.edgeWidth
-    }
-
-    private func close() {
-        withAnimation(motion) { isOpen = false }
+    private func setOpen(_ value: Bool) {
+        withAnimation(motion) { isOpen = value }
     }
 }
-
-private struct PageTransform: GeometryEffect {
-    var offset: CGFloat
-    var scale: CGFloat
-
-    var animatableData: AnimatablePair<CGFloat, CGFloat> {
-        get { AnimatablePair(offset, scale) }
-        set {
-            offset = newValue.first
-            scale = newValue.second
-        }
-    }
-
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        let x = size.width / 2
-        let y = size.height / 2
-        return ProjectionTransform(
-            CGAffineTransform(translationX: offset, y: 0)
-                .translatedBy(x: x, y: y)
-                .scaledBy(x: scale, y: scale)
-                .translatedBy(x: -x, y: -y)
-        )
-    }
-}
-

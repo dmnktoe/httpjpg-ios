@@ -58,30 +58,14 @@ private struct GlassRevealModifier: ViewModifier {
     }
 }
 
-private struct ChromeHeldKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-public extension EnvironmentValues {
-    var chromeHeld: Bool {
-        get { self[ChromeHeldKey.self] }
-        set { self[ChromeHeldKey.self] = newValue }
-    }
-}
-
 private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
 
-    @Environment(\.chromeHeld) private var isHeld
-
     func body(content: Content) -> some View {
         let glassed: some View = Group {
-            if isHeld {
-                // Flat fallback while the sidebar scrim is up — only paint when tinted.
-                content.background(tint?.opacity(0.55) ?? Color.clear, in: shape)
-            } else if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *) {
                 content.glassEffect(glass, in: shape)
             } else if let tint {
                 content
@@ -96,7 +80,7 @@ private struct GlassBackgroundModifier<S: Shape>: ViewModifier {
 
         // Interactive glass draws its touch highlight from the view bounds, which
         // defaults to a rounded rect on small square frames — clip to the declared
-        // shape so press-and-drag stays circular (see GlassPill).
+        // shape so press-and-drag stays circular (see NavGlassButton).
         if isInteractive {
             glassed.clipShape(shape)
         } else {
