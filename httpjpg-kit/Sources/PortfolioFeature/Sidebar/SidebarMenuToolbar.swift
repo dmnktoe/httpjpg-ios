@@ -6,7 +6,7 @@ struct SidebarMenuToolbar: ViewModifier {
     func body(content: Content) -> some View {
         content.toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                SidebarMenuButton(systemName: "line.3.horizontal", label: "Open menu") {
+                SidebarToggleButton(systemName: "line.3.horizontal", label: "Open menu") {
                     app.toggleSidebar()
                 }
             }

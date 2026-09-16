@@ -110,6 +110,26 @@ final class SidebarTests: XCTestCase {
         XCTAssertFalse(app.isSidebarOpen)
     }
 
+    func testTheDrawerMarksTheWorkTheStackIsShowing() {
+        let app = makeApp()
+        XCTAssertNil(app.currentWorkSlug)
+
+        app.workPath = [WorkRoute(slug: "atlas", title: "ATLAS")]
+        XCTAssertEqual(app.currentWorkSlug, "atlas")
+
+        app.workPath.append(WorkRoute(slug: "strada", title: "STRADA"))
+        XCTAssertEqual(app.currentWorkSlug, "strada")
+    }
+
+    func testNothingIsMarkedWhileTheInfoTabIsUp() {
+        let app = makeApp()
+        app.workPath = [WorkRoute(slug: "atlas", title: "ATLAS")]
+
+        app.selectedTab = .info
+
+        XCTAssertNil(app.currentWorkSlug)
+    }
+
     func testTheDrawerSwipeStandsDownInsideANavigationStack() {
         let app = makeApp()
         XCTAssertTrue(app.isAtNavigationRoot)

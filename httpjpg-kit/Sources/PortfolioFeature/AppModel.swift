@@ -167,6 +167,13 @@ public final class AppModel {
         }
     }
 
+    /// The work the detail stack is showing, so the drawer can mark the row you
+    /// came in on.
+    var currentWorkSlug: String? {
+        guard selectedTab == .work else { return nil }
+        return workPath.last?.slug
+    }
+
     private(set) var scrollToTopTicks: [Tab: Int] = [:]
 
     func scrollToTopTick(for tab: Tab) -> Int {

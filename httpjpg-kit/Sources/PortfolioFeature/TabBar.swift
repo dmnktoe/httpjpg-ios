@@ -48,7 +48,7 @@ struct TabBar: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: Spacing.s4)
         }
-        .buttonStyle(.glassPill(isSelected: isSelected, morphID: tab.id, in: namespace))
+        .buttonStyle(.glassPill(isSelected: isSelected, morphID: AnyHashable(tab.id), in: namespace))
         .accessibilityLabel(tab.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }

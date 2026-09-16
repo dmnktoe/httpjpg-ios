@@ -3,58 +3,64 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
+/// The drawer: the site name, a search field, and every published work grouped
+/// by year. Unlike the work index it ignores the variant and tag filters, so
+/// this list is the one place that shows the whole catalogue.
 struct SidebarView: View {
     @Environment(AppModel.self) private var app
-    @Environment(\.pageTheme) private var theme
     @Environment(\.openURL) private var openURL
 
-    @State private var externalTaps = 0
+    @State private var query = ""
+    @State private var externalOpens = 0
 
     var body: some View {
-        projects
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .floatingTopBar { header }
-            .sensoryFeedback(.impact(weight: .light), trigger: externalTaps)
+        // `allWork` sorts on every read and the search runs over it, so both
+        // happen once per pass and the result is threaded down.
+        let matches = SidebarSearch.filter(app.workIndex.allWork, matching: query)
+
+        return list(matches)
+            .floatingTopBar { bar }
+            .sensoryFeedback(.impact(weight: .light), trigger: externalOpens)
             .task(id: app.isSidebarOpen) {
-                guard app.isSidebarOpen else { return }
+                guard app.isSidebarOpen else {
+                    query = ""
+                    return
+                }
                 await app.workIndex.load()
             }
     }
 
-    private var header: some View {
-        HStack(alignment: .top, spacing: Spacing.s3) {
-            Headline(app.siteName, level: .three, lineSpacing: -0.35)
-                .lineLimit(2)
-                .minimumScaleFactor(0.6)
+    private var bar: some View {
+        VStack(spacing: Spacing.s3) {
+            SidebarHeader(title: app.siteName) { app.toggleSidebar() }
 
-            SidebarMenuButton(systemName: "chevron.left", label: "Close menu", style: .inverse) {
-                app.toggleSidebar()
-            }
+            SidebarSearchField(text: $query)
         }
         .padding(.horizontal, PageLayout.gutter)
         .padding(.top, Spacing.s2)
-        .padding(.bottom, Spacing.s5)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, Spacing.s4)
     }
 
-    private var projects: some View {
+    private func list(_ matches: [WorkItem]) -> some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                listLabel
-                listBody
+            // Rows and year headers carry their own gutter so a pinned header
+            // and a pressed row can paint the full width of the drawer.
+            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: .sectionHeaders) {
+                listLabel(matches.count)
+
+                rows(matches)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, PageLayout.gutter)
             .padding(.bottom, Spacing.s8)
         }
         .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.interactively)
         .softScrollEdges()
     }
 
-    private var listLabel: some View {
-        let count = app.workIndex.allWork.count
-        return HStack(alignment: .firstTextBaseline, spacing: Spacing.s3) {
-            InfoSectionLabel("all work")
+    private func listLabel(_ count: Int) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.s3) {
+            InfoSectionLabel(query.isEmpty ? "all work" : "matches")
 
             Spacer(minLength: Spacing.s2)
 
@@ -62,6 +68,7 @@ struct SidebarView: View {
                 MonoText("\(count)", size: Typography.Size.xs, opacity: Opacities.subtle)
             }
         }
+        .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(count > 0 ? "All work, \(countLabel(count))" : "All work")
@@ -69,63 +76,48 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    private var listBody: some View {
+    private func rows(_ matches: [WorkItem]) -> some View {
         switch app.workIndex.state {
-        case .loaded where !app.workIndex.allWork.isEmpty:
-            sections
-        case .loaded:
-            MonoText("∅ nothing published yet", size: Typography.Size.sm, opacity: Opacities.subtle)
-                .padding(.vertical, Spacing.s3)
-        case .failed(let message):
-            failure(message)
         case .idle, .loading:
-            SidebarSkeleton()
+            SidebarPlaceholder(kind: .loading)
+        case .failed(let message):
+            SidebarPlaceholder(kind: .failed(message)) {
+                Task { await app.workIndex.load(force: true) }
+            }
+        case .loaded where matches.isEmpty:
+            SidebarPlaceholder(kind: query.isEmpty ? .empty : .noMatch(query))
+        case .loaded:
+            sections(matches)
         }
     }
 
-    private var sections: some View {
-        ForEach(app.workIndex.workByYear) { group in
+    private func sections(_ matches: [WorkItem]) -> some View {
+        ForEach(WorkYearGroup.groups(from: matches)) { group in
             Section {
                 ForEach(Array(group.items.enumerated()), id: \.element.id) { entry in
                     row(for: entry.element)
+
                     if entry.offset < group.items.count - 1 {
                         BrutalDivider(variant: .dotted)
+                            .padding(.horizontal, PageLayout.gutter)
                     }
                 }
             } header: {
-                yearHeader(group)
+                SidebarYearHeader(group: group)
             }
         }
     }
 
-    private func yearHeader(_ group: WorkYearGroup) -> some View {
-        HStack(spacing: Spacing.s3) {
-            MonoText(
-                group.year,
-                size: Typography.Size.xs,
-                tracking: Typography.Size.xs * 0.2,
-                opacity: Opacities.subtle
-            )
-
-            BrutalDivider()
-
-            MonoText("\(group.items.count)", size: Typography.Size.xs, opacity: Opacities.dimmed)
-        }
-        .padding(.top, Spacing.s4)
-        .padding(.bottom, Spacing.s2)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(group.accessibilityLabel), \(countLabel(group.items.count))")
-        .accessibilityAddTraits(.isHeader)
-    }
-
     @ViewBuilder
     private func row(for item: WorkItem) -> some View {
+        let label = SidebarWorkRow(item: item, isCurrent: app.currentWorkSlug == item.slug)
+
         if item.isExternal, let url = item.externalURL {
             Button {
-                externalTaps += 1
+                externalOpens += 1
                 openURL(url)
             } label: {
-                SidebarProjectRow(item: item)
+                label
             }
             .buttonStyle(SidebarRowButtonStyle())
             .accessibilityHint("Opens in the browser")
@@ -133,44 +125,13 @@ struct SidebarView: View {
             Button {
                 app.open(work: item)
             } label: {
-                SidebarProjectRow(item: item)
+                label
             }
             .buttonStyle(SidebarRowButtonStyle())
         }
     }
 
-    private func failure(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.s3) {
-            BodyText(message, size: .sm, emphasis: .muted)
-
-            Button {
-                Task { await app.workIndex.load(force: true) }
-            } label: {
-                MonoText("↻ try again", size: Typography.Size.sm)
-                    .foregroundStyle(theme.link)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, Spacing.s3)
-    }
-
     private func countLabel(_ count: Int) -> String {
         count == 1 ? "1 project" : "\(count) projects"
-    }
-}
-
-private struct SidebarSkeleton: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(0..<6, id: \.self) { index in
-                SkeletonBlock(width: index.isMultiple(of: 2) ? 168 : 128, height: Typography.Size.base)
-                    .padding(.vertical, Spacing.s3)
-
-                BrutalDivider(variant: .dotted)
-            }
-        }
-        .padding(.top, Spacing.s2)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Loading projects")
     }
 }

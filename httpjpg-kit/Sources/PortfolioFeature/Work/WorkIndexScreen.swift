@@ -98,13 +98,15 @@ struct WorkIndexScreen: View {
                 onSelect: { model.select(variant: $0) }
             )
 
-            WorkTagFilter(
-                tags: model.availableTags,
-                counts: model.tagCounts,
-                totalCount: model.listedCount,
-                active: model.activeTag,
-                onChange: { model.select(tag: $0) }
-            )
+            if !model.availableTags.isEmpty {
+                WorkTagFilter(
+                    tags: model.availableTags,
+                    counts: model.tagCounts,
+                    totalCount: model.listedCount,
+                    active: model.activeTag,
+                    onChange: { model.select(tag: $0) }
+                )
+            }
         }
         .padding(.top, Spacing.s2)
         .animation(Motion.stateChange, value: model.availableTags)
