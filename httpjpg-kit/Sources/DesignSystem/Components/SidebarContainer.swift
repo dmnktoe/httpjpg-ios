@@ -13,29 +13,6 @@ import Tokens
 /// being swapped out for a flat fill. The page shadow therefore lives on a
 /// sibling plate behind the page, not on the page.
 public struct SidebarContainer<Sidebar: View, Content: View>: View {
-    private enum Metrics {
-        /// The drawer trails the page slightly instead of tracking it 1:1.
-        static let parallax = Spacing.s10
-
-        static let scaleDrop: CGFloat = 0.05
-
-        static let pageCorner = Spacing.s12
-
-        static let grabWidth = Spacing.s5
-
-        static let minimumDrag: CGFloat = 10
-
-        static let flickVelocity: CGFloat = 300
-
-        /// Divides any drag past the open position so the drawer resists instead
-        /// of tearing away from the screen edge.
-        static let rubberBand: CGFloat = 4
-
-        static let widthFraction: CGFloat = 0.82
-
-        static let scrimOpacity = 0.35
-    }
-
     private struct DragState {
         var translation: CGFloat = 0
 
@@ -218,4 +195,29 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private func setOpen(_ value: Bool) {
         withAnimation(motion) { isOpen = value }
     }
+}
+
+/// Outside `SidebarContainer` because a generic type cannot hold static stored
+/// properties.
+private enum Metrics {
+    /// The drawer trails the page slightly instead of tracking it 1:1.
+    static let parallax = Spacing.s10
+
+    static let scaleDrop: CGFloat = 0.05
+
+    static let pageCorner = Spacing.s12
+
+    static let grabWidth = Spacing.s5
+
+    static let minimumDrag: CGFloat = 10
+
+    static let flickVelocity: CGFloat = 300
+
+    /// Divides any drag past the open position so the drawer resists instead of
+    /// tearing away from the screen edge.
+    static let rubberBand: CGFloat = 4
+
+    static let widthFraction: CGFloat = 0.82
+
+    static let scrimOpacity = 0.35
 }
