@@ -3,27 +3,30 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
+/// The work index's variant tabs. One pill per header-menu variant, the same
+/// capsule recipe as the tab bar and the tag filter below it.
 struct VariantPicker: View {
     let links: [MenuLink]
     let selection: MenuLink.Variant
     let onSelect: (MenuLink.Variant) -> Void
 
-    @Environment(\.pageTheme) private var theme
-
     var body: some View {
         GlassGroup(spacing: Spacing.s2) {
             HStack(spacing: Spacing.s2) {
                 ForEach(entries) { link in
-                    chip(for: link.variant)
+                    tab(for: link.variant)
                 }
+
                 Spacer(minLength: 0)
             }
         }
         .animation(Motion.stateChange, value: selection)
         .sensoryFeedback(.selection, trigger: selection)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Work variant")
     }
 
-    private func chip(for variant: MenuLink.Variant) -> some View {
+    private func tab(for variant: MenuLink.Variant) -> some View {
         let isSelected = variant == selection
 
         return Button {
@@ -33,19 +36,14 @@ struct VariantPicker: View {
                 .font(Typography.mono(Typography.Size.sm))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(isSelected ? theme.chromeActiveLabel : theme.chromeLabel)
-                .glassPill(
-                    tint: isSelected ? theme.chromeActiveFill : theme.chromeFill,
-                    stroke: isSelected ? theme.chromeActiveStroke : nil,
-                    horizontalPadding: Spacing.s3,
-                    verticalPadding: Spacing.s2
-                )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glassPill(isSelected: isSelected, size: .compact))
         .accessibilityLabel(variant.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
+    /// The CMS may ship the variants in any order, or leave one out; the picker
+    /// always offers both.
     private var entries: [MenuLink] {
         MenuLink.Variant.allVariants.map { variant in
             links.first { $0.variant == variant }

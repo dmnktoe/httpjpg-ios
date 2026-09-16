@@ -84,9 +84,9 @@ public struct RootView: View {
                 MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
                 TabBar(
                     selection: model.selectedTab,
-                    glass: chrome,
+                    namespace: chrome,
                     onSelect: { model.select(tab: $0) },
-                    onRowWidthChange: { pillRowWidth = $0 }
+                    onWidthChange: { pillRowWidth = $0 }
                 )
             }
         }

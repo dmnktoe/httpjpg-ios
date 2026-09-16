@@ -11,7 +11,6 @@ struct InfoResetCacheButton: View {
         case done
     }
 
-    @Environment(\.pageTheme) private var theme
     @State private var phase: Phase = .idle
     @State private var taps = 0
 
@@ -32,10 +31,8 @@ struct InfoResetCacheButton: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(height: Spacing.s4)
-                .foregroundStyle(theme.chromeLabel)
-                .glassPill(tint: theme.chromeFill, stroke: theme.chromeStroke)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.glassPill())
             .disabled(phase == .reloading)
             .sensoryFeedback(.impact(weight: .light), trigger: taps)
             .animation(Motion.stateChange, value: phase)
