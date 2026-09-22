@@ -130,13 +130,16 @@ public struct SbVideoView: View {
         .contentShape(Rectangle())
     }
 
-    /// CMS ratio first, then the uploaded clip's Storyblok dimensions, then the
-    /// poster. Empty CMS + a CDN filename without `WxH` used to pass `nil` into
-    /// `VideoSurface`, which collapsed the player to zero height (Blence
-    /// titantron). Last resort is the page's default media box.
+    /// Matches web `Video` / `SbVideo` resolution order, then iOS-only poster
+    /// fallbacks (AVPlayer has no HTML intrinsic layout). Empty CMS + a CDN
+    /// filename without `WxH` used to pass `nil` into `VideoSurface`, which
+    /// collapsed the player to zero height (Blence titantron).
     private var resolvedAspectRatio: CGFloat {
         if let cms = blok.aspectRatio { return cms }
+        // Web: `resolveMediaAspectRatio(mediaWidth, mediaHeight)` from the asset.
+        if let fromAsset = blok.asset?.mediaAspectRatio { return fromAsset }
         if let video = ImageService.aspectRatio(of: blok.asset?.filename) { return video }
+        if let fromPoster = blok.poster?.mediaAspectRatio { return fromPoster }
         if let poster = ImageService.aspectRatio(of: blok.poster?.filename) { return poster }
         return PageLayout.mediaAspectRatio
     }
