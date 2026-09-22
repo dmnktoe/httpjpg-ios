@@ -46,24 +46,12 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
+            .hidingSharedToolbarBackground()
 
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if let url = externalPreviewURL {
-                    Button { openURL(url) } label: {
-                        Image(systemName: "safari")
-                    }
-                    .toolbarGlassButton(chromeTint, fallback: orbTint)
-                    .disabled(imageViewerHeld)
-                    .accessibilityLabel("Open external preview")
-                }
-
-                ShareLink(item: shareURL) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .disabled(imageViewerHeld)
-                .accessibilityLabel("Share")
+            ToolbarItem(placement: .topBarTrailing) {
+                trailingActions
             }
+            .hidingSharedToolbarBackground()
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
@@ -92,6 +80,30 @@ struct WorkDetailScreen: View {
 
     private var orbTint: PillTint {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
+    }
+
+    /// Preview + share in one trailing slot, morph-clustered when both show.
+    @ViewBuilder
+    private var trailingActions: some View {
+        LiquidGlassContainer(spacing: Spacing.s2) {
+            HStack(spacing: Spacing.s2) {
+                if let url = externalPreviewURL {
+                    Button { openURL(url) } label: {
+                        Image(systemName: "safari")
+                    }
+                    .toolbarGlassButton(chromeTint, fallback: orbTint)
+                    .disabled(imageViewerHeld)
+                    .accessibilityLabel("Open external preview")
+                }
+
+                ShareLink(item: shareURL) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
+                .disabled(imageViewerHeld)
+                .accessibilityLabel("Share")
+            }
+        }
     }
 
     /// The page forces its own appearance, so the toolbar has to be tinted
