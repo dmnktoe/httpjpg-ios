@@ -47,7 +47,9 @@ private struct ToolbarGlassButton: ViewModifier {
                 .buttonStyle(.glassProminent)
                 .tint(accent)
         } else {
-            content.tint(theme.foreground)
+            // Prefer the resolved fallback label over ambient pageTheme — toolbar
+            // items do not always inherit a destination's forced-dark theme.
+            content.tint(fallback.label)
         }
     }
 }

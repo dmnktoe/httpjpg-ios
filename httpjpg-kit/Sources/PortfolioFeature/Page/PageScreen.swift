@@ -32,9 +32,9 @@ struct PageScreen: View {
                 LoadingState()
             }
         }
+        .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(displayTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .pageSurface(forcingDark: pageIsDark)
         .task(id: locale) {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)

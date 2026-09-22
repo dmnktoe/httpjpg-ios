@@ -30,6 +30,7 @@ struct WorkDetailScreen: View {
                 LoadingState()
             }
         }
+        .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -42,6 +43,7 @@ struct WorkDetailScreen: View {
                     Image(systemName: "chevron.left")
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
+                .environment(\.pageTheme, headerTheme)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
@@ -52,6 +54,7 @@ struct WorkDetailScreen: View {
                         Image(systemName: "safari")
                     }
                     .toolbarGlassButton(chromeTint, fallback: orbTint)
+                    .environment(\.pageTheme, headerTheme)
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
@@ -60,13 +63,11 @@ struct WorkDetailScreen: View {
                     Image(systemName: "square.and.arrow.up")
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
+                .environment(\.pageTheme, headerTheme)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
         }
-        // After the toolbar so glass controls inherit the forced-dark pageTheme
-        // / colorScheme. preferredColorScheme stays off — that paints the list.
-        .pageSurface(forcingDark: pageIsDark)
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
             Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
