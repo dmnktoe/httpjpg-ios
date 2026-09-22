@@ -65,6 +65,18 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Headline.Level.one.clamp.min, 36)
         XCTAssertEqual(Headline.Level.two.clamp.max, 48)
         XCTAssertEqual(Headline.Level.three.clamp.min, 24)
+        // clamp(1.25rem, 2vw + 0.25rem, 1.5rem) → (20, 0.02, 4, 24)
+        XCTAssertEqual(Headline.Level.four.clamp.min, 20)
+        XCTAssertEqual(Headline.Level.four.clamp.slope, 0.02)
+        XCTAssertEqual(Headline.Level.four.clamp.intercept, 4)
+        XCTAssertEqual(Headline.Level.four.clamp.max, 24)
+    }
+
+    func testHeadlineClampingTopsOutAtFour() {
+        XCTAssertEqual(Headline.Level.clamping(1), .one)
+        XCTAssertEqual(Headline.Level.clamping(4), .four)
+        XCTAssertEqual(Headline.Level.clamping(5), .four)
+        XCTAssertEqual(Headline.Level.clamping(0), .one)
     }
 
     func testPageThemeFlipsSemanticColors() {

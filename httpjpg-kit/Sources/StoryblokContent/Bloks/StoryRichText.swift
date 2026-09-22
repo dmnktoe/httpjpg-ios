@@ -47,7 +47,7 @@ public struct StoryRichText: View {
             return AnyView(
                 Headline(
                     RichTextInline.plainText(content),
-                    level: Headline.Level(rawValue: level) ?? .three,
+                    level: Headline.Level.clamping(level),
                     alignment: TextAlign(richText: alignment)
                 )
             )

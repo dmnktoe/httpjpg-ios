@@ -6,19 +6,26 @@ public struct Headline: View {
         case one = 1
         case two = 2
         case three = 3
+        case four = 4
+
+        /// Web tops the visual scale at h4; h5/h6 keep semantics with h4 size.
+        public static func clamping(_ raw: Int) -> Level {
+            Level(rawValue: min(max(raw, 1), 4)) ?? .two
+        }
 
         var clamp: (min: CGFloat, slope: CGFloat, intercept: CGFloat, max: CGFloat) {
             switch self {
             case .one: return (36, 0.05, 16, 60)
             case .two: return (30, 0.04, 16, 48)
             case .three: return (24, 0.03, 8, 36)
+            case .four: return (20, 0.02, 4, 24)
             }
         }
 
         var trackingRatio: CGFloat {
             switch self {
             case .one, .two: return -0.05
-            case .three: return -0.025
+            case .three, .four: return -0.025
             }
         }
     }
@@ -96,6 +103,7 @@ public struct Headline: View {
         Headline("dominik toe", level: .one)
         Headline("selected work", level: .two)
         Headline("about", level: .three)
+        Headline("subsection", level: .four)
     }
     .padding(PageLayout.gutter)
     .pageSurface(.light)
