@@ -1,4 +1,5 @@
 import SwiftUI
+import Tokens
 
 public extension View {
     /// Dresses a button as the system's own Liquid Glass control, filled with
@@ -22,6 +23,8 @@ private struct AccentGlassButton: ViewModifier {
     let accent: Color?
     let fallback: PillTint
 
+    @Environment(\.pageTheme) private var theme
+
     @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
@@ -39,7 +42,12 @@ private struct AccentGlassButton: ViewModifier {
                 .buttonStyle(.glassProminent)
                 .tint(accent)
         } else {
-            content.buttonStyle(.glass)
+            // The app tints globally with the link colour, and a plain glass
+            // button takes the tint for its glyph — an untinted control wants
+            // the page foreground instead, dark or light.
+            content
+                .buttonStyle(.glass)
+                .foregroundStyle(theme.foreground)
         }
     }
 }
