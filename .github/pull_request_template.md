@@ -14,7 +14,10 @@ Closes #
 
 ## change type
 
-<!-- Pick one. It decides the changelog section and the version bump. -->
+<!-- Pick one. It decides the changelog section and the MARKETING_VERSION bump
+     (the `1.0.1` in the info footer's `v1.0.1 (1)`). The number in parentheses is
+     CURRENT_PROJECT_VERSION — release-please leaves it alone; the release
+     workflow bumps it after the tag so the next builds carry a new CFBundleVersion. -->
 
 - [ ] `feat` — new feature · **Added** · minor
 - [ ] `fix` — bug fix · **Fixed** · patch
@@ -45,7 +48,7 @@ Closes #
 - [ ] New secrets / build settings land in `Config/Secrets.example.xcconfig` (and `project.yml` + `xcodegen generate` if the target graph moved)
 - [ ] Tests added or updated next to the source under `httpjpg-kit/Tests/`; decoding tolerances get a fixture when Storyblok shapes loosen
 - [ ] No stray `print` / debug noise in shipped paths; analytics go through TelemetryDeck
-- [ ] Did **not** hand-edit `MARKETING_VERSION`, `.release-please-manifest.json` or `CHANGELOG.md`
+- [ ] Did **not** hand-edit `MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`, `.release-please-manifest.json` or `CHANGELOG.md`
 
 </details>
 
