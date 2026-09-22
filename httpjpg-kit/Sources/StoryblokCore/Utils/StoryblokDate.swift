@@ -12,17 +12,17 @@ public enum StoryblokDate {
         return formatter
     }
 
-    nonisolated(unsafe) private static let dateTime = formatter("yyyy-MM-dd HH:mm")
-    nonisolated(unsafe) private static let dateTimeSeconds = formatter("yyyy-MM-dd HH:mm:ss")
-    nonisolated(unsafe) private static let dateOnly = formatter("yyyy-MM-dd")
+    private static let dateTime = formatter("yyyy-MM-dd HH:mm")
+    private static let dateTimeSeconds = formatter("yyyy-MM-dd HH:mm:ss")
+    private static let dateOnly = formatter("yyyy-MM-dd")
 
-    nonisolated(unsafe) private static let iso: ISO8601DateFormatter = {
+    private static let iso: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
 
-    nonisolated(unsafe) private static let isoFractional: ISO8601DateFormatter = {
+    private static let isoFractional: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
