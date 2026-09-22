@@ -36,6 +36,9 @@ struct InfoFooter: View {
             )
             .padding(.vertical, Spacing.s5)
 
+            // Web nests the wave inside the widget slot, then renders userbars, then version.
+            Userbars(items: userbarItems)
+
             MonoText(version, size: Typography.Size.xs, tracking: Typography.Size.xs * 0.05)
                 .opacity(0.4)
         }
@@ -87,6 +90,18 @@ struct InfoFooter: View {
                   let url = link.link?.resolvedURL(siteOrigin: configuration.siteOrigin)
             else { return nil }
             return (link.label, url)
+        }
+    }
+
+    private var userbarItems: [Userbars.Item] {
+        (config.footer?.userbars ?? []).compactMap { bar in
+            guard let imageURL = bar.imageURL else { return nil }
+            return Userbars.Item(
+                id: bar.id,
+                imageURL: imageURL,
+                accessibilityText: bar.accessibilityText,
+                linkURL: bar.link?.resolvedURL(siteOrigin: configuration.siteOrigin)
+            )
         }
     }
 

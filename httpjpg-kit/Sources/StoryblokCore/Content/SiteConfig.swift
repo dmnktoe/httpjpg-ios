@@ -221,11 +221,14 @@ public struct FooterConfig: Decodable, Sendable {
     public let copyrightText: String?
     public let links: [MenuLink]
     public let backgroundImage: StoryblokAsset?
+    /// Classic 350×19 forum bars nested under the footer config.
+    public let userbars: [Userbar]
 
     private enum CodingKeys: String, CodingKey {
         case copyrightText = "copyright_text"
         case footerLinks = "footer_links"
         case backgroundImage = "background_image"
+        case userbars
     }
 
     public init(from decoder: any Decoder) throws {
@@ -233,5 +236,40 @@ public struct FooterConfig: Decodable, Sendable {
         copyrightText = container.cmsString(forKey: .copyrightText)
         links = container.cmsArray(MenuLink.self, forKey: .footerLinks)
         backgroundImage = container.cmsValue(StoryblokAsset.self, forKey: .backgroundImage)
+        userbars = container.cmsArray(Userbar.self, forKey: .userbars)
+    }
+}
+
+/// One CMS `userbar` blok. Skipped when the asset has no filename — same as web.
+public struct Userbar: Decodable, Identifiable, Sendable, Hashable {
+    public let id: String
+    public let image: StoryblokAsset?
+    public let alt: String?
+    public let link: StoryblokLink?
+
+    private enum CodingKeys: String, CodingKey {
+        case uid = "_uid"
+        case image
+        case alt
+        case link
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = container.cmsString(forKey: .uid) ?? UUID().uuidString
+        image = container.cmsValue(StoryblokAsset.self, forKey: .image)
+        alt = container.cmsString(forKey: .alt)
+        link = container.cmsValue(StoryblokLink.self, forKey: .link)
+    }
+
+    /// Display alt: authored text, then the asset alt, then `"userbar"`.
+    public var accessibilityText: String {
+        if let alt, !alt.isEmpty { return alt }
+        if let imageAlt = image?.alt, !imageAlt.isEmpty { return imageAlt }
+        return "userbar"
+    }
+
+    public var imageURL: URL? {
+        image?.filename.flatMap(URL.init(string:))
     }
 }

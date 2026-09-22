@@ -87,7 +87,32 @@
             "copyright": "",
             "content_type": "image/jpeg",
             "fieldtype": "asset"
-          }
+          },
+          "userbars": [
+            {
+              "_uid": "userbar-mock-1",
+              "component": "userbar",
+              "alt": "httpjpg userbar",
+              "image": {
+                "id": 1,
+                "alt": "",
+                "name": "userbar",
+                "title": "",
+                "focus": "",
+                "filename": "https://a.storyblok.com/f/1000042/350x19/aaaaaaaaaa/userbar.gif",
+                "copyright": "",
+                "content_type": "image/gif",
+                "fieldtype": "asset"
+              },
+              "link": {
+                "id": "",
+                "url": "https://www.httpjpg.com",
+                "linktype": "url",
+                "fieldtype": "multilink",
+                "cached_url": "https://www.httpjpg.com"
+              }
+            }
+          ]
         }
       ]
     }

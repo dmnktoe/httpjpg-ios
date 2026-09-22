@@ -49,7 +49,7 @@ const CONSCIOUSLY_UNRENDERED = new Map([
   ],
   [
     "userbar",
-    "nested in footer_config as 350×19 pixel bars; the iOS footer has no userbar strip yet",
+    "decoded as Userbar inside FooterConfig; rendered by InfoFooter via DesignSystem.Userbars",
   ],
 ]);
 
