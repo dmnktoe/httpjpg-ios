@@ -1,6 +1,7 @@
 import DesignSystem
 import StoryblokCore
 import SwiftUI
+import Tokens
 
 public struct SbButtonView: View {
     private let blok: ButtonBlok
@@ -13,9 +14,18 @@ public struct SbButtonView: View {
     }
 
     public var body: some View {
-        Button(blok.text) {
+        Button {
             guard let url = blok.link?.resolvedURL(siteOrigin: configuration.siteOrigin) else { return }
             openURL(url)
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.s1) {
+                Text(blok.text)
+                // Web appends ↗ for absolute http(s)/mailto/tel hrefs.
+                if blok.link?.isExternal == true {
+                    Text("↗")
+                        .accessibilityHidden(true)
+                }
+            }
         }
         .buttonStyle(.brutal(
             variant: BrutalButtonStyle.Variant(rawValue: blok.variant) ?? .primary,
