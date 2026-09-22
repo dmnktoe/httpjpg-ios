@@ -180,12 +180,12 @@ private struct VideoLightboxViewer: View {
     @State private var isDismissing = false
 
     /// Enough travel that a scrub or accidental nudge won't close the stage.
-    private let dismissDragThreshold: CGFloat = 120
+    private let dismissDragThreshold: CGFloat = 100
 
     var body: some View {
-        // Leading close — trailing sits on top of AVKit's volume affordance and
-        // above the work-detail share control, so a close tap used to fall
-        // through and fire Share once the cover tore down.
+        // Leading close, dropped below AVKit's top chrome — AirPlay owns the
+        // top-leading slot and volume the trailing one. Sitting higher used to
+        // cover AirPlay; trailing covered volume and sat above Share.
         ZStack(alignment: .topLeading) {
             Color.black
                 .opacity(backdropOpacity)
@@ -217,39 +217,41 @@ private struct VideoLightboxViewer: View {
                 diameter: PillMetrics.orbDiameter
             ))
             .padding(.leading, PageLayout.gutter)
-            .padding(.top, Spacing.s2)
+            // Clear the AirPlay / volume row under the status bar.
+            .padding(.top, Spacing.s14)
             .offset(y: dragOffset)
             .zIndex(1)
             .accessibilityLabel("Close video viewer")
         }
-        .simultaneousGesture(swipeDownDismiss)
+        .simultaneousGesture(swipeDismiss)
         .pageTheme(.dark)
         .preferredColorScheme(.dark)
         .chromeAccent(accent, onAccent: onAccent)
     }
 
     private var backdropOpacity: Double {
-        let progress = min(max(Double(dragOffset) / 300, 0), 1)
+        let progress = min(max(abs(Double(dragOffset)) / 280, 0), 1)
         return 1 - progress * 0.55
     }
 
-    private var swipeDownDismiss: some Gesture {
-        DragGesture(minimumDistance: 24)
+    private var swipeDismiss: some Gesture {
+        DragGesture(minimumDistance: 12)
             .onChanged { value in
                 guard !isDismissing else { return }
-                let vertical = value.translation.height
-                let horizontal = abs(value.translation.width)
-                // Vertical-dominant downward only — leave AVKit scrubbing alone.
-                guard vertical > 0, vertical > horizontal else {
-                    if dragOffset != 0 { dragOffset = 0 }
-                    return
-                }
-                dragOffset = vertical
+                let dy = value.translation.height
+                let dx = abs(value.translation.width)
+                // Loose vertical gate — allow diagonal dismiss swipes. Do not
+                // snap back to zero on a slight horizontal drift; that was what
+                // made the gesture feel locked to the Y axis.
+                guard abs(dy) > dx * 0.45 || abs(dragOffset) > 0 else { return }
+                dragOffset = dy
             }
             .onEnded { value in
                 guard !isDismissing else { return }
+                let dy = value.translation.height
                 let predicted = value.predictedEndTranslation.height
-                if value.translation.height > dismissDragThreshold || predicted > 420 {
+                // Up or down past the threshold (or a fling) dismisses.
+                if abs(dy) > dismissDragThreshold || abs(predicted) > 280 {
                     close()
                 } else {
                     withAnimation(Motion.stateChange) { dragOffset = 0 }
