@@ -217,20 +217,24 @@ struct RelatedWorkSection: View {
         .accessibilityLabel(accessibilityLabel(for: match))
     }
 
-    /// Two-column cell width — square crop sized to the column, not the 40pt list thumb.
+    /// Web `RELATED_CARD_ASPECT_RATIO` — grid cards are `4/3`, list thumbs `1/1`.
+    private static let gridAspectRatio: CGFloat = 4.0 / 3.0
+
+    /// Two-column cell width — crop sized to the column, not the 40pt list thumb.
     private var gridThumbPoints: CGFloat {
         max((viewportWidth - PageLayout.gutter * 2 - Spacing.s6) / 2, 120)
     }
 
     private func gridThumb(_ item: WorkItem) -> some View {
         let filename = item.imageFilenames.first
+        let px = ImageService.pixelWidth(for: gridThumbPoints, scale: displayScale)
+        let height = max(Int((CGFloat(px) / Self.gridAspectRatio).rounded()), 1)
         return RemoteImage(
-            url: URL(string: ImageService.Preset.square(
+            url: URL(string: ImageService.processed(
                 filename,
-                points: gridThumbPoints,
-                scale: displayScale
+                crop: "\(px)x\(height)/smart"
             )),
-            aspectRatio: 1,
+            aspectRatio: Self.gridAspectRatio,
             contentMode: .fill
         )
         .frame(maxWidth: .infinity)
