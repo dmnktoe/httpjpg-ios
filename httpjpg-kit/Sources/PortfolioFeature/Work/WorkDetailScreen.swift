@@ -20,6 +20,9 @@ struct WorkDetailScreen: View {
     @Environment(\.pageTheme) private var theme
 
     @State private var model: WorkDetailModel?
+    /// Token the current `model` was loaded for — paired with `app.workRouteToken`
+    /// so external routing can force a refresh without wiping scroll on a plain pop.
+    @State private var loadedRouteToken: Int?
     @State private var imageViewerHeld = false
 
     var body: some View {
@@ -52,9 +55,25 @@ struct WorkDetailScreen: View {
             }
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
+            let token = app.workRouteToken
+            // Pushing related work cancels this task on the covered screen; on
+            // pop it restarts with the same id. Reusing the loaded model keeps
+            // ScrollView position. Recreate only for a new slug or when an
+            // external route bumps `workRouteToken`.
+            if let model,
+               model.slug == route.slug,
+               case .loaded = model.state,
+               loadedRouteToken == token {
+                await app.workIndex.load()
+                return
+            }
+
             model = WorkDetailModel(client: app.client, slug: route.slug)
             Telemetry.signal("work.detail.viewed", parameters: ["slug": route.slug])
             await model?.load()
+            if let model, case .loaded = model.state {
+                loadedRouteToken = token
+            }
             await app.workIndex.load()
         }
     }
