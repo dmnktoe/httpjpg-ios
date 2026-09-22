@@ -47,7 +47,8 @@ public struct WorkTagFilter: View {
                 }
             }
             .animation(Motion.navigate, value: isExpanded)
-            .animation(Motion.stateChange, value: active)
+            // Selection tint animates inside each chip; animating `active` here
+            // would also drive GlassEffectContainer layout sideways.
         }
     }
 

@@ -4,10 +4,8 @@ import Tokens
 /// A row of glass pills where exactly one is selected.
 ///
 /// Idle pills use the same untinted Liquid Glass as the toolbar hamburger;
-/// the selected one is the prominent fill. The tab bar and the work-index
-/// variant picker are the same control with different content, so both drive
-/// this: it owns the morph namespace, the selection animation, the haptic and
-/// the traits, and the caller only says what a pill reads as.
+/// the selected one is tinted glass. Selection only restyles each pill — the
+/// bar does not animate layout, or idle neighbours slide sideways.
 public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
     /// How the pills divide the row.
     public enum Distribution: Sendable {
@@ -79,7 +77,8 @@ public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { width in
             onWidthChange?(width)
         }
-        .animation(Motion.navigate, value: selection)
+        // Tint changes animate inside each pill; a bar-level animation would
+        // also interpolate GlassEffectContainer layout and shove idle pills.
         .sensoryFeedback(.selection, trigger: selection)
         .accessibilityElement(children: .contain)
     }
