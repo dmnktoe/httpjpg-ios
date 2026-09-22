@@ -50,6 +50,21 @@ final class StoryblokDecodingTests: XCTestCase {
         {"linktype":"email","email":"hi@httpjpg.com","fieldtype":"multilink"}
         """)
         XCTAssertEqual(link.href, "mailto:hi@httpjpg.com")
+        XCTAssertTrue(link.isExternal)
+    }
+
+    func testAbsoluteUrlLinkIsExternal() throws {
+        let link = try decode(StoryblokLink.self, """
+        {"linktype":"url","url":"https://outlet.delivery/store","fieldtype":"multilink"}
+        """)
+        XCTAssertTrue(link.isExternal)
+    }
+
+    func testStoryLinkIsNotExternal() throws {
+        let link = try decode(StoryblokLink.self, """
+        {"id":"abc","url":"","linktype":"story","fieldtype":"multilink","cached_url":"work/atlas"}
+        """)
+        XCTAssertFalse(link.isExternal)
     }
 
     func testClearedLinkIsEmpty() throws {

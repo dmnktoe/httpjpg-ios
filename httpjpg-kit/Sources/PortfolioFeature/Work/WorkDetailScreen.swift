@@ -185,6 +185,8 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
+        // Hard top: system bar rule appears once content scrolls under the
+        // title. Soft on top dissolves that rule for good (index/drawer only).
         .navigationScrollEdges()
     }
 
