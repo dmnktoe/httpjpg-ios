@@ -41,7 +41,7 @@ struct WorkDetailScreen: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .foregroundStyle(headerTheme.foreground)
+                        .foregroundStyle(toolbarGlyph)
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .environment(\.colorScheme, headerTheme.colorScheme)
@@ -49,26 +49,28 @@ struct WorkDetailScreen: View {
                 .accessibilityLabel("Back")
             }
 
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if let url = externalPreviewURL {
+            if let url = externalPreviewURL {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
-                            .foregroundStyle(headerTheme.foreground)
+                            .foregroundStyle(toolbarGlyph)
                     }
                     .toolbarGlassButton(chromeTint, fallback: orbTint)
                     .environment(\.colorScheme, headerTheme.colorScheme)
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
+            }
 
+            ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(headerTheme.foreground)
+                        .foregroundStyle(toolbarGlyph)
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .environment(\.colorScheme, headerTheme.colorScheme)
-                .accessibilityLabel("Share")
                 .disabled(imageViewerHeld)
+                .accessibilityLabel("Share")
             }
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
@@ -98,6 +100,10 @@ struct WorkDetailScreen: View {
 
     private var orbTint: PillTint {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
+    }
+
+    private var toolbarGlyph: Color {
+        chromeOnTint ?? headerTheme.foreground
     }
 
     /// The page forces its own appearance, so the toolbar has to be tinted
