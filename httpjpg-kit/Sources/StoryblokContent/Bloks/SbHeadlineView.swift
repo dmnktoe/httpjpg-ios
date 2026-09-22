@@ -15,7 +15,7 @@ public struct SbHeadlineView: View {
     public var body: some View {
         Headline(
             blok.text,
-            level: Headline.Level(rawValue: blok.level) ?? .two,
+            level: Headline.Level.clamping(blok.level),
             alignment: TextAlign(cmsValue: blok.align),
             color: Palette.named(blok.color) ?? theme.foreground
         )
