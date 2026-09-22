@@ -51,6 +51,10 @@ const CONSCIOUSLY_UNRENDERED = new Map([
     "userbar",
     "decoded as Userbar inside FooterConfig; rendered by InfoFooter via DesignSystem.Userbars",
   ],
+  [
+    "download_item",
+    "nested under work.downloads as XP desktop icons on the web (#420); iOS has no desktop-download surface yet",
+  ],
 ]);
 
 const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
