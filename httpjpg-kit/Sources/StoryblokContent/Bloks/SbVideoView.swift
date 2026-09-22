@@ -173,33 +173,44 @@ private struct VideoLightboxViewer: View {
     let aspectRatio: CGFloat
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.chromeAccent) private var accent
+    @Environment(\.chromeOnAccent) private var onAccent
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Color.black.ignoresSafeArea()
+
             VideoSurface(
                 url: url,
                 posterURL: posterURL,
                 aspectRatio: aspectRatio,
+                layout: .filled,
                 showsControls: showsControls,
                 autoPlays: autoPlays,
                 loops: loops,
                 isMuted: isMuted
             )
-            .padding(.horizontal, PageLayout.gutter)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
 
             Button {
                 dismiss()
             } label: {
-                Text("✕")
-                    .font(Typography.mono(Typography.Size.md))
-                    .foregroundStyle(Palette.white)
-                    .frame(width: 44, height: 44)
+                Image(systemName: "xmark")
             }
-            .buttonStyle(.plain)
+            // Same chrome glass as the hamburger fallback (`.control`), forced
+            // onto the dark theme so the orb stays readable on black — idle
+            // untinted glass vanishes against a solid backdrop.
+            .buttonStyle(.glassOrb(
+                .control(.dark),
+                diameter: PillMetrics.orbDiameter
+            ))
             .padding(.trailing, PageLayout.gutter)
+            .padding(.top, Spacing.s2)
+            .zIndex(1)
             .accessibilityLabel("Close video viewer")
         }
+        .pageTheme(.dark)
+        .preferredColorScheme(.dark)
+        .chromeAccent(accent, onAccent: onAccent)
     }
 }

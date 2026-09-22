@@ -2,9 +2,17 @@ import AVFoundation
 import SwiftUI
 
 public struct VideoSurface: View {
+    public enum Layout: Sendable {
+        /// Inline / lightbox-fitted: keep the CMS (or measured) aspect box.
+        case fitted
+        /// Fullscreen: expand to the proposed size and cover-fill the frame.
+        case filled
+    }
+
     private let url: URL
     private let posterURL: URL?
     private let aspectRatio: CGFloat
+    private let layout: Layout
     private let showsControls: Bool
     private let autoPlays: Bool
     private let loops: Bool
@@ -26,6 +34,7 @@ public struct VideoSurface: View {
         url: URL,
         posterURL: URL? = nil,
         aspectRatio: CGFloat = PageLayout.mediaAspectRatio,
+        layout: Layout = .fitted,
         showsControls: Bool = true,
         autoPlays: Bool = false,
         loops: Bool = false,
@@ -35,6 +44,7 @@ public struct VideoSurface: View {
         self.url = url
         self.posterURL = posterURL
         self.aspectRatio = aspectRatio
+        self.layout = layout
         self.showsControls = showsControls
         self.autoPlays = autoPlays
         self.loops = loops
@@ -43,8 +53,7 @@ public struct VideoSurface: View {
     }
 
     public var body: some View {
-        surface
-            .aspectRatio(resolvedAspectRatio, contentMode: .fit)
+        framedSurface
             .overlay { poster }
             .overlay {
                 VideoPlaybackControls(player: player, showsControls: showsControls)
@@ -64,10 +73,22 @@ public struct VideoSurface: View {
     }
 
     @ViewBuilder
+    private var framedSurface: some View {
+        switch layout {
+        case .fitted:
+            surface
+                .aspectRatio(resolvedAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+        case .filled:
+            // Portrait lightbox + landscape clip: fill the screen and crop,
+            // same idea as web object-fit cover in a full-bleed stage.
+            surface
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
     private var surface: some View {
-        // Match web `object-fit: cover` so a mismatched CMS/poster ratio fills
-        // the frame instead of letterboxing (AVKit `VideoPlayer` always
-        // contain-fits and left black gutters on Blence titantron).
         PlayerLayerView(player: player, videoGravity: .resizeAspectFill)
             .allowsHitTesting(false)
     }
@@ -75,12 +96,30 @@ public struct VideoSurface: View {
     @ViewBuilder
     private var poster: some View {
         if isPosterVisible, let posterURL {
-            RemoteImage(
-                url: posterURL,
-                aspectRatio: resolvedAspectRatio,
-                contentMode: .fill
-            )
-            .allowsHitTesting(false)
+            switch layout {
+            case .fitted:
+                RemoteImage(
+                    url: posterURL,
+                    aspectRatio: resolvedAspectRatio,
+                    contentMode: .fill
+                )
+                .allowsHitTesting(false)
+            case .filled:
+                // RemoteImage always aspect-fits; fullscreen needs a cover fill.
+                AsyncImage(url: posterURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    default:
+                        Color.black
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .allowsHitTesting(false)
+            }
         }
     }
 
