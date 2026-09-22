@@ -31,7 +31,7 @@ struct WorkDetailScreen: View {
             }
         }
         .pageSurface(forcingDark: pageIsDark)
-        .navigationTitle(navigationTitle)
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .enablesInteractivePopGesture()
@@ -128,10 +128,6 @@ struct WorkDetailScreen: View {
         loadedDetail?.isDark ?? route.isDark
     }
 
-    private var navigationTitle: String {
-        loadedDetail?.title ?? route.title
-    }
-
     private var shareURL: URL {
         loadedDetail?.canonicalURL(siteOrigin: app.configuration.siteOrigin)
             ?? app.configuration.siteOrigin.appending(path: StorySlug.workPrefix + route.slug)
@@ -186,9 +182,8 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        // Hard top: system bar rule appears once content scrolls under the
-        // title. Soft on top dissolves that rule for good (index/drawer only).
-        .navigationScrollEdges()
+        // Soft top dissolves the nav-bar hairline (no inline title to seat it).
+        .softScrollEdges()
     }
 
     @ViewBuilder
