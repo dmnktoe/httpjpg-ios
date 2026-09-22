@@ -41,9 +41,10 @@ struct WorkDetailScreen: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
+                        .foregroundStyle(headerTheme.foreground)
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .environment(\.pageTheme, headerTheme)
+                .environment(\.colorScheme, headerTheme.colorScheme)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
@@ -52,20 +53,22 @@ struct WorkDetailScreen: View {
                 if let url = externalPreviewURL {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
+                            .foregroundStyle(headerTheme.foreground)
                     }
                     .toolbarGlassButton(chromeTint, fallback: orbTint)
-                    .environment(\.pageTheme, headerTheme)
+                    .environment(\.colorScheme, headerTheme.colorScheme)
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
 
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(headerTheme.foreground)
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .environment(\.pageTheme, headerTheme)
-                .disabled(imageViewerHeld)
+                .environment(\.colorScheme, headerTheme.colorScheme)
                 .accessibilityLabel("Share")
+                .disabled(imageViewerHeld)
             }
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {

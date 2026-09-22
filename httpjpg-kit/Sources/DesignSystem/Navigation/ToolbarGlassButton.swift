@@ -47,8 +47,8 @@ private struct ToolbarGlassButton: ViewModifier {
                 .buttonStyle(.glassProminent)
                 .tint(accent)
         } else {
-            // Prefer the resolved fallback label over ambient pageTheme — toolbar
-            // items do not always inherit a destination's forced-dark theme.
+            // Glyph colour comes from the label (`foregroundStyle`); only kill
+            // the ambient link tint so the system does not paint it primary.
             content.tint(fallback.label)
         }
     }
