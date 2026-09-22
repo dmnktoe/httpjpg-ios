@@ -185,7 +185,7 @@ private struct VideoLightboxViewer: View {
                 posterURL: posterURL,
                 aspectRatio: aspectRatio,
                 layout: .contained,
-                showsControls: showsControls,
+                showsControls: true,
                 autoPlays: autoPlays,
                 loops: loops,
                 isMuted: isMuted
