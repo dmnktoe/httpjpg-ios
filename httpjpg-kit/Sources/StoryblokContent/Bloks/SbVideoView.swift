@@ -219,7 +219,6 @@ private struct VideoLightboxViewer: View {
             isMuted: isMuted
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal, PageLayout.gutter)
         .background(Palette.black, in: RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
         .overlay {
