@@ -4,8 +4,8 @@ import Tokens
 
 /// The app's bottom navigation: one glass pill per tab.
 ///
-/// All of the behaviour lives in `SegmentedPillBar`; this only binds it to
-/// `AppModel.Tab` and parks it above the home indicator.
+/// Idle pills match the hamburger glass; the selected tab wears primary so the
+/// bar reads as the app chrome rather than a CMS accent.
 struct TabPillBar: View {
     let selection: AppModel.Tab
 
@@ -24,6 +24,8 @@ struct TabPillBar: View {
         SegmentedPillBar(
             AppModel.Tab.allCases,
             selection: selection,
+            accent: Palette.primary.s500,
+            onAccent: Palette.onNamed("primary.500"),
             in: glass,
             onSelect: onSelect,
             onWidthChange: onWidthChange,

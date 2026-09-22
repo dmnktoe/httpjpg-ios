@@ -5,7 +5,8 @@ import Tokens
 /// an `all` pill plus one per tag, same shape as the website's `WorkTagFilter`.
 ///
 /// The pills share the system glass look with the tab bar and the variant
-/// picker — clear like the toolbar hamburger when idle, prominent when active.
+/// picker — clear like the toolbar hamburger when idle, accent-tinted when
+/// active.
 public struct WorkTagFilter: View {
     private let tags: [String]
     private let counts: [String: Int]
@@ -124,7 +125,12 @@ public struct WorkTagFilter: View {
             }
         }
         .buttonStyle(.glassPill(
-            .forSelection(isSelected, theme: theme),
+            .forSelection(
+                isSelected,
+                theme: theme,
+                accent: Palette.accent.s400,
+                onAccent: Palette.onNamed("accent.400")
+            ),
             size: .compact,
             morphID: id,
             in: glass
