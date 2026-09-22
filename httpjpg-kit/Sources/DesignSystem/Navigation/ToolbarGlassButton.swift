@@ -4,14 +4,17 @@ import Tokens
 public extension View {
     /// Colours a button inside a navigation bar, leaving its shape to the system.
     ///
-    /// From iOS 26 a toolbar item already carries Liquid Glass. `.glassProminent`
-    /// with `.tint(accent)` is what makes the accent the whole button — the
-    /// system fills the capsule and picks the glyph. Plain `.tint` alone only
-    /// recolours the symbol and leaves the glass neutral, which is why work
-    /// detail accents went missing after the style was dropped. Without an
-    /// accent the button is plain `.glass`; its glyph has to be set to the page
-    /// foreground out loud, because `pageTheme` tints the app with the link
-    /// colour and an untinted glass control would otherwise come out blue.
+    /// From iOS 26 a toolbar item already carries Liquid Glass. That backing is
+    /// the circle — another `.glass` style on top draws a second, smaller
+    /// capsule inside it (the double menu button). So an unaccented control
+    /// only sets its glyph colour: the page foreground, said out loud because
+    /// `pageTheme` tints the app with the link colour and the symbol would
+    /// otherwise come out blue.
+    ///
+    /// An accented control needs `.glassProminent` for the fill to take the
+    /// tint; without it, `.tint` only recolours the glyph. The system's shared
+    /// glass behind that style is hidden so the prominent button is the only
+    /// shape.
     ///
     /// Below iOS 26 there is no glass in the bar to inherit, so the button draws
     /// its own orb.
@@ -46,10 +49,11 @@ private struct ToolbarGlassButton: ViewModifier {
             content
                 .buttonStyle(.glassProminent)
                 .tint(accent)
+                // Drop the toolbar's own glass so `.glassProminent` is not a
+                // second shape sitting inside it.
+                .sharedBackgroundVisibility(.hidden)
         } else {
-            content
-                .buttonStyle(.glass)
-                .foregroundStyle(theme.foreground)
+            content.tint(theme.foreground)
         }
     }
 }
