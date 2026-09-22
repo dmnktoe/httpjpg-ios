@@ -527,6 +527,7 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(config.headerMenu.count, 1)
         XCTAssertEqual(config.headerMenu.first?.variant, .websites)
         XCTAssertEqual(config.footer?.copyrightText, "© httpjpg")
+        XCTAssertEqual(config.footer?.userbars ?? [], [])
         XCTAssertEqual(config.seoTitle, "httpjpg")
         XCTAssertNil(config.siteName)
         XCTAssertFalse(config.features.isRelatedWorkEnabled)
@@ -535,6 +536,46 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.features.isRSSFeedEnabled)
         XCTAssertFalse(config.features.isWebVitalsBadgeEnabled)
         XCTAssertFalse(config.features.isBuildBadgeEnabled)
+    }
+
+    func testFooterConfigDecodesUserbars() throws {
+        let config = try decode(SiteConfig.self, """
+        {"footer_config":[{
+           "_uid":"f1","component":"footer_config","copyright_text":"© httpjpg",
+           "userbars":[
+             {"_uid":"u1","component":"userbar",
+              "image":{"filename":"https://cdn.example/bar.gif","alt":"from-asset"},
+              "alt":"authored",
+              "link":{"linktype":"url","url":"https://example.com/profile","fieldtype":"multilink"}},
+             {"_uid":"u2","component":"userbar",
+              "image":{"filename":"","alt":""},
+              "alt":"skipped-empty"},
+             {"_uid":"u3","component":"userbar",
+              "image":{"filename":"https://cdn.example/plain.gif","alt":"asset-alt"}}
+           ]
+         }]}
+        """)
+        let bars = config.footer?.userbars ?? []
+        XCTAssertEqual(bars.count, 3)
+
+        XCTAssertEqual(bars[0].accessibilityText, "authored")
+        XCTAssertEqual(bars[0].imageURL?.absoluteString, "https://cdn.example/bar.gif")
+        XCTAssertEqual(bars[0].link?.href, "https://example.com/profile")
+
+        // Empty filename still decodes; the view filters it out like web.
+        XCTAssertNil(bars[1].imageURL)
+        XCTAssertEqual(bars[1].accessibilityText, "skipped-empty")
+
+        XCTAssertEqual(bars[2].accessibilityText, "asset-alt")
+        XCTAssertNil(bars[2].link?.href)
+    }
+
+    func testUserbarFallsBackToDefaultAlt() throws {
+        let bar = try decode(Userbar.self, """
+        {"_uid":"u1","component":"userbar",
+         "image":{"filename":"https://cdn.example/bar.gif","alt":""}}
+        """)
+        XCTAssertEqual(bar.accessibilityText, "userbar")
     }
 
     func testFeatureFlagsHonorTheCMSToggles() throws {
