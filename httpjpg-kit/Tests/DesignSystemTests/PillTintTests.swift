@@ -26,7 +26,7 @@ final class PillTintTests: XCTestCase {
 
         XCTAssertNil(idle.fill)
         XCTAssertEqual(selected.fill, accent)
-        XCTAssertTrue(selected.isOpaque, "selected pills read as glassProminent")
+        XCTAssertFalse(selected.isOpaque, "opaque selection drops out of the glass container and shoves neighbours")
         XCTAssertNil(selected.stroke, "a stroke draws a second shape inside the glass")
     }
 
@@ -38,7 +38,7 @@ final class PillTintTests: XCTestCase {
         XCTAssertEqual(dark.label, PageTheme.dark.background)
         XCTAssertEqual(light.fill, PageTheme.light.foreground)
         XCTAssertEqual(dark.fill, PageTheme.dark.foreground)
-        XCTAssertTrue(light.isOpaque)
+        XCTAssertFalse(light.isOpaque)
     }
 
     // MARK: - Controls

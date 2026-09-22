@@ -4,9 +4,9 @@ import Tokens
 /// The colours one pill wears, resolved before it is drawn.
 ///
 /// Idle pills match the system hamburger: untinted Liquid Glass, page foreground
-/// for the glyph. The selected pill is the prominent variant — filled with the
-/// page accent when there is one, otherwise inverting the page — so a row still
-/// reads a clear active state without washing every chip in the accent.
+/// for the glyph. The selected pill is tinted glass — accent when present,
+/// otherwise the page foreground — so the active state reads clearly without
+/// leaving the glass container (an opaque fill would shove neighbours aside).
 public struct PillTint: Equatable, Sendable {
     /// `nil` asks for untinted system glass (the hamburger look).
     public var fill: Color?
@@ -14,8 +14,8 @@ public struct PillTint: Equatable, Sendable {
     public var stroke: Color?
 
     /// Fills the control with `fill` at full strength instead of letting the
-    /// glass wash it out. Selected pills use this so they read as the
-    /// `.glassProminent` sibling of the idle hamburger glass.
+    /// glass wash it out. Header accent orbs ask for this; selection pills do
+    /// not — they stay glass so a row does not reflow on change.
     public var isOpaque: Bool
 
     public init(fill: Color?, label: Color, stroke: Color? = nil, isOpaque: Bool = false) {
@@ -34,21 +34,21 @@ public extension PillTint {
     }
 
     /// The selected pill. With an accent it wears the accent; without one it
-    /// inverts the page — the same move `.glassProminent` makes on a tint.
+    /// inverts the page. Stays on real glass (not an opaque fill) so it does
+    /// not drop out of the `GlassEffectContainer` and shove its neighbours
+    /// sideways when selection moves.
     static func selected(_ theme: PageTheme, accent: Color? = nil, onAccent: Color? = nil) -> PillTint {
         guard let accent else {
             return PillTint(
                 fill: theme.foreground,
                 label: theme.background,
-                stroke: nil,
-                isOpaque: true
+                stroke: nil
             )
         }
         return PillTint(
             fill: accent,
             label: onAccent ?? theme.background,
-            stroke: nil,
-            isOpaque: true
+            stroke: nil
         )
     }
 
