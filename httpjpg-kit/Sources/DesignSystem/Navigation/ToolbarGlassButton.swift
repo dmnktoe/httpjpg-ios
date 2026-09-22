@@ -12,8 +12,9 @@ public extension View {
     /// otherwise come out blue.
     ///
     /// An accented control needs `.glassProminent` for the fill to take the
-    /// tint; without it, `.tint` only recolours the glyph. The system's shared
-    /// glass behind that style is hidden so the prominent button is the only
+    /// tint; without it, `.tint` only recolours the glyph. Call sites hide the
+    /// toolbar's shared glass behind that style with
+    /// `hidingSharedToolbarGlass(when:)` so the prominent button is the only
     /// shape.
     ///
     /// Below iOS 26 there is no glass in the bar to inherit, so the button draws
@@ -24,6 +25,20 @@ public extension View {
     ///   - fallback: how to draw it on iOS 17–25.
     func toolbarGlassButton(_ accent: Color?, fallback: PillTint) -> some View {
         modifier(ToolbarGlassButton(accent: accent, fallback: fallback))
+    }
+}
+
+public extension ToolbarContent {
+    /// Drops the system's shared Liquid Glass behind a toolbar item when the
+    /// button inside is drawing its own (`.glassProminent`). Without this, the
+    /// prominent style sits as a second shape inside the toolbar platter.
+    @ToolbarContentBuilder
+    func hidingSharedToolbarGlass(when hide: Bool) -> some ToolbarContent {
+        if #available(iOS 26.0, *), hide {
+            sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
     }
 }
 
@@ -49,9 +64,6 @@ private struct ToolbarGlassButton: ViewModifier {
             content
                 .buttonStyle(.glassProminent)
                 .tint(accent)
-                // Drop the toolbar's own glass so `.glassProminent` is not a
-                // second shape sitting inside it.
-                .sharedBackgroundVisibility(.hidden)
         } else {
             content.tint(theme.foreground)
         }

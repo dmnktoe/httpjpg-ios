@@ -46,9 +46,13 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
+            .hidingSharedToolbarGlass(when: chromeTint != nil)
 
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if let url = externalPreviewURL {
+            // Separate items when accented so each prominent orb is its own
+            // shape; a group would keep one shared platter behind them. Without
+            // an accent the system still merges same-placement items.
+            if let url = externalPreviewURL {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
                     }
@@ -56,7 +60,10 @@ struct WorkDetailScreen: View {
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
+                .hidingSharedToolbarGlass(when: chromeTint != nil)
+            }
 
+            ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
                 }
@@ -64,6 +71,7 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
+            .hidingSharedToolbarGlass(when: chromeTint != nil)
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
