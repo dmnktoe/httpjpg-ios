@@ -1,4 +1,5 @@
 import AVFoundation
+import AVKit
 import SwiftUI
 
 public struct VideoSurface: View {
@@ -58,7 +59,11 @@ public struct VideoSurface: View {
         framedSurface
             .overlay { poster }
             .overlay {
-                VideoPlaybackControls(player: player, showsControls: showsControls)
+                // Lightbox uses AVKit `VideoPlayer` chrome; custom overlay is
+                // only for the inline cover-fitted surface (web #448 parity).
+                if showsControls, layout == .fitted {
+                    VideoPlaybackControls(player: player, showsControls: true)
+                }
             }
             .clipped()
             .onAppear(perform: start)
@@ -96,8 +101,14 @@ public struct VideoSurface: View {
 
     @ViewBuilder
     private var surface: some View {
-        PlayerLayerView(player: player, videoGravity: videoGravity)
-            .allowsHitTesting(false)
+        if showsControls, layout == .contained {
+            // Native transport chrome in the fullscreen stage — AVKit already
+            // letterboxes, matching `.contained` / `resizeAspect`.
+            VideoPlayer(player: player)
+        } else {
+            PlayerLayerView(player: player, videoGravity: videoGravity)
+                .allowsHitTesting(false)
+        }
     }
 
     @ViewBuilder
