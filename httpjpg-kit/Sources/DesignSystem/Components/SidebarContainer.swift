@@ -34,7 +34,9 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private static var pageCorner: CGFloat { Spacing.s12 }
 
-    private static var scrimOpacity: Double { 0.45 }
+    /// Soft enough that the page still reads under the drawer, heavy enough to
+    /// mark it inactive now that open no longer shrinks the content.
+    private static var scrimOpacity: Double { 0.28 }
 
     public init(
         isOpen: Binding<Bool>,
