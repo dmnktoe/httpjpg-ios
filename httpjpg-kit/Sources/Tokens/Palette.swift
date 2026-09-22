@@ -1,6 +1,10 @@
 import SwiftUI
 
 public struct ColorRamp: Sendable {
+    /// Kept alongside the colours because contrast has to be computed from the
+    /// channels, and `Color` will not hand them back.
+    private let hexes: [Int: UInt32]
+
     public let s50: Color
     public let s100: Color
     public let s200: Color
@@ -26,6 +30,10 @@ public struct ColorRamp: Sendable {
         _ s900: UInt32,
         _ s950: UInt32
     ) {
+        hexes = [
+            50: s50, 100: s100, 200: s200, 300: s300, 400: s400, 500: s500,
+            600: s600, 700: s700, 800: s800, 900: s900, 950: s950,
+        ]
         self.s50 = Color(hex: s50)
         self.s100 = Color(hex: s100)
         self.s200 = Color(hex: s200)
@@ -37,6 +45,10 @@ public struct ColorRamp: Sendable {
         self.s800 = Color(hex: s800)
         self.s900 = Color(hex: s900)
         self.s950 = Color(hex: s950)
+    }
+
+    func hexStep(_ key: Int) -> UInt32? {
+        hexes[key]
     }
 
     public func step(_ key: Int) -> Color? {
@@ -114,18 +126,43 @@ public enum Palette {
         }
     }
 
-    /// Black or white glyph color that contrasts with a CMS hex accent
-    /// (`#RGB`, `#RRGGBB`, `black`, or `white`).
+    /// Black or white glyph color that contrasts with a CMS accent, in any shape
+    /// `named(_:)` accepts — `#RGB`, `#RRGGBB`, `black`, `white` or a ramp step
+    /// like `accent.500`. Ramp tokens used to fall through here and leave the
+    /// chrome guessing, which is why toolbar glyphs went black on `primary.700`.
     public static func onNamed(_ value: String?) -> Color? {
+        guard let prefersLight = prefersLightForeground(value) else { return nil }
+        return prefersLight ? white : black
+    }
+
+    /// Whether a colour token is dark enough to need light glyphs on top. The
+    /// navigation bar asks so its title agrees with the buttons beside it.
+    public static func prefersLightForeground(_ value: String?) -> Bool? {
+        guard let hex = resolvedHex(value) else { return nil }
+        return prefersLightForeground(hex: hex)
+    }
+
+    private static func resolvedHex(_ value: String?) -> UInt32? {
         guard let value, !value.isEmpty else { return nil }
-        let hex: UInt32?
         switch value {
-        case "black": hex = 0x000000
-        case "white": hex = 0xFFFFFF
-        default: hex = hexValue(value)
+        case "black": return 0x000000
+        case "white": return 0xFFFFFF
+        default: break
         }
-        guard let hex else { return nil }
-        return prefersLightForeground(hex: hex) ? white : black
+        if let hex = hexValue(value) {
+            return hex
+        }
+        let parts = value.split(separator: ".")
+        guard parts.count == 2, let step = Int(parts[1]) else { return nil }
+        switch parts[0] {
+        case "neutral": return neutral.hexStep(step)
+        case "primary": return primary.hexStep(step)
+        case "accent": return accent.hexStep(step)
+        case "success": return success.hexStep(step)
+        case "warning": return warning.hexStep(step)
+        case "danger": return danger.hexStep(step)
+        default: return nil
+        }
     }
 
     static func hexValue(_ value: String) -> UInt32? {

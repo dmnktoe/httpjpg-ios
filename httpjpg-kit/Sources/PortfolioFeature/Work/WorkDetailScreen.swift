@@ -17,6 +17,8 @@ struct WorkDetailScreen: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
+    @Environment(\.pageTheme) private var theme
+
     @State private var model: WorkDetailModel?
     @State private var imageViewerHeld = false
 
@@ -37,36 +39,28 @@ struct WorkDetailScreen: View {
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                NavGlassButton(
-                    systemName: "chevron.left",
-                    label: "Back",
-                    tint: chromeTint,
-                    onTint: chromeOnTint,
-                    action: { dismiss() }
-                )
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
+                .accessibilityLabel("Back")
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
-                    NavGlassButton(
-                        systemName: "safari",
-                        label: "Open external preview",
-                        tint: chromeTint,
-                        onTint: chromeOnTint,
-                        action: { openURL(url) }
-                    )
+                    Button { openURL(url) } label: {
+                        Image(systemName: "safari")
+                    }
+                    .toolbarGlassButton(chromeTint, fallback: orbTint)
                     .disabled(imageViewerHeld)
+                    .accessibilityLabel("Open external preview")
                 }
 
                 ShareLink(item: shareURL) {
-                    NavGlassIcon(
-                        systemName: "square.and.arrow.up",
-                        tint: chromeTint,
-                        onTint: chromeOnTint
-                    )
+                    Image(systemName: "square.and.arrow.up")
                 }
-                .buttonStyle(.plain)
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
@@ -94,6 +88,16 @@ struct WorkDetailScreen: View {
 
     private var chromeOnTint: Color? {
         Palette.onNamed(accentToken)
+    }
+
+    private var orbTint: PillTint {
+        .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
+    }
+
+    /// The page forces its own appearance, so the toolbar has to be tinted
+    /// against that theme rather than the ambient one.
+    private var headerTheme: PageTheme {
+        pageIsDark ? .dark : theme
     }
 
     private var externalPreviewURL: URL? {
@@ -181,7 +185,7 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        .softScrollEdges()
+        .navigationScrollEdges()
     }
 
     @ViewBuilder

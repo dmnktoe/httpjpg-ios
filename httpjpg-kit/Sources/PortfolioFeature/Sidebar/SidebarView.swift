@@ -27,7 +27,7 @@ struct SidebarView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
 
-            SidebarMenuButton(systemName: "chevron.left", label: "Close menu", style: .inverse) {
+            SidebarMenuButton(systemName: "chevron.left", label: "Close menu") {
                 app.toggleSidebar()
             }
         }
@@ -35,11 +35,14 @@ struct SidebarView: View {
         .padding(.top, Spacing.s2)
         .padding(.bottom, Spacing.s5)
         .frame(maxWidth: .infinity, alignment: .leading)
+        // The list now pins its year headers, so they scroll up to this edge —
+        // without a fill they would read straight through the site name.
+        .background(theme.drawerBackground)
     }
 
     private var projects: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
+            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                 listLabel
                 listBody
             }
@@ -113,6 +116,13 @@ struct SidebarView: View {
         }
         .padding(.top, Spacing.s4)
         .padding(.bottom, Spacing.s2)
+        // Pinned, so it needs a fill — and the gutter is applied to the stack
+        // above it, so the fill has to bleed back out to the drawer edges or
+        // rows show through beside it.
+        .background {
+            theme.drawerBackground
+                .padding(.horizontal, -PageLayout.gutter)
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(group.accessibilityLabel), \(countLabel(group.items.count))")
         .accessibilityAddTraits(.isHeader)
@@ -133,10 +143,15 @@ struct SidebarView: View {
             Button {
                 app.open(work: item)
             } label: {
-                SidebarProjectRow(item: item)
+                SidebarProjectRow(item: item, isCurrent: item.slug == currentSlug)
             }
             .buttonStyle(SidebarRowButtonStyle())
         }
+    }
+
+    /// The work the page behind the drawer is showing, if any.
+    private var currentSlug: String? {
+        app.selectedTab == .work ? app.workPath.last?.slug : nil
     }
 
     private func failure(_ message: String) -> some View {

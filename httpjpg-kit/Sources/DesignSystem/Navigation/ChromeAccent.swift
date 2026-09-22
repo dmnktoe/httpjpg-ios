@@ -1,10 +1,18 @@
 import SwiftUI
 import Tokens
 
+/// The accent a page hands down to the chrome drawn over it.
+///
+/// A work story carries a CMS colour; everything floating on top of that page —
+/// the toolbar orbs, the carousel arrows, the image viewer's close button —
+/// reads it from here rather than being passed it through every intermediate
+/// view. `PillTint.control(_:accent:onAccent:)` turns the pair into colours.
 private struct ChromeAccentKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }
 
+/// The glyph colour that contrasts with `chromeAccent`, resolved once by
+/// `Palette.onNamed(_:)` where the token is still a string.
 private struct ChromeOnAccentKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }
@@ -25,30 +33,5 @@ public extension View {
     func chromeAccent(_ color: Color?, onAccent: Color? = nil) -> some View {
         environment(\.chromeAccent, color)
             .environment(\.chromeOnAccent, onAccent)
-    }
-}
-
-public extension PageTheme {
-    func chromeFill(accent: Color?) -> Color {
-        guard let accent else { return chromeFill }
-        return accent.opacity(isDark ? 0.7 : 0.62)
-    }
-
-    func chromeActiveFill(accent: Color?) -> Color {
-        guard accent != nil else { return chromeActiveFill }
-        return Palette.white.opacity(isDark ? 0.92 : 0.96)
-    }
-
-    func chromeStroke(accent: Color?) -> Color {
-        guard let accent else { return chromeStroke }
-        return accent.opacity(isDark ? 0.75 : 0.6)
-    }
-
-    func chromeActiveStroke(accent: Color?) -> Color {
-        accent ?? chromeActiveStroke
-    }
-
-    func chromeLabel(onAccent: Color?) -> Color {
-        onAccent ?? chromeLabel
     }
 }

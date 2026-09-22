@@ -91,7 +91,7 @@ public struct ImageCarousel<Slide: View>: View {
     @ViewBuilder
     private var navigation: some View {
         if showsArrows {
-            GlassGroup(spacing: Spacing.s2) {
+            LiquidGlassContainer(spacing: Spacing.s2) {
                 HStack(spacing: Spacing.s2) {
                     arrow("chevron.left", step: -1)
                     arrow("chevron.right", step: 1)
@@ -107,18 +107,12 @@ public struct ImageCarousel<Slide: View>: View {
             advance(by: step)
         } label: {
             Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(onAccent ?? .white)
-                .frame(width: 34, height: 34)
-                .contentShape(Circle())
-                .glassBackground(
-                    in: .circle,
-                    tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
-                    interactive: true
-                )
         }
-        .buttonStyle(.plain)
-        .shadow(color: .black.opacity(0.35), radius: 6)
+        .buttonStyle(.glassOrb(
+            .overMedia(accent: accent, onAccent: onAccent),
+            diameter: PillMetrics.compactOrbDiameter
+        ))
+        .shadow(color: Palette.black.opacity(Opacities.dimmed), radius: 6)
         .accessibilityLabel(step < 0 ? "Previous slide" : "Next slide")
     }
 

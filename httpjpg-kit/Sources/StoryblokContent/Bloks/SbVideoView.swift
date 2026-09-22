@@ -69,17 +69,11 @@ public struct SbVideoView: View {
             isLightboxPresented = true
         } label: {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(onAccent ?? .white)
-                .frame(width: 34, height: 34)
-                .contentShape(Circle())
-                .glassBackground(
-                    in: .circle,
-                    tint: accent?.opacity(0.72) ?? .black.opacity(0.55),
-                    interactive: true
-                )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glassOrb(
+            .overMedia(accent: accent, onAccent: onAccent),
+            diameter: PillMetrics.compactOrbDiameter
+        ))
         .accessibilityLabel("Play the video at full size")
     }
 
@@ -107,7 +101,7 @@ public struct SbVideoView: View {
                 source: source,
                 urlString: urlString,
                 posterURL: posterURL,
-                aspectRatio: resolvedAspectRatio ?? PageLayout.mediaAspectRatio,
+                aspectRatio: resolvedAspectRatio,
                 showsControls: blok.showsControls,
                 autoPlays: blok.autoPlays,
                 loops: blok.loops,
@@ -131,15 +125,20 @@ public struct SbVideoView: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-        .aspectRatio(resolvedAspectRatio ?? PageLayout.mediaAspectRatio, contentMode: .fit)
+        .aspectRatio(resolvedAspectRatio, contentMode: .fit)
         .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
         .contentShape(Rectangle())
     }
 
-    /// CMS ratio first, then Storyblok asset dimensions, then nil for intrinsic layout.
-    private var resolvedAspectRatio: CGFloat? {
+    /// CMS ratio first, then the uploaded clip's Storyblok dimensions, then the
+    /// poster. Empty CMS + a CDN filename without `WxH` used to pass `nil` into
+    /// `VideoSurface`, which collapsed the player to zero height (Blence
+    /// titantron). Last resort is the page's default media box.
+    private var resolvedAspectRatio: CGFloat {
         if let cms = blok.aspectRatio { return cms }
-        return ImageService.aspectRatio(of: blok.asset?.filename)
+        if let video = ImageService.aspectRatio(of: blok.asset?.filename) { return video }
+        if let poster = ImageService.aspectRatio(of: blok.poster?.filename) { return poster }
+        return PageLayout.mediaAspectRatio
     }
 
     private var copyrightPosition: CopyrightLabel.Position {
@@ -168,7 +167,7 @@ private struct VideoLightboxViewer: View {
     let autoPlays: Bool
     let loops: Bool
     let isMuted: Bool
-    let aspectRatio: CGFloat?
+    let aspectRatio: CGFloat
 
     @Environment(\.dismiss) private var dismiss
 

@@ -12,10 +12,10 @@ public enum WorkCardDate {
 
     public static let authoringTimeZone = TimeZone(identifier: "UTC") ?? .gmt
 
-    nonisolated(unsafe) private static let dayFormatter = formatter("dd")
-    nonisolated(unsafe) private static let narrowMonthFormatter = formatter("MMMMM")
-    nonisolated(unsafe) private static let shortYearFormatter = formatter("yy")
-    nonisolated(unsafe) private static let fullYearFormatter = formatter("yyyy")
+    private static let dayFormatter = formatter("dd")
+    private static let narrowMonthFormatter = formatter("MMMMM")
+    private static let shortYearFormatter = formatter("yy")
+    private static let fullYearFormatter = formatter("yyyy")
 
     private static let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)

@@ -224,6 +224,25 @@ final class StoryblokDecodingTests: XCTestCase {
         )
     }
 
+    /// CDN clips have no `WxH` in the path and an empty CMS ratio. The player
+    /// must still size from the poster, otherwise the surface collapses to
+    /// zero height (Blence titantron on work detail).
+    func testNativeCdnVideoKeepsPosterDimensionsWhenAspectRatioIsEmpty() throws {
+        let blok = try decode(VideoBlok.self, """
+        {"_uid":"v6","component":"video","source":"native","aspectRatio":"",
+         "video":{"filename":"https://cdn.httpjpg.com/blence-network/clip.mp4",
+                  "is_external_url":true},
+         "poster":{"filename":"https://a.storyblok.com/f/281211/3388x1672/x/cover.png"}}
+        """)
+        XCTAssertNil(blok.aspectRatio)
+        XCTAssertNil(ImageService.aspectRatio(of: blok.asset?.filename))
+        XCTAssertEqual(
+            try XCTUnwrap(ImageService.aspectRatio(of: blok.poster?.filename)),
+            3388.0 / 1672.0,
+            accuracy: 0.001
+        )
+    }
+
     func testExternalDropboxClipIsDetectedAsVideo() throws {
         let asset = try decode(StoryblokAsset.self, """
         {"filename":"https://www.dropbox.com/scl/fi/x/logo-loop.mp4?rlkey=abc&raw=1",

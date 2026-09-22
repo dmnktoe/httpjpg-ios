@@ -105,7 +105,7 @@ struct PageScreen: View {
                 .padding(.top, Spacing.s6)
                 .padding(.bottom, bottomBarClearance)
             }
-            .softScrollEdges()
+            .navigationScrollEdges()
         }
     }
 }

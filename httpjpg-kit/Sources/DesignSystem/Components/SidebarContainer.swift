@@ -20,17 +20,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag = DragState()
 
-    @State private var isSettling = false
-
-    @State private var settleTicket = 0
-
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
     private static var parallax: CGFloat { Spacing.s10 }
-
-    private static var scaleDrop: CGFloat { 0.05 }
 
     private static var edgeWidth: CGFloat { Spacing.s5 }
 
@@ -39,6 +33,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private static var overshootDamping: CGFloat { 4 }
 
     private static var pageCorner: CGFloat { Spacing.s12 }
+
+    /// Soft enough that the page still reads under the drawer, heavy enough to
+    /// mark it inactive now that open no longer shrinks the content.
+    private static var scrimOpacity: Double { 0.28 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -65,15 +63,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, ambientHeld)
         .animation(motion, value: isOpen)
-        .task(id: settleTicket) {
-            isSettling = true
-            try? await Task.sleep(for: .milliseconds(600))
-            guard !Task.isCancelled else { return }
-            isSettling = false
-        }
-        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
     private var sidebarPane: some View {
@@ -91,23 +81,22 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            // The drawer is the active layer; drain color from the scaled page
-            // so it reads as a still, monochrome shell.
-            .grayscale(Double(progress))
             .scrollDisabled(drag.isArmed || isOpen)
+            // The scrim is what marks the page as inactive now that it neither
+            // shrinks nor drains, so it carries a little more weight.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
-                    .opacity(0.35 * Double(progress))
+                    .opacity(Self.scrimOpacity * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
                     .ignoresSafeArea()
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            // The scaled page sits over the drawer; without this the left edge
-            // reads flush against the sidebar.
+            // The page sits over the drawer; without this the left edge reads
+            // flush against the sidebar.
             .shadow(color: pageShadow, radius: Spacing.s3 * progress)
-            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
+            .offset(x: offset)
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
@@ -115,7 +104,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var ambientHeld: Bool {
-        isOpen || drag.isArmed || isSettling
+        isOpen || drag.isArmed
     }
 
     private var openEdge: some View {
@@ -139,7 +128,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
-                settleTicket += 1
                 withAnimation(motion) {
                     isOpen = shouldOpen(after: value)
                 }
@@ -192,28 +180,3 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         withAnimation(motion) { isOpen = false }
     }
 }
-
-private struct PageTransform: GeometryEffect {
-    var offset: CGFloat
-    var scale: CGFloat
-
-    var animatableData: AnimatablePair<CGFloat, CGFloat> {
-        get { AnimatablePair(offset, scale) }
-        set {
-            offset = newValue.first
-            scale = newValue.second
-        }
-    }
-
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        let x = size.width / 2
-        let y = size.height / 2
-        return ProjectionTransform(
-            CGAffineTransform(translationX: offset, y: 0)
-                .translatedBy(x: x, y: y)
-                .scaledBy(x: scale, y: scale)
-                .translatedBy(x: -x, y: -y)
-        )
-    }
-}
-

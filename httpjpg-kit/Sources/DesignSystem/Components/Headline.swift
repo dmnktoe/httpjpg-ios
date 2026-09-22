@@ -28,6 +28,11 @@ public struct Headline: View {
     private let alignment: TextAlign
     private let lineSpacingRatio: CGFloat
 
+    /// A justified headline is drawn by UIKit, which never sees
+    /// `foregroundStyle` — so a caller with a colour of its own has to hand it
+    /// over rather than apply it from outside. `nil` inherits, as `Text` does.
+    private let color: Color?
+
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.pageTheme) private var theme
 
@@ -35,12 +40,14 @@ public struct Headline: View {
         _ text: String,
         level: Level = .one,
         alignment: TextAlign = .left,
-        lineSpacing: CGFloat = -0.25
+        lineSpacing: CGFloat = -0.25,
+        color: Color? = nil
     ) {
         self.text = text
         self.level = level
         self.alignment = alignment
         self.lineSpacingRatio = lineSpacing
+        self.color = color
     }
 
     public var body: some View {
@@ -51,7 +58,7 @@ public struct Headline: View {
                     text,
                     align: alignment,
                     font: Typography.uiHeadline(size),
-                    color: theme.foreground
+                    color: resolvedColor(for: theme)
                 )
             } else {
                 Text(text)
@@ -59,10 +66,17 @@ public struct Headline: View {
                     .tracking(size * level.trackingRatio)
                     .lineSpacing(size * lineSpacingRatio)
                     .multilineTextAlignment(alignment.multiline)
+                    .foregroundStyle(color.map(AnyShapeStyle.init) ?? AnyShapeStyle(.foreground))
             }
         }
         .frame(maxWidth: .infinity, alignment: alignment.frame)
         .accessibilityAddTraits(.isHeader)
+    }
+
+    /// The colour handed to UIKit for a justified headline. `foregroundStyle`
+    /// cannot reach there, so this is the only thing that decides it.
+    func resolvedColor(for theme: PageTheme) -> Color {
+        color ?? theme.foreground
     }
 
     private var resolvedSize: CGFloat {
