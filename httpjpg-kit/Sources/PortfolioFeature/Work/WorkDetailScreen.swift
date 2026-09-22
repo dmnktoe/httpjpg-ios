@@ -46,12 +46,18 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
-            .hidingSharedToolbarBackground()
+            .hidingSharedToolbarBackground(chromeTint != nil)
 
-            ToolbarItem(placement: .topBarTrailing) {
-                trailingActions
+            if chromeTint != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    trailingActions
+                }
+                .hidingSharedToolbarBackground()
+            } else {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    trailingButtons
+                }
             }
-            .hidingSharedToolbarBackground()
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
@@ -82,28 +88,33 @@ struct WorkDetailScreen: View {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
     }
 
-    /// Preview + share in one trailing slot, morph-clustered when both show.
+    /// Accented preview + share: custom glass orbs morph-clustered.
     @ViewBuilder
     private var trailingActions: some View {
         LiquidGlassContainer(spacing: Spacing.s2) {
             HStack(spacing: Spacing.s2) {
-                if let url = externalPreviewURL {
-                    Button { openURL(url) } label: {
-                        Image(systemName: "safari")
-                    }
-                    .toolbarGlassButton(chromeTint, fallback: orbTint)
-                    .disabled(imageViewerHeld)
-                    .accessibilityLabel("Open external preview")
-                }
-
-                ShareLink(item: shareURL) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .disabled(imageViewerHeld)
-                .accessibilityLabel("Share")
+                trailingButtons
             }
         }
+    }
+
+    @ViewBuilder
+    private var trailingButtons: some View {
+        if let url = externalPreviewURL {
+            Button { openURL(url) } label: {
+                Image(systemName: "safari")
+            }
+            .toolbarGlassButton(chromeTint, fallback: orbTint)
+            .disabled(imageViewerHeld)
+            .accessibilityLabel("Open external preview")
+        }
+
+        ShareLink(item: shareURL) {
+            Image(systemName: "square.and.arrow.up")
+        }
+        .toolbarGlassButton(chromeTint, fallback: orbTint)
+        .disabled(imageViewerHeld)
+        .accessibilityLabel("Share")
     }
 
     /// The page forces its own appearance, so the toolbar has to be tinted
