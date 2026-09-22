@@ -65,7 +65,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "httpjpg-ios",
+      "component": "",
       "extra-files": [
         {
           "type": "generic",
