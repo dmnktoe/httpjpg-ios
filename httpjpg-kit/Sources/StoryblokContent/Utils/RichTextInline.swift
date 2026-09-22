@@ -7,11 +7,12 @@ public enum RichTextInline {
     public static func attributed(
         _ nodes: [RichTextNode],
         size: CGFloat,
-        linkColor: Color
+        linkColor: Color,
+        codeBackground: Color
     ) -> AttributedString {
         var result = AttributedString()
         for node in nodes {
-            result.append(fragment(node, size: size, linkColor: linkColor))
+            result.append(fragment(node, size: size, linkColor: linkColor, codeBackground: codeBackground))
         }
         return result
     }
@@ -23,18 +24,30 @@ public enum RichTextInline {
     private static func fragment(
         _ node: RichTextNode,
         size: CGFloat,
-        linkColor: Color
+        linkColor: Color,
+        codeBackground: Color
     ) -> AttributedString {
         switch node {
         case .text(let value, let marks):
-            return styled(value, marks: marks, size: size, linkColor: linkColor)
+            return styled(
+                value,
+                marks: marks,
+                size: size,
+                linkColor: linkColor,
+                codeBackground: codeBackground
+            )
         case .emoji(let value):
             return AttributedString(value)
         case .hardBreak:
             return AttributedString("\n")
         default:
 
-            return attributed(node.children, size: size, linkColor: linkColor)
+            return attributed(
+                node.children,
+                size: size,
+                linkColor: linkColor,
+                codeBackground: codeBackground
+            )
         }
     }
 
@@ -42,7 +55,8 @@ public enum RichTextInline {
         _ value: String,
         marks: [RichTextMark],
         size: CGFloat,
-        linkColor: Color
+        linkColor: Color,
+        codeBackground: Color
     ) -> AttributedString {
         var fragment = AttributedString(value)
 
@@ -59,7 +73,10 @@ public enum RichTextInline {
             case .strike:
                 fragment.strikethroughStyle = .single
             case .code:
-                fragment.font = Typography.mono(size)
+                // Web always uses sm mono on a chip; padding/radius land as
+                // AttributedString background only — SwiftUI has no mark-level box.
+                fragment.font = Typography.mono(Typography.Size.sm)
+                fragment.backgroundColor = codeBackground
             case .link:
                 if let href = mark.href, let url = URL(string: href) {
                     fragment.link = url

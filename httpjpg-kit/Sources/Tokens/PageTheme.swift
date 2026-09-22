@@ -31,6 +31,12 @@ public struct PageTheme: Sendable, Equatable {
 
     public var link: Color { Palette.primary.s500 }
 
+    /// Inline `<code>` chip. Light by default; flips under isDark so pageFg
+    /// stays readable — same as storyblok-richtext `_pageDark`.
+    public var codeChipBackground: Color {
+        isDark ? Palette.neutral.s800 : Palette.neutral.s100
+    }
+
     /// Tint behind an idle piece of chrome. Kept light so Liquid Glass still
     /// refracts the page instead of reading as a grey disc.
     public var chromeFill: Color { isDark ? Palette.neutral.s900.opacity(0.55) : Palette.white.opacity(0.5) }
