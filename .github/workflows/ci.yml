@@ -315,6 +315,17 @@ jobs:
         run: |
           set -o pipefail
           args=(scan --config .periphery.yml)
+          # Prefer the index from the earlier xcodebuild (macros already trusted).
+          for cand in \
+            build/DerivedData/Index.noindex/DataStore \
+            build/DerivedData/Index/DataStore
+          do
+            if [ -d "$cand" ]; then
+              args+=(--skip-build --index-store-path "$cand")
+              echo "Using index store at $cand"
+              break
+            fi
+          done
           if [ "${{ github.event.inputs.write_periphery_baseline }}" = "true" ] || [ ! -f periphery-baseline.json ]; then
             echo "::notice::Writing periphery baseline"
             periphery "${args[@]}" --write-baseline periphery-baseline.json | tee periphery.log

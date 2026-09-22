@@ -10,3 +10,6 @@ retain_objc_accessible: true
 retain_swift_ui_previews: true
 baseline: periphery-baseline.json
 format: github-actions
+# storyblok-swift ships macros; Xcode refuses the index build without this.
+build_arguments:
+  - -skipMacroValidation
