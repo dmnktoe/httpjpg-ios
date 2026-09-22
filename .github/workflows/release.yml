@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # ── Release PR on every push, tag + GitHub Release when it merges ───
+  release-please:
+    name: Release PR / Tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    env:
+      HAS_BOT_APP: ${{ secrets.HTTPJPG_BOT_APP_ID != '' }}
+    steps:
+      - name: Mint httpjpg-bot token
+        id: bot-token
+        if: env.HAS_BOT_APP == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.HTTPJPG_BOT_APP_ID }}
+          private-key: ${{ secrets.HTTPJPG_BOT_PRIVATE_KEY }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.bot-token.outputs.token || secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # ── Monotonic CFBundleVersion after each tagged release ─────────────
+  bump-build:
+    name: Bump build number
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      HAS_BOT_APP: ${{ secrets.HTTPJPG_BOT_APP_ID != '' }}
+    steps:
+      - name: Mint httpjpg-bot token
+        id: bot-token
+        if: env.HAS_BOT_APP == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.HTTPJPG_BOT_APP_ID }}
+          private-key: ${{ secrets.HTTPJPG_BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.bot-token.outputs.token || secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Bump CURRENT_PROJECT_VERSION
+        id: bump
+        run: node scripts/bump-build-number.mjs
+
+      - name: Commit build bump
+        if: steps.bump.outputs.bumped == 'true'
+        run: |
+          git config user.name "httpjpg-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Config/Shared.xcconfig
+          git commit -m "chore(ios): bump build to ${{ steps.bump.outputs.build }}"
+          git push

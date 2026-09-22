@@ -1,0 +1,196 @@
+import DesignSystem
+import Observation
+import StoryblokCore
+import SwiftUI
+import WidgetFeature
+import WidgetKit
+
+@MainActor
+@Observable
+public final class AppModel {
+    public enum Tab: String, CaseIterable, Identifiable, Sendable {
+        case work
+        case info
+
+        public var id: String { rawValue }
+
+        public var label: String {
+            switch self {
+            case .work: return "🎀 ୧ꔛꗃ˖ աօʀӄ"
+            case .info: return "👊🐯  ᶤⓝƒ𝓸"
+            }
+        }
+
+        public var accessibilityLabel: String {
+            switch self {
+            case .work: return "Work"
+            case .info: return "Info"
+            }
+        }
+    }
+
+    public let client: ContentClient
+    public var selectedTab: Tab = .work {
+        didSet { visitedTabs.insert(selectedTab) }
+    }
+
+    private(set) var visitedTabs: Set<Tab> = [.work]
+
+    public var workPath: [WorkRoute] = []
+
+    private(set) var workRouteToken = 0
+
+    public var infoPath: [PageRoute] = []
+
+    public var isSidebarOpen = false {
+        didSet {
+            guard isSidebarOpen, !oldValue else { return }
+            Task { Telemetry.signal("sidebar.opened") }
+        }
+    }
+    public private(set) var config: SiteConfig = .fallback
+
+    public private(set) var hasLoadedConfig = false
+
+    private(set) var pendingPlayback: AudioTrack?
+
+    let workIndex: WorkIndexModel
+    let info: InfoModel
+    private(set) var footerWidgets: FooterWidgetsModel?
+
+    public init(configuration: StoryblokConfiguration) {
+        let client = ContentClient(configuration: configuration)
+        self.client = client
+        self.workIndex = WorkIndexModel(client: client)
+        self.info = InfoModel(client: client)
+    }
+
+    public var configuration: StoryblokConfiguration { client.configuration }
+
+    public var siteName: String {
+        config.displayName
+    }
+
+    public var defaultPageTitle: String {
+        config.defaultPageTitle
+    }
+
+    public func loadConfig() async {
+        guard !hasLoadedConfig else { return }
+        config = await client.siteConfig()
+        hasLoadedConfig = true
+    }
+
+    func loadFooterWidgets() async {
+        guard hasLoadedConfig, footerWidgets == nil else { return }
+        let widgets = FooterWidgetsModel(origin: configuration.siteOrigin, flags: config.widgets)
+        footerWidgets = widgets
+        await widgets.load()
+    }
+
+    func resetCacheAndReload() async {
+        client.clearCache()
+        ImageCache.clear()
+        await VideoCache.shared.clear()
+
+        config = await client.siteConfig(refresh: true)
+        hasLoadedConfig = true
+
+        let widgets = FooterWidgetsModel(origin: configuration.siteOrigin, flags: config.widgets)
+        footerWidgets = widgets
+
+        await workIndex.load(force: true)
+        await info.load(force: true)
+        await widgets.load()
+
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    public func open(_ url: URL) {
+        switch WidgetDeepLink.destination(from: url) {
+        case .work(let slug):
+            show(WorkRoute(slug: slug, title: slug))
+        case .workIndex:
+            select(tab: .work)
+            workPath.removeAll()
+            isSidebarOpen = false
+        case .page(let slug):
+            show(PageRoute(slug: slug, title: slug))
+        case .info:
+            select(tab: .info)
+            infoPath.removeAll()
+            isSidebarOpen = false
+        case .play(let track):
+            pendingPlayback = track
+            show(PageRoute(slug: StorySlug.feed, title: StorySlug.feed))
+        case nil:
+            return
+        }
+    }
+
+    func takePendingPlayback() -> AudioTrack? {
+        defer { pendingPlayback = nil }
+        return pendingPlayback
+    }
+
+    func perform(_ action: QuickAction) {
+        guard let route = action.route else { return }
+        Telemetry.signal("quickaction.opened", parameters: ["kind": action.kind.rawValue])
+        show(route)
+    }
+
+    private func show(_ route: WorkRoute) {
+        selectedTab = .work
+        workPath = [route]
+        workRouteToken &+= 1
+        isSidebarOpen = false
+    }
+
+    private func show(_ route: PageRoute) {
+        selectedTab = .info
+        infoPath = [route]
+        isSidebarOpen = false
+    }
+
+    func open(work item: WorkItem) {
+        show(WorkRoute(item: item))
+    }
+
+    func toggleSidebar() {
+        isSidebarOpen.toggle()
+    }
+
+    var isAtNavigationRoot: Bool {
+        switch selectedTab {
+        case .work: return workPath.isEmpty
+        case .info: return infoPath.isEmpty
+        }
+    }
+
+    private(set) var scrollToTopTicks: [Tab: Int] = [:]
+
+    func scrollToTopTick(for tab: Tab) -> Int {
+        scrollToTopTicks[tab] ?? 0
+    }
+
+    public func select(tab: Tab) {
+        guard tab == selectedTab else {
+            selectedTab = tab
+            return
+        }
+        switch tab {
+        case .work:
+            if workPath.isEmpty {
+                scrollToTopTicks[.work, default: 0] += 1
+            } else {
+                workPath.removeAll()
+            }
+        case .info:
+            if infoPath.isEmpty {
+                scrollToTopTicks[.info, default: 0] += 1
+            } else {
+                infoPath.removeAll()
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+CONTENT_SOURCE = network
+
+#include? "Secrets.xcconfig"
+
+PRODUCT_NAME = $(TARGET_NAME)
+PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg
+// x-release-please-start-version
+MARKETING_VERSION = 1.0.0
+// x-release-please-end
+CURRENT_PROJECT_VERSION = 1
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+TARGETED_DEVICE_FAMILY = 1,2
+SWIFT_VERSION = 5.0
+
+INFOPLIST_FILE = httpjpg/Info.plist
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_KEY_CFBundleDisplayName = httpjpg
+INFOPLIST_KEY_UILaunchScreen_Generation = YES
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES
+INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+
+ASSETCATALOG_COMPILER_APPICON_NAME = httpjpg
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+CODE_SIGN_STYLE = Automatic
+
+STORYBLOK_VERSION = published
+STORYBLOK_REGION = eu
+SITE_ORIGIN = https:/$()/www.httpjpg.com
+TELEMETRYDECK_APP_ID =

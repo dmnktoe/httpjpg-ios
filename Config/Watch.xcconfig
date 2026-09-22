@@ -1,0 +1,16 @@
+#include "Shared.xcconfig"
+
+PRODUCT_NAME = httpjpg-watch
+PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg.watchkitapp
+INFOPLIST_FILE = httpjpg-watch/Info.plist
+
+INFOPLIST_KEY_CFBundleDisplayName = httpjpg
+
+// iPhone-only keys inherited from Shared.xcconfig; watchOS has no launch
+// screen, no orientations and no indirect input.
+INFOPLIST_KEY_UILaunchScreen_Generation =
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents =
+INFOPLIST_KEY_UISupportedInterfaceOrientations =
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad =
+
+SKIP_INSTALL = YES

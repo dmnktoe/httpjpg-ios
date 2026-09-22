@@ -1,0 +1,8 @@
+{
+  "name": "httpjpg-ios-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:bloks": "node scripts/check-blok-registry.mjs"
+  }
+}

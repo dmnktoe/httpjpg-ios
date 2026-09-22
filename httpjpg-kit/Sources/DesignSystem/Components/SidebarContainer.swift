@@ -1,0 +1,182 @@
+import SwiftUI
+import Tokens
+
+public struct SidebarContainer<Sidebar: View, Content: View>: View {
+    private let maxWidth: CGFloat
+    private let dragEnabled: Bool
+    private let sidebar: Sidebar
+    private let content: Content
+
+    @Binding private var isOpen: Bool
+
+    private struct DragState {
+        var translation: CGFloat = 0
+
+        var origin: CGFloat = 0
+
+        var isArmed = false
+    }
+
+    @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
+    private var drag = DragState()
+
+    @Environment(\.viewportWidth) private var viewportWidth
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.pageTheme) private var theme
+
+    private static var parallax: CGFloat { Spacing.s10 }
+
+    private static var edgeWidth: CGFloat { Spacing.s5 }
+
+    private static var flickVelocity: CGFloat { 300 }
+
+    private static var overshootDamping: CGFloat { 4 }
+
+    private static var pageCorner: CGFloat { Spacing.s12 }
+
+    /// Soft enough that the page still reads under the drawer, heavy enough to
+    /// mark it inactive now that open no longer shrinks the content.
+    private static var scrimOpacity: Double { 0.28 }
+
+    public init(
+        isOpen: Binding<Bool>,
+        maxWidth: CGFloat = 320,
+        dragEnabled: Bool = true,
+        @ViewBuilder sidebar: () -> Sidebar,
+        @ViewBuilder content: () -> Content
+    ) {
+        _isOpen = isOpen
+        self.maxWidth = maxWidth
+        self.dragEnabled = dragEnabled
+        self.sidebar = sidebar()
+        self.content = content()
+    }
+
+    public var body: some View {
+        ZStack(alignment: .leading) {
+            sidebarPane
+            main
+
+            openEdge
+                .allowsHitTesting(dragEnabled && !isOpen)
+        }
+        .background(theme.drawerBackground.ignoresSafeArea())
+        .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
+        .environment(\.mediaHeld, ambientHeld)
+        .animation(motion, value: isOpen)
+    }
+
+    private var sidebarPane: some View {
+        sidebar
+            .scrollDisabled(drag.isArmed)
+            .frame(width: width)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .offset(x: (progress - 1) * Self.parallax)
+            .opacity(paneOpacity)
+            .accessibilityHidden(!isOpen)
+            .accessibilityAddTraits(isOpen ? .isModal : [])
+            .accessibilityAction(.escape) { close() }
+            .simultaneousGesture(drawerDrag)
+    }
+
+    private var main: some View {
+        content
+            .scrollDisabled(drag.isArmed || isOpen)
+            // The scrim is what marks the page as inactive now that it neither
+            // shrinks nor drains, so it carries a little more weight.
+            .overlay {
+                Rectangle()
+                    .fill(Palette.black)
+                    .opacity(Self.scrimOpacity * Double(progress))
+                    .onTapGesture { close() }
+                    .allowsHitTesting(isOpen)
+                    .ignoresSafeArea()
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
+            // The page sits over the drawer; without this the left edge reads
+            // flush against the sidebar.
+            .shadow(color: pageShadow, radius: Spacing.s3 * progress)
+            .offset(x: offset)
+            .accessibilityHidden(isOpen)
+            .environment(\.marqueeHeld, ambientHeld)
+            .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
+            .ignoresSafeArea()
+    }
+
+    private var ambientHeld: Bool {
+        isOpen || drag.isArmed
+    }
+
+    private var openEdge: some View {
+        Color.clear
+            .frame(width: Self.edgeWidth)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(drawerDrag)
+            .ignoresSafeArea()
+    }
+
+    private var drawerDrag: some Gesture {
+        DragGesture(minimumDistance: 10)
+            .updating($drag) { value, state, _ in
+                guard state.isArmed || tracks(value) else { return }
+                if !state.isArmed {
+                    state.isArmed = true
+                    state.origin = value.translation.width
+                }
+                state.translation = value.translation.width - state.origin
+            }
+            .onEnded { value in
+                guard drag.isArmed || tracks(value) else { return }
+                withAnimation(motion) {
+                    isOpen = shouldOpen(after: value)
+                }
+            }
+    }
+
+    private var width: CGFloat {
+        min(maxWidth, viewportWidth * 0.82)
+    }
+
+    private var base: CGFloat {
+        isOpen ? width : 0
+    }
+
+    private var offset: CGFloat {
+        let position = base + drag.translation
+        guard position > 0 else { return 0 }
+        guard position > width else { return position }
+        return width + (position - width) / Self.overshootDamping
+    }
+
+    private var progress: CGFloat {
+        width > 0 ? min(offset / width, 1) : 0
+    }
+
+    private var paneOpacity: Double {
+        min(Double(progress) * 3, 1)
+    }
+
+    private var pageShadow: Color {
+        Palette.black.opacity(Opacities.dimmed * Double(progress))
+    }
+
+    private var motion: Animation? {
+        reduceMotion ? nil : Motion.drawer
+    }
+
+    private func shouldOpen(after value: DragGesture.Value) -> Bool {
+        let velocity = value.velocity.width
+        guard abs(velocity) < Self.flickVelocity else { return velocity > 0 }
+        return base + value.translation.width - drag.origin > width / 2
+    }
+
+    private func tracks(_ value: DragGesture.Value) -> Bool {
+        guard abs(value.translation.width) > abs(value.translation.height) else { return false }
+        return isOpen || value.startLocation.x <= Self.edgeWidth
+    }
+
+    private func close() {
+        withAnimation(motion) { isOpen = false }
+    }
+}

@@ -1,0 +1,99 @@
+name: httpjpg
+options:
+  bundleIdPrefix: com.yl33ly
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+  minimumXcodeGenVersion: "2.38.0"
+  fileTypes:
+    icon:
+      file: true
+      buildPhase: resources
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  httpjpg-kit:
+    path: httpjpg-kit
+
+fileGroups:
+  - Config
+  - README.md
+  - CHANGELOG.md
+  - release-please-config.json
+  - .release-please-manifest.json
+
+targets:
+  httpjpg:
+    type: application
+    platform: iOS
+    sources:
+      - path: httpjpg
+    dependencies:
+      - package: httpjpg-kit
+        product: DesignSystem
+      - package: httpjpg-kit
+        product: StoryblokContent
+      - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
+        product: PortfolioFeature
+      - package: httpjpg-kit
+        product: WidgetFeature
+      - target: httpjpg-widgets
+        embed: true
+      - target: httpjpg-watch
+        embed: true
+    configFiles:
+      Debug: Config/Shared.xcconfig
+      Release: Config/Shared.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: httpjpg/Info.plist
+        GENERATE_INFOPLIST_FILE: true
+        ENABLE_PREVIEWS: true
+
+  httpjpg-widgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: httpjpg-widgets
+      - path: httpjpg-kit/Sources/Tokens/Resources/Fonts/Anton-Regular.ttf
+        buildPhase: resources
+    dependencies:
+      - package: httpjpg-kit
+        product: DesignSystem
+      - package: httpjpg-kit
+        product: StoryblokContent
+      - package: httpjpg-kit
+        product: WidgetFeature
+    configFiles:
+      Debug: Config/Widgets.xcconfig
+      Release: Config/Widgets.xcconfig
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+
+  httpjpg-watch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: httpjpg-watch
+      - path: httpjpg/httpjpg.icon
+        buildPhase: resources
+    dependencies:
+      - package: httpjpg-kit
+        product: Tokens
+      - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
+        product: WatchFeature
+    configFiles:
+      Debug: Config/Watch.xcconfig
+      Release: Config/Watch.xcconfig
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true

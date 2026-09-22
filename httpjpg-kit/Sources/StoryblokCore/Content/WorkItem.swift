@@ -1,0 +1,161 @@
+import Foundation
+import StoryblokClient
+
+public struct WorkItem: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let slug: String
+    public let fullSlug: String
+    public let title: String
+
+    public let summary: String
+
+    public let thumbnailURL: URL?
+
+    public let imageFilenames: [String]
+
+    public let media: [WorkMedia]
+    public let isDraft: Bool
+    public let isExternal: Bool
+
+    /// Whether the CMS lists this work in the app's work list. The sidebar
+    /// ignores it and keeps showing every published work.
+    public let isListedInApp: Bool
+    public let accentColor: String?
+    public let isDark: Bool
+    public let externalURL: URL?
+    public let date: Date?
+    public let sliceTags: [String]
+    public let tags: [String]
+    public let tagValues: [String]
+
+    public init(
+        id: String,
+        slug: String,
+        fullSlug: String,
+        title: String,
+        summary: String = "",
+        thumbnailURL: URL?,
+        imageFilenames: [String],
+        media: [WorkMedia] = [],
+        isDraft: Bool,
+        isExternal: Bool,
+        isListedInApp: Bool = true,
+        accentColor: String? = nil,
+        isDark: Bool = false,
+        externalURL: URL?,
+        date: Date?,
+        sliceTags: [String] = [],
+        tags: [String] = [],
+        tagValues: [String] = []
+    ) {
+        self.id = id
+        self.slug = slug
+        self.fullSlug = fullSlug
+        self.title = title
+        self.summary = summary
+        self.thumbnailURL = thumbnailURL
+        self.imageFilenames = imageFilenames
+        self.media = media.isEmpty ? imageFilenames.map { WorkMedia(filename: $0, isVideo: false) } : media
+        self.isDraft = isDraft
+        self.isExternal = isExternal
+        self.isListedInApp = isListedInApp
+        self.accentColor = accentColor
+        self.isDark = isDark
+        self.externalURL = externalURL
+        self.date = date
+        self.sliceTags = sliceTags
+        self.tags = tags
+        self.tagValues = tagValues
+    }
+}
+
+public struct WorkMedia: Hashable, Sendable {
+    public let filename: String
+    public let isVideo: Bool
+
+    public init(filename: String, isVideo: Bool) {
+        self.filename = filename
+        self.isVideo = isVideo
+    }
+}
+
+public extension WorkItem {
+    func canonicalURL(siteOrigin: URL) -> URL {
+        siteOrigin.appending(path: fullSlug)
+    }
+
+    init(story: Story<WorkBlok>) {
+        let content = story.content
+        let externalURL = content.link?.href.flatMap(URL.init(string:))
+        let filenames = content.images.images.compactMap(\.filename)
+
+        let media = content.images
+            .filter { !$0.isEmpty }
+            .compactMap { asset in
+                asset.filename.map { WorkMedia(filename: $0, isVideo: asset.isVideo) }
+            }
+
+        self.init(
+            id: story.uuid.uuidString,
+            slug: story.slug,
+            fullSlug: story.fullSlug,
+            title: content.title ?? story.name,
+            summary: extractPlainText(content.details, maxLength: 280),
+            thumbnailURL: URL(string: ImageService.Preset.thumb(filenames.first)),
+            imageFilenames: filenames,
+            media: media,
+            isDraft: story.firstPublishedAt == nil,
+            isExternal: content.isExternalOnly,
+            isListedInApp: content.isListedInApp,
+            accentColor: content.accentColor,
+            isDark: content.isDark,
+            externalURL: externalURL,
+            date: StoryblokDate.parse(content.date),
+            sliceTags: story.tagList,
+            tags: WorkTopicTag.labels(for: content.tags),
+            tagValues: WorkTopicTag.resolve(content.tags).map(\.value)
+        )
+    }
+}
+
+public struct WorkCollection: Sendable {
+    public let projects: [WorkItem]
+    public let websites: [WorkItem]
+
+    public init(projects: [WorkItem], websites: [WorkItem]) {
+        self.projects = projects
+        self.websites = websites
+    }
+
+    public static let empty = WorkCollection(projects: [], websites: [])
+
+    public func items(for variant: MenuLink.Variant) -> [WorkItem] {
+        switch variant {
+        case .projects: return projects
+        case .websites: return websites
+        }
+    }
+
+    /// The work list is not hand-curated the way the website's `work_list`
+    /// bloks are, so the CMS toggle decides what lands in it.
+    public func listedItems(for variant: MenuLink.Variant) -> [WorkItem] {
+        items(for: variant).filter(\.isListedInApp)
+    }
+}
+
+public enum StorySlug {
+    public static let config = "config"
+    public static let home = "home"
+
+    public static let feed = "feed-xml_html"
+    public static let workPrefix = "work/"
+
+    public static func isDirectWork(_ fullSlug: String) -> Bool {
+        fullSlug.hasPrefix(workPrefix) && fullSlug.split(separator: "/").count == 2
+    }
+}
+
+enum WorkTag {
+    static let projects = "Projects"
+    static let websites = "Websites"
+}

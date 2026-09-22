@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "separate-pull-requests": false,
+  "draft": false,
+  "prerelease": false,
+  "pull-request-title-pattern": "chore(release): ${version}",
+  "group-pull-request-title-pattern": "chore(release): ${version}",
+  "label": "release,autorelease: pending",
+  "release-label": "release,autorelease: tagged",
+  "pull-request-header": "*ੈ✩‧₊˚ **release** ‧₊˚✩ੈ*\n\nVersion bump + changelog from conventional commits on `main`. Edit `CHANGELOG.md` in this PR if the generated one-liners need prose, then merge.\n\nThis bumps `MARKETING_VERSION` in `Config/Shared.xcconfig` (and the widgets/watch targets that include it). No App Store upload or signing yet — GitHub Release + tag only.\n\nMerging tags the release and publishes it on GitHub; the release workflow then bumps `CURRENT_PROJECT_VERSION` for the next builds.",
+  "pull-request-footer": "---\n\nThe changelog regenerates whenever a new commit lands on `main`, which discards manual edits — curate late and merge promptly. `### Removed` has no commit type; add it by hand when a release drops something.",
+  "changelog-sections": [
+    {
+      "type": "feat",
+      "section": "Added"
+    },
+    {
+      "type": "fix",
+      "section": "Fixed"
+    },
+    {
+      "type": "refactor",
+      "section": "Changed"
+    },
+    {
+      "type": "style",
+      "section": "Changed"
+    },
+    {
+      "type": "revert",
+      "section": "Changed"
+    },
+    {
+      "type": "perf",
+      "section": "Performance"
+    },
+    {
+      "type": "build",
+      "section": "Tooling"
+    },
+    {
+      "type": "ci",
+      "section": "Tooling"
+    },
+    {
+      "type": "docs",
+      "section": "Tooling"
+    },
+    {
+      "type": "test",
+      "section": "Tooling"
+    },
+    {
+      "type": "deps",
+      "section": "Dependencies"
+    },
+    {
+      "type": "chore",
+      "section": "Chores",
+      "hidden": true
+    }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "httpjpg-ios",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "Config/Shared.xcconfig"
+        }
+      ]
+    }
+  }
+}

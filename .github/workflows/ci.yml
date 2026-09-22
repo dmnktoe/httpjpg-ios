@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bloks:
+    name: Blok registry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: httpjpg-ios
+
+      - uses: actions/checkout@v4
+        with:
+          repository: dmnktoe/httpjpg
+          path: httpjpg
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node scripts/check-blok-registry.mjs --web-repo=../httpjpg
+        working-directory: httpjpg-ios
+
+  build:
+    name: Build & test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        shell: bash
+        run: |
+          has_ios_runtime() {
+            xcrun simctl list runtimes --json \
+              | jq -e '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | length > 0' >/dev/null
+          }
+          for app in $(ls -d /Applications/Xcode*.app | sort -Vr); do
+            sudo xcode-select -s "$app/Contents/Developer"
+            if has_ios_runtime; then break; fi
+            echo "$app has no iOS simulator runtime"
+          done
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Resolve simulator
+        shell: bash
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("iPhone"))] | last | .udid // empty')
+          if [ -z "$udid" ]; then
+            runtime=$(xcrun simctl list runtimes --json \
+              | jq -r '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | last | .identifier // empty')
+            if [ -z "$runtime" ]; then
+              echo "no iOS simulator runtime on this image" >&2
+              exit 1
+            fi
+            devtype=$(xcrun simctl list devicetypes --json \
+              | jq -r '[.devicetypes[] | select(.productFamily == "iPhone")] | last | .identifier')
+            udid=$(xcrun simctl create ci-iphone "$devtype" "$runtime")
+          fi
+          xcrun simctl list devices available
+          echo "SIMULATOR=id=$udid" >> "$GITHUB_ENV"
+
+      - name: Build app
+        shell: bash
+        run: |
+          xcodebuild build \
+            -project httpjpg.xcodeproj \
+            -scheme httpjpg \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | tee build.log \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Raw build log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
+
+      - name: Test package
+        shell: bash
+        working-directory: httpjpg-kit
+        run: |
+          scheme=$(xcodebuild -list -json | jq -r '[(.workspace // .project).schemes[] | select(endswith("-Package"))] | first // empty')
+          if [ -z "$scheme" ]; then
+            xcodebuild -list
+            echo "no aggregate package scheme" >&2
+            exit 1
+          fi
+          echo "scheme: $scheme"
+          xcodebuild test \
+            -scheme "$scheme" \
+            -destination "$SIMULATOR" \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee test.log \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Raw test log
+        if: failure()
+        run: grep -n -B2 -A6 -i 'error' httpjpg-kit/test.log | tail -100 || tail -100 httpjpg-kit/test.log
