@@ -13,6 +13,7 @@ public struct SbVideoView: View {
     @Environment(\.chromeAccent) private var accent
     @Environment(\.chromeOnAccent) private var onAccent
 
+    @Namespace private var lightboxZoom
     @State private var isLightboxPresented = false
 
     public init(blok: VideoBlok) {
@@ -41,27 +42,47 @@ public struct SbVideoView: View {
     }
 
     private var playerStack: some View {
-        player
+        lightboxSource
             .overlay(alignment: .topTrailing) {
-                if blok.opensLightbox, blok.nativeURL != nil {
+                if canOpenLightbox {
                     lightboxTrigger
                         .padding(Spacing.s3)
                 }
             }
-            .fullScreenCover(isPresented: $isLightboxPresented) {
+            .sheet(isPresented: $isLightboxPresented) {
                 if let url = blok.nativeURL {
                     VideoLightboxViewer(
                         url: url,
                         posterURL: posterURL,
-                        showsControls: blok.showsControls,
                         autoPlays: true,
                         loops: blok.loops,
                         isMuted: blok.isMuted,
-                        aspectRatio: resolvedAspectRatio
+                        aspectRatio: resolvedAspectRatio,
+                        caption: blok.caption,
+                        copyright: blok.copyright,
+                        copyrightSource: blok.copyrightSource
                     )
                     .chromeAccent(accent, onAccent: onAccent)
+                    .zoomTransitionDestination(id: blok.id, in: lightboxZoom)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(PageTheme.dark.background)
                 }
             }
+    }
+
+    /// Zoom source matches work-card → detail: the picture morphs into the sheet.
+    @ViewBuilder
+    private var lightboxSource: some View {
+        if canOpenLightbox {
+            player.zoomTransitionSource(id: blok.id, in: lightboxZoom)
+        } else {
+            player
+        }
+    }
+
+    private var canOpenLightbox: Bool {
+        blok.opensLightbox && blok.nativeURL != nil
     }
 
     private var lightboxTrigger: some View {
@@ -163,110 +184,101 @@ public struct SbVideoView: View {
     }
 }
 
+/// Popup card for a native video — same zoom language as work detail, sheet
+/// chrome instead of a fullscreen black stage with a floating close orb.
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?
-    let showsControls: Bool
     let autoPlays: Bool
     let loops: Bool
     let isMuted: Bool
     let aspectRatio: CGFloat
+    let caption: RichTextNode?
+    let copyright: String?
+    let copyrightSource: String?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.chromeAccent) private var accent
-    @Environment(\.chromeOnAccent) private var onAccent
 
-    @State private var dragOffset: CGFloat = 0
-    @State private var isDismissing = false
-
-    /// Enough travel that a scrub or accidental nudge won't close the stage.
-    private let dismissDragThreshold: CGFloat = 100
+    private let stageRadius = Radii.xl
 
     var body: some View {
-        // Leading close, dropped below AVKit's top chrome — AirPlay owns the
-        // top-leading slot and volume the trailing one. Sitting higher used to
-        // cover AirPlay; trailing covered volume and sat above Share.
-        ZStack(alignment: .topLeading) {
-            Color.black
-                .opacity(backdropOpacity)
-                .ignoresSafeArea()
+        NavigationStack {
+            VStack(spacing: Spacing.s4) {
+                videoStage
 
-            VideoSurface(
-                url: url,
-                posterURL: posterURL,
-                aspectRatio: aspectRatio,
-                layout: .contained,
-                showsControls: true,
-                autoPlays: autoPlays,
-                loops: loops,
-                isMuted: isMuted
-            )
-            .ignoresSafeArea()
-            .offset(y: dragOffset)
+                if hasMeta {
+                    meta
+                }
 
-            Button {
-                close()
-            } label: {
-                Image(systemName: "xmark")
+                Spacer(minLength: 0)
+
+                MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
+                    .lineLimit(1)
+                    .padding(.bottom, Spacing.s4)
             }
-            // Same chrome glass as the hamburger fallback (`.control`), forced
-            // onto the dark theme so the orb stays readable on black — idle
-            // untinted glass vanishes against a solid backdrop.
-            .buttonStyle(.glassOrb(
-                .control(.dark),
-                diameter: PillMetrics.orbDiameter
-            ))
-            .padding(.leading, PageLayout.gutter)
-            // Clear the AirPlay / volume row under the status bar.
-            .padding(.top, Spacing.s14)
-            .offset(y: dragOffset)
-            .zIndex(1)
-            .accessibilityLabel("Close video viewer")
-        }
-        .simultaneousGesture(swipeDismiss)
-        .pageTheme(.dark)
-        .preferredColorScheme(.dark)
-        .chromeAccent(accent, onAccent: onAccent)
-    }
-
-    private var backdropOpacity: Double {
-        let progress = min(max(abs(Double(dragOffset)) / 280, 0), 1)
-        return 1 - progress * 0.55
-    }
-
-    private var swipeDismiss: some Gesture {
-        DragGesture(minimumDistance: 12)
-            .onChanged { value in
-                guard !isDismissing else { return }
-                let dy = value.translation.height
-                let dx = abs(value.translation.width)
-                // Loose vertical gate — allow diagonal dismiss swipes. Do not
-                // snap back to zero on a slight horizontal drift; that was what
-                // made the gesture feel locked to the Y axis.
-                guard abs(dy) > dx * 0.45 || abs(dragOffset) > 0 else { return }
-                dragOffset = dy
-            }
-            .onEnded { value in
-                guard !isDismissing else { return }
-                let dy = value.translation.height
-                let predicted = value.predictedEndTranslation.height
-                // Up or down past the threshold (or a fling) dismisses.
-                if abs(dy) > dismissDragThreshold || abs(predicted) > 280 {
-                    close()
-                } else {
-                    withAnimation(Motion.stateChange) { dragOffset = 0 }
+            .padding(.horizontal, PageLayout.gutter)
+            .padding(.top, Spacing.s2)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .pageSurface(.dark)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    // Sheet owns this bar — close never fights AVKit AirPlay /
+                    // volume, and never sits above the work-detail Share control.
+                    .toolbarGlassButton(accent, fallback: .control(.dark))
+                    .accessibilityLabel("Close video viewer")
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .pageTheme(.dark)
+        .preferredColorScheme(.dark)
     }
 
-    private func close() {
-        guard !isDismissing else { return }
-        isDismissing = true
-        // Yield so the touch ends before the cover tears down — otherwise the
-        // same tap can land on the work-detail toolbar underneath.
-        Task { @MainActor in
-            await Task.yield()
-            dismiss()
+    private var videoStage: some View {
+        // Tall rounded stage: AVKit letterboxes the clip inside, with AirPlay /
+        // volume / scrubber all living in the player — not under a floating orb.
+        VideoSurface(
+            url: url,
+            posterURL: posterURL,
+            aspectRatio: aspectRatio,
+            layout: .contained,
+            showsControls: true,
+            autoPlays: autoPlays,
+            loops: loops,
+            isMuted: isMuted
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Palette.black, in: RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: stageRadius, style: .continuous)
+                .strokeBorder(PageTheme.dark.border, lineWidth: 1)
         }
+    }
+
+    private var hasMeta: Bool {
+        caption?.hasContent == true
+            || copyright != nil
+            || copyrightSource != nil
+    }
+
+    @ViewBuilder
+    private var meta: some View {
+        VStack(alignment: .leading, spacing: Spacing.s2) {
+            if caption?.hasContent == true {
+                StoryRichText(caption, size: Typography.Size.sm)
+                    .opacity(Opacities.muted)
+            }
+            if copyright != nil || copyrightSource != nil {
+                CopyrightLabel(copyright, source: copyrightSource, position: .below)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
