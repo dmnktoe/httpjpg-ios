@@ -47,15 +47,14 @@ public struct WorkTagFilter: View {
                     chips
                 }
             }
-            .animation(Motion.navigate, value: isExpanded)
-            // Selection tint animates inside each chip; animating `active` here
-            // would also drive GlassEffectContainer layout sideways.
         }
     }
 
     private var toggle: some View {
         Button {
-            isExpanded.toggle()
+            withAnimation(Motion.stateChange) {
+                isExpanded.toggle()
+            }
         } label: {
             HStack(spacing: Spacing.s2) {
                 Text(isExpanded ? "[ − ]" : "[ + ]")
@@ -89,7 +88,9 @@ public struct WorkTagFilter: View {
                 }
             }
         }
-        .transition(.opacity.combined(with: .offset(y: -Spacing.s2)))
+        // Opacity only — an upward offset fought the layout push and read as a
+        // hard jump of the work list underneath.
+        .transition(.opacity)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Filter work by tag")
     }

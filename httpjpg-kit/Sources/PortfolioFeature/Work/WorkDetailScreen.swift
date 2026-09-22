@@ -31,10 +31,10 @@ struct WorkDetailScreen: View {
             }
         }
         .pageSurface(forcingDark: pageIsDark)
-        .navigationTitle(navigationTitle)
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .preferredColorScheme(forcesDark ? .dark : nil)
+        .enablesInteractivePopGesture()
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
@@ -48,21 +48,7 @@ struct WorkDetailScreen: View {
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
-                if let url = externalPreviewURL {
-                    Button { openURL(url) } label: {
-                        Image(systemName: "safari")
-                    }
-                    .toolbarGlassButton(chromeTint, fallback: orbTint)
-                    .disabled(imageViewerHeld)
-                    .accessibilityLabel("Open external preview")
-                }
-
-                ShareLink(item: shareURL) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .disabled(imageViewerHeld)
-                .accessibilityLabel("Share")
+                trailingButtons
             }
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
@@ -94,6 +80,25 @@ struct WorkDetailScreen: View {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
     }
 
+    @ViewBuilder
+    private var trailingButtons: some View {
+        if let url = externalPreviewURL {
+            Button { openURL(url) } label: {
+                Image(systemName: "safari")
+            }
+            .toolbarGlassButton(chromeTint, fallback: orbTint)
+            .disabled(imageViewerHeld)
+            .accessibilityLabel("Open external preview")
+        }
+
+        ShareLink(item: shareURL) {
+            Image(systemName: "square.and.arrow.up")
+        }
+        .toolbarGlassButton(chromeTint, fallback: orbTint)
+        .disabled(imageViewerHeld)
+        .accessibilityLabel("Share")
+    }
+
     /// The page forces its own appearance, so the toolbar has to be tinted
     /// against that theme rather than the ambient one.
     private var headerTheme: PageTheme {
@@ -121,14 +126,6 @@ struct WorkDetailScreen: View {
 
     private var pageIsDark: Bool {
         loadedDetail?.isDark ?? route.isDark
-    }
-
-    private var forcesDark: Bool {
-        pageIsDark && app.selectedTab == .work && app.workPath.last?.slug == route.slug
-    }
-
-    private var navigationTitle: String {
-        loadedDetail?.title ?? route.title
     }
 
     private var shareURL: URL {
@@ -185,9 +182,8 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        // Hard top: system bar rule appears once content scrolls under the
-        // title. Soft on top dissolves that rule for good (index/drawer only).
-        .navigationScrollEdges()
+        // Soft top dissolves the nav-bar hairline (no inline title to seat it).
+        .softScrollEdges()
     }
 
     @ViewBuilder

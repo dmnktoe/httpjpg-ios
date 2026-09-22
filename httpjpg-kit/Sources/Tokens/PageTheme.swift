@@ -88,6 +88,8 @@ private struct ForcedPageSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         let theme = forcesDark ? PageTheme.dark : ambient
+        // Local pageTheme + colorScheme only — enough for Liquid Glass to
+        // pick dark materials. No preferredColorScheme (that paints the list).
         let surface = content
             .pageTheme(theme)
             .pageSurface(theme)

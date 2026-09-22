@@ -35,7 +35,6 @@ struct PageScreen: View {
         .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(displayTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(forcesDark ? .dark : nil)
         .task(id: locale) {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)
@@ -55,10 +54,6 @@ struct PageScreen: View {
 
     private var pageIsDark: Bool {
         loadedPage?.isDark ?? isDarkHint
-    }
-
-    private var forcesDark: Bool {
-        pageIsDark && app.selectedTab == .info && app.infoPath.last?.slug == slug
     }
 
     @ViewBuilder

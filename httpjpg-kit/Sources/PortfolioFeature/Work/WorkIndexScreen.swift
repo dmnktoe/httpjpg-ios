@@ -9,8 +9,7 @@ struct WorkIndexScreen: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
     @Environment(\.bottomBarClearance) private var bottomBarClearance
-
-    @Namespace private var cardZoom
+    @Environment(\.pageTheme) private var theme
 
     var body: some View {
         @Bindable var app = app
@@ -19,9 +18,17 @@ struct WorkIndexScreen: View {
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .sidebarMenuToolbar()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        if app.workIndex.isLoading {
+                            ProgressView()
+                                .tint(theme.foreground)
+                                .accessibilityLabel("Loading")
+                        }
+                    }
+                }
                 .navigationDestination(for: WorkRoute.self) { route in
                     WorkDetailScreen(route: route)
-                        .zoomTransitionDestination(id: route.slug, in: cardZoom)
                 }
         }
         .task {
@@ -45,7 +52,7 @@ struct WorkIndexScreen: View {
     private func list(_ model: WorkIndexModel) -> some View {
         ScrollToTopReader(tick: app.scrollToTopTick(for: .work)) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.s8) {
+                VStack(alignment: .leading, spacing: Spacing.s8) {
                     masthead(model)
 
                     FadeSwap(key: ListGeneration(
@@ -130,7 +137,6 @@ struct WorkIndexScreen: View {
                 WorkCardView(card)
             }
             .buttonStyle(.plain)
-            .zoomTransitionSource(id: item.slug, in: cardZoom)
             .workCardMenu(for: item)
         }
     }
