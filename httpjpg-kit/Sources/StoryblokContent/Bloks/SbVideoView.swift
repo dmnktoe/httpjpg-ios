@@ -176,9 +176,20 @@ private struct VideoLightboxViewer: View {
     @Environment(\.chromeAccent) private var accent
     @Environment(\.chromeOnAccent) private var onAccent
 
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDismissing = false
+
+    /// Enough travel that a scrub or accidental nudge won't close the stage.
+    private let dismissDragThreshold: CGFloat = 120
+
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
+        // Leading close — trailing sits on top of AVKit's volume affordance and
+        // above the work-detail share control, so a close tap used to fall
+        // through and fire Share once the cover tore down.
+        ZStack(alignment: .topLeading) {
+            Color.black
+                .opacity(backdropOpacity)
+                .ignoresSafeArea()
 
             VideoSurface(
                 url: url,
@@ -191,9 +202,10 @@ private struct VideoLightboxViewer: View {
                 isMuted: isMuted
             )
             .ignoresSafeArea()
+            .offset(y: dragOffset)
 
             Button {
-                dismiss()
+                close()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -204,13 +216,55 @@ private struct VideoLightboxViewer: View {
                 .control(.dark),
                 diameter: PillMetrics.orbDiameter
             ))
-            .padding(.trailing, PageLayout.gutter)
+            .padding(.leading, PageLayout.gutter)
             .padding(.top, Spacing.s2)
+            .offset(y: dragOffset)
             .zIndex(1)
             .accessibilityLabel("Close video viewer")
         }
+        .simultaneousGesture(swipeDownDismiss)
         .pageTheme(.dark)
         .preferredColorScheme(.dark)
         .chromeAccent(accent, onAccent: onAccent)
+    }
+
+    private var backdropOpacity: Double {
+        let progress = min(max(Double(dragOffset) / 300, 0), 1)
+        return 1 - progress * 0.55
+    }
+
+    private var swipeDownDismiss: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onChanged { value in
+                guard !isDismissing else { return }
+                let vertical = value.translation.height
+                let horizontal = abs(value.translation.width)
+                // Vertical-dominant downward only — leave AVKit scrubbing alone.
+                guard vertical > 0, vertical > horizontal else {
+                    if dragOffset != 0 { dragOffset = 0 }
+                    return
+                }
+                dragOffset = vertical
+            }
+            .onEnded { value in
+                guard !isDismissing else { return }
+                let predicted = value.predictedEndTranslation.height
+                if value.translation.height > dismissDragThreshold || predicted > 420 {
+                    close()
+                } else {
+                    withAnimation(Motion.stateChange) { dragOffset = 0 }
+                }
+            }
+    }
+
+    private func close() {
+        guard !isDismissing else { return }
+        isDismissing = true
+        // Yield so the touch ends before the cover tears down — otherwise the
+        // same tap can land on the work-detail toolbar underneath.
+        Task { @MainActor in
+            await Task.yield()
+            dismiss()
+        }
     }
 }
