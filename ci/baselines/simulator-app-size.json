@@ -1,4 +1,4 @@
 {
-  "httpjpg.app_kb": null,
-  "note": "Floor measured from a simulator Debug build (CONTENT_SOURCE=mock, unsigned). Null until the first main build records it; PRs still report absolute size."
+  "httpjpg.app_kb": 75128,
+  "note": "Floor measured from a simulator Debug build (CONTENT_SOURCE=mock, unsigned)."
 }
