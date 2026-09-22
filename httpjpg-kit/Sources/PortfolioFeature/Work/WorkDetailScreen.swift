@@ -193,7 +193,10 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        .navigationScrollEdges()
+        // Soft top edge: the nav rule dissolves at rest so the page title can
+        // sit under the bar without a hairline slicing them apart. Hard top
+        // kept the rule visible even at topscroll.
+        .softScrollEdges()
     }
 
     @ViewBuilder
