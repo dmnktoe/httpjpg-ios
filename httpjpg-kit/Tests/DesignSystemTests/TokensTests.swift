@@ -32,7 +32,9 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Palette.onNamed("black"), Palette.white)
         XCTAssertEqual(Palette.onNamed("white"), Palette.black)
         XCTAssertNil(Palette.onNamed(nil))
-        XCTAssertNil(Palette.onNamed("primary.500"), "token keys are not Project Accent Color values")
+        // Ramp tokens resolve too — chrome accents arrive as `primary.700`, not
+        // only hex. Glyph contrast for those lives in AccentContrastTests.
+        XCTAssertEqual(Palette.onNamed("primary.500"), Palette.white)
     }
 
     func testNamedAcceptsCMSHexValues() {
