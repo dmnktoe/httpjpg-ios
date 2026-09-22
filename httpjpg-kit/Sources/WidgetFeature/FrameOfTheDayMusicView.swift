@@ -37,6 +37,7 @@ struct FrameOfTheDayMusicView: View {
             if let artwork {
                 Image(uiImage: artwork)
                     .resizable()
+                    .widgetFullColor()
                     .scaledToFill()
                     .frame(width: artworkSize, height: artworkSize)
                     .clipped()

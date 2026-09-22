@@ -22,6 +22,7 @@ struct LatestWorkSmallView: View {
         if let image = entry.image {
             Image(uiImage: image)
                 .resizable()
+                .widgetFullColor()
                 .scaledToFill()
         } else {
             theme.background

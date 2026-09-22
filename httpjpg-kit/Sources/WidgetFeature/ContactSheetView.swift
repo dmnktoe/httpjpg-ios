@@ -46,6 +46,7 @@ struct ContactSheetView: View {
                 if let image = entry.frames[item.id] {
                     Image(uiImage: image)
                         .resizable()
+                        .widgetFullColor()
                         .scaledToFill()
                 } else {
                     placeholder(item)
