@@ -2,13 +2,22 @@ import SwiftUI
 import Tokens
 
 /// The work-list tag filter: a collapsed `[ + ] filter` line that expands into
-/// an `all` chip plus one chip per tag, same shape as the website's `WorkTagFilter`.
+/// an `all` pill plus one per tag, same shape as the website's `WorkTagFilter`.
+///
+/// The pills are the app's glass pills, so the filter, the variant picker and
+/// the tab bar all read as one control family — only the size changes.
 public struct WorkTagFilter: View {
     private let tags: [String]
     private let counts: [String: Int]
     private let totalCount: Int?
     private let active: String?
     private let onChange: (String?) -> Void
+
+    @Environment(\.pageTheme) private var theme
+
+    /// Every chip in the row shares this, so switching filters melts one pill
+    /// into the next instead of two of them cross-fading.
+    @Namespace private var glass
 
     @State private var isExpanded: Bool
 
@@ -37,6 +46,8 @@ public struct WorkTagFilter: View {
                     chips
                 }
             }
+            .animation(Motion.navigate, value: isExpanded)
+            .animation(Motion.stateChange, value: active)
         }
     }
 
@@ -51,10 +62,10 @@ public struct WorkTagFilter: View {
                     .textCase(.uppercase)
                 Text("· \(summary)")
                     .opacity(Opacities.subtle)
-                    .tracking(Typography.Size.xs * 0.05)
+                    .tracking(Typography.Tracking.wider(Typography.Size.xs))
             }
             .font(Typography.mono(Typography.Size.xs))
-            .tracking(Typography.Size.xs * 0.1)
+            .tracking(Typography.Tracking.widest(Typography.Size.xs))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("filter")
@@ -63,34 +74,71 @@ public struct WorkTagFilter: View {
     }
 
     private var chips: some View {
-        FlowLayout(spacing: Spacing.s2) {
-            chip("all", count: totalCount, isSelected: active == nil, showsMarker: false) {
-                onChange(nil)
-            }
+        LiquidGlassContainer(spacing: Spacing.s2) {
+            FlowLayout(spacing: Spacing.s2) {
+                chip(id: Self.allChipID, label: "all", count: totalCount, isSelected: active == nil) {
+                    onChange(nil)
+                }
 
-            ForEach(tags, id: \.self) { tag in
-                chip(tag, count: counts[tag], isSelected: active == tag, showsMarker: true) {
-                    onChange(active == tag ? nil : tag)
+                ForEach(tags, id: \.self) { tag in
+                    chip(id: tag, label: tag, count: counts[tag], isSelected: active == tag, marker: "#") {
+                        onChange(active == tag ? nil : tag)
+                    }
                 }
             }
         }
+        .transition(.opacity.combined(with: .offset(y: -Spacing.s2)))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Filter work by tag")
     }
 
     private func chip(
-        _ label: String,
+        id: String,
+        label: String,
         count: Int?,
         isSelected: Bool,
-        showsMarker: Bool,
+        marker: String? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            TagChip(label, isSelected: isSelected, count: count, showsMarker: showsMarker)
+            HStack(spacing: Spacing.s1) {
+                if let marker {
+                    // Decorative: assistive tech reads the authored casing, not
+                    // the hash the web recipe prefixes tags with.
+                    Text(marker)
+                        .font(Typography.mono(Typography.Size.xs))
+                        .opacity(Self.markerOpacity)
+                        .accessibilityHidden(true)
+                }
+
+                Text(label)
+                    .font(Typography.sans(Typography.Size.sm))
+
+                if let count {
+                    Text(GlyphDigits.format(count))
+                        .font(Typography.mono(Typography.Size.xs))
+                        .opacity(Opacities.subtle)
+                        .accessibilityHidden(true)
+                }
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .buttonStyle(.glassPill(
+            .forSelection(isSelected, theme: theme),
+            size: .compact,
+            morphID: id,
+            in: glass
+        ))
+        .accessibilityLabel(count.map { "\(label), \($0)" } ?? label)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
+
+    /// Opacity of the `#` marker. Off-palette on purpose: the web `TagMarker` is
+    /// `0.45`, between `Opacities.dimmed` and `Opacities.subtle`.
+    private static let markerOpacity: Double = 0.45
+
+    /// Namespaced so a tag literally called `all` cannot collide with the
+    /// clear-filter pill in the morph namespace.
+    private static let allChipID = "filter.all"
 
     /// Collapsed with a filter on would otherwise hide the reason the list is
     /// short, so the toggle line reports it.

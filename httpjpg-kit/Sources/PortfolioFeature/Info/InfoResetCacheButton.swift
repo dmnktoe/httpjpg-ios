@@ -28,14 +28,9 @@ struct InfoResetCacheButton: View {
                     Text(label)
                 }
                 .font(Typography.mono(Typography.Size.xs))
-                .tracking(Typography.Size.xs * 0.1)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(height: Spacing.s4)
-                .foregroundStyle(theme.chromeLabel)
-                .glassPill(tint: theme.chromeFill, stroke: theme.chromeStroke)
+                .tracking(Typography.Tracking.widest(Typography.Size.xs))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.glassPill(.idle(theme)))
             .disabled(phase == .reloading)
             .sensoryFeedback(.impact(weight: .light), trigger: taps)
             .animation(Motion.stateChange, value: phase)

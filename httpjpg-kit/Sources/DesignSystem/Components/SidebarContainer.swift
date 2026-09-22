@@ -20,7 +20,10 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag = DragState()
 
-    @State private var isSettling = false
+    /// True while the drawer owns the screen. Glass cannot sample a page that is
+    /// being scaled and drained of colour, so chrome drops to a flat fill for
+    /// the duration — see `\.glassSuspended`.
+    @State private var isSuspended = false
 
     @State private var settleTicket = 0
 
@@ -65,13 +68,19 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .environment(\.chromeHeld, ambientHeld)
+        .glassSuspended(ambientHeld)
         .animation(motion, value: isOpen)
+        // `Motion.drawer` is a spring with no duration to read back, and the
+        // page keeps moving after `isOpen` flips — so the suspension outlives
+        // the state change by one settle instead of ending on it.
         .task(id: settleTicket) {
-            isSettling = true
-            try? await Task.sleep(for: .milliseconds(600))
+            // Ticket 0 is the first render, not a drawer move — suspending there
+            // flashed the chrome flat for a beat on launch.
+            guard settleTicket > 0 else { return }
+            isSuspended = true
+            try? await Task.sleep(for: Motion.drawerSettle)
             guard !Task.isCancelled else { return }
-            isSettling = false
+            isSuspended = false
         }
         .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
@@ -115,7 +124,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var ambientHeld: Bool {
-        isOpen || drag.isArmed || isSettling
+        isOpen || drag.isArmed || isSuspended
     }
 
     private var openEdge: some View {

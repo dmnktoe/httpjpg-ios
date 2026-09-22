@@ -17,8 +17,15 @@ struct WorkDetailScreen: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
+    @Environment(\.pageTheme) private var theme
+
     @State private var model: WorkDetailModel?
     @State private var imageViewerHeld = false
+
+    /// Shares a morph identity across the three toolbar orbs so they travel as
+    /// one piece of glass when the trailing pair appears or the share sheet
+    /// takes over.
+    @Namespace private var toolbarGlass
 
     var body: some View {
         Group {
@@ -34,39 +41,32 @@ struct WorkDetailScreen: View {
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
+        .navigationBarBackground(headerBackground, scheme: headerScheme)
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                NavGlassButton(
-                    systemName: "chevron.left",
-                    label: "Back",
-                    tint: chromeTint,
-                    onTint: chromeOnTint,
-                    action: { dismiss() }
-                )
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .buttonStyle(.glassOrb(orbTint, morphID: "back", in: toolbarGlass))
                 .disabled(imageViewerHeld)
+                .accessibilityLabel("Back")
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
-                    NavGlassButton(
-                        systemName: "safari",
-                        label: "Open external preview",
-                        tint: chromeTint,
-                        onTint: chromeOnTint,
-                        action: { openURL(url) }
-                    )
+                    Button { openURL(url) } label: {
+                        Image(systemName: "safari")
+                    }
+                    .buttonStyle(.glassOrb(orbTint, morphID: "preview", in: toolbarGlass))
                     .disabled(imageViewerHeld)
+                    .accessibilityLabel("Open external preview")
                 }
 
                 ShareLink(item: shareURL) {
-                    NavGlassIcon(
-                        systemName: "square.and.arrow.up",
-                        tint: chromeTint,
-                        onTint: chromeOnTint
-                    )
+                    Image(systemName: "square.and.arrow.up")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.glassOrb(orbTint, morphID: "share", in: toolbarGlass))
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
@@ -95,6 +95,37 @@ struct WorkDetailScreen: View {
     private var chromeOnTint: Color? {
         Palette.onNamed(accentToken)
     }
+
+    private var orbTint: PillTint {
+        .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
+    }
+
+    /// The page forces its own appearance, so the toolbar has to be tinted
+    /// against that theme rather than the ambient one.
+    private var headerTheme: PageTheme {
+        pageIsDark ? .dark : theme
+    }
+
+    /// iOS 26 left every bar as clear glass, which put an accented page's header
+    /// over its own artwork with nothing behind the title. An accented page
+    /// paints the bar; an unaccented one keeps the system glass.
+    private var headerBackground: Color? {
+        guard let chromeTint else { return nil }
+        return chromeTint.opacity(Self.headerFillOpacity)
+    }
+
+    private var headerScheme: ColorScheme? {
+        // The title follows the same contrast call the toolbar glyphs made, so
+        // the bar never mixes a black title with white buttons.
+        guard let prefersLight = Palette.prefersLightForeground(accentToken) else {
+            return pageIsDark ? .dark : nil
+        }
+        return prefersLight ? .dark : .light
+    }
+
+    /// Enough accent to read as the page's colour, sheer enough that the content
+    /// scrolling under it still shows through.
+    private static let headerFillOpacity: Double = 0.82
 
     private var externalPreviewURL: URL? {
         loadedDetail != nil

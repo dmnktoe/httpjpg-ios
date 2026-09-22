@@ -93,7 +93,6 @@ struct WorkIndexScreen: View {
                 .minimumScaleFactor(0.7)
 
             VariantPicker(
-                links: app.config.headerMenu,
                 selection: model.variant,
                 onSelect: { model.select(variant: $0) }
             )

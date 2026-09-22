@@ -31,17 +31,24 @@ public struct PageTheme: Sendable, Equatable {
 
     public var link: Color { Palette.primary.s500 }
 
-    public var chromeFill: Color { isDark ? Palette.neutral.s800.opacity(0.72) : Palette.neutral.s300.opacity(0.6) }
+    /// Tint behind an idle piece of chrome. Kept light so Liquid Glass still
+    /// refracts the page instead of reading as a grey disc.
+    public var chromeFill: Color { isDark ? Palette.neutral.s900.opacity(0.55) : Palette.white.opacity(0.5) }
 
-    public var chromeLabel: Color { isDark ? Palette.white.opacity(0.9) : Palette.neutral.s800 }
+    public var chromeLabel: Color { isDark ? Palette.white.opacity(0.92) : Palette.neutral.s800 }
 
-    public var chromeStroke: Color { Palette.neutral.s400.opacity(isDark ? 0.6 : 0.45) }
+    /// A hairline, not a border: enough to seat the pill on a photo, invisible
+    /// on a flat page.
+    public var chromeStroke: Color { foreground.opacity(isDark ? 0.16 : 0.12) }
 
-    public var chromeActiveFill: Color { Palette.white.opacity(0.95) }
+    /// Selected chrome inverts the page, the same move the tag chips and the
+    /// sidebar button make. The old white-on-white active pill only read by its
+    /// stroke in light mode.
+    public var chromeActiveFill: Color { foreground.opacity(0.92) }
 
-    public var chromeActiveLabel: Color { Palette.black }
+    public var chromeActiveLabel: Color { background }
 
-    public var chromeActiveStroke: Color { Palette.accent.s400 }
+    public var chromeActiveStroke: Color { foreground }
 
     public var colorScheme: ColorScheme { isDark ? .dark : .light }
 }

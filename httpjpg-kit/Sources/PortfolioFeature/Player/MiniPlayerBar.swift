@@ -26,7 +26,7 @@ struct MiniPlayerBar: View {
                     marqueeText(track),
                     font: Typography.uiMono(Typography.Size.xs),
                     speed: .rate(20),
-                    color: theme.chromeLabel
+                    color: tint.label
                 )
                 .frame(maxWidth: .infinity)
 
@@ -58,14 +58,14 @@ struct MiniPlayerBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Stop playback")
             }
-            .foregroundStyle(theme.chromeLabel)
+            .foregroundStyle(tint.label)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
             .frame(width: width > 0 ? width : nil)
-            .glassBackground(in: .capsule, tint: theme.chromeFill)
-            .glassMorph(id: "player", in: glass)
+            .liquidGlass(in: .capsule, tint: tint.fill)
+            .liquidGlassID("player", in: glass)
             .clipShape(Capsule())
-            .overlay(Capsule().stroke(theme.chromeStroke, lineWidth: 1))
+            .overlay(Capsule().strokeBorder(tint.stroke ?? .clear, lineWidth: PillMetrics.hairline))
             .contentShape(Capsule())
             .onTapGesture { player.isExpanded = true }
             .gesture(
@@ -95,7 +95,12 @@ struct MiniPlayerBar: View {
         }
         .frame(width: Self.rowHeight, height: Self.rowHeight)
         .clipped()
-        .overlay(Rectangle().stroke(theme.chromeStroke, lineWidth: 1))
+        .overlay(Rectangle().stroke(tint.stroke ?? .clear, lineWidth: PillMetrics.hairline))
+    }
+
+    /// The bar is chrome, so it wears exactly what an unselected pill wears.
+    private var tint: PillTint {
+        .idle(theme)
     }
 
     private func marqueeText(_ track: AudioTrack) -> String {

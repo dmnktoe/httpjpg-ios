@@ -1,0 +1,123 @@
+import SwiftUI
+import Tokens
+
+/// The one place in the package that names a Liquid Glass symbol.
+///
+/// Callers ask for `.liquidGlass(in:tint:)` and get the best surface the running
+/// OS can draw: real glass on iOS 26+, a tinted material on iOS 17–25, and a
+/// flat fill whenever `\.glassSuspended` says the backdrop is not sampleable.
+public enum LiquidGlass {
+    /// How opaque a tint gets once it has to stand in for glass. Glass carries
+    /// its own frost; a flat fill has to supply the legibility itself.
+    static let flatTintOpacity: Double = 0.88
+
+    /// Fallback tint strength on iOS 17–25, where `.ultraThinMaterial` is still
+    /// doing most of the work underneath.
+    static let materialTintOpacity: Double = 0.55
+}
+
+public extension View {
+    /// Paints a Liquid Glass surface behind this view.
+    ///
+    /// - Parameters:
+    ///   - shape: the surface outline; also the hit and highlight shape.
+    ///   - tint: the colour the glass takes. `nil` asks for untinted glass,
+    ///     which stays invisible rather than leaving a grey disc on a light page.
+    ///   - isInteractive: adds the press-and-drag highlight for controls.
+    func liquidGlass(
+        in shape: some Shape = .capsule,
+        tint: Color? = nil,
+        isInteractive: Bool = false
+    ) -> some View {
+        modifier(LiquidGlassSurface(shape: shape, tint: tint, isInteractive: isInteractive))
+    }
+
+    /// Joins this surface to a morph identity. Sibling surfaces sharing a
+    /// `LiquidGlassContainer` melt into one another instead of cross-fading.
+    func liquidGlassID(_ id: some Hashable, in namespace: Namespace.ID) -> some View {
+        modifier(LiquidGlassIdentity(id: id, namespace: namespace))
+    }
+
+    /// `liquidGlassID` for a shape that may or may not want to morph. Carries
+    /// its own label so it cannot overload against the form it calls.
+    @ViewBuilder
+    func liquidGlassID(ifPresent id: AnyHashable?, in namespace: Namespace.ID?) -> some View {
+        if let id, let namespace {
+            liquidGlassID(id, in: namespace)
+        } else {
+            self
+        }
+    }
+}
+
+private struct LiquidGlassSurface<S: Shape>: ViewModifier {
+    let shape: S
+    let tint: Color?
+    let isInteractive: Bool
+
+    @Environment(\.glassSuspended) private var isSuspended
+    @Environment(\.pageTheme) private var theme
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isInteractive {
+            // Interactive glass derives its highlight from the view bounds, which
+            // rounds to a rect on small square frames — clipping keeps an orb round.
+            surface(content).clipShape(shape)
+        } else {
+            surface(content)
+        }
+    }
+
+    @ViewBuilder
+    private func surface(_ content: Content) -> some View {
+        if isSuspended {
+            suspended(content)
+        } else if #available(iOS 26.0, *) {
+            content.glassEffect(glass, in: shape)
+        } else if let tint {
+            content
+                .background(tint.opacity(LiquidGlass.materialTintOpacity), in: shape)
+                .background(.ultraThinMaterial, in: shape)
+        } else {
+            // No tint and no glass: painting a frosted material here would leave
+            // a grey disc on a light page, so paint nothing.
+            content
+        }
+    }
+
+    /// A flat stand-in has no frost to lean on, so the tint goes over an opaque
+    /// disc of the page colour — the pill then reads exactly as it does on a
+    /// flat page instead of washing out. Untinted glass is invisible by design,
+    /// so it stays that way.
+    @ViewBuilder
+    private func suspended(_ content: Content) -> some View {
+        if let tint {
+            content
+                .background(tint.opacity(LiquidGlass.flatTintOpacity), in: shape)
+                .background(theme.background.opacity(Opacities.muted), in: shape)
+        } else {
+            content
+        }
+    }
+
+    @available(iOS 26.0, *)
+    private var glass: Glass {
+        guard let tint else { return .identity }
+        let tinted = Glass.regular.tint(tint)
+        return isInteractive ? tinted.interactive() : tinted
+    }
+}
+
+private struct LiquidGlassIdentity<ID: Hashable>: ViewModifier {
+    let id: ID
+    let namespace: Namespace.ID
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffectID(id, in: namespace)
+        } else {
+            content
+        }
+    }
+}
