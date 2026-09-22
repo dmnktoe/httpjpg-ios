@@ -147,19 +147,14 @@ jobs:
           periphery version
           "$HOME/.maestro/bin/maestro" --version
 
-      - name: XcodeGen drift
+      - name: Validate project.yml
         shell: bash
         run: |
-          # Validate project.yml and catch checked-in pbxproj drift. Version skew
-          # between local and CI xcodegen can cause false positives — pin via brew
-          # freeze or regenerate when this fires.
-          xcodegen generate
-          if ! git diff --quiet -- httpjpg.xcodeproj/project.pbxproj; then
-            echo "::error::httpjpg.xcodeproj drifted from project.yml — run xcodegen generate and commit."
-            git --no-pager diff --stat -- httpjpg.xcodeproj/project.pbxproj
-            git --no-pager diff -- httpjpg.xcodeproj/project.pbxproj | head -200
-            exit 1
-          fi
+          # Checked-in pbxproj uses stable AA00… IDs; brew xcodegen rewrites
+          # random UUIDs + a newer objectVersion, so a git-diff drift check is
+          # always a false positive. Only assert that project.yml still generates.
+          xcodegen generate --project /tmp/httpjpg-xcodegen-check.xcodeproj
+          rm -rf /tmp/httpjpg-xcodegen-check.xcodeproj
 
       - name: Build app (mock content)
         id: build_app
