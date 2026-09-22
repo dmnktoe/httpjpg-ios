@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2](https://github.com/dmnktoe/httpjpg-ios/compare/v1.0.1...v1.0.2) (2026-09-22)
+
+
+### Tooling
+
+* empty release-please component so merged release PRs tag ([#79](https://github.com/dmnktoe/httpjpg-ios/issues/79)) ([ca8519a](https://github.com/dmnktoe/httpjpg-ios/commit/ca8519a6df5c719cedfdb8cad5114a3964af8f6f))
+
 ## [1.0.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.0.0...v1.0.1) (2026-09-22)
 
 
