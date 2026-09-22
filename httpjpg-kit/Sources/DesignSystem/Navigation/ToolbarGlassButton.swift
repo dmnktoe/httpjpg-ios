@@ -6,14 +6,14 @@ public extension View {
     /// when untinted.
     ///
     /// Untinted controls on iOS 26 keep the toolbar's Liquid Glass and only set
-    /// the glyph. Accented controls use the opaque orb so CMS contrast from
-    /// `Palette.onNamed` is exact — `.glassProminent` was choosing its own
-    /// label colour from the washed fill and missing mid accents.
+    /// the glyph. Accented controls draw their own tinted glass orb so CMS
+    /// contrast from `Palette.onNamed` stays exact — `.glassProminent` was
+    /// picking its own label colour from the washed fill.
     ///
     /// Pair accented controls with `hidingSharedToolbarBackground(true)` on the
     /// `ToolbarItem`, otherwise the system glass ring sits around the orb.
     ///
-    /// Below iOS 26 every control draws its own orb.
+    /// Below iOS 26 every control draws its own orb (opaque accent fill).
     ///
     /// - Parameters:
     ///   - accent: the page accent, or `nil` for a neutral control.
@@ -43,16 +43,23 @@ private struct ToolbarGlassButton: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if accent != nil {
-            // Opaque CMS accent: keep the orb so `Palette.onNamed` wins.
-            // `.glassProminent` picks its own label colour from the washed glass
-            // fill and was painting black glyphs on mid accents like `#92a0a0`.
-            content.buttonStyle(.glassOrb(fallback))
+        if let accent {
+            content.buttonStyle(.glassOrb(accentOrb(fill: accent)))
         } else if #available(iOS 26.0, *) {
             // Untinted: inherit the toolbar's system glass, only set the glyph.
             content.tint(fallback.label)
         } else {
             content.buttonStyle(.glassOrb(fallback))
+        }
+    }
+
+    /// iOS 26: real tinted Liquid Glass (not a flat disc). Older OS keeps the
+    /// opaque accent fill from `PillTint.control`.
+    private func accentOrb(fill: Color) -> PillTint {
+        if #available(iOS 26.0, *) {
+            PillTint(fill: fill, label: fallback.label, stroke: nil, isOpaque: false)
+        } else {
+            fallback
         }
     }
 }
