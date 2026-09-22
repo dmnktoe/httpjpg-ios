@@ -1,10 +1,11 @@
 # ⇝httpjpg for iOS
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmnktoe/httpjpg-ios/ci.yml?branch=main&logo=github&logoColor=fff&label=CI&labelColor=000)
-![Swift](https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=fff&labelColor=000)
-![Xcode](https://img.shields.io/badge/Xcode-26-00b4f0?logo=xcode&logoColor=fff&labelColor=000)
-![iOS](https://img.shields.io/badge/iOS-17%2B-000?logo=apple&logoColor=fff&labelColor=000)
-![watchOS](https://img.shields.io/badge/watchOS-10%2B-000?logo=apple&logoColor=fff&labelColor=000)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmnktoe/httpjpg-ios/ci.yml?logo=github&logoColor=fff&label=ci&labelColor=000&style=plastic&branch=main)
+![GitHub Release](https://img.shields.io/github/v/release/dmnktoe/httpjpg-ios?logo=semanticrelease&logoColor=fff&label=release&labelColor=000&color=00b4f0&style=plastic)
+![Swift](https://img.shields.io/badge/swift-6.2-f05138?logo=swift&logoColor=fff&labelColor=000&style=plastic)
+![Xcode](https://img.shields.io/badge/xcode-26-00b4f0?logo=xcode&logoColor=fff&labelColor=000&style=plastic)
+![iOS](https://img.shields.io/badge/ios-17%2B-000?logo=apple&logoColor=fff&labelColor=000&style=plastic)
+![watchOS](https://img.shields.io/badge/watchos-10%2B-000?logo=apple&logoColor=fff&labelColor=000&style=plastic)
 
 **swiftui · storyblok · swiftpm · xcodegen**
 
