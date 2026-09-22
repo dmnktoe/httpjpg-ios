@@ -3,10 +3,12 @@ import SwiftUI
 
 public struct VideoSurface: View {
     public enum Layout: Sendable {
-        /// Inline / lightbox-fitted: keep the CMS (or measured) aspect box.
+        /// Inline: keep the CMS (or measured) aspect box and cover-fill it
+        /// (web `object-fit: cover`).
         case fitted
-        /// Fullscreen: expand to the proposed size and cover-fill the frame.
-        case filled
+        /// Fullscreen stage: occupy the proposed size and letterbox the clip
+        /// (`resizeAspect`) so a 16:9 never crops on a portrait phone.
+        case contained
     }
 
     private let url: URL
@@ -72,6 +74,13 @@ public struct VideoSurface: View {
         measuredAspectRatio ?? aspectRatio
     }
 
+    private var videoGravity: AVLayerVideoGravity {
+        switch layout {
+        case .fitted: .resizeAspectFill
+        case .contained: .resizeAspect
+        }
+    }
+
     @ViewBuilder
     private var framedSurface: some View {
         switch layout {
@@ -79,9 +88,7 @@ public struct VideoSurface: View {
             surface
                 .aspectRatio(resolvedAspectRatio, contentMode: .fit)
                 .frame(maxWidth: .infinity)
-        case .filled:
-            // Portrait lightbox + landscape clip: fill the screen and crop,
-            // same idea as web object-fit cover in a full-bleed stage.
+        case .contained:
             surface
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -89,7 +96,7 @@ public struct VideoSurface: View {
 
     @ViewBuilder
     private var surface: some View {
-        PlayerLayerView(player: player, videoGravity: .resizeAspectFill)
+        PlayerLayerView(player: player, videoGravity: videoGravity)
             .allowsHitTesting(false)
     }
 
@@ -104,20 +111,18 @@ public struct VideoSurface: View {
                     contentMode: .fill
                 )
                 .allowsHitTesting(false)
-            case .filled:
-                // RemoteImage always aspect-fits; fullscreen needs a cover fill.
+            case .contained:
                 AsyncImage(url: posterURL) { phase in
                     switch phase {
                     case .success(let image):
                         image
                             .resizable()
-                            .scaledToFill()
+                            .scaledToFit()
                     default:
                         Color.black
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
                 .allowsHitTesting(false)
             }
         }
