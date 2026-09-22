@@ -1,0 +1,48 @@
+# Keep this lean — annotations in CI, not a style rewrite. Mirror the
+# conventions in CLAUDE.md; turn rules on only when they catch real drift.
+
+disabled_rules:
+  - todo
+  - trailing_comma
+  - type_name
+  - identifier_name
+  - line_length
+  - file_length
+  - type_body_length
+  - function_body_length
+  - cyclomatic_complexity
+  - nesting
+  - force_cast
+  - force_try
+  - force_unwrapping
+  - trailing_whitespace
+  - vertical_whitespace
+  - opening_brace
+  - closure_parameter_position
+  - large_tuple
+  - multiple_closures_with_trailing_closure
+  - legacy_swiftui_aspect_ratio
+  - static_over_final_class
+
+opt_in_rules:
+  - empty_count
+  - first_where
+  - last_where
+  - sorted_first_last
+  - toggle_bool
+  - unused_optional_binding
+
+included:
+  - httpjpg
+  - httpjpg-kit/Sources
+  - httpjpg-kit/Tests
+  - httpjpg-watch
+  - httpjpg-widgets
+
+excluded:
+  - .build
+  - DerivedData
+  - httpjpg-kit/.build
+  - "**/.swiftpm"
+
+reporter: github-actions-logging

@@ -5,10 +5,24 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      record_snapshots:
+        description: "Record missing DesignSystem snapshot baselines"
+        type: boolean
+        default: false
+      write_periphery_baseline:
+        description: "Rewrite periphery-baseline.json from the current scan"
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   # ── Skip the pipeline on release PRs (mirrors httpjpg) ──────────────
@@ -37,6 +51,7 @@ jobs:
     needs: [guard]
     if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,11 +69,34 @@ jobs:
       - run: node scripts/check-blok-registry.mjs --web-repo=../httpjpg
         working-directory: httpjpg-ios
 
+  lint:
+    name: SwiftLint
+    needs: [guard]
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        env:
+          SWIFTLINT_VERSION: "0.65.1"
+        run: |
+          curl -sL "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/swiftlint_linux_amd64.zip" \
+            -o /tmp/swiftlint.zip
+          unzip -o /tmp/swiftlint.zip -d /tmp/swiftlint
+          install -m 755 /tmp/swiftlint/swiftlint /usr/local/bin/swiftlint
+          swiftlint version
+
+      - name: Lint
+        run: swiftlint lint --reporter github-actions-logging
+
   build:
     name: Build & test
     needs: [guard]
     if: needs.guard.outputs.run == 'true'
     runs-on: macos-15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -80,9 +118,9 @@ jobs:
       - name: Resolve simulator
         shell: bash
         run: |
-          udid=$(xcrun simctl list devices available --json \
+          ios_udid=$(xcrun simctl list devices available --json \
             | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("iPhone"))] | last | .udid // empty')
-          if [ -z "$udid" ]; then
+          if [ -z "$ios_udid" ]; then
             runtime=$(xcrun simctl list runtimes --json \
               | jq -r '[.runtimes[] | select(.isAvailable and (.platform == "iOS" or (.identifier | test("SimRuntime.iOS"))))] | last | .identifier // empty')
             if [ -z "$runtime" ]; then
@@ -91,31 +129,136 @@ jobs:
             fi
             devtype=$(xcrun simctl list devicetypes --json \
               | jq -r '[.devicetypes[] | select(.productFamily == "iPhone")] | last | .identifier')
-            udid=$(xcrun simctl create ci-iphone "$devtype" "$runtime")
+            ios_udid=$(xcrun simctl create ci-iphone "$devtype" "$runtime")
           fi
+          echo "SIMULATOR=id=$ios_udid" >> "$GITHUB_ENV"
+          echo "SIMULATOR_UDID=$ios_udid" >> "$GITHUB_ENV"
           xcrun simctl list devices available
-          echo "SIMULATOR=id=$udid" >> "$GITHUB_ENV"
 
-      - name: Build app
+      - name: Install CI tools
         shell: bash
         run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          brew list periphery >/dev/null 2>&1 || brew install peripheryapp/periphery/periphery
+          # Maestro CLI (local simulator driver — no Maestro Cloud / Apple account)
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+          xcodegen --version
+          periphery version
+          "$HOME/.maestro/bin/maestro" --version
+
+      - name: XcodeGen drift
+        shell: bash
+        run: |
+          # Validate project.yml and catch checked-in pbxproj drift. Version skew
+          # between local and CI xcodegen can cause false positives — pin via brew
+          # freeze or regenerate when this fires.
+          xcodegen generate
+          if ! git diff --quiet -- httpjpg.xcodeproj/project.pbxproj; then
+            echo "::error::httpjpg.xcodeproj drifted from project.yml — run xcodegen generate and commit."
+            git --no-pager diff --stat -- httpjpg.xcodeproj/project.pbxproj
+            git --no-pager diff -- httpjpg.xcodeproj/project.pbxproj | head -200
+            exit 1
+          fi
+
+      - name: Build app (mock content)
+        id: build_app
+        shell: bash
+        run: |
+          mkdir -p build/DerivedData
+          set -o pipefail
           xcodebuild build \
             -project httpjpg.xcodeproj \
             -scheme httpjpg \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            CONTENT_SOURCE=mock \
+            STORYBLOK_ACCESS_TOKEN=mock \
             | tee build.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+
+          app=$(find build/DerivedData/Build/Products -path '*/Debug-iphonesimulator/httpjpg.app' -type d | head -1)
+          if [ -z "$app" ]; then
+            echo "could not locate httpjpg.app under DerivedData" >&2
+            find build/DerivedData/Build/Products -name '*.app' -type d | head -20 >&2 || true
+            exit 1
+          fi
+          echo "app_path=$app" >> "$GITHUB_OUTPUT"
+          size_kb=$(scripts/measure-app-size.sh "$app")
+          echo "size_kb=$size_kb" >> "$GITHUB_OUTPUT"
+          echo "Simulator httpjpg.app = ${size_kb} KiB"
         env:
           NSUnbufferedIO: YES
 
       - name: Raw build log
-        if: failure()
+        if: failure() && hashFiles('build.log') != ''
         run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
 
+      - name: App size
+        if: steps.build_app.outputs.size_kb != ''
+        shell: bash
+        env:
+          SIZE_KB: ${{ steps.build_app.outputs.size_kb }}
+        run: |
+          chmod +x scripts/*.sh
+          scripts/compare-app-size.sh "$SIZE_KB"
+          mkdir -p build/size
+          printf '%s\n' "$SIZE_KB" > build/size/httpjpg.app.kb
+          scripts/record-app-size-baseline.sh "$SIZE_KB" build/size/simulator-app-size.json
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.event_name }}" = "push" ]; then
+            scripts/record-app-size-baseline.sh "$SIZE_KB"
+            echo "Baseline file updated in the workspace (commit separately if it drifted)."
+          fi
+
+      - name: Upload size report
+        if: always() && steps.build_app.outputs.size_kb != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-app-size
+          path: build/size/
+          retention-days: 30
+
+      - name: Build watch app
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project httpjpg.xcodeproj \
+            -scheme httpjpg-watch \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CONTENT_SOURCE=mock \
+            STORYBLOK_ACCESS_TOKEN=mock \
+            | tee watch-build.log \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Raw watch build log
+        if: failure() && hashFiles('watch-build.log') != ''
+        run: grep -n -B2 -A6 -i 'error' watch-build.log | tail -100 || tail -100 watch-build.log
+
+      - name: Snapshot recording mode
+        id: snapshots
+        shell: bash
+        run: |
+          if [ "${{ github.event.inputs.record_snapshots }}" = "true" ]; then
+            echo "record=all" >> "$GITHUB_OUTPUT"
+          elif [ ! -d httpjpg-kit/Tests/DesignSystemTests/__Snapshots__ ]; then
+            echo "record=missing" >> "$GITHUB_OUTPUT"
+            echo "::notice::No snapshot baselines yet — recording missing snapshots for commit."
+          else
+            echo "record=never" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Test package
+        id: test
         shell: bash
         working-directory: httpjpg-kit
         run: |
@@ -126,24 +269,116 @@ jobs:
             exit 1
           fi
           echo "scheme: $scheme"
+          set -o pipefail
           xcodebuild test \
             -scheme "$scheme" \
             -destination "$SIMULATOR" \
+            -derivedDataPath ../build/DerivedData \
+            -resultBundlePath ../build/TestResults.xcresult \
+            -enableCodeCoverage YES \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             | tee test.log \
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
+          SNAPSHOT_TESTING_RECORD: ${{ steps.snapshots.outputs.record }}
 
       - name: Raw test log
-        if: failure()
+        if: failure() && hashFiles('httpjpg-kit/test.log') != ''
         run: grep -n -B2 -A6 -i 'error' httpjpg-kit/test.log | tail -100 || tail -100 httpjpg-kit/test.log
+
+      - name: Upload snapshots
+        if: always() && hashFiles('httpjpg-kit/Tests/DesignSystemTests/__Snapshots__/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-system-snapshots
+          path: httpjpg-kit/Tests/DesignSystemTests/__Snapshots__/
+          retention-days: 14
+
+      - name: Coverage → Codecov
+        if: always() && hashFiles('build/TestResults.xcresult') != ''
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          xcode: true
+          xcode_archive_path: build/TestResults.xcresult
+          flags: ios
+
+      - name: Upload xcresult
+        if: always() && hashFiles('build/TestResults.xcresult') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/TestResults.xcresult
+          retention-days: 14
+
+      - name: Periphery
+        id: periphery
+        shell: bash
+        run: |
+          set -o pipefail
+          args=(scan --config .periphery.yml)
+          if [ "${{ github.event.inputs.write_periphery_baseline }}" = "true" ] || [ ! -f periphery-baseline.json ]; then
+            echo "::notice::Writing periphery baseline"
+            periphery "${args[@]}" --write-baseline periphery-baseline.json | tee periphery.log
+            echo "wrote_baseline=true" >> "$GITHUB_OUTPUT"
+          else
+            periphery "${args[@]}" | tee periphery.log
+            echo "wrote_baseline=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload periphery baseline
+        if: always() && hashFiles('periphery-baseline.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: periphery-baseline
+          path: periphery-baseline.json
+          retention-days: 14
+
+      - name: Maestro smoke
+        shell: bash
+        env:
+          APP_PATH: ${{ steps.build_app.outputs.app_path }}
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.maestro/bin:$PATH"
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b || xcrun simctl boot "$SIMULATOR_UDID"
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
+          maestro --device "$SIMULATOR_UDID" test .maestro/smoke.yaml
+
+      - name: Upload Maestro diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-diagnostics
+          path: |
+            ~/.maestro/tests
+            /tmp/Master*
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Require committed baselines
+        if: always() && steps.test.outcome == 'success'
+        shell: bash
+        run: |
+          fail=0
+          if [ -n "$(git status --porcelain -- httpjpg-kit/Tests/DesignSystemTests/__Snapshots__)" ]; then
+            echo "::error::Snapshot baselines changed — download the design-system-snapshots artifact and commit them."
+            fail=1
+          fi
+          if [ -n "$(git status --porcelain -- periphery-baseline.json)" ]; then
+            echo "::error::periphery-baseline.json changed — download the periphery-baseline artifact and commit it."
+            fail=1
+          fi
+          exit "$fail"
 
   ci:
     name: All checks passed
     runs-on: ubuntu-latest
-    needs: [guard, bloks, build]
+    needs: [guard, bloks, lint, build]
     if: always()
     timeout-minutes: 5
     steps:
@@ -159,6 +394,7 @@ jobs:
             echo "| Job | Result |"
             echo "| --- | --- |"
             echo "| Blok registry | ${{ needs.bloks.result }} |"
+            echo "| SwiftLint     | ${{ needs.lint.result }} |"
             echo "| Build & test  | ${{ needs.build.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Verify all jobs passed

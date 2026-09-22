@@ -1,0 +1,12 @@
+project: httpjpg.xcodeproj
+schemes:
+  - httpjpg
+targets:
+  - httpjpg
+  - httpjpg-widgets
+  - httpjpg-watch
+retain_public: true
+retain_objc_accessible: true
+retain_swift_ui_previews: true
+baseline: periphery-baseline.json
+format: github-actions

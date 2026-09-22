@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":semanticCommitTypeAll(deps)",
+    ":semanticCommitScopeDisabled"
+  ],
+  "timezone": "Europe/Berlin",
+  "assignees": ["dmnktoe"],
+  "reviewers": ["dmnktoe"],
+  "labels": ["dependencies"],
+  "dependencyDashboard": false,
+  "vulnerabilityAlerts": { "labels": ["security"] },
+  "enabledManagers": ["swift", "github-actions"],
+  "packageRules": [
+    {
+      "description": "Keep ranges, move the floor, so an in-range release still surfaces as a PR",
+      "matchManagers": ["swift"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "SwiftPM deps land in one PR",
+      "matchManagers": ["swift"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "swift packages"
+    },
+    {
+      "description": "CI actions move together",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "addLabels": ["ci"]
+    },
+    {
+      "description": "Majors need a human",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["manual-review"]
+    }
+  ]
+}
