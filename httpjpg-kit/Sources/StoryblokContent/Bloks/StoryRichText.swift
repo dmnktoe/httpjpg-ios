@@ -77,14 +77,19 @@ public struct StoryRichText: View {
             )
 
         case .codeBlock(_, let content):
+            // Mirrors storyblok-richtext CodeBlockRenderer: white on neutral.900 pre.
             return AnyView(
                 ScrollView(.horizontal, showsIndicators: false) {
                     Text(RichTextInline.plainText(content))
-                        .font(Typography.mono(size))
+                        .font(Typography.mono(Typography.Size.sm))
+                        .foregroundStyle(Palette.white)
                         .textSelection(.enabled)
-                        .padding(Spacing.s3)
+                        .padding(Spacing.s4)
                 }
-                .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Palette.neutral.s900)
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .padding(.vertical, Spacing.s6)
             )
 
         case .horizontalRule:
@@ -128,7 +133,12 @@ public struct StoryRichText: View {
 
     private func paragraph(_ content: [RichTextNode], alignment: RichTextAlignment?) -> some View {
         let align = TextAlign(richText: alignment)
-        let attributed = RichTextInline.attributed(content, size: size, linkColor: theme.link)
+        let attributed = RichTextInline.attributed(
+            content,
+            size: size,
+            linkColor: theme.link,
+            codeBackground: theme.codeChipBackground
+        )
         if align == .justify {
             return AnyView(
                 AlignedText(

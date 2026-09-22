@@ -87,6 +87,8 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(PageTheme.light.border, Palette.neutral.s300)
         XCTAssertEqual(PageTheme.dark.border, Palette.neutral.s700)
         XCTAssertEqual(PageTheme.dark.colorScheme, .dark)
+        XCTAssertEqual(PageTheme.light.codeChipBackground, Palette.neutral.s100)
+        XCTAssertEqual(PageTheme.dark.codeChipBackground, Palette.neutral.s800)
     }
 
     func testHeadlineResolvesToABundledCondensedFace() {
