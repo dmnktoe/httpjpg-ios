@@ -185,8 +185,6 @@ private struct VideoLightboxViewer: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.chromeAccent) private var accent
 
-    private let stageRadius = Radii.xl
-
     var body: some View {
         NavigationStack {
             VStack(spacing: Spacing.s4) {
@@ -236,12 +234,7 @@ private struct VideoLightboxViewer: View {
             isMuted: isMuted
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Palette.black, in: RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: stageRadius, style: .continuous)
-                .strokeBorder(PageTheme.dark.border, lineWidth: 1)
-        }
+        .background(Palette.black)
         .padding(.horizontal, PageLayout.gutter)
     }
 
