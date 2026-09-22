@@ -34,6 +34,9 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .enablesInteractivePopGesture()
+        // Status bar / scene chrome only. Root page theme ignores this so the
+        // work list does not go black underneath the push animation.
         .preferredColorScheme(forcesDark ? .dark : nil)
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
