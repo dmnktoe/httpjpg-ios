@@ -11,6 +11,10 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
     public let source: String?
     public let contentType: String?
     public let isExternalURL: Bool
+    /// Storyblok asset payload fields — used when the CDN path has no `WxH`
+    /// segment (mirrors web `mediaWidth` / `mediaHeight`).
+    public let width: Int?
+    public let height: Int?
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -23,6 +27,8 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
         case source
         case contentType = "content_type"
         case isExternalURL = "is_external_url"
+        case width
+        case height
     }
 
     public init(from decoder: any Decoder) throws {
@@ -37,6 +43,26 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
         source = try container.decodeIfPresent(String.self, forKey: .source)
         contentType = try container.decodeIfPresent(String.self, forKey: .contentType)
         isExternalURL = try container.decodeIfPresent(Bool.self, forKey: .isExternalURL) ?? false
+        width = Self.decodePositiveDimension(container, forKey: .width)
+        height = Self.decodePositiveDimension(container, forKey: .height)
+    }
+
+    /// Same tolerance as web `toDimension`: numbers, numeric strings, ignore ≤0.
+    private static func decodePositiveDimension(
+        _ container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) -> Int? {
+        if let value = try? container.decodeIfPresent(Int.self, forKey: key), value > 0 {
+            return value
+        }
+        if let value = try? container.decodeIfPresent(Double.self, forKey: key), value > 0 {
+            return Int(value)
+        }
+        if let raw = try? container.decodeIfPresent(String.self, forKey: key),
+           let parsed = Int(raw), parsed > 0 {
+            return parsed
+        }
+        return nil
     }
 
     public var copyrightText: String? {
@@ -50,6 +76,12 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
     public var hasCredit: Bool { copyrightText != nil || sourceText != nil }
 
     public var isEmpty: Bool { filename?.isEmpty ?? true }
+
+    /// Aspect from payload `width`/`height` when both are positive.
+    public var mediaAspectRatio: CGFloat? {
+        guard let width, let height, width > 0, height > 0 else { return nil }
+        return CGFloat(width) / CGFloat(height)
+    }
 
     public var isVideo: Bool {
         ImageService.isVideo(filename: filename, contentType: contentType)

@@ -235,12 +235,35 @@ final class StoryblokDecodingTests: XCTestCase {
          "poster":{"filename":"https://a.storyblok.com/f/281211/3388x1672/x/cover.png"}}
         """)
         XCTAssertNil(blok.aspectRatio)
+        XCTAssertNil(blok.asset?.mediaAspectRatio)
         XCTAssertNil(ImageService.aspectRatio(of: blok.asset?.filename))
         XCTAssertEqual(
             try XCTUnwrap(ImageService.aspectRatio(of: blok.poster?.filename)),
             3388.0 / 1672.0,
             accuracy: 0.001
         )
+    }
+
+    /// Mirrors web `toDimension` / `resolveMediaAspectRatio` — Storyblok often
+    /// ships `width`/`height` on the asset even when the filename has no `WxH`.
+    func testAssetDimensionsDecodeAndDriveMediaAspectRatio() throws {
+        let asset = try decode(StoryblokAsset.self, """
+        {"filename":"https://cdn.httpjpg.com/clip.mp4","is_external_url":true,
+         "width":"1920","height":200}
+        """)
+        XCTAssertEqual(asset.width, 1920)
+        XCTAssertEqual(asset.height, 200)
+        XCTAssertEqual(try XCTUnwrap(asset.mediaAspectRatio), 1920.0 / 200.0, accuracy: 0.001)
+        XCTAssertNil(ImageService.aspectRatio(of: asset.filename))
+    }
+
+    func testAssetDimensionsRejectZeroAndJunk() throws {
+        let asset = try decode(StoryblokAsset.self, """
+        {"filename":"https://cdn.httpjpg.com/clip.mp4","width":0,"height":"abc"}
+        """)
+        XCTAssertNil(asset.width)
+        XCTAssertNil(asset.height)
+        XCTAssertNil(asset.mediaAspectRatio)
     }
 
     func testExternalDropboxClipIsDetectedAsVideo() throws {
