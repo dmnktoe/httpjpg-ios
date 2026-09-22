@@ -3,10 +3,11 @@ import Tokens
 
 /// A row of glass pills where exactly one is selected.
 ///
-/// The tab bar and the work-index variant picker are the same control with
-/// different content, so both drive this: it owns the morph namespace, the
-/// selection animation, the haptic and the traits, and the caller only says
-/// what a pill reads as.
+/// Idle pills use the same untinted Liquid Glass as the toolbar hamburger;
+/// the selected one is the prominent fill. The tab bar and the work-index
+/// variant picker are the same control with different content, so both drive
+/// this: it owns the morph namespace, the selection animation, the haptic and
+/// the traits, and the caller only says what a pill reads as.
 public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
     /// How the pills divide the row.
     public enum Distribution: Sendable {

@@ -7,10 +7,13 @@ import XCTest
 final class PillTintTests: XCTestCase {
     // MARK: - Selection
 
-    func testAnUnselectedPillWearsThePagesChrome() {
+    func testAnUnselectedPillWearsClearSystemGlass() {
         let tint = PillTint.forSelection(false, theme: .light, accent: Palette.named("#FF0000"))
 
         XCTAssertEqual(tint, .idle(.light))
+        XCTAssertNil(tint.fill, "idle pills match the untinted hamburger glass")
+        XCTAssertNil(tint.stroke)
+        XCTAssertEqual(tint.label, PageTheme.light.foreground)
     }
 
     /// Tinting every pill in a row with the accent leaves nothing to mark the
@@ -21,9 +24,10 @@ final class PillTintTests: XCTestCase {
         let idle = PillTint.forSelection(false, theme: .light, accent: accent)
         let selected = PillTint.forSelection(true, theme: .light, accent: accent)
 
-        XCTAssertEqual(idle.fill, PageTheme.light.chromeFill)
-        XCTAssertNotEqual(selected.fill, idle.fill)
-        XCTAssertEqual(selected.stroke, accent)
+        XCTAssertNil(idle.fill)
+        XCTAssertEqual(selected.fill, accent)
+        XCTAssertTrue(selected.isOpaque, "selected pills read as glassProminent")
+        XCTAssertNil(selected.stroke, "a stroke draws a second shape inside the glass")
     }
 
     func testAnAccentlessSelectionInvertsThePage() {
@@ -32,7 +36,9 @@ final class PillTintTests: XCTestCase {
 
         XCTAssertEqual(light.label, PageTheme.light.background)
         XCTAssertEqual(dark.label, PageTheme.dark.background)
-        XCTAssertNotEqual(light.fill, dark.fill)
+        XCTAssertEqual(light.fill, PageTheme.light.foreground)
+        XCTAssertEqual(dark.fill, PageTheme.dark.foreground)
+        XCTAssertTrue(light.isOpaque)
     }
 
     // MARK: - Controls
@@ -72,6 +78,6 @@ final class PillTintTests: XCTestCase {
     func testAControlOverMediaIgnoresTheTheme() {
         XCTAssertEqual(PillTint.overMedia(), PillTint.overMedia())
         XCTAssertEqual(PillTint.overMedia().label, Palette.white)
-        XCTAssertNotEqual(PillTint.overMedia().fill, PageTheme.light.chromeFill)
+        XCTAssertNotNil(PillTint.overMedia().fill)
     }
 }

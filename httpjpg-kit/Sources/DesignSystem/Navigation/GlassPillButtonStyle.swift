@@ -3,9 +3,10 @@ import Tokens
 
 /// A capsule of Liquid Glass around a text label.
 ///
-/// Written as a `ButtonStyle` rather than a wrapper view so every pill in the
-/// app — tab bar, work filter, variant picker, the reset button in info — gets
-/// the press state, the hit shape and the accessibility traits from SwiftUI
+/// Idle pills are untinted system glass (hamburger); selected pills are the
+/// opaque prominent fill. Written as a `ButtonStyle` so every pill in the app
+/// — tab bar, work filter, variant picker, the reset button in info — gets the
+/// press state, the hit shape and the accessibility traits from SwiftUI
 /// instead of restating them.
 public struct GlassPillButtonStyle: ButtonStyle {
     public enum Size: Sendable {

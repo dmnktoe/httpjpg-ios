@@ -4,8 +4,8 @@ import Tokens
 /// The work-list tag filter: a collapsed `[ + ] filter` line that expands into
 /// an `all` pill plus one per tag, same shape as the website's `WorkTagFilter`.
 ///
-/// The pills are the app's glass pills, so the filter, the variant picker and
-/// the tab bar all read as one control family — only the size changes.
+/// The pills share the system glass look with the tab bar and the variant
+/// picker — clear like the toolbar hamburger when idle, prominent when active.
 public struct WorkTagFilter: View {
     private let tags: [String]
     private let counts: [String: Int]

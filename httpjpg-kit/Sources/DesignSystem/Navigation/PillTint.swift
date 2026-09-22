@@ -1,23 +1,24 @@
 import SwiftUI
 import Tokens
 
-/// The three colours one pill wears, resolved before it is drawn.
+/// The colours one pill wears, resolved before it is drawn.
 ///
-/// Pills are tinted from two independent sources — the page theme and the CMS
-/// accent a work page carries — and the old chrome helpers spread that decision
-/// across every call site. Resolving it into a value keeps the rule in one
-/// place and makes it testable.
+/// Idle pills match the system hamburger: untinted Liquid Glass, page foreground
+/// for the glyph. The selected pill is the prominent variant — filled with the
+/// page accent when there is one, otherwise inverting the page — so a row still
+/// reads a clear active state without washing every chip in the accent.
 public struct PillTint: Equatable, Sendable {
-    public var fill: Color
+    /// `nil` asks for untinted system glass (the hamburger look).
+    public var fill: Color?
     public var label: Color
     public var stroke: Color?
 
     /// Fills the control with `fill` at full strength instead of letting the
-    /// glass wash it out. An accented header button is the page's colour, not a
-    /// hint of it.
+    /// glass wash it out. Selected pills use this so they read as the
+    /// `.glassProminent` sibling of the idle hamburger glass.
     public var isOpaque: Bool
 
-    public init(fill: Color, label: Color, stroke: Color? = nil, isOpaque: Bool = false) {
+    public init(fill: Color?, label: Color, stroke: Color? = nil, isOpaque: Bool = false) {
         self.fill = fill
         self.label = label
         self.stroke = stroke
@@ -26,27 +27,28 @@ public struct PillTint: Equatable, Sendable {
 }
 
 public extension PillTint {
-    /// An unselected pill: the page's own chrome, accent or not. The accent is
-    /// deliberately absent here — tinting every pill in the row washes the
-    /// selection out.
+    /// An unselected pill: clear system glass, no chrome wash and no outline.
+    /// The accent stays off idle pills so the selection still has somewhere to go.
     static func idle(_ theme: PageTheme) -> PillTint {
-        PillTint(fill: theme.chromeFill, label: theme.chromeLabel, stroke: theme.chromeStroke)
+        PillTint(fill: nil, label: theme.foreground, stroke: nil)
     }
 
     /// The selected pill. With an accent it wears the accent; without one it
-    /// inverts the page.
+    /// inverts the page — the same move `.glassProminent` makes on a tint.
     static func selected(_ theme: PageTheme, accent: Color? = nil, onAccent: Color? = nil) -> PillTint {
         guard let accent else {
             return PillTint(
-                fill: theme.chromeActiveFill,
-                label: theme.chromeActiveLabel,
-                stroke: theme.chromeActiveStroke
+                fill: theme.foreground,
+                label: theme.background,
+                stroke: nil,
+                isOpaque: true
             )
         }
         return PillTint(
-            fill: accent.opacity(selectedAccentOpacity),
-            label: onAccent ?? theme.chromeActiveLabel,
-            stroke: accent
+            fill: accent,
+            label: onAccent ?? theme.background,
+            stroke: nil,
+            isOpaque: true
         )
     }
 
@@ -92,10 +94,6 @@ public extension PillTint {
     ) -> PillTint {
         isSelected ? .selected(theme, accent: accent, onAccent: onAccent) : .idle(theme)
     }
-
-    /// Glass keeps a little translucency even when a pill is "solid", so the
-    /// page still moves behind it.
-    private static let selectedAccentOpacity: Double = 0.92
 
     private static let mediaScrimOpacity: Double = 0.55
 

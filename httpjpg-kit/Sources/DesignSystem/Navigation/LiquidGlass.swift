@@ -15,12 +15,12 @@ public extension View {
     ///
     /// - Parameters:
     ///   - shape: the surface outline; also the hit and highlight shape.
-    ///   - tint: the colour the glass takes. `nil` asks for untinted glass,
-    ///     which stays invisible rather than leaving a grey disc on a light page.
+    ///   - tint: the colour the glass takes. `nil` asks for untinted system
+    ///     glass — the same backing the toolbar hamburger uses.
     ///   - isInteractive: adds the press-and-drag highlight for controls.
     ///   - isOpaque: fills the shape with the tint outright instead of glassing
-    ///     it. `Glass.tint` stays sheer however saturated the colour, so a
-    ///     control that has to read as the page's colour asks for this.
+    ///     it. Selected pills ask for this so they read as `.glassProminent`
+    ///     against idle clear glass.
     func liquidGlass(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
@@ -84,17 +84,19 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
                 .background(tint.opacity(LiquidGlass.materialTintOpacity), in: shape)
                 .background(.ultraThinMaterial, in: shape)
         } else {
-            // No tint and no glass: painting a frosted material here would leave
-            // a grey disc on a light page, so paint nothing.
-            content
+            // Untinted fallback for pre-glass OS: frosted material without a
+            // chrome wash, close to the clear system glass idle pills use.
+            content.background(.ultraThinMaterial, in: shape)
         }
     }
 
     @available(iOS 26.0, *)
     private var glass: Glass {
-        guard let tint else { return .identity }
-        let tinted = Glass.regular.tint(tint)
-        return isInteractive ? tinted.interactive() : tinted
+        let base: Glass = {
+            guard let tint else { return .regular }
+            return Glass.regular.tint(tint)
+        }()
+        return isInteractive ? base.interactive() : base
     }
 }
 
