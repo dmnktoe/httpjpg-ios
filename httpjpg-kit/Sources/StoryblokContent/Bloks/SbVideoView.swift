@@ -13,7 +13,6 @@ public struct SbVideoView: View {
     @Environment(\.chromeAccent) private var accent
     @Environment(\.chromeOnAccent) private var onAccent
 
-    @Namespace private var lightboxZoom
     @State private var isLightboxPresented = false
 
     public init(blok: VideoBlok) {
@@ -42,7 +41,7 @@ public struct SbVideoView: View {
     }
 
     private var playerStack: some View {
-        lightboxSource
+        player
             .overlay(alignment: .topTrailing) {
                 if canOpenLightbox {
                     lightboxTrigger
@@ -63,22 +62,11 @@ public struct SbVideoView: View {
                         copyrightSource: blok.copyrightSource
                     )
                     .chromeAccent(accent, onAccent: onAccent)
-                    .zoomTransitionDestination(id: blok.id, in: lightboxZoom)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(PageTheme.dark.background)
                 }
             }
-    }
-
-    /// Zoom source matches work-card → detail: the picture morphs into the sheet.
-    @ViewBuilder
-    private var lightboxSource: some View {
-        if canOpenLightbox {
-            player.zoomTransitionSource(id: blok.id, in: lightboxZoom)
-        } else {
-            player
-        }
     }
 
     private var canOpenLightbox: Bool {
@@ -184,8 +172,8 @@ public struct SbVideoView: View {
     }
 }
 
-/// Popup card for a native video — same zoom language as work detail, sheet
-/// chrome instead of a fullscreen black stage with a floating close orb.
+/// Popup card for a native video — sheet chrome instead of a fullscreen black
+/// stage with a floating close orb.
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?
