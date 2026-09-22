@@ -46,7 +46,6 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
-            .hidingSharedToolbarGlass(when: chromeTint != nil)
 
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if let url = externalPreviewURL {
@@ -65,7 +64,6 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
-            .hidingSharedToolbarGlass(when: chromeTint != nil)
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
