@@ -43,25 +43,31 @@ public struct SbVideoView: View {
     private var playerStack: some View {
         player
             .overlay(alignment: .topTrailing) {
-                if blok.opensLightbox, blok.nativeURL != nil {
+                if canOpenLightbox {
                     lightboxTrigger
                         .padding(Spacing.s3)
                 }
             }
-            .fullScreenCover(isPresented: $isLightboxPresented) {
+            .sheet(isPresented: $isLightboxPresented) {
                 if let url = blok.nativeURL {
                     VideoLightboxViewer(
                         url: url,
                         posterURL: posterURL,
-                        showsControls: blok.showsControls,
                         autoPlays: true,
                         loops: blok.loops,
                         isMuted: blok.isMuted,
-                        aspectRatio: resolvedAspectRatio
+                        aspectRatio: resolvedAspectRatio,
+                        caption: blok.caption,
+                        copyright: blok.copyright,
+                        copyrightSource: blok.copyrightSource
                     )
                     .chromeAccent(accent, onAccent: onAccent)
                 }
             }
+    }
+
+    private var canOpenLightbox: Bool {
+        blok.opensLightbox && blok.nativeURL != nil
     }
 
     private var lightboxTrigger: some View {
@@ -163,54 +169,91 @@ public struct SbVideoView: View {
     }
 }
 
+/// Popup card for a native video — plain sheet like `PlayerScreen`, with a
+/// system toolbar close (not a floating orb over AVKit chrome).
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?
-    let showsControls: Bool
     let autoPlays: Bool
     let loops: Bool
     let isMuted: Bool
     let aspectRatio: CGFloat
+    let caption: RichTextNode?
+    let copyright: String?
+    let copyrightSource: String?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.chromeAccent) private var accent
-    @Environment(\.chromeOnAccent) private var onAccent
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
+        NavigationStack {
+            VStack(spacing: Spacing.s4) {
+                videoStage
 
-            VideoSurface(
-                url: url,
-                posterURL: posterURL,
-                aspectRatio: aspectRatio,
-                layout: .contained,
-                showsControls: true,
-                autoPlays: autoPlays,
-                loops: loops,
-                isMuted: isMuted
-            )
-            .ignoresSafeArea()
+                if hasMeta {
+                    meta
+                        .padding(.horizontal, PageLayout.gutter)
+                }
 
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
+                Spacer(minLength: 0)
+
+                MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
+                    .lineLimit(1)
+                    .padding(.bottom, Spacing.s6)
             }
-            // Same chrome glass as the hamburger fallback (`.control`), forced
-            // onto the dark theme so the orb stays readable on black — idle
-            // untinted glass vanishes against a solid backdrop.
-            .buttonStyle(.glassOrb(
-                .control(.dark),
-                diameter: PillMetrics.orbDiameter
-            ))
-            .padding(.trailing, PageLayout.gutter)
             .padding(.top, Spacing.s2)
-            .zIndex(1)
-            .accessibilityLabel("Close video viewer")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .pageSurface(.dark)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .toolbarGlassButton(accent, fallback: .control(.dark))
+                    .accessibilityLabel("Close video viewer")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
         }
         .pageTheme(.dark)
         .preferredColorScheme(.dark)
-        .chromeAccent(accent, onAccent: onAccent)
+        .presentationDragIndicator(.visible)
+    }
+
+    private var videoStage: some View {
+        VideoSurface(
+            url: url,
+            posterURL: posterURL,
+            aspectRatio: aspectRatio,
+            layout: .contained,
+            showsControls: true,
+            autoPlays: autoPlays,
+            loops: loops,
+            isMuted: isMuted
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Palette.black)
+    }
+
+    private var hasMeta: Bool {
+        caption?.hasContent == true
+            || copyright != nil
+            || copyrightSource != nil
+    }
+
+    @ViewBuilder
+    private var meta: some View {
+        VStack(alignment: .leading, spacing: Spacing.s2) {
+            if caption?.hasContent == true {
+                StoryRichText(caption, size: Typography.Size.sm)
+                    .opacity(Opacities.muted)
+            }
+            if copyright != nil || copyrightSource != nil {
+                CopyrightLabel(copyright, source: copyrightSource, position: .below)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
