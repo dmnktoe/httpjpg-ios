@@ -10,7 +10,7 @@
   "group-pull-request-title-pattern": "chore(release): ${version}",
   "label": "release,autorelease: pending",
   "release-label": "release,autorelease: tagged",
-  "pull-request-header": "*ੈ✩‧₊˚ **release** ‧₊˚✩ੈ*\n\nVersion bump + changelog from conventional commits on `main`. Edit `CHANGELOG.md` in this PR if the generated one-liners need prose, then merge.\n\nThis bumps `MARKETING_VERSION` in `Config/Shared.xcconfig` (and the widgets/watch targets that include it). No App Store upload or signing yet — GitHub Release + tag only.\n\nMerging tags the release and publishes it on GitHub; the release workflow then bumps `CURRENT_PROJECT_VERSION` for the next builds.",
+  "pull-request-header": "*ੈ✩‧₊˚ **release** ‧₊˚✩ੈ*\n\nVersion bump + changelog from conventional commits on `main`. Edit `CHANGELOG.md` in this PR if the generated one-liners need prose, then merge.\n\nCI is skipped on purpose — every commit listed below already passed the full pipeline on `main`, and this PR only touches `CHANGELOG.md`, the manifest, and `MARKETING_VERSION`.\n\nThis bumps `MARKETING_VERSION` in `Config/Shared.xcconfig` (and the widgets/watch targets that include it). No App Store upload or signing yet — GitHub Release + tag only.\n\nMerging tags the release and publishes it on GitHub; the release workflow then bumps `CURRENT_PROJECT_VERSION` for the next builds.",
   "pull-request-footer": "---\n\nThe changelog regenerates whenever a new commit lands on `main`, which discards manual edits — curate late and merge promptly. `### Removed` has no commit type; add it by hand when a release drops something.",
   "changelog-sections": [
     {
