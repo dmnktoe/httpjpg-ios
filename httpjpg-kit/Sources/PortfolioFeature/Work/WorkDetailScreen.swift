@@ -50,29 +50,8 @@ struct WorkDetailScreen: View {
             }
             .hidingSharedToolbarBackground(chromeTint != nil)
 
-            if let url = externalPreviewURL {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { openURL(url) } label: {
-                        Image(systemName: "safari")
-                            .foregroundStyle(toolbarGlyph)
-                    }
-                    .toolbarGlassButton(chromeTint, fallback: orbTint)
-                    .environment(\.colorScheme, headerTheme.colorScheme)
-                    .disabled(imageViewerHeld)
-                    .accessibilityLabel("Open external preview")
-                }
-                .hidingSharedToolbarBackground(chromeTint != nil)
-            }
-
             ToolbarItem(placement: .topBarTrailing) {
-                ShareLink(item: shareURL) {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(toolbarGlyph)
-                }
-                .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .environment(\.colorScheme, headerTheme.colorScheme)
-                .disabled(imageViewerHeld)
-                .accessibilityLabel("Share")
+                trailingActions
             }
             .hidingSharedToolbarBackground(chromeTint != nil)
         }
@@ -107,6 +86,39 @@ struct WorkDetailScreen: View {
 
     private var toolbarGlyph: Color {
         chromeOnTint ?? headerTheme.foreground
+    }
+
+    /// Preview + share share one trailing slot so they read as a cluster again
+    /// (separate `ToolbarItem`s each got their own glass and broke the group).
+    @ViewBuilder
+    private var trailingActions: some View {
+        let actions = HStack(spacing: chromeTint == nil ? Spacing.s1 : Spacing.s2) {
+            if let url = externalPreviewURL {
+                Button { openURL(url) } label: {
+                    Image(systemName: "safari")
+                        .foregroundStyle(toolbarGlyph)
+                }
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
+                .environment(\.colorScheme, headerTheme.colorScheme)
+                .disabled(imageViewerHeld)
+                .accessibilityLabel("Open external preview")
+            }
+
+            ShareLink(item: shareURL) {
+                Image(systemName: "square.and.arrow.up")
+                    .foregroundStyle(toolbarGlyph)
+            }
+            .toolbarGlassButton(chromeTint, fallback: orbTint)
+            .environment(\.colorScheme, headerTheme.colorScheme)
+            .disabled(imageViewerHeld)
+            .accessibilityLabel("Share")
+        }
+
+        if chromeTint != nil {
+            LiquidGlassContainer(spacing: Spacing.s2) { actions }
+        } else {
+            actions
+        }
     }
 
     /// The page forces its own appearance, so the toolbar has to be tinted
