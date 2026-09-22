@@ -2,27 +2,25 @@ import SwiftUI
 import Tokens
 
 public extension View {
-    /// Colours a button inside a navigation bar, leaving its shape to the system.
+    /// Colours a button inside a navigation bar.
     ///
-    /// From iOS 26 a toolbar item already carries Liquid Glass. That backing is
-    /// the circle — another `.glass` style on top draws a second, smaller
-    /// capsule inside it (the double menu button). So an unaccented control
-    /// only sets its glyph colour: the page foreground, said out loud because
-    /// `pageTheme` tints the app with the link colour and the symbol would
-    /// otherwise come out blue.
+    /// From iOS 26 a toolbar item already carries Liquid Glass. An unaccented
+    /// control leaves that backing alone and only sets its glyph to the page
+    /// foreground — another `.glass` style would draw a second capsule inside
+    /// it (the double sidebar button), and `pageTheme`'s link tint would
+    /// otherwise turn the symbol blue.
     ///
-    /// An accented control needs `.glassProminent` for the fill to take the
-    /// tint; without it, `.tint` only recolours the glyph. Call sites hide the
-    /// toolbar's shared glass behind that style with
-    /// `hidingSharedToolbarGlass(when:)` so the prominent button is the only
-    /// shape.
+    /// An accented control cannot rely on `.tint` alone (glyph only) or on
+    /// `.glassProminent` (ShareLink vanishes with the shared platter hidden).
+    /// It draws its own opaque orb and the call site hides the toolbar's
+    /// shared glass so the orb is the only shape.
     ///
-    /// Below iOS 26 there is no glass in the bar to inherit, so the button draws
-    /// its own orb.
+    /// Below iOS 26 there is no glass in the bar to inherit, so every button
+    /// draws its own orb.
     ///
     /// - Parameters:
     ///   - accent: the page accent, or `nil` for a neutral control.
-    ///   - fallback: how to draw it on iOS 17–25.
+    ///   - fallback: the resolved orb colours (also used on iOS 26 when accented).
     func toolbarGlassButton(_ accent: Color?, fallback: PillTint) -> some View {
         modifier(ToolbarGlassButton(accent: accent, fallback: fallback))
     }
@@ -30,8 +28,8 @@ public extension View {
 
 public extension ToolbarContent {
     /// Drops the system's shared Liquid Glass behind a toolbar item when the
-    /// button inside is drawing its own (`.glassProminent`). Without this, the
-    /// prominent style sits as a second shape inside the toolbar platter.
+    /// button inside is drawing its own orb. Without this, the orb sits as a
+    /// second shape inside the toolbar platter.
     @ToolbarContentBuilder
     func hidingSharedToolbarGlass(when hide: Bool) -> some ToolbarContent {
         if #available(iOS 26.0, *), hide {
@@ -60,10 +58,8 @@ private struct ToolbarGlassButton: ViewModifier {
     @available(iOS 26.0, *)
     @ViewBuilder
     private func native(_ content: Content) -> some View {
-        if let accent {
-            content
-                .buttonStyle(.glassProminent)
-                .tint(accent)
+        if accent != nil {
+            content.buttonStyle(.glassOrb(fallback))
         } else {
             content.tint(theme.foreground)
         }

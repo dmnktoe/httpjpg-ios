@@ -48,11 +48,8 @@ struct WorkDetailScreen: View {
             }
             .hidingSharedToolbarGlass(when: chromeTint != nil)
 
-            // Separate items when accented so each prominent orb is its own
-            // shape; a group would keep one shared platter behind them. Without
-            // an accent the system still merges same-placement items.
-            if let url = externalPreviewURL {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if let url = externalPreviewURL {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
                     }
@@ -60,10 +57,7 @@ struct WorkDetailScreen: View {
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
-                .hidingSharedToolbarGlass(when: chromeTint != nil)
-            }
 
-            ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
                 }
@@ -193,10 +187,7 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        // Soft top edge: the nav rule dissolves at rest so the page title can
-        // sit under the bar without a hairline slicing them apart. Hard top
-        // kept the rule visible even at topscroll.
-        .softScrollEdges()
+        .navigationScrollEdges()
     }
 
     @ViewBuilder
