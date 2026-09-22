@@ -12,6 +12,8 @@ public struct SbCodeBlockView: View {
 
     public var body: some View {
         // Match storyblok-richtext <pre>: dark fill, radius, no border.
+        // Outer vertical rhythm comes from blokSpacing / the richtext VStack —
+        // don't add a second margin here.
         VStack(alignment: .leading, spacing: 0) {
             if blok.filename != nil || blok.language != nil {
                 HStack(spacing: Spacing.s3) {
@@ -31,7 +33,7 @@ public struct SbCodeBlockView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, Spacing.s4)
-                .padding(.vertical, Spacing.s2)
+                .padding(.top, Spacing.s4)
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(blok.code)
@@ -39,13 +41,11 @@ public struct SbCodeBlockView: View {
                     .foregroundStyle(Palette.white)
                     .textSelection(.enabled)
                     .padding(Spacing.s4)
-                    .padding(.top, (blok.filename != nil || blok.language != nil) ? 0 : nil)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.neutral.s900)
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        .padding(.vertical, Spacing.s6)
         .blokSpacing(blok.spacing)
     }
 }

@@ -89,7 +89,6 @@ public struct StoryRichText: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Palette.neutral.s900)
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .padding(.vertical, Spacing.s6)
             )
 
         case .horizontalRule:
