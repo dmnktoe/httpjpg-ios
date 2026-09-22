@@ -46,17 +46,9 @@ struct WorkDetailScreen: View {
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
-            .hidingSharedToolbarBackground(chromeTint != nil)
 
-            if chromeTint != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    trailingActions
-                }
-                .hidingSharedToolbarBackground()
-            } else {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    trailingButtons
-                }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                trailingButtons
             }
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
@@ -86,16 +78,6 @@ struct WorkDetailScreen: View {
 
     private var orbTint: PillTint {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
-    }
-
-    /// Accented preview + share: custom glass orbs morph-clustered.
-    @ViewBuilder
-    private var trailingActions: some View {
-        LiquidGlassContainer(spacing: Spacing.s2) {
-            HStack(spacing: Spacing.s2) {
-                trailingButtons
-            }
-        }
     }
 
     @ViewBuilder
