@@ -10,10 +10,7 @@ public struct RootView: View {
     @State private var quickActionInbox = QuickActionInbox.shared
 
     @State private var pillRowWidth: CGFloat = 0
-    /// System appearance only — not SwiftUI `preferredColorScheme` overrides
-    /// from forced-dark work/info pages (those would paint the list black
-    /// mid-push).
-    @State private var systemScheme: ColorScheme = SystemColorScheme.current
+    @Environment(\.colorScheme) private var systemScheme
 
     @Namespace private var chrome
 
@@ -47,7 +44,6 @@ public struct RootView: View {
         }
         .pageTheme(theme)
         .pageSurface(theme)
-        .systemColorScheme($systemScheme)
         .environment(\.bottomBarClearance, bottomBarClearance)
         .environment(model)
         .environment(\.storyblokConfiguration, model.configuration)

@@ -21,9 +21,6 @@ struct WorkDetailScreen: View {
 
     @State private var model: WorkDetailModel?
     @State private var imageViewerHeld = false
-    /// Cleared while an interactive pop is in flight so `preferredColorScheme`
-    /// does not keep painting the work list black under the gesture.
-    @State private var isInteractivelyPopping = false
 
     var body: some View {
         Group {
@@ -37,19 +34,7 @@ struct WorkDetailScreen: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .enablesInteractivePopGesture { phase in
-            switch phase {
-            case .began, .completed:
-                isInteractivelyPopping = true
-            case .cancelled:
-                isInteractivelyPopping = false
-            }
-        }
-        // Forced-dark pages pin the scene for the status bar. Clearing to
-        // `nil` on pop leaves the window stuck dark on current iOS, so an
-        // interactive swipe restores the ambient scheme explicitly; the root
-        // page theme also ignores this override so the list stays put.
-        .preferredColorScheme(sceneColorScheme)
+        .enablesInteractivePopGesture()
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
@@ -136,21 +121,6 @@ struct WorkDetailScreen: View {
 
     private var pageIsDark: Bool {
         loadedDetail?.isDark ?? route.isDark
-    }
-
-    private var forcesDark: Bool {
-        pageIsDark && app.selectedTab == .work && app.workPath.last?.slug == route.slug
-    }
-
-    private var pinsSceneDark: Bool {
-        forcesDark && !isInteractivelyPopping
-    }
-
-    /// `nil` only when this page never forced dark — otherwise restore the
-    /// ambient scheme so a pop does not leave the window stuck black.
-    private var sceneColorScheme: ColorScheme? {
-        if pinsSceneDark { return .dark }
-        return pageIsDark ? theme.colorScheme : nil
     }
 
     private var navigationTitle: String {

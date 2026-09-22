@@ -12,11 +12,9 @@ struct PageScreen: View {
 
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
-    @Environment(\.pageTheme) private var theme
 
     @AppStorage("cvLocale") private var storedLocale = AppLocale.en.rawValue
     @State private var model: PageModel?
-    @State private var isInteractivelyPopping = false
 
     private var showsLanguagePicker: Bool {
         LocalizedContent.showsLanguagePicker(for: slug)
@@ -37,15 +35,6 @@ struct PageScreen: View {
         .pageSurface(forcingDark: pageIsDark)
         .navigationTitle(displayTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .enablesInteractivePopGesture { phase in
-            switch phase {
-            case .began, .completed:
-                isInteractivelyPopping = true
-            case .cancelled:
-                isInteractivelyPopping = false
-            }
-        }
-        .preferredColorScheme(sceneColorScheme)
         .task(id: locale) {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)
@@ -65,19 +54,6 @@ struct PageScreen: View {
 
     private var pageIsDark: Bool {
         loadedPage?.isDark ?? isDarkHint
-    }
-
-    private var forcesDark: Bool {
-        pageIsDark && app.selectedTab == .info && app.infoPath.last?.slug == slug
-    }
-
-    private var pinsSceneDark: Bool {
-        forcesDark && !isInteractivelyPopping
-    }
-
-    private var sceneColorScheme: ColorScheme? {
-        if pinsSceneDark { return .dark }
-        return pageIsDark ? theme.colorScheme : nil
     }
 
     @ViewBuilder

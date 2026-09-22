@@ -88,8 +88,11 @@ private struct ForcedPageSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         let theme = forcesDark ? PageTheme.dark : ambient
+        // Only recolour this page — do not set preferredColorScheme or a
+        // window-level colorScheme override, which would paint the previous
+        // NavigationStack page during push/pop.
         let surface = content
-            .pageTheme(theme)
+            .environment(\.pageTheme, theme)
             .pageSurface(theme)
 
         #if os(iOS)
