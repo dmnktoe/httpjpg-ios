@@ -297,9 +297,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-          xcode: true
-          xcode_archive_path: build/TestResults.xcresult
           flags: ios
+          plugins: xcode
+          directory: build
 
       - name: Upload xcresult
         if: always() && hashFiles('build/TestResults.xcresult') != ''

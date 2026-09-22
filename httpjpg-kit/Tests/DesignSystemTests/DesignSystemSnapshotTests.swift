@@ -60,10 +60,11 @@ final class DesignSystemSnapshotTests: XCTestCase {
     }
 
     func testAsciiTapeAndSkeleton() {
+        // SkeletonBlock pulses via onAppear; keep this snapshot static.
         let view = VStack(alignment: .leading, spacing: Spacing.s4) {
             AsciiTape()
-            SkeletonBlock(width: 180, height: Typography.Size.base)
-                .environment(\.accessibilityReduceMotion, true)
+            AsciiArt(Ascii.dividerDots, label: "divider", size: Typography.Size.xs)
+            BrutalDivider(variant: .dotted)
         }
         .padding(Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,7 +74,7 @@ final class DesignSystemSnapshotTests: XCTestCase {
         assertSnapshot(
             of: host(view, size: CGSize(width: 320, height: 100)),
             as: .image,
-            named: "ascii-skeleton"
+            named: "ascii-furniture"
         )
     }
 
