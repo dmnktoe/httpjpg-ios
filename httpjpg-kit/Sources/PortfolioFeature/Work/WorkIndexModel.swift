@@ -14,7 +14,7 @@ final class WorkIndexModel {
     private let client: ContentClient
 
     private(set) var state: LoadState = .idle
-    private var isLoading = false
+    private(set) var isLoading = false
     var variant: MenuLink.Variant = .projects
     var selectedTag: String?
 

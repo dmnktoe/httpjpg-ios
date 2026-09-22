@@ -9,6 +9,7 @@ struct WorkIndexScreen: View {
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
     @Environment(\.bottomBarClearance) private var bottomBarClearance
+    @Environment(\.pageTheme) private var theme
 
     var body: some View {
         @Bindable var app = app
@@ -17,6 +18,15 @@ struct WorkIndexScreen: View {
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .sidebarMenuToolbar()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        if app.workIndex.isLoading {
+                            ProgressView()
+                                .tint(theme.foreground)
+                                .accessibilityLabel("Loading")
+                        }
+                    }
+                }
                 .navigationDestination(for: WorkRoute.self) { route in
                     WorkDetailScreen(route: route)
                 }
