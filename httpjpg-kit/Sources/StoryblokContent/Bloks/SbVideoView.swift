@@ -62,9 +62,6 @@ public struct SbVideoView: View {
                         copyrightSource: blok.copyrightSource
                     )
                     .chromeAccent(accent, onAccent: onAccent)
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(PageTheme.dark.background)
                 }
             }
     }
@@ -172,8 +169,8 @@ public struct SbVideoView: View {
     }
 }
 
-/// Popup card for a native video — sheet chrome instead of a fullscreen black
-/// stage with a floating close orb.
+/// Popup card for a native video — plain sheet like `PlayerScreen`, dismiss
+/// via the system drag indicator (no floating / toolbar close chrome).
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?
@@ -185,52 +182,32 @@ private struct VideoLightboxViewer: View {
     let copyright: String?
     let copyrightSource: String?
 
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.chromeAccent) private var accent
-
     private let stageRadius = Radii.xl
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: Spacing.s4) {
-                videoStage
+        VStack(spacing: Spacing.s4) {
+            videoStage
 
-                if hasMeta {
-                    meta
-                }
-
-                Spacer(minLength: 0)
-
-                MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
-                    .lineLimit(1)
-                    .padding(.bottom, Spacing.s4)
+            if hasMeta {
+                meta
+                    .padding(.horizontal, PageLayout.gutter)
             }
-            .padding(.horizontal, PageLayout.gutter)
-            .padding(.top, Spacing.s2)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .pageSurface(.dark)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                    // Sheet owns this bar — close never fights AVKit AirPlay /
-                    // volume, and never sits above the work-detail Share control.
-                    .toolbarGlassButton(accent, fallback: .control(.dark))
-                    .accessibilityLabel("Close video viewer")
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
+
+            Spacer(minLength: 0)
+
+            MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
+                .lineLimit(1)
+                .padding(.bottom, Spacing.s6)
         }
+        .padding(.top, Spacing.s2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .pageTheme(.dark)
+        .pageSurface(.dark)
         .preferredColorScheme(.dark)
+        .presentationDragIndicator(.visible)
     }
 
     private var videoStage: some View {
-        // Tall rounded stage: AVKit letterboxes the clip inside, with AirPlay /
-        // volume / scrubber all living in the player — not under a floating orb.
         VideoSurface(
             url: url,
             posterURL: posterURL,
@@ -242,12 +219,14 @@ private struct VideoLightboxViewer: View {
             isMuted: isMuted
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, PageLayout.gutter)
         .background(Palette.black, in: RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: stageRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: stageRadius, style: .continuous)
                 .strokeBorder(PageTheme.dark.border, lineWidth: 1)
         }
+        .padding(.horizontal, PageLayout.gutter)
     }
 
     private var hasMeta: Bool {
