@@ -4,13 +4,14 @@ import Tokens
 public extension View {
     /// Colours a button inside a navigation bar, leaving its shape to the system.
     ///
-    /// From iOS 26 a toolbar item already carries its own Liquid Glass backing,
-    /// and that backing is the circle. Adding a glass `buttonStyle` on top put a
-    /// second, smaller shape inside the first one, so this sets nothing but the
-    /// colour: the page accent tints the system's glass, and an unaccented
-    /// button falls back to the page foreground — which it has to say out loud,
-    /// because `pageTheme` tints the whole app with the link colour and the
-    /// glyph would otherwise come out blue.
+    /// From iOS 26 a toolbar item already carries Liquid Glass. `.glassProminent`
+    /// with `.tint(accent)` is what makes the accent the whole button — the
+    /// system fills the capsule and picks the glyph. Plain `.tint` alone only
+    /// recolours the symbol and leaves the glass neutral, which is why work
+    /// detail accents went missing after the style was dropped. Without an
+    /// accent the button is plain `.glass`; its glyph has to be set to the page
+    /// foreground out loud, because `pageTheme` tints the app with the link
+    /// colour and an untinted glass control would otherwise come out blue.
     ///
     /// Below iOS 26 there is no glass in the bar to inherit, so the button draws
     /// its own orb.
@@ -32,9 +33,23 @@ private struct ToolbarGlassButton: ViewModifier {
     @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.tint(accent ?? theme.foreground)
+            native(content)
         } else {
             content.buttonStyle(.glassOrb(fallback))
+        }
+    }
+
+    @available(iOS 26.0, *)
+    @ViewBuilder
+    private func native(_ content: Content) -> some View {
+        if let accent {
+            content
+                .buttonStyle(.glassProminent)
+                .tint(accent)
+        } else {
+            content
+                .buttonStyle(.glass)
+                .foregroundStyle(theme.foreground)
         }
     }
 }
