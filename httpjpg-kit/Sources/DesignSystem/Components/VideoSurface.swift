@@ -1,5 +1,4 @@
 import AVFoundation
-import AVKit
 import SwiftUI
 
 public struct VideoSurface: View {
@@ -18,6 +17,10 @@ public struct VideoSurface: View {
     @State private var looper: AVPlayerLooper?
     @State private var isConfigured = false
     @State private var isPosterVisible = true
+    /// Refined from the clip's natural size once the asset loads — avoids
+    /// pillarboxing when the CMS/poster ratio does not match the file
+    /// (web uses intrinsic layout or `object-fit: cover` instead).
+    @State private var measuredAspectRatio: CGFloat?
 
     public init(
         url: URL,
@@ -41,25 +44,32 @@ public struct VideoSurface: View {
 
     public var body: some View {
         surface
-            .aspectRatio(aspectRatio, contentMode: .fit)
+            .aspectRatio(resolvedAspectRatio, contentMode: .fit)
             .overlay { poster }
+            .overlay {
+                VideoPlaybackControls(player: player, showsControls: showsControls)
+            }
             .clipped()
             .onAppear(perform: start)
             .onDisappear { player.pause() }
             .onReceive(player.publisher(for: \.timeControlStatus)) { status in
                 if status == .playing { isPosterVisible = false }
             }
+            .task(id: url) { await measureNaturalAspect() }
             .modifier(OptionalAccessibilityLabel(text: accessibilityText))
+    }
+
+    private var resolvedAspectRatio: CGFloat {
+        measuredAspectRatio ?? aspectRatio
     }
 
     @ViewBuilder
     private var surface: some View {
-        if showsControls {
-            VideoPlayer(player: player)
-        } else {
-            PlayerLayerView(player: player)
-                .allowsHitTesting(false)
-        }
+        // Match web `object-fit: cover` so a mismatched CMS/poster ratio fills
+        // the frame instead of letterboxing (AVKit `VideoPlayer` always
+        // contain-fits and left black gutters on Blence titantron).
+        PlayerLayerView(player: player, videoGravity: .resizeAspectFill)
+            .allowsHitTesting(false)
     }
 
     @ViewBuilder
@@ -67,8 +77,8 @@ public struct VideoSurface: View {
         if isPosterVisible, let posterURL {
             RemoteImage(
                 url: posterURL,
-                aspectRatio: aspectRatio,
-                contentMode: .fit
+                aspectRatio: resolvedAspectRatio,
+                contentMode: .fill
             )
             .allowsHitTesting(false)
         }
@@ -90,6 +100,22 @@ public struct VideoSurface: View {
             MediaAudioSession.prepareSilentVideo()
         }
         player.play()
+    }
+
+    @MainActor
+    private func measureNaturalAspect() async {
+        let asset = AVURLAsset(url: url)
+        guard let track = try? await asset.loadTracks(withMediaType: .video).first else { return }
+        async let size = track.load(.naturalSize)
+        async let transform = track.load(.preferredTransform)
+        guard let natural = try? await size,
+              let preferred = try? await transform
+        else { return }
+        let rendered = natural.applying(preferred)
+        let width = abs(rendered.width)
+        let height = abs(rendered.height)
+        guard width > 0, height > 0 else { return }
+        measuredAspectRatio = width / height
     }
 }
 
