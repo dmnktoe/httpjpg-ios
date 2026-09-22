@@ -106,12 +106,11 @@ struct WorkDetailScreen: View {
         pageIsDark ? .dark : theme
     }
 
-    /// iOS 26 left every bar as clear glass, which put an accented page's header
-    /// over its own artwork with nothing behind the title. An accented page
-    /// paints the bar; an unaccented one keeps the system glass.
+    /// The bar wears the page's accent where there is one and the page's own
+    /// surface where there is not, so every work page gets a real header rather
+    /// than a title floating over its artwork.
     private var headerBackground: Color? {
-        guard let chromeTint else { return nil }
-        return chromeTint.opacity(Self.headerFillOpacity)
+        (chromeTint ?? headerTheme.background).opacity(Self.headerFillOpacity)
     }
 
     private var headerScheme: ColorScheme? {

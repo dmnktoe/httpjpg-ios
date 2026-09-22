@@ -53,7 +53,7 @@ public struct GlassPillButtonStyle: ButtonStyle {
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .contentShape(.capsule)
-            .liquidGlass(in: .capsule, tint: tint.fill, isInteractive: true)
+            .liquidGlass(in: .capsule, tint: tint.fill, isInteractive: true, isOpaque: tint.isOpaque)
             .overlay {
                 if let stroke = tint.stroke {
                     Capsule().strokeBorder(stroke, lineWidth: PillMetrics.hairline)

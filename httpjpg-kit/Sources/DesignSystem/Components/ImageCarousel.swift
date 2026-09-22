@@ -108,7 +108,10 @@ public struct ImageCarousel<Slide: View>: View {
         } label: {
             Image(systemName: symbol)
         }
-        .buttonStyle(.glassOrb(.overMedia(accent: accent, onAccent: onAccent)))
+        .buttonStyle(.glassOrb(
+            .overMedia(accent: accent, onAccent: onAccent),
+            diameter: PillMetrics.compactOrbDiameter
+        ))
         .shadow(color: Palette.black.opacity(Opacities.dimmed), radius: 6)
         .accessibilityLabel(step < 0 ? "Previous slide" : "Next slide")
     }

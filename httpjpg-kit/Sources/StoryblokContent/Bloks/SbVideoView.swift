@@ -70,7 +70,10 @@ public struct SbVideoView: View {
         } label: {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
         }
-        .buttonStyle(.glassOrb(.overMedia(accent: accent, onAccent: onAccent)))
+        .buttonStyle(.glassOrb(
+            .overMedia(accent: accent, onAccent: onAccent),
+            diameter: PillMetrics.compactOrbDiameter
+        ))
         .accessibilityLabel("Play the video at full size")
     }
 

@@ -20,20 +20,11 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     @GestureState(resetTransaction: Transaction(animation: Motion.drawer))
     private var drag = DragState()
 
-    /// True while the drawer owns the screen. Glass cannot sample a page that is
-    /// being scaled and drained of colour, so chrome drops to a flat fill for
-    /// the duration — see `\.glassSuspended`.
-    @State private var isSuspended = false
-
-    @State private var settleTicket = 0
-
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.pageTheme) private var theme
 
     private static var parallax: CGFloat { Spacing.s10 }
-
-    private static var scaleDrop: CGFloat { 0.05 }
 
     private static var edgeWidth: CGFloat { Spacing.s5 }
 
@@ -42,6 +33,8 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private static var overshootDamping: CGFloat { 4 }
 
     private static var pageCorner: CGFloat { Spacing.s12 }
+
+    private static var scrimOpacity: Double { 0.45 }
 
     public init(
         isOpen: Binding<Bool>,
@@ -68,21 +61,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         .background(theme.drawerBackground.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
         .environment(\.mediaHeld, ambientHeld)
-        .glassSuspended(ambientHeld)
         .animation(motion, value: isOpen)
-        // `Motion.drawer` is a spring with no duration to read back, and the
-        // page keeps moving after `isOpen` flips — so the suspension outlives
-        // the state change by one settle instead of ending on it.
-        .task(id: settleTicket) {
-            // Ticket 0 is the first render, not a drawer move — suspending there
-            // flashed the chrome flat for a beat on launch.
-            guard settleTicket > 0 else { return }
-            isSuspended = true
-            try? await Task.sleep(for: Motion.drawerSettle)
-            guard !Task.isCancelled else { return }
-            isSuspended = false
-        }
-        .onChange(of: isOpen) { _, _ in settleTicket += 1 }
     }
 
     private var sidebarPane: some View {
@@ -100,23 +79,22 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private var main: some View {
         content
-            // The drawer is the active layer; drain color from the scaled page
-            // so it reads as a still, monochrome shell.
-            .grayscale(Double(progress))
             .scrollDisabled(drag.isArmed || isOpen)
+            // The scrim is what marks the page as inactive now that it neither
+            // shrinks nor drains, so it carries a little more weight.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
-                    .opacity(0.35 * Double(progress))
+                    .opacity(Self.scrimOpacity * Double(progress))
                     .onTapGesture { close() }
                     .allowsHitTesting(isOpen)
                     .ignoresSafeArea()
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            // The scaled page sits over the drawer; without this the left edge
-            // reads flush against the sidebar.
+            // The page sits over the drawer; without this the left edge reads
+            // flush against the sidebar.
             .shadow(color: pageShadow, radius: Spacing.s3 * progress)
-            .modifier(PageTransform(offset: offset, scale: 1 - Self.scaleDrop * progress))
+            .offset(x: offset)
             .accessibilityHidden(isOpen)
             .environment(\.marqueeHeld, ambientHeld)
             .simultaneousGesture(drawerDrag, including: isOpen ? .all : .subviews)
@@ -124,7 +102,7 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     }
 
     private var ambientHeld: Bool {
-        isOpen || drag.isArmed || isSuspended
+        isOpen || drag.isArmed
     }
 
     private var openEdge: some View {
@@ -148,7 +126,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
             }
             .onEnded { value in
                 guard drag.isArmed || tracks(value) else { return }
-                settleTicket += 1
                 withAnimation(motion) {
                     isOpen = shouldOpen(after: value)
                 }
@@ -201,28 +178,3 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
         withAnimation(motion) { isOpen = false }
     }
 }
-
-private struct PageTransform: GeometryEffect {
-    var offset: CGFloat
-    var scale: CGFloat
-
-    var animatableData: AnimatablePair<CGFloat, CGFloat> {
-        get { AnimatablePair(offset, scale) }
-        set {
-            offset = newValue.first
-            scale = newValue.second
-        }
-    }
-
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        let x = size.width / 2
-        let y = size.height / 2
-        return ProjectionTransform(
-            CGAffineTransform(translationX: offset, y: 0)
-                .translatedBy(x: x, y: y)
-                .scaledBy(x: scale, y: scale)
-                .translatedBy(x: -x, y: -y)
-        )
-    }
-}
-

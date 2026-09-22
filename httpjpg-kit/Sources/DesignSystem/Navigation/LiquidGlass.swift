@@ -1,18 +1,12 @@
 import SwiftUI
-import Tokens
 
 /// The one place in the package that names a Liquid Glass symbol.
 ///
 /// Callers ask for `.liquidGlass(in:tint:)` and get the best surface the running
-/// OS can draw: real glass on iOS 26+, a tinted material on iOS 17–25, and a
-/// flat fill whenever `\.glassSuspended` says the backdrop is not sampleable.
+/// OS can draw: real glass on iOS 26+, a tinted material below it.
 public enum LiquidGlass {
-    /// How opaque a tint gets once it has to stand in for glass. Glass carries
-    /// its own frost; a flat fill has to supply the legibility itself.
-    static let flatTintOpacity: Double = 0.88
-
-    /// Fallback tint strength on iOS 17–25, where `.ultraThinMaterial` is still
-    /// doing most of the work underneath.
+    /// Tint strength on iOS 17–25, where `.ultraThinMaterial` is still doing
+    /// most of the work underneath.
     static let materialTintOpacity: Double = 0.55
 }
 
@@ -24,12 +18,21 @@ public extension View {
     ///   - tint: the colour the glass takes. `nil` asks for untinted glass,
     ///     which stays invisible rather than leaving a grey disc on a light page.
     ///   - isInteractive: adds the press-and-drag highlight for controls.
+    ///   - isOpaque: fills the shape with the tint outright instead of glassing
+    ///     it. `Glass.tint` stays sheer however saturated the colour, so a
+    ///     control that has to read as the page's colour asks for this.
     func liquidGlass(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
-        isInteractive: Bool = false
+        isInteractive: Bool = false,
+        isOpaque: Bool = false
     ) -> some View {
-        modifier(LiquidGlassSurface(shape: shape, tint: tint, isInteractive: isInteractive))
+        modifier(LiquidGlassSurface(
+            shape: shape,
+            tint: tint,
+            isInteractive: isInteractive,
+            isOpaque: isOpaque
+        ))
     }
 
     /// Joins this surface to a morph identity. Sibling surfaces sharing a
@@ -54,9 +57,7 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
     let shape: S
     let tint: Color?
     let isInteractive: Bool
-
-    @Environment(\.glassSuspended) private var isSuspended
-    @Environment(\.pageTheme) private var theme
+    let isOpaque: Bool
 
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -71,8 +72,11 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
 
     @ViewBuilder
     private func surface(_ content: Content) -> some View {
-        if isSuspended {
-            suspended(content)
+        if let tint, isOpaque {
+            // Flat, and not a layer of glass with a solid fill in front of it:
+            // glass always renders *behind* what it backs, so an opaque fill
+            // would bury its highlights and cost a blur pass for nothing.
+            content.background(tint, in: shape)
         } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else if let tint {
@@ -82,21 +86,6 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
         } else {
             // No tint and no glass: painting a frosted material here would leave
             // a grey disc on a light page, so paint nothing.
-            content
-        }
-    }
-
-    /// A flat stand-in has no frost to lean on, so the tint goes over an opaque
-    /// disc of the page colour — the pill then reads exactly as it does on a
-    /// flat page instead of washing out. Untinted glass is invisible by design,
-    /// so it stays that way.
-    @ViewBuilder
-    private func suspended(_ content: Content) -> some View {
-        if let tint {
-            content
-                .background(tint.opacity(LiquidGlass.flatTintOpacity), in: shape)
-                .background(theme.background.opacity(Opacities.muted), in: shape)
-        } else {
             content
         }
     }

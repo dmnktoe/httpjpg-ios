@@ -30,7 +30,7 @@ public struct GlassOrbButtonStyle: ButtonStyle {
             .foregroundStyle(tint.label)
             .frame(width: diameter, height: diameter)
             .contentShape(.circle)
-            .liquidGlass(in: .circle, tint: tint.fill, isInteractive: true)
+            .liquidGlass(in: .circle, tint: tint.fill, isInteractive: true, isOpaque: tint.isOpaque)
             .overlay {
                 if let stroke = tint.stroke {
                     Circle().strokeBorder(stroke, lineWidth: PillMetrics.hairline)

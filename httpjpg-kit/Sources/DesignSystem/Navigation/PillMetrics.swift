@@ -16,8 +16,13 @@ public enum PillMetrics {
 
     public static let compactVerticalPadding: CGFloat = Spacing.s2
 
-    /// Round controls — toolbar buttons, carousel arrows — are one size.
-    public static let orbDiameter: CGFloat = Spacing.s9
+    /// Round controls — header buttons, carousel arrows — are one size, big
+    /// enough to fill the navigation bar rather than float a small disc in it.
+    public static let orbDiameter: CGFloat = Spacing.s10
+
+    /// Round controls laid over media, where the artwork carries the frame and
+    /// a bar-height disc would cover too much of it.
+    public static let compactOrbDiameter: CGFloat = Spacing.s9
 
     public static let hairline: CGFloat = 1
 

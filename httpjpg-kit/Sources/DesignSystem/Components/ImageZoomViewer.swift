@@ -33,7 +33,10 @@ public struct ImageZoomViewer: View {
             } label: {
                 Image(systemName: "xmark")
             }
-            .buttonStyle(.glassOrb(.overMedia(accent: accent, onAccent: onAccent)))
+            .buttonStyle(.glassOrb(
+            .overMedia(accent: accent, onAccent: onAccent),
+            diameter: PillMetrics.compactOrbDiameter
+        ))
             .padding(.leading, PageLayout.gutter)
             .zIndex(1)
             .accessibilityLabel("Close image viewer")

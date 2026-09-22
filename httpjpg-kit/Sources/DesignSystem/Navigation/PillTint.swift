@@ -12,10 +12,16 @@ public struct PillTint: Equatable, Sendable {
     public var label: Color
     public var stroke: Color?
 
-    public init(fill: Color, label: Color, stroke: Color? = nil) {
+    /// Fills the control with `fill` at full strength instead of letting the
+    /// glass wash it out. An accented header button is the page's colour, not a
+    /// hint of it.
+    public var isOpaque: Bool
+
+    public init(fill: Color, label: Color, stroke: Color? = nil, isOpaque: Bool = false) {
         self.fill = fill
         self.label = label
         self.stroke = stroke
+        self.isOpaque = isOpaque
     }
 }
 
@@ -44,16 +50,18 @@ public extension PillTint {
         )
     }
 
-    /// A standalone control — a toolbar orb, a close button. Reads as chrome
-    /// until the page hands it an accent, then it wears it outright.
+    /// A standalone control — a header button, a close button. Reads as chrome
+    /// until the page hands it an accent, then it *is* the accent: solid fill,
+    /// edge to edge, no outline drawing a second, smaller shape inside it.
     static func control(_ theme: PageTheme, accent: Color? = nil, onAccent: Color? = nil) -> PillTint {
         guard let accent else {
             return PillTint(fill: theme.chromeFill, label: theme.foreground, stroke: theme.chromeStroke)
         }
         return PillTint(
-            fill: accent.opacity(controlAccentOpacity),
+            fill: accent,
             label: onAccent ?? theme.chromeActiveLabel,
-            stroke: accent.opacity(controlStrokeOpacity)
+            stroke: nil,
+            isOpaque: true
         )
     }
 
@@ -88,10 +96,6 @@ public extension PillTint {
     /// Glass keeps a little translucency even when a pill is "solid", so the
     /// page still moves behind it.
     private static let selectedAccentOpacity: Double = 0.92
-
-    private static let controlAccentOpacity: Double = 0.9
-
-    private static let controlStrokeOpacity: Double = 0.55
 
     private static let mediaScrimOpacity: Double = 0.55
 
