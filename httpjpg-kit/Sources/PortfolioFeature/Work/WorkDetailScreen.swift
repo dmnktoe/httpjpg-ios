@@ -41,19 +41,29 @@ struct WorkDetailScreen: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .foregroundStyle(toolbarGlyph)
                 }
                 .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .environment(\.colorScheme, headerTheme.colorScheme)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
-            .hidingSharedToolbarBackground(chromeTint != nil)
 
-            ToolbarItem(placement: .topBarTrailing) {
-                trailingActions
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if let url = externalPreviewURL {
+                    Button { openURL(url) } label: {
+                        Image(systemName: "safari")
+                    }
+                    .toolbarGlassButton(chromeTint, fallback: orbTint)
+                    .disabled(imageViewerHeld)
+                    .accessibilityLabel("Open external preview")
+                }
+
+                ShareLink(item: shareURL) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
+                .disabled(imageViewerHeld)
+                .accessibilityLabel("Share")
             }
-            .hidingSharedToolbarBackground(chromeTint != nil)
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             model = WorkDetailModel(client: app.client, slug: route.slug)
@@ -82,43 +92,6 @@ struct WorkDetailScreen: View {
 
     private var orbTint: PillTint {
         .control(headerTheme, accent: chromeTint, onAccent: chromeOnTint)
-    }
-
-    private var toolbarGlyph: Color {
-        chromeOnTint ?? headerTheme.foreground
-    }
-
-    /// Preview + share share one trailing slot so they read as a cluster again
-    /// (separate `ToolbarItem`s each got their own glass and broke the group).
-    @ViewBuilder
-    private var trailingActions: some View {
-        let actions = HStack(spacing: chromeTint == nil ? Spacing.s1 : Spacing.s2) {
-            if let url = externalPreviewURL {
-                Button { openURL(url) } label: {
-                    Image(systemName: "safari")
-                        .foregroundStyle(toolbarGlyph)
-                }
-                .toolbarGlassButton(chromeTint, fallback: orbTint)
-                .environment(\.colorScheme, headerTheme.colorScheme)
-                .disabled(imageViewerHeld)
-                .accessibilityLabel("Open external preview")
-            }
-
-            ShareLink(item: shareURL) {
-                Image(systemName: "square.and.arrow.up")
-                    .foregroundStyle(toolbarGlyph)
-            }
-            .toolbarGlassButton(chromeTint, fallback: orbTint)
-            .environment(\.colorScheme, headerTheme.colorScheme)
-            .disabled(imageViewerHeld)
-            .accessibilityLabel("Share")
-        }
-
-        if chromeTint != nil {
-            LiquidGlassContainer(spacing: Spacing.s2) { actions }
-        } else {
-            actions
-        }
     }
 
     /// The page forces its own appearance, so the toolbar has to be tinted
