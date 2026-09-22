@@ -169,8 +169,8 @@ public struct SbVideoView: View {
     }
 }
 
-/// Popup card for a native video — plain sheet like `PlayerScreen`, dismiss
-/// via the system drag indicator (no floating / toolbar close chrome).
+/// Popup card for a native video — plain sheet like `PlayerScreen`, with a
+/// system toolbar close (not a floating orb over AVKit chrome).
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?
@@ -182,27 +182,44 @@ private struct VideoLightboxViewer: View {
     let copyright: String?
     let copyrightSource: String?
 
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.chromeAccent) private var accent
+
     private let stageRadius = Radii.xl
 
     var body: some View {
-        VStack(spacing: Spacing.s4) {
-            videoStage
+        NavigationStack {
+            VStack(spacing: Spacing.s4) {
+                videoStage
 
-            if hasMeta {
-                meta
-                    .padding(.horizontal, PageLayout.gutter)
+                if hasMeta {
+                    meta
+                        .padding(.horizontal, PageLayout.gutter)
+                }
+
+                Spacer(minLength: 0)
+
+                MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
+                    .lineLimit(1)
+                    .padding(.bottom, Spacing.s6)
             }
-
-            Spacer(minLength: 0)
-
-            MonoText(Ascii.tape, size: Typography.Size.xxs, opacity: Opacities.tape)
-                .lineLimit(1)
-                .padding(.bottom, Spacing.s6)
+            .padding(.top, Spacing.s2)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .pageSurface(.dark)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .toolbarGlassButton(accent, fallback: .control(.dark))
+                    .accessibilityLabel("Close video viewer")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .padding(.top, Spacing.s2)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .pageTheme(.dark)
-        .pageSurface(.dark)
         .preferredColorScheme(.dark)
         .presentationDragIndicator(.visible)
     }
