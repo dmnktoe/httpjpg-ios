@@ -10,6 +10,9 @@ public extension View {
     /// `Palette.onNamed` is exact — `.glassProminent` was choosing its own
     /// label colour from the washed fill and missing mid accents.
     ///
+    /// Pair accented controls with `hidingSharedToolbarBackground(true)` on the
+    /// `ToolbarItem`, otherwise the system glass ring sits around the orb.
+    ///
     /// Below iOS 26 every control draws its own orb.
     ///
     /// - Parameters:
@@ -20,11 +23,23 @@ public extension View {
     }
 }
 
+public extension ToolbarContent {
+    /// Drops the iOS 26 shared toolbar glass behind an item. Accent orbs need
+    /// this so they fill the circle edge-to-edge instead of floating inside a
+    /// second clear ring.
+    @ToolbarContentBuilder
+    func hidingSharedToolbarBackground(_ hidden: Bool) -> some ToolbarContent {
+        if #available(iOS 26.0, *), hidden {
+            sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
+    }
+}
+
 private struct ToolbarGlassButton: ViewModifier {
     let accent: Color?
     let fallback: PillTint
-
-    @Environment(\.pageTheme) private var theme
 
     @ViewBuilder
     func body(content: Content) -> some View {
