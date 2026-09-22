@@ -52,7 +52,7 @@ struct WorkIndexScreen: View {
     private func list(_ model: WorkIndexModel) -> some View {
         ScrollToTopReader(tick: app.scrollToTopTick(for: .work)) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.s8) {
+                VStack(alignment: .leading, spacing: Spacing.s8) {
                     masthead(model)
 
                     FadeSwap(key: ListGeneration(
