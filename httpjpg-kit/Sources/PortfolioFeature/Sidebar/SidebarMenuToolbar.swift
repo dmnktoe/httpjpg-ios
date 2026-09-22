@@ -14,7 +14,7 @@ struct SidebarMenuToolbar: ViewModifier {
                 } label: {
                     Image(systemName: "line.3.horizontal")
                 }
-                .accentGlassButton(nil, fallback: .control(theme))
+                .toolbarGlassButton(nil, fallback: .control(theme))
                 .accessibilityLabel("Open menu")
             }
         }

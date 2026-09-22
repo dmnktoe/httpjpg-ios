@@ -42,7 +42,7 @@ struct WorkDetailScreen: View {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
                 }
-                .accentGlassButton(chromeTint, fallback: orbTint)
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
@@ -52,7 +52,7 @@ struct WorkDetailScreen: View {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
                     }
-                    .accentGlassButton(chromeTint, fallback: orbTint)
+                    .toolbarGlassButton(chromeTint, fallback: orbTint)
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
@@ -60,7 +60,7 @@ struct WorkDetailScreen: View {
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .accentGlassButton(chromeTint, fallback: orbTint)
+                .toolbarGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
