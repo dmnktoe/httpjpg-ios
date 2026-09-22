@@ -151,10 +151,10 @@ jobs:
         shell: bash
         run: |
           # Checked-in pbxproj uses stable AA00… IDs; brew xcodegen rewrites
-          # random UUIDs + a newer objectVersion, so a git-diff drift check is
-          # always a false positive. Only assert that project.yml still generates.
-          xcodegen generate --project /tmp/httpjpg-xcodegen-check.xcodeproj
-          rm -rf /tmp/httpjpg-xcodegen-check.xcodeproj
+          # random UUIDs. Only assert that project.yml still generates, then
+          # restore the committed project for the rest of the job.
+          xcodegen generate
+          git checkout -- httpjpg.xcodeproj
 
       - name: Build app (mock content)
         id: build_app
