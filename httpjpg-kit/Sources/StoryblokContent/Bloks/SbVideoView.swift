@@ -235,7 +235,6 @@ private struct VideoLightboxViewer: View {
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.black)
-        .padding(.horizontal, PageLayout.gutter)
     }
 
     private var hasMeta: Bool {
