@@ -16,9 +16,9 @@ public struct SbHeadlineView: View {
         Headline(
             blok.text,
             level: Headline.Level(rawValue: blok.level) ?? .two,
-            alignment: TextAlign(cmsValue: blok.align)
+            alignment: TextAlign(cmsValue: blok.align),
+            color: Palette.named(blok.color) ?? theme.foreground
         )
-        .foregroundStyle(Palette.named(blok.color) ?? theme.foreground)
         .blokSpacing(blok.spacing)
     }
 }

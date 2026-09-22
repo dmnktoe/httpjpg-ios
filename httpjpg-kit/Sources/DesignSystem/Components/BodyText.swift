@@ -48,6 +48,11 @@ public struct BodyText: View {
     private let lineLimit: Int?
     private let lineHeight: CGFloat?
 
+    /// Justified body text is drawn by UIKit, which never sees
+    /// `foregroundStyle` — so a caller with a colour of its own has to hand it
+    /// over rather than apply it from outside. `nil` inherits, as `Text` does.
+    private let color: Color?
+
     @Environment(\.pageTheme) private var theme
 
     public init(
@@ -57,7 +62,8 @@ public struct BodyText: View {
         weight: Font.Weight = .regular,
         alignment: TextAlign = .left,
         lineLimit: Int? = nil,
-        lineHeight: CGFloat? = nil
+        lineHeight: CGFloat? = nil,
+        color: Color? = nil
     ) {
         self.text = text
         self.size = size
@@ -66,6 +72,7 @@ public struct BodyText: View {
         self.alignment = alignment
         self.lineLimit = lineLimit
         self.lineHeight = lineHeight
+        self.color = color
     }
 
     public var body: some View {
@@ -75,7 +82,7 @@ public struct BodyText: View {
                     text,
                     align: alignment,
                     font: Typography.uiSans(size.points, weight: uiWeight),
-                    color: theme.foreground,
+                    color: resolvedColor(for: theme),
                     lineSpacing: resolvedLineSpacing
                 )
                 .opacity(emphasis.opacity)
@@ -86,9 +93,16 @@ public struct BodyText: View {
                     .multilineTextAlignment(alignment.multiline)
                     .opacity(emphasis.opacity)
                     .lineLimit(lineLimit)
+                    .foregroundStyle(color.map(AnyShapeStyle.init) ?? AnyShapeStyle(.foreground))
             }
         }
         .frame(maxWidth: .infinity, alignment: alignment.frame)
+    }
+
+    /// The colour handed to UIKit for justified body text. `foregroundStyle`
+    /// cannot reach there, so this is the only thing that decides it.
+    func resolvedColor(for theme: PageTheme) -> Color {
+        color ?? theme.foreground
     }
 
     private var resolvedLineSpacing: CGFloat {

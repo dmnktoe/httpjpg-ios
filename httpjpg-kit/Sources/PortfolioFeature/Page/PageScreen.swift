@@ -36,9 +36,6 @@ struct PageScreen: View {
         .navigationTitle(displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(forcesDark ? .dark : nil)
-        // A dark page under clear glass left the title floating over the body
-        // text; painting the bar in the page colour separates the two again.
-        .navigationBarBackground(headerBackground, scheme: pageIsDark ? .dark : nil)
         .task(id: locale) {
             if model == nil {
                 model = PageModel(client: app.client, slug: slug)
@@ -63,15 +60,6 @@ struct PageScreen: View {
     private var forcesDark: Bool {
         pageIsDark && app.selectedTab == .info && app.infoPath.last?.slug == slug
     }
-
-    /// Pages carry no accent, so the bar takes the page's own surface — sheer
-    /// enough that content still shows through as it scrolls under.
-    private var headerBackground: Color? {
-        guard pageIsDark else { return nil }
-        return PageTheme.dark.background.opacity(Self.headerFillOpacity)
-    }
-
-    private static let headerFillOpacity: Double = 0.82
 
     @ViewBuilder
     private func content(_ model: PageModel) -> some View {
@@ -117,7 +105,7 @@ struct PageScreen: View {
                 .padding(.top, Spacing.s6)
                 .padding(.bottom, bottomBarClearance)
             }
-            .softScrollEdges()
+            .navigationScrollEdges()
         }
     }
 }

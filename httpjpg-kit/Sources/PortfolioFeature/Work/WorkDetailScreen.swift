@@ -22,11 +22,6 @@ struct WorkDetailScreen: View {
     @State private var model: WorkDetailModel?
     @State private var imageViewerHeld = false
 
-    /// Shares a morph identity across the three toolbar orbs so they travel as
-    /// one piece of glass when the trailing pair appears or the share sheet
-    /// takes over.
-    @Namespace private var toolbarGlass
-
     var body: some View {
         Group {
             if let model {
@@ -41,14 +36,13 @@ struct WorkDetailScreen: View {
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(forcesDark ? .dark : nil)
         .chromeAccent(chromeTint, onAccent: chromeOnTint)
-        .navigationBarBackground(headerBackground, scheme: headerScheme)
         .onPreferenceChange(ImageViewerHeldKey.self) { imageViewerHeld = $0 }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
                 }
-                .buttonStyle(.glassOrb(orbTint, morphID: "back", in: toolbarGlass))
+                .accentGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Back")
             }
@@ -58,7 +52,7 @@ struct WorkDetailScreen: View {
                     Button { openURL(url) } label: {
                         Image(systemName: "safari")
                     }
-                    .buttonStyle(.glassOrb(orbTint, morphID: "preview", in: toolbarGlass))
+                    .accentGlassButton(chromeTint, fallback: orbTint)
                     .disabled(imageViewerHeld)
                     .accessibilityLabel("Open external preview")
                 }
@@ -66,7 +60,7 @@ struct WorkDetailScreen: View {
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .buttonStyle(.glassOrb(orbTint, morphID: "share", in: toolbarGlass))
+                .accentGlassButton(chromeTint, fallback: orbTint)
                 .disabled(imageViewerHeld)
                 .accessibilityLabel("Share")
             }
@@ -105,26 +99,6 @@ struct WorkDetailScreen: View {
     private var headerTheme: PageTheme {
         pageIsDark ? .dark : theme
     }
-
-    /// The bar wears the page's accent where there is one and the page's own
-    /// surface where there is not, so every work page gets a real header rather
-    /// than a title floating over its artwork.
-    private var headerBackground: Color? {
-        (chromeTint ?? headerTheme.background).opacity(Self.headerFillOpacity)
-    }
-
-    private var headerScheme: ColorScheme? {
-        // The title follows the same contrast call the toolbar glyphs made, so
-        // the bar never mixes a black title with white buttons.
-        guard let prefersLight = Palette.prefersLightForeground(accentToken) else {
-            return pageIsDark ? .dark : nil
-        }
-        return prefersLight ? .dark : .light
-    }
-
-    /// Enough accent to read as the page's colour, sheer enough that the content
-    /// scrolling under it still shows through.
-    private static let headerFillOpacity: Double = 0.82
 
     private var externalPreviewURL: URL? {
         loadedDetail != nil
@@ -211,7 +185,7 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        .softScrollEdges()
+        .navigationScrollEdges()
     }
 
     @ViewBuilder
