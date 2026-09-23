@@ -91,18 +91,21 @@ struct AskSearchHost: View {
     private var askPill: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
-        let tint = PillTint(
-            fill: nil,
-            label: canSubmit ? Palette.primary.s500 : theme.muted
-        )
+        let label = canSubmit ? Palette.primary.s500 : theme.muted
 
         return Button {
             model.ask()
         } label: {
             Label("Ask", systemImage: "sparkles")
                 .labelStyle(.titleAndIcon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(label)
+                .padding(.horizontal, PillMetrics.compactHorizontalPadding)
+                .padding(.vertical, PillMetrics.compactVerticalPadding)
+                .contentShape(.capsule)
+                .liquidGlass(in: .capsule, isInteractive: canSubmit)
         }
-        .buttonStyle(.glassPill(tint, size: .compact))
+        .buttonStyle(.plain)
         .disabled(!canSubmit)
         .opacity(canSubmit ? 1 : 0.55)
         .accessibilityLabel("Ask")
