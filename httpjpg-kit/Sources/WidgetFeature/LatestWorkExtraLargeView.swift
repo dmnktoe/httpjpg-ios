@@ -56,6 +56,7 @@ struct LatestWorkExtraLargeView: View {
         if let image = entry.image {
             Image(uiImage: image)
                 .resizable()
+                .widgetFullColor()
                 .scaledToFill()
         } else {
             theme.background
@@ -135,6 +136,7 @@ struct LatestWorkExtraLargeView: View {
         if let image = entry.thumbnails[item.id] {
             Image(uiImage: image)
                 .resizable()
+                .widgetFullColor()
                 .scaledToFill()
         } else {
             theme.border.opacity(0.3)

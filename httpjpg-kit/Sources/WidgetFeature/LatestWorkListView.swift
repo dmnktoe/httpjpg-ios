@@ -32,6 +32,7 @@ struct LatestWorkListView: View {
         if let image = entry.image {
             Image(uiImage: image)
                 .resizable()
+                .widgetFullColor()
                 .scaledToFill()
         } else {
             theme.border.opacity(0.3)

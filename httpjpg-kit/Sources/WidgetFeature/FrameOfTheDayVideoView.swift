@@ -47,6 +47,7 @@ struct FrameOfTheDayVideoView: View {
         if let image {
             Image(uiImage: image)
                 .resizable()
+                .widgetFullColor()
                 .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
