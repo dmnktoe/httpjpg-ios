@@ -1,200 +1,80 @@
 import SwiftUI
 import Tokens
 
-/// Presentational Ask · Search surface. Networking and routing live in the
-/// feature layer; this view only paints the glass chrome the website's
-/// `CommandPalette` describes.
-///
-/// Layout is two surfaces with air between them: a Liquid Glass search bar on
-/// top, then a separate results stack whose rows bounce in one by one.
+/// Presentational Ask · Search results surface — the system search field lives
+/// on the hosting sheet via `.searchable`; this view only paints what sits under it.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
-    public var suggestions: [String]
     public var answer: String
     public var sources: [CommandPaletteSource]
     public var action: CommandPaletteAction?
     public var status: CommandPaletteStatus
     public var errorMessage: String?
     public var isAskEnabled: Bool
-    public var placeholder: String
-    public var onQueryChange: (String) -> Void
-    public var onClose: () -> Void
     public var onSelect: (CommandPaletteHit) -> Void
     public var onAsk: (String) -> Void
     public var onAction: (CommandPaletteAction) -> Void
-    public var onSuggestion: (String) -> Void
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @FocusState private var isFocused: Bool
     @State private var activeIndex = 0
 
-    private static let thumbSize: CGFloat = 48
+    private static let thumbSize: CGFloat = 52
 
     public init(
         query: String,
         results: [CommandPaletteHit],
-        suggestions: [String] = [],
         answer: String = "",
         sources: [CommandPaletteSource] = [],
         action: CommandPaletteAction? = nil,
         status: CommandPaletteStatus = .idle,
         errorMessage: String? = nil,
         isAskEnabled: Bool = true,
-        placeholder: String = "search or ask a question…",
-        onQueryChange: @escaping (String) -> Void,
-        onClose: @escaping () -> Void,
         onSelect: @escaping (CommandPaletteHit) -> Void,
         onAsk: @escaping (String) -> Void,
-        onAction: @escaping (CommandPaletteAction) -> Void = { _ in },
-        onSuggestion: @escaping (String) -> Void = { _ in }
+        onAction: @escaping (CommandPaletteAction) -> Void = { _ in }
     ) {
         self.query = query
         self.results = results
-        self.suggestions = suggestions
         self.answer = answer
         self.sources = sources
         self.action = action
         self.status = status
         self.errorMessage = errorMessage
         self.isAskEnabled = isAskEnabled
-        self.placeholder = placeholder
-        self.onQueryChange = onQueryChange
-        self.onClose = onClose
         self.onSelect = onSelect
         self.onAsk = onAsk
         self.onAction = onAction
-        self.onSuggestion = onSuggestion
     }
 
     public var body: some View {
-        ZStack {
-            backdrop
-            content
-                .padding(.horizontal, Spacing.s4)
-                .padding(.top, Spacing.s10)
-                .padding(.bottom, Spacing.s4)
-                .frame(maxWidth: 640, maxHeight: .infinity, alignment: .top)
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.s4) {
+                if showsAnswer {
+                    answerPanel
+                }
+
+                resultsSection
+            }
+            .padding(.horizontal, PageLayout.gutter)
+            .padding(.top, Spacing.s3)
+            .padding(.bottom, Spacing.s8)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onAppear {
-            isFocused = true
-            activeIndex = 0
+        .scrollIndicators(.hidden)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            footer
+                .padding(.horizontal, PageLayout.gutter)
+                .padding(.vertical, Spacing.s3)
+                .frame(maxWidth: .infinity)
+                .background(.bar)
         }
         .onChange(of: resultKey) { _, _ in
             activeIndex = 0
         }
-        .accessibilityAddTraits(.isModal)
-    }
-
-    private var backdrop: some View {
-        Palette.black.opacity(0.28)
-            .background(.ultraThinMaterial)
-            .ignoresSafeArea()
-            .onTapGesture(perform: onClose)
-            .accessibilityLabel("Dismiss search")
-            .accessibilityAddTraits(.isButton)
-    }
-
-    private var content: some View {
-        VStack(alignment: .leading, spacing: Spacing.s3) {
-            searchBar
-
-            if !suggestions.isEmpty {
-                suggestionStrip
-            }
-
-            if showsAnswer {
-                answerPanel
-            }
-
-            if showsResultsStack {
-                resultsStack
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Search and ask")
-    }
-
-    // MARK: - Search bar
-
-    private var searchBar: some View {
-        HStack(alignment: .center, spacing: Spacing.s3) {
-            Text(">")
-                .font(Typography.mono(Typography.Size.md))
-                .foregroundStyle(theme.link)
-                .accessibilityHidden(true)
-
-            TextField(placeholder, text: queryBinding)
-                .font(Typography.mono(Typography.Size.md))
-                .foregroundStyle(theme.foreground)
-                .tint(theme.link)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .submitLabel(.search)
-                .focused($isFocused)
-                .onSubmit(submitPrimary)
-                .accessibilityLabel("Search query")
-
-            if !query.isEmpty {
-                Button {
-                    onQueryChange("")
-                    isFocused = true
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: Typography.Size.base))
-                        .foregroundStyle(theme.muted)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear")
-            }
-
-            Button(action: onClose) {
-                MonoText("esc", size: Typography.Size.xs, opacity: Opacities.muted)
-                    .padding(.horizontal, Spacing.s2)
-                    .padding(.vertical, Spacing.s1)
-                    .overlay {
-                        Capsule()
-                            .strokeBorder(theme.chromeStroke, lineWidth: 1)
-                    }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Close")
-        }
-        .padding(.horizontal, Spacing.s4)
-        .padding(.vertical, Spacing.s3)
-        .liquidGlass(in: Capsule(), isInteractive: true)
-        .overlay {
-            Capsule()
-                .strokeBorder(theme.chromeStroke, lineWidth: 1)
-        }
-        .shadow(color: Palette.black.opacity(Opacities.dimmed), radius: 16, y: 8)
-    }
-
-    // MARK: - Suggestions
-
-    private var suggestionStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.s2) {
-                ForEach(suggestions, id: \.self) { suggestion in
-                    Button {
-                        onSuggestion(suggestion)
-                    } label: {
-                        MonoText(suggestion, size: Typography.Size.sm)
-                            .padding(.horizontal, Spacing.s3)
-                            .padding(.vertical, Spacing.s2)
-                            .liquidGlass(
-                                in: Capsule(),
-                                tint: theme.chromeFill,
-                                isInteractive: true
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Try \(suggestion)")
-                }
-            }
-        }
+        .accessibilityLabel("Search results")
     }
 
     // MARK: - Answer
@@ -249,26 +129,21 @@ public struct CommandPalette: View {
                 Button {
                     onAction(action)
                 } label: {
-                    MonoText("go to \(action.title) →", size: Typography.Size.sm)
-                        .foregroundStyle(theme.link)
+                    Text("go to \(action.title)")
+                        .font(Typography.mono(Typography.Size.sm))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderedProminent)
                 .padding(.top, Spacing.s1)
             }
         }
-        .padding(.horizontal, Spacing.s4)
-        .padding(.vertical, Spacing.s3)
+        .padding(Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(theme.codeChipBackground, in: RoundedRectangle(cornerRadius: Radii.xl, style: .continuous))
         .overlay(alignment: .leading) {
-            Capsule()
+            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
                 .fill(theme.link)
                 .frame(width: 3)
                 .padding(.vertical, Spacing.s3)
-        }
-        .liquidGlass(in: RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
-                .strokeBorder(theme.chromeStroke, lineWidth: 1)
         }
     }
 
@@ -285,77 +160,87 @@ public struct CommandPalette: View {
 
     // MARK: - Results
 
-    private var resultsStack: some View {
-        VStack(alignment: .leading, spacing: Spacing.s2) {
-            ScrollView {
-                LiquidGlassContainer(spacing: Spacing.s2) {
-                    LazyVStack(alignment: .leading, spacing: Spacing.s2) {
-                        ForEach(Array(results.enumerated()), id: \.element.id) { entry in
-                            resultRow(entry.element, isActive: entry.offset == activeIndex)
-                                .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
-                                .onTapGesture { onSelect(entry.element) }
-                                .onHover { hovering in
-                                    if hovering { activeIndex = entry.offset }
-                                }
-                        }
+    private var resultsSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.s3) {
+            if results.isEmpty {
+                emptyState
+            } else {
+                LazyVStack(alignment: .leading, spacing: Spacing.s3) {
+                    ForEach(Array(results.enumerated()), id: \.element.id) { entry in
+                        resultRow(entry.element, isActive: entry.offset == activeIndex)
+                            .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
+                            .onTapGesture { onSelect(entry.element) }
+                            .onHover { hovering in
+                                if hovering { activeIndex = entry.offset }
+                            }
                     }
                 }
             }
-            .frame(maxHeight: 320)
-            .scrollIndicators(.hidden)
+        }
+    }
 
-            footer
-                .padding(.horizontal, Spacing.s1)
-                .padding(.top, Spacing.s1)
+    @ViewBuilder
+    private var emptyState: some View {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if status == .searching {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.s8)
+                .accessibilityLabel("Searching")
+        } else if trimmed.isEmpty {
+            ContentUnavailableView(
+                "Search",
+                systemImage: "magnifyingglass",
+                description: Text("Type to search the portfolio, or ask a question.")
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Spacing.s6)
+        } else {
+            ContentUnavailableView.search(text: trimmed)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.s6)
         }
     }
 
     private func resultRow(_ hit: CommandPaletteHit, isActive: Bool) -> some View {
         HStack(alignment: .center, spacing: Spacing.s3) {
-            featuredThumb(hit, isActive: isActive)
+            featuredThumb(hit)
 
             VStack(alignment: .leading, spacing: Spacing.s1) {
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.s2) {
-                    MonoText(
-                        hit.kindLabel,
-                        size: Typography.Size.xs,
-                        tracking: Typography.Tracking.wider(Typography.Size.xs),
-                        opacity: Opacities.subtle
-                    )
-                    .foregroundStyle(isActive ? theme.background : theme.foreground)
+                    Text(hit.kindLabel)
+                        .font(Typography.mono(Typography.Size.xs))
+                        .foregroundStyle(theme.muted)
+                        .tracking(Typography.Tracking.wider(Typography.Size.xs))
 
                     Text(hit.title)
                         .font(Typography.sansBold(Typography.Size.md))
-                        .foregroundStyle(isActive ? theme.background : theme.foreground)
+                        .foregroundStyle(theme.foreground)
                         .lineLimit(1)
                 }
 
                 if let excerpt = hit.excerpt, !excerpt.isEmpty {
                     Text(excerpt)
                         .font(Typography.mono(Typography.Size.sm))
-                        .foregroundStyle(isActive ? theme.background.opacity(Opacities.muted) : theme.muted)
+                        .foregroundStyle(theme.muted)
                         .lineLimit(2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: Typography.Size.sm, weight: .semibold))
+                .foregroundStyle(theme.muted)
+                .accessibilityHidden(true)
         }
-        .padding(.horizontal, Spacing.s3)
-        .padding(.vertical, Spacing.s3)
-        .liquidGlass(
-            in: RoundedRectangle(cornerRadius: Radii.xl, style: .continuous),
-            tint: isActive ? theme.foreground : theme.chromeFill,
-            isInteractive: true,
-            isOpaque: isActive
-        )
-        .overlay(alignment: .leading) {
+        .padding(Spacing.s3)
+        .background {
             RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
-                .fill(isActive ? theme.link : Color.clear)
-                .frame(width: 3)
-                .padding(.vertical, Spacing.s2)
+                .fill(isActive ? theme.foreground.opacity(0.08) : theme.codeChipBackground)
         }
         .overlay {
             RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
-                .strokeBorder(isActive ? theme.link.opacity(0.5) : theme.chromeStroke, lineWidth: 1)
+                .strokeBorder(isActive ? theme.link : theme.border.opacity(Opacities.subtle), lineWidth: 1)
         }
         .contentShape(RoundedRectangle(cornerRadius: Radii.xl, style: .continuous))
         .accessibilityElement(children: .ignore)
@@ -365,7 +250,7 @@ public struct CommandPalette: View {
     }
 
     @ViewBuilder
-    private func featuredThumb(_ hit: CommandPaletteHit, isActive: Bool) -> some View {
+    private func featuredThumb(_ hit: CommandPaletteHit) -> some View {
         let shape = RoundedRectangle(cornerRadius: Radii.md, style: .continuous)
         Group {
             if let url = hit.imageURL {
@@ -376,55 +261,48 @@ public struct CommandPalette: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure, .empty:
-                        thumbPlaceholder(isActive: isActive)
+                        thumbPlaceholder
                     @unknown default:
-                        thumbPlaceholder(isActive: isActive)
+                        thumbPlaceholder
                     }
                 }
             } else {
-                thumbPlaceholder(isActive: isActive)
+                thumbPlaceholder
             }
         }
         .frame(width: Self.thumbSize, height: Self.thumbSize)
         .clipShape(shape)
         .overlay {
-            shape.strokeBorder(
-                isActive ? theme.background.opacity(Opacities.subtle) : theme.chromeStroke,
-                lineWidth: 1
-            )
+            shape.strokeBorder(theme.border.opacity(Opacities.subtle), lineWidth: 1)
         }
         .accessibilityHidden(true)
     }
 
-    private func thumbPlaceholder(isActive: Bool) -> some View {
+    private var thumbPlaceholder: some View {
         ZStack {
-            (isActive ? theme.background.opacity(0.18) : theme.border.opacity(Opacities.subtle))
-            MonoText("▣", size: Typography.Size.md, opacity: Opacities.subtle)
-                .foregroundStyle(isActive ? theme.background : theme.muted)
+            theme.border.opacity(Opacities.dimmed)
+            Image(systemName: "photo")
+                .font(.system(size: Typography.Size.md))
+                .foregroundStyle(theme.muted)
         }
     }
 
     private var footer: some View {
         HStack(spacing: Spacing.s3) {
-            MonoText(statusLabel, size: Typography.Size.sm, opacity: Opacities.muted)
+            Text(statusLabel)
+                .font(Typography.mono(Typography.Size.sm))
+                .foregroundStyle(theme.muted)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if canAsk {
                 Button {
                     onAsk(query.trimmingCharacters(in: .whitespacesAndNewlines))
                 } label: {
-                    MonoText("ask ⌘↵", size: Typography.Size.sm)
-                        .foregroundStyle(Palette.white)
-                        .padding(.horizontal, Spacing.s3)
-                        .padding(.vertical, Spacing.s2)
-                        .liquidGlass(
-                            in: Capsule(),
-                            tint: Palette.primary.s500,
-                            isInteractive: true
-                        )
+                    Label("Ask", systemImage: "sparkles")
+                        .font(Typography.sans(Typography.Size.sm))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Ask")
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.primary.s500)
                 .accessibilityHint("Submits the question to the site assistant")
             }
         }
@@ -432,23 +310,12 @@ public struct CommandPalette: View {
 
     // MARK: - Helpers
 
-    private var queryBinding: Binding<String> {
-        Binding(
-            get: { query },
-            set: { onQueryChange($0) }
-        )
-    }
-
     private var resultKey: String {
         results.map(\.id).joined(separator: "|")
     }
 
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
-    }
-
-    private var showsResultsStack: Bool {
-        !results.isEmpty || status == .searching || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var canAsk: Bool {
@@ -465,17 +332,6 @@ public struct CommandPalette: View {
             if trimmed.isEmpty { return "type to search" }
             if results.isEmpty { return "no matches" }
             return results.count == 1 ? "1 match" : "\(results.count) matches"
-        }
-    }
-
-    private func submitPrimary() {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let active = results[safe: activeIndex] {
-            onSelect(active)
-            return
-        }
-        if canAsk {
-            onAsk(trimmed)
         }
     }
 }
@@ -506,7 +362,6 @@ private struct PaletteBounce: ViewModifier {
             shown = true
             return
         }
-        // Tiny defer so the reset above can paint before the spring runs.
         DispatchQueue.main.async {
             withAnimation(Motion.palettePop.delay(Double(index) * 0.045)) {
                 shown = true
@@ -534,7 +389,8 @@ private struct FlowSources: View {
                     Button {
                         onSelect(source)
                     } label: {
-                        MonoText(source.title, size: Typography.Size.xs)
+                        Text(source.title)
+                            .font(Typography.mono(Typography.Size.xs))
                             .foregroundStyle(theme.link)
                             .underline()
                     }
@@ -542,11 +398,5 @@ private struct FlowSources: View {
                 }
             }
         }
-    }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

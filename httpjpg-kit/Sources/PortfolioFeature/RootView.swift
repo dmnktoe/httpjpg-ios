@@ -42,12 +42,13 @@ public struct RootView: View {
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player)
         }
-        .overlay {
+        .background {
+            // Keeps the search sheet presenter mounted whenever Ask is enabled,
+            // without sitting in the hit-testing overlay path.
             if let askSearch = model.askSearch {
                 AskSearchHost(model: askSearch) { destination in
                     model.navigate(destination)
                 }
-                .animation(Motion.stateChange, value: askSearch.isOpen)
             }
         }
         .pageTheme(theme)

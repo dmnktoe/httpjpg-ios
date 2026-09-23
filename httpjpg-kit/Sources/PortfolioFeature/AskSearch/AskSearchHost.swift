@@ -3,28 +3,48 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// Hosts the Liquid Glass command palette over the root chrome when Ask is on.
+/// Presents Ask · Search as a system sheet with the native `.searchable` field —
+/// so the magnifying glass opens with the standard sheet animation and the
+/// search chrome is UIKit/SwiftUI's default bar (Liquid Glass on iOS 26+).
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
 
     @Environment(\.openURL) private var openURL
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.pageTheme) private var theme
 
     var body: some View {
-        if model.isOpen {
+        Color.clear
+            .accessibilityHidden(true)
+            .sheet(isPresented: presented) {
+                sheet
+            }
+    }
+
+    private var presented: Binding<Bool> {
+        Binding(
+            get: { model.isOpen },
+            set: { isPresented in
+                if isPresented {
+                    if !model.isOpen { model.open() }
+                } else {
+                    model.close()
+                }
+            }
+        )
+    }
+
+    private var sheet: some View {
+        NavigationStack {
             CommandPalette(
                 query: model.query,
                 results: model.results,
-                suggestions: model.suggestions,
                 answer: model.answer,
                 sources: model.sources,
                 action: model.action,
                 status: model.status,
                 errorMessage: model.errorMessage,
                 isAskEnabled: model.isAskAvailable,
-                onQueryChange: { model.setQuery($0) },
-                onClose: { model.close() },
                 onSelect: select,
                 onAsk: { _ in model.ask() },
                 onAction: { action in
@@ -36,19 +56,63 @@ struct AskSearchHost: View {
                             kind: action.kind
                         )
                     )
-                },
-                onSuggestion: { model.selectSuggestion($0) }
+                }
             )
-            .transition(panelTransition)
-            .zIndex(40)
+            .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: queryBinding,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search or ask a question…"
+            )
+            .searchSuggestions {
+                ForEach(model.suggestions, id: \.self) { suggestion in
+                    Text(suggestion)
+                        .searchCompletion(suggestion)
+                }
+            }
+            .onSubmit(of: .search) {
+                submitSearch()
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        model.close()
+                    }
+                }
+
+                if model.isAskAvailable,
+                   !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Ask") {
+                            model.ask()
+                        }
+                    }
+                }
+            }
         }
+        .pageTheme(theme)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
-    private var panelTransition: AnyTransition {
-        if reduceMotion {
-            return .opacity
+    private var queryBinding: Binding<String> {
+        Binding(
+            get: { model.query },
+            set: { model.setQuery($0) }
+        )
+    }
+
+    private func submitSearch() {
+        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let first = model.results.first {
+            select(first)
+            return
         }
-        return .opacity.combined(with: .scale(scale: 0.98, anchor: .top))
+        if model.isAskAvailable, !trimmed.isEmpty {
+            model.ask()
+        }
     }
 
     private func select(_ hit: CommandPaletteHit) {
