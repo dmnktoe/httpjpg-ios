@@ -60,60 +60,7 @@ public struct CommandPalette: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            // Always visible when Ask is enabled — empty query keeps it disabled
-            // so the affordance doesn't appear/disappear while typing.
-            if isAskEnabled {
-                askBar
-            }
-        }
         .accessibilityLabel("Search results")
-    }
-
-    private var askBar: some View {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let canSubmit = !trimmed.isEmpty && status != .answering
-
-        return HStack(spacing: Spacing.s3) {
-            Text(statusLabel)
-                .font(.caption)
-                .foregroundStyle(theme.muted)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button {
-                onAsk(trimmed)
-            } label: {
-                Label("Ask", systemImage: "sparkles")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(canSubmit ? Palette.white : theme.muted)
-                    .padding(.horizontal, Spacing.s3)
-                    .padding(.vertical, Spacing.s2)
-                    .liquidGlass(
-                        in: Capsule(),
-                        tint: canSubmit ? Palette.primary.s500 : theme.chromeFill,
-                        isInteractive: canSubmit
-                    )
-            }
-            .buttonStyle(.plain)
-            .disabled(!canSubmit)
-            .accessibilityHint("Asks the site assistant about your query")
-        }
-        .padding(.horizontal, PageLayout.gutter)
-        .padding(.vertical, Spacing.s3)
-        .background(.bar)
-    }
-
-    private var statusLabel: String {
-        switch status {
-        case .searching: return "searching…"
-        case .answering: return "thinking…"
-        case .error: return "try the results"
-        case .idle:
-            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty { return "type to search or ask" }
-            if results.isEmpty { return "no matches" }
-            return results.count == 1 ? "1 match" : "\(results.count) matches"
-        }
     }
 
     // MARK: - Answer

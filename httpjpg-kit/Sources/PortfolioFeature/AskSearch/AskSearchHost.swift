@@ -72,6 +72,31 @@ struct AskSearchHost: View {
                         model.close()
                     }
                 }
+
+                if model.isAskAvailable {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let canSubmit = !trimmed.isEmpty && model.status != .answering
+                        Button {
+                            model.ask()
+                        } label: {
+                            Label("Ask", systemImage: "sparkles")
+                                .font(.caption.weight(.semibold))
+                                .labelStyle(.titleAndIcon)
+                                .foregroundStyle(canSubmit ? Palette.white : theme.muted)
+                                .padding(.horizontal, Spacing.s3)
+                                .padding(.vertical, Spacing.s2)
+                                .liquidGlass(
+                                    in: Capsule(),
+                                    tint: canSubmit ? Palette.primary.s500 : theme.chromeFill,
+                                    isInteractive: canSubmit
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!canSubmit)
+                        .accessibilityHint("Asks the site assistant about your query")
+                    }
+                }
             }
         }
         .pageTheme(theme)
