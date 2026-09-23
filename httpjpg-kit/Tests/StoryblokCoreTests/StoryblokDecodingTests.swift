@@ -641,28 +641,32 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
+        XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
     func testWidgetFlagsReadBothBooleansAndStrings() throws {
         let config = try decode(SiteConfig.self, """
         {"discord_enabled":false,"letterboxd_enabled":"false",
-         "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true"}
+         "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true",
+         "ask_enabled":"true"}
         """)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
         XCTAssertTrue(config.widgets.isPsnTrophyEnabled)
         XCTAssertTrue(config.widgets.isDiscogsEnabled)
         XCTAssertTrue(config.widgets.isXEnabled)
+        XCTAssertTrue(config.widgets.isAskEnabled)
     }
 
     func testClearedWidgetFlagsFallBackToTheirDefaults() throws {
         let config = try decode(SiteConfig.self, """
-        {"discord_enabled":"","psn_trophy_enabled":"","discogs_enabled":"","x_enabled":""}
+        {"discord_enabled":"","psn_trophy_enabled":"","discogs_enabled":"","x_enabled":"","ask_enabled":""}
         """)
         XCTAssertTrue(config.widgets.isDiscordEnabled, "a cleared field is not an off switch")
         XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
+        XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
     func testMarqueeCarriesSpeedDirectionAndRepeat() throws {

@@ -31,6 +31,21 @@ final class WidgetDeepLinkTests: XCTestCase {
         )
     }
 
+    func testASearchLinkRoundTripsWithAnOptionalPrefill() throws {
+        XCTAssertEqual(
+            WidgetDeepLink.destination(from: try XCTUnwrap(WidgetDeepLink.search())),
+            .search(query: nil)
+        )
+        XCTAssertEqual(
+            WidgetDeepLink.destination(from: try XCTUnwrap(WidgetDeepLink.search(query: "atlas"))),
+            .search(query: "atlas")
+        )
+        XCTAssertEqual(
+            try XCTUnwrap(WidgetDeepLink.search(query: "atlas")).absoluteString,
+            "httpjpg://search?q=atlas"
+        )
+    }
+
     func testATrailingSlashStillReadsAsATabRoot() throws {
         let url = try XCTUnwrap(URL(string: "httpjpg://work/"))
 

@@ -10,12 +10,15 @@ public enum WidgetDeepLink {
         case page(slug: String)
         case info
         case play(AudioTrack)
+        /// Opens the Ask · Search palette; `query` is an optional prefill.
+        case search(query: String?)
     }
 
     private static let workHost = "work"
     private static let pageHost = "page"
     private static let infoHost = "info"
     private static let playHost = "play"
+    private static let searchHost = "search"
 
     public static func work(slug: String) -> URL? {
         guard !slug.isEmpty else { return nil }
@@ -33,6 +36,16 @@ public enum WidgetDeepLink {
 
     public static var info: URL? {
         url(host: infoHost, slug: nil)
+    }
+
+    public static func search(query: String? = nil) -> URL? {
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = searchHost
+        if let query, !query.isEmpty {
+            components.queryItems = [URLQueryItem(name: "q", value: query)]
+        }
+        return components.url
     }
 
     public static func play(_ track: AudioTrack) -> URL? {
@@ -64,9 +77,19 @@ public enum WidgetDeepLink {
         case (workHost, true): return .workIndex
         case (pageHost, false): return .page(slug: slug)
         case (infoHost, true): return .info
+        case (searchHost, true): return .search(query: searchQuery(from: url))
         case (playHost, false): return playDestination(from: url, id: slug)
         default: return nil
         }
+    }
+
+    private static func searchQuery(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+        let value = components.queryItems?.first(where: { $0.name == "q" })?.value
+        guard let value, !value.isEmpty else { return nil }
+        return value
     }
 
     private static func playDestination(from url: URL, id: String) -> Destination? {

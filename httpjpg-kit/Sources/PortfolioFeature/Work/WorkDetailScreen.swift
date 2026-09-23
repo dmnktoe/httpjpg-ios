@@ -101,6 +101,18 @@ struct WorkDetailScreen: View {
 
     @ViewBuilder
     private var trailingButtons: some View {
+        if app.config.widgets.isAskEnabled {
+            Button {
+                app.openAskSearch()
+            } label: {
+                Image(systemName: "magnifyingglass")
+            }
+            .toolbarGlassButton(chromeTint, fallback: orbTint)
+            .disabled(imageViewerHeld)
+            .accessibilityLabel("Search")
+            .accessibilityHint("Opens search and ask")
+        }
+
         if let url = externalPreviewURL {
             Button { openURL(url) } label: {
                 Image(systemName: "safari")
