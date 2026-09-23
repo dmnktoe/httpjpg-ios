@@ -1,8 +1,10 @@
 import SwiftUI
 import Tokens
 
-/// Presentational Ask · Search results surface — the system search field lives
-/// on the hosting sheet via `.searchable`; this view only paints what sits under it.
+/// Ask · Search results under the system `.searchable` field.
+///
+/// One surface only: a native `List`. No floating cards, no competing
+/// suggestion chrome, no empty-state overlay fighting the search field.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -18,9 +20,8 @@ public struct CommandPalette: View {
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var activeIndex = 0
 
-    private static let thumbSize: CGFloat = 52
+    private static let thumbSize: CGFloat = 44
 
     public init(
         query: String,
@@ -49,101 +50,90 @@ public struct CommandPalette: View {
     }
 
     public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.s4) {
-                if showsAnswer {
-                    answerPanel
-                }
-
-                resultsSection
+        List {
+            if showsAnswer {
+                answerSection
             }
-            .padding(.horizontal, PageLayout.gutter)
-            .padding(.top, Spacing.s3)
-            .padding(.bottom, Spacing.s8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            resultsSection
         }
-        .scrollIndicators(.hidden)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            footer
-                .padding(.horizontal, PageLayout.gutter)
-                .padding(.vertical, Spacing.s3)
-                .frame(maxWidth: .infinity)
-                .background(.bar)
-        }
-        .onChange(of: resultKey) { _, _ in
-            activeIndex = 0
-        }
-        .accessibilityElement(children: .contain)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
         .accessibilityLabel("Search results")
     }
 
     // MARK: - Answer
 
-    private var answerPanel: some View {
-        VStack(alignment: .leading, spacing: Spacing.s2) {
-            MonoText(
-                "answer",
-                size: Typography.Size.sm,
-                tracking: Typography.Tracking.wider(Typography.Size.sm),
-                opacity: Opacities.muted
-            )
+    @ViewBuilder
+    private var answerSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.s2) {
+                if let errorMessage, status == .error {
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(Palette.danger.s500)
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        Text(answer.isEmpty && status == .answering ? " " : answer)
+                            .font(.body)
+                            .foregroundStyle(theme.foreground)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
 
-            if let errorMessage, status == .error {
-                Text(errorMessage)
-                    .font(Typography.mono(Typography.Size.md))
-                    .foregroundStyle(Palette.danger.s500)
-                    .accessibilityAddTraits(.isStaticText)
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text(answer.isEmpty && status == .answering ? " " : answer)
-                        .font(Typography.sans(Typography.Size.md))
-                        .foregroundStyle(theme.foreground)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
-
-                    if status == .answering {
-                        streamingCaret
+                        if status == .answering {
+                            streamingCaret
+                        }
                     }
                 }
-            }
 
-            if !sources.isEmpty {
-                FlowSources(sources: sources) { source in
-                    if let hit = results.first(where: { $0.href == source.href }) {
-                        onSelect(hit)
-                    } else {
-                        onSelect(
-                            CommandPaletteHit(
-                                id: source.href,
-                                title: source.title,
-                                href: source.href,
-                                kind: .page
+                if !sources.isEmpty {
+                    FlowSources(sources: sources) { source in
+                        if let hit = results.first(where: { $0.href == source.href }) {
+                            onSelect(hit)
+                        } else {
+                            onSelect(
+                                CommandPaletteHit(
+                                    id: source.href,
+                                    title: source.title,
+                                    href: source.href,
+                                    kind: .page
+                                )
                             )
-                        )
+                        }
                     }
                 }
-            }
 
-            if let action, status != .answering {
-                Button {
-                    onAction(action)
-                } label: {
-                    Text("go to \(action.title)")
-                        .font(Typography.mono(Typography.Size.sm))
+                if let action, status != .answering {
+                    Button {
+                        onAction(action)
+                    } label: {
+                        Text("Go to \(action.title)")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .padding(.top, Spacing.s1)
                 }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, Spacing.s1)
             }
-        }
-        .padding(Spacing.s4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(theme.codeChipBackground, in: RoundedRectangle(cornerRadius: Radii.xl, style: .continuous))
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
-                .fill(theme.link)
-                .frame(width: 3)
-                .padding(.vertical, Spacing.s3)
+            .padding(.vertical, Spacing.s1)
+            .listRowInsets(EdgeInsets(
+                top: Spacing.s3,
+                leading: PageLayout.gutter,
+                bottom: Spacing.s3,
+                trailing: PageLayout.gutter
+            ))
+            .listRowSeparator(.hidden)
+            .listRowBackground(
+                RoundedRectangle(cornerRadius: Radii.lg, style: .continuous)
+                    .fill(theme.codeChipBackground)
+                    .padding(.horizontal, Spacing.s2)
+            )
+        } header: {
+            Text("Answer")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(theme.muted)
+                .textCase(nil)
         }
     }
 
@@ -152,7 +142,7 @@ public struct CommandPalette: View {
             let on = Int(context.date.timeIntervalSinceReferenceDate * 2) % 2 == 0
             Rectangle()
                 .fill(theme.link)
-                .frame(width: 2, height: Typography.Size.md)
+                .frame(width: 2, height: 14)
                 .opacity(on ? 1 : 0)
                 .accessibilityHidden(true)
         }
@@ -160,98 +150,93 @@ public struct CommandPalette: View {
 
     // MARK: - Results
 
-    private var resultsSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.s3) {
-            if results.isEmpty {
-                emptyState
-            } else {
-                LazyVStack(alignment: .leading, spacing: Spacing.s3) {
-                    ForEach(Array(results.enumerated()), id: \.element.id) { entry in
-                        resultRow(entry.element, isActive: entry.offset == activeIndex)
-                            .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
-                            .onTapGesture { onSelect(entry.element) }
-                            .onHover { hovering in
-                                if hovering { activeIndex = entry.offset }
-                            }
-                    }
-                }
-            }
-        }
-    }
-
     @ViewBuilder
-    private var emptyState: some View {
+    private var resultsSection: some View {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if status == .searching {
-            ProgressView()
-                .frame(maxWidth: .infinity)
+
+        if status == .searching, results.isEmpty {
+            Section {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
                 .padding(.vertical, Spacing.s8)
                 .accessibilityLabel("Searching")
-        } else if trimmed.isEmpty {
-            ContentUnavailableView(
-                "Search",
-                systemImage: "magnifyingglass",
-                description: Text("Type to search the portfolio, or ask a question.")
-            )
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.s6)
-        } else {
-            ContentUnavailableView.search(text: trimmed)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.s6)
+            }
+        } else if !results.isEmpty {
+            Section {
+                ForEach(Array(results.enumerated()), id: \.element.id) { entry in
+                    resultRow(entry.element)
+                        .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
+                        .listRowInsets(EdgeInsets(
+                            top: Spacing.s2,
+                            leading: PageLayout.gutter,
+                            bottom: Spacing.s2,
+                            trailing: PageLayout.gutter
+                        ))
+                }
+            } header: {
+                Text(results.count == 1 ? "1 match" : "\(results.count) matches")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.muted)
+                    .textCase(nil)
+            }
+        } else if !trimmed.isEmpty, status == .idle {
+            Section {
+                Text("No matches for “\(trimmed)”")
+                    .font(.subheadline)
+                    .foregroundStyle(theme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, Spacing.s6)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
         }
+        // Empty query: leave the list blank — the searchable field is the prompt.
     }
 
-    private func resultRow(_ hit: CommandPaletteHit, isActive: Bool) -> some View {
-        HStack(alignment: .center, spacing: Spacing.s3) {
-            featuredThumb(hit)
+    private func resultRow(_ hit: CommandPaletteHit) -> some View {
+        Button {
+            onSelect(hit)
+        } label: {
+            HStack(alignment: .center, spacing: Spacing.s3) {
+                featuredThumb(hit)
 
-            VStack(alignment: .leading, spacing: Spacing.s1) {
-                HStack(alignment: .firstTextBaseline, spacing: Spacing.s2) {
-                    Text(hit.kindLabel)
-                        .font(Typography.mono(Typography.Size.xs))
-                        .foregroundStyle(theme.muted)
-                        .tracking(Typography.Tracking.wider(Typography.Size.xs))
-
+                VStack(alignment: .leading, spacing: 2) {
                     Text(hit.title)
-                        .font(Typography.sansBold(Typography.Size.md))
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(theme.foreground)
                         .lineLimit(1)
-                }
+                        .truncationMode(.tail)
 
-                if let excerpt = hit.excerpt, !excerpt.isEmpty {
-                    Text(excerpt)
-                        .font(Typography.mono(Typography.Size.sm))
-                        .foregroundStyle(theme.muted)
-                        .lineLimit(2)
+                    HStack(spacing: Spacing.s2) {
+                        Text(hit.kindLabel)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(theme.muted)
+
+                        if let excerpt = hit.excerpt, !excerpt.isEmpty {
+                            Text(excerpt)
+                                .font(.caption)
+                                .foregroundStyle(theme.muted)
+                                .lineLimit(1)
+                        }
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: Typography.Size.sm, weight: .semibold))
-                .foregroundStyle(theme.muted)
-                .accessibilityHidden(true)
+            .padding(.vertical, Spacing.s1)
+            .contentShape(Rectangle())
         }
-        .padding(Spacing.s3)
-        .background {
-            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
-                .fill(isActive ? theme.foreground.opacity(0.08) : theme.codeChipBackground)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
-                .strokeBorder(isActive ? theme.link : theme.border.opacity(Opacities.subtle), lineWidth: 1)
-        }
-        .contentShape(RoundedRectangle(cornerRadius: Radii.xl, style: .continuous))
-        .accessibilityElement(children: .ignore)
+        .buttonStyle(.plain)
         .accessibilityLabel("\(hit.kindLabel), \(hit.title)")
-        .accessibilityAddTraits(.isButton)
-        .animation(Motion.stateChange, value: isActive)
     }
 
     @ViewBuilder
     private func featuredThumb(_ hit: CommandPaletteHit) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Radii.md, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Radii.base, style: .continuous)
         Group {
             if let url = hit.imageURL {
                 AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
@@ -272,39 +257,15 @@ public struct CommandPalette: View {
         }
         .frame(width: Self.thumbSize, height: Self.thumbSize)
         .clipShape(shape)
-        .overlay {
-            shape.strokeBorder(theme.border.opacity(Opacities.subtle), lineWidth: 1)
-        }
         .accessibilityHidden(true)
     }
 
     private var thumbPlaceholder: some View {
         ZStack {
-            theme.border.opacity(Opacities.dimmed)
+            theme.codeChipBackground
             Image(systemName: "photo")
-                .font(.system(size: Typography.Size.md))
+                .font(.system(size: Typography.Size.sm, weight: .medium))
                 .foregroundStyle(theme.muted)
-        }
-    }
-
-    private var footer: some View {
-        HStack(spacing: Spacing.s3) {
-            Text(statusLabel)
-                .font(Typography.mono(Typography.Size.sm))
-                .foregroundStyle(theme.muted)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            if canAsk {
-                Button {
-                    onAsk(query.trimmingCharacters(in: .whitespacesAndNewlines))
-                } label: {
-                    Label("Ask", systemImage: "sparkles")
-                        .font(Typography.sans(Typography.Size.sm))
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Palette.primary.s500)
-                .accessibilityHint("Submits the question to the site assistant")
-            }
         }
     }
 
@@ -316,23 +277,6 @@ public struct CommandPalette: View {
 
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
-    }
-
-    private var canAsk: Bool {
-        isAskEnabled && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    private var statusLabel: String {
-        switch status {
-        case .searching: return "searching…"
-        case .answering: return "thinking…"
-        case .error: return "try the results instead"
-        case .idle:
-            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty { return "type to search" }
-            if results.isEmpty { return "no matches" }
-            return results.count == 1 ? "1 match" : "\(results.count) matches"
-        }
     }
 }
 
@@ -348,8 +292,7 @@ private struct PaletteBounce: ViewModifier {
     func body(content: Content) -> some View {
         content
             .opacity(shown ? 1 : 0)
-            .offset(y: shown ? 0 : 14)
-            .scaleEffect(shown ? 1 : 0.94, anchor: .top)
+            .offset(y: shown ? 0 : 8)
             .onAppear { play() }
             .onChange(of: trigger) { _, _ in
                 shown = false
@@ -363,7 +306,7 @@ private struct PaletteBounce: ViewModifier {
             return
         }
         DispatchQueue.main.async {
-            withAnimation(Motion.palettePop.delay(Double(index) * 0.045)) {
+            withAnimation(Motion.palettePop.delay(Double(index) * 0.04)) {
                 shown = true
             }
         }
@@ -380,21 +323,15 @@ private struct FlowSources: View {
     let sources: [CommandPaletteSource]
     let onSelect: (CommandPaletteSource) -> Void
 
-    @Environment(\.pageTheme) private var theme
-
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.s2) {
+            HStack(spacing: Spacing.s3) {
                 ForEach(sources) { source in
-                    Button {
+                    Button(source.title) {
                         onSelect(source)
-                    } label: {
-                        Text(source.title)
-                            .font(Typography.mono(Typography.Size.xs))
-                            .foregroundStyle(theme.link)
-                            .underline()
                     }
-                    .buttonStyle(.plain)
+                    .font(.caption)
+                    .buttonStyle(.borderless)
                 }
             }
         }

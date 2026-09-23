@@ -3,9 +3,7 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// Presents Ask · Search as a system sheet with the native `.searchable` field —
-/// so the magnifying glass opens with the standard sheet animation and the
-/// search chrome is UIKit/SwiftUI's default bar (Liquid Glass on iOS 26+).
+/// System sheet + native `.searchable` — one list of results underneath.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
@@ -65,12 +63,6 @@ struct AskSearchHost: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Search or ask a question…"
             )
-            .searchSuggestions {
-                ForEach(model.suggestions, id: \.self) { suggestion in
-                    Text(suggestion)
-                        .searchCompletion(suggestion)
-                }
-            }
             .onSubmit(of: .search) {
                 submitSearch()
             }
@@ -85,8 +77,10 @@ struct AskSearchHost: View {
                    !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Ask") {
+                        Button {
                             model.ask()
+                        } label: {
+                            Label("Ask", systemImage: "sparkles")
                         }
                     }
                 }
