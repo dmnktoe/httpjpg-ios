@@ -1,7 +1,7 @@
 import SwiftUI
 import Tokens
 
-/// Ask · Search results under the system `.searchable` field.
+/// Ask · Search results under the sheet’s top glass chrome.
 ///
 /// Glass answer panel · quiet text action · continuous result rows on the
 /// sheet surface. No inset-grouped cards, no loud CTAs, no bottom chrome.

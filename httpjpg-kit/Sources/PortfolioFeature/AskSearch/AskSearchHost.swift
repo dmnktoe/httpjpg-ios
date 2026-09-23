@@ -3,17 +3,17 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// System sheet + native `.searchable`.
-///
-/// Cancel and Ask sit as a trailing glass pair — clear orbs, Ask sparkles in
-/// primary only. Search chrome is kept from eating them while the field is
-/// focused.
+/// System sheet with a custom top chrome: search field · Ask · Close as one
+/// Liquid Glass cluster. No `.searchable` — that presentation ate trailing
+/// toolbar items, including Ask.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
 
     @Environment(\.openURL) private var openURL
     @Environment(\.pageTheme) private var theme
+    @Namespace private var glass
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         Color.clear
@@ -58,43 +58,104 @@ struct AskSearchHost: View {
                     )
                 }
             )
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(
-                text: queryBinding,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search or ask…"
-            )
-            .modifier(KeepSearchToolbarVisible())
-            .onSubmit(of: .search) {
-                submitSearch()
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    if model.isAskAvailable {
-                        askOrb
-                    }
-                    closeOrb
-                }
+            .toolbar(.hidden, for: .navigationBar)
+            .floatingTopBar {
+                chrome
             }
         }
         .pageTheme(theme)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .onAppear {
+            // Defer so the sheet presentation finishes before the keyboard rises.
+            DispatchQueue.main.async {
+                searchFocused = true
+            }
+        }
     }
 
-    /// Clear glass · primary sparkles only — sits beside Close.
+    /// Search capsule + Ask sparkles + Close — one glass row at the sheet top.
+    private var chrome: some View {
+        LiquidGlassContainer(spacing: Spacing.s2) {
+            HStack(spacing: Spacing.s2) {
+                searchField
+
+                if model.isAskAvailable {
+                    askOrb
+                }
+
+                closeOrb
+            }
+            .padding(.horizontal, Spacing.s4)
+            .padding(.vertical, Spacing.s2)
+        }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: Spacing.s2) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: Typography.Size.md, weight: .semibold))
+                .foregroundStyle(theme.muted)
+                .accessibilityHidden(true)
+
+            TextField("Search or ask…", text: queryBinding)
+                .font(.body)
+                .foregroundStyle(theme.foreground)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.go)
+                .focused($searchFocused)
+                .onSubmit { submitSearch() }
+
+            if !model.query.isEmpty {
+                Button {
+                    model.setQuery("")
+                    searchFocused = true
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: Typography.Size.md))
+                        .foregroundStyle(theme.muted)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear")
+            }
+        }
+        .padding(.leading, Spacing.s3)
+        .padding(.trailing, Spacing.s2)
+        .frame(height: PillMetrics.compactOrbDiameter)
+        .frame(maxWidth: .infinity)
+        .contentShape(.capsule)
+        .liquidGlass(in: .capsule)
+        .liquidGlassID("search", in: glass)
+        .overlay {
+            Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    /// Clear glass · primary sparkles — peer of Close in the top chrome.
     private var askOrb: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
-        let label = canSubmit ? Palette.primary.s500 : theme.muted
+        let tint = PillTint(
+            fill: nil,
+            label: canSubmit ? Palette.primary.s500 : theme.muted
+        )
 
         return Button {
+            searchFocused = false
             model.ask()
         } label: {
             Image(systemName: "sparkles")
         }
-        .modifier(ClearGlassOrb(label: label))
+        .buttonStyle(
+            .glassOrb(
+                tint,
+                diameter: PillMetrics.compactOrbDiameter,
+                morphID: "ask",
+                in: glass
+            )
+        )
         .disabled(!canSubmit)
         .opacity(canSubmit ? 1 : 0.55)
         .accessibilityLabel("Ask")
@@ -107,7 +168,14 @@ struct AskSearchHost: View {
         } label: {
             Image(systemName: "xmark")
         }
-        .modifier(ClearGlassOrb(label: theme.foreground))
+        .buttonStyle(
+            .glassOrb(
+                .idle(theme),
+                diameter: PillMetrics.compactOrbDiameter,
+                morphID: "close",
+                in: glass
+            )
+        )
         .accessibilityLabel("Close")
     }
 
@@ -122,6 +190,7 @@ struct AskSearchHost: View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         // Prefer ask on submit when available — search hits are tappable in the list.
         if model.isAskAvailable, !trimmed.isEmpty {
+            searchFocused = false
             model.ask()
             return
         }
@@ -148,39 +217,6 @@ struct AskSearchHost: View {
             openURL(url)
         default:
             onNavigate(destination)
-        }
-    }
-}
-
-/// Keeps Cancel / Ask visible while the system search field is focused.
-private struct KeepSearchToolbarVisible: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 17.1, *) {
-            content.searchPresentationToolbarBehavior(.avoidHidingContent)
-        } else {
-            content
-        }
-    }
-}
-
-/// Untinted toolbar glass with a coloured glyph. iOS 26 keeps the system orb;
-/// older OS draws a clear `glassOrb`.
-private struct ClearGlassOrb: ViewModifier {
-    let label: Color
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content
-                .foregroundStyle(label)
-                .tint(label)
-        } else {
-            content.buttonStyle(
-                .glassOrb(
-                    PillTint(fill: nil, label: label),
-                    diameter: PillMetrics.compactOrbDiameter
-                )
-            )
         }
     }
 }
