@@ -6,8 +6,8 @@ import IntelligenceGlow
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// Glass answer panel with a looping Intelligence-style sweep · quiet text
-/// action · continuous result rows.
+/// Reply card appears only after the answer finishes — clear glass + the
+/// stock IntelligenceGlow sweep. Result rows stay full width.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -24,8 +24,6 @@ public struct CommandPalette: View {
 
     private static let thumbSize: CGFloat = 44
     private static let panelShape = RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
-    /// Room for the sweep blur to bleed past the card without ScrollView clipping.
-    private static let sweepBleed: CGFloat = 28
 
     public init(
         query: String,
@@ -64,13 +62,13 @@ public struct CommandPalette: View {
     private var resultsScroll: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.s5) {
-                if showsAnswer {
+                if status == .answering {
+                    thinkingPlaceholder
+                } else if showsAnswer {
                     answerPanel
-                        .padding(.horizontal, Self.sweepBleed)
                 }
 
                 resultsBlock
-                    .padding(.horizontal, showsAnswer ? Self.sweepBleed : 0)
             }
             .padding(.horizontal, Spacing.s4)
             .padding(.top, Spacing.s2)
@@ -83,6 +81,19 @@ public struct CommandPalette: View {
 
     // MARK: - Answer
 
+    /// Compact wait state — no glass card, so the list width never jumps.
+    private var thinkingPlaceholder: some View {
+        HStack(spacing: Spacing.s3) {
+            ProgressView()
+            Text("Thinking…")
+                .font(Typography.mono(Typography.Size.sm))
+                .foregroundStyle(theme.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, Spacing.s2)
+        .accessibilityLabel("Thinking")
+    }
+
     private var answerPanel: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
             HStack(spacing: Spacing.s2) {
@@ -91,7 +102,7 @@ public struct CommandPalette: View {
                     .foregroundStyle(Palette.primary.s500)
                     .accessibilityHidden(true)
 
-                Text(status == .answering ? "Thinking…" : "Answer")
+                Text("Answer")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(theme.foreground)
             }
@@ -101,18 +112,12 @@ public struct CommandPalette: View {
                     .font(.subheadline)
                     .foregroundStyle(Palette.danger.s500)
             } else {
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text(answer.isEmpty && status == .answering ? " " : answer)
-                        .font(.body)
-                        .foregroundStyle(theme.foreground)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
-
-                    if status == .answering {
-                        streamingCaret
-                    }
-                }
+                Text(answer)
+                    .font(.body)
+                    .foregroundStyle(theme.foreground)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel(answer)
             }
 
             if !sources.isEmpty {
@@ -132,7 +137,7 @@ public struct CommandPalette: View {
                 }
             }
 
-            if let action, status != .answering {
+            if let action {
                 Button {
                     onAction(action)
                 } label: {
@@ -150,17 +155,6 @@ public struct CommandPalette: View {
         .padding(Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .modifier(AnswerGlassSweep(shape: Self.panelShape))
-    }
-
-    private var streamingCaret: some View {
-        TimelineView(.periodic(from: .now, by: 0.5)) { context in
-            let on = Int(context.date.timeIntervalSinceReferenceDate * 2) % 2 == 0
-            Rectangle()
-                .fill(Palette.primary.s500)
-                .frame(width: 2, height: 14)
-                .opacity(on ? 1 : 0)
-                .accessibilityHidden(true)
-        }
     }
 
     // MARK: - Results
@@ -326,7 +320,8 @@ public struct CommandPalette: View {
     }
 
     private var showsAnswer: Bool {
-        !answer.isEmpty || status == .answering || status == .error
+        // Wait until the stream finishes — no growing glow card mid-delta.
+        status != .answering && (!answer.isEmpty || status == .error)
     }
 
     private var isIdleEmpty: Bool {
@@ -339,111 +334,38 @@ public struct CommandPalette: View {
 
 // MARK: - Answer glass + Intelligence sweep
 
-/// Clear glass + a *looping* Intelligence glass sweep.
-///
-/// Livsy90’s `intelligenceSweep` uses a one-shot `KeyframeAnimator`, so the
-/// glow vanishes after ~2.6s. We keep their palette and compositing, drive
-/// rotation with `TimelineView`, and let the blur bleed outside the card.
+/// Matches the IntelligenceGlow README example:
+/// `glassEffect(.clear)` + `intelligenceSweep(blurRadius: 45, sweepSpan: 90, …)`.
+/// No extra overlay / custom stroke — those made the glow too loud and inset the list.
 private struct AnswerGlassSweep<S: InsettableShape>: ViewModifier {
     let shape: S
 
-    private let blurRadius: CGFloat = 45
-    private let lineWidth: CGFloat = 1.2
-    private let sweepSpan: Double = 90
-    private let sweepOffset: Double = 220
-    private let period: TimeInterval = 2.6
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
+    @ViewBuilder
     func body(content: Content) -> some View {
-        let glassed = clearGlass(content)
-
         #if os(iOS)
-        glassed
-            .background {
-                sweepLayers
-                    .allowsHitTesting(false)
-            }
-            // Soft multi-layer glow from IntelligenceGlow (continuously regenerates).
-            .intelligenceOverlay(
-                in: shape,
-                lineWidths: [3, 6, 10],
-                blurs: [0, 6, 14],
-                updateInterval: 0.45,
-                animationDurations: [0.5, 0.7, 1.0]
-            )
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.clear, in: shape)
+                .intelligenceSweep(
+                    in: shape,
+                    blurRadius: 45,
+                    sweepSpan: 90,
+                    sweepOffset: 220
+                )
+        } else {
+            content
+                .liquidGlass(in: shape)
+                .intelligenceSweep(
+                    in: shape,
+                    blurRadius: 45,
+                    sweepSpan: 90,
+                    sweepOffset: 220
+                )
+        }
         #else
-        glassed
+        content.liquidGlass(in: shape)
         #endif
     }
-
-    @ViewBuilder
-    private func clearGlass(_ content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content.glassEffect(.clear, in: shape)
-        } else {
-            content.liquidGlass(in: shape)
-        }
-    }
-
-    #if os(iOS)
-    @ViewBuilder
-    private var sweepLayers: some View {
-        let colors: [Color] = .intelligenceColors
-        let border = Palette.primary.s500
-
-        ZStack {
-            shape.stroke(border.opacity(0.22), lineWidth: lineWidth)
-
-            if reduceMotion {
-                sweepContent(rotation: 0, colors: colors, border: border)
-            } else {
-                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
-                    let t = context.date.timeIntervalSinceReferenceDate
-                    let rotation = (t.truncatingRemainder(dividingBy: period) / period) * 360
-                    sweepContent(rotation: rotation, colors: colors, border: border)
-                }
-            }
-        }
-        .padding(0.5)
-    }
-
-    private func sweepContent(rotation: Double, colors: [Color], border: Color) -> some View {
-        let borderGradient = AngularGradient(
-            colors: [.clear, border, .clear],
-            center: .center,
-            startAngle: .degrees(sweepOffset + rotation),
-            endAngle: .degrees(sweepOffset + sweepSpan + rotation)
-        )
-        let sweepGradient = LinearGradient(
-            colors: colors,
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-
-        return ZStack {
-            shape
-                .fill(sweepGradient)
-                .mask {
-                    Rectangle()
-                        .overlay {
-                            shape
-                                .blur(radius: blurRadius)
-                                .blendMode(.destinationOut)
-                        }
-                        .compositingGroup()
-                }
-                .mask {
-                    shape
-                        .fill(borderGradient)
-                        .blur(radius: blurRadius / 1.5)
-                        .padding(-blurRadius * 2)
-                }
-
-            shape.stroke(borderGradient, lineWidth: lineWidth)
-        }
-    }
-    #endif
 }
 
 // MARK: - Bounce
@@ -499,9 +421,7 @@ private struct FlowSources: View {
                         Text(source.title)
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Palette.primary.s500)
-                            .padding(.horizontal, Spacing.s3)
-                            .padding(.vertical, Spacing.s1)
-                            .liquidGlass(in: .capsule)
+                            .lineLimit(1)
                     }
                     .buttonStyle(.plain)
                 }
