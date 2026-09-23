@@ -18,6 +18,7 @@ let package = Package(
         .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
         .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.0.0")),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", .upToNextMajor(from: "1.18.0")),
     ],
     targets: [
         .target(
@@ -85,6 +86,7 @@ let package = Package(
                 "DesignSystem",
                 "Tokens",
                 .product(name: "SVGView", package: "SVGView"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

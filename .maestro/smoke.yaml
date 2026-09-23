@@ -1,0 +1,16 @@
+# Simulator-only smoke. Build with CONTENT_SOURCE=mock so fixtures load offline.
+appId: com.yl33ly.httpjpg
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 45000
+- assertVisible: "Work"
+- assertVisible: "Info"
+- tapOn: "Open menu"
+- extendedWaitUntil:
+    visible: ".*All work.*"
+    timeout: 20000
+- assertVisible: "Atlas der Nebenstraßen"
+- tapOn: "Close menu"
+- assertVisible: "Open menu"
