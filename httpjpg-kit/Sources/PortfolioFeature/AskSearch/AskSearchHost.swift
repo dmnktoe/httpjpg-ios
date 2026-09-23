@@ -3,7 +3,10 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// System sheet + native `.searchable` — one list of results underneath.
+/// System sheet + native `.searchable`.
+///
+/// Ask lives in a bottom sparkles orb (not the trailing toolbar) so the system
+/// search chrome — the clear ✕ — cannot hide it while typing.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
@@ -64,35 +67,15 @@ struct AskSearchHost: View {
             .onSubmit(of: .search) {
                 submitSearch()
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if model.isAskAvailable {
+                    askDock
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         model.close()
-                    }
-                }
-
-                if model.isAskAvailable {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let canSubmit = !trimmed.isEmpty && model.status != .answering
-                        Button {
-                            model.ask()
-                        } label: {
-                            Label("Ask", systemImage: "sparkles")
-                                .font(.caption.weight(.semibold))
-                                .labelStyle(.titleAndIcon)
-                                .foregroundStyle(canSubmit ? Palette.white : theme.muted)
-                                .padding(.horizontal, Spacing.s3)
-                                .padding(.vertical, Spacing.s2)
-                                .liquidGlass(
-                                    in: Capsule(),
-                                    tint: canSubmit ? Palette.primary.s500 : theme.chromeFill,
-                                    isInteractive: canSubmit
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!canSubmit)
-                        .accessibilityHint("Asks the site assistant about your query")
                     }
                 }
             }
@@ -100,6 +83,49 @@ struct AskSearchHost: View {
         .pageTheme(theme)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    /// Clear glass circle, primary sparkles only — no white / filled tint.
+    private var askDock: some View {
+        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let canSubmit = !trimmed.isEmpty && model.status != .answering
+
+        return HStack(alignment: .center, spacing: Spacing.s3) {
+            Text(statusLabel)
+                .font(.caption)
+                .foregroundStyle(theme.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                model.ask()
+            } label: {
+                Image(systemName: "sparkles")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(canSubmit ? Palette.primary.s500 : theme.muted)
+                    .frame(width: 40, height: 40)
+                    .liquidGlass(in: Circle(), isInteractive: canSubmit)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSubmit)
+            .accessibilityLabel("Ask")
+            .accessibilityHint("Ask the site assistant about your search")
+        }
+        .padding(.horizontal, PageLayout.gutter)
+        .padding(.vertical, Spacing.s3)
+        .background(.bar)
+    }
+
+    private var statusLabel: String {
+        switch model.status {
+        case .searching: return "searching…"
+        case .answering: return "thinking…"
+        case .error: return "try the results"
+        case .idle:
+            let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { return "search, then tap ✦ to ask" }
+            if model.results.isEmpty { return "no matches — ask anyway" }
+            return model.results.count == 1 ? "1 match" : "\(model.results.count) matches"
+        }
     }
 
     private var queryBinding: Binding<String> {

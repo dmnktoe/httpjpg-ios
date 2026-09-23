@@ -3,8 +3,7 @@ import Tokens
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// One surface only: a native `List`. No floating cards, no competing
-/// suggestion chrome, no empty-state overlay fighting the search field.
+/// White inset-grouped rows — one list language, no floating card stack.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -19,7 +18,7 @@ public struct CommandPalette: View {
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let thumbSize: CGFloat = 44
+    private static let thumbSize: CGFloat = 48
 
     public init(
         query: String,
@@ -51,8 +50,7 @@ public struct CommandPalette: View {
 
             resultsSection
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .listStyle(.insetGrouped)
         .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
         .accessibilityLabel("Search results")
     }
@@ -61,7 +59,7 @@ public struct CommandPalette: View {
 
     @ViewBuilder
     private var answerSection: some View {
-        Section {
+        Section("Answer") {
             VStack(alignment: .leading, spacing: Spacing.s2) {
                 if let errorMessage, status == .error {
                     Text(errorMessage)
@@ -111,23 +109,6 @@ public struct CommandPalette: View {
                 }
             }
             .padding(.vertical, Spacing.s1)
-            .listRowInsets(EdgeInsets(
-                top: Spacing.s3,
-                leading: PageLayout.gutter,
-                bottom: Spacing.s3,
-                trailing: PageLayout.gutter
-            ))
-            .listRowSeparator(.hidden)
-            .listRowBackground(
-                RoundedRectangle(cornerRadius: Radii.lg, style: .continuous)
-                    .fill(theme.codeChipBackground)
-                    .padding(.horizontal, Spacing.s2)
-            )
-        } header: {
-            Text("Answer")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(theme.muted)
-                .textCase(nil)
         }
     }
 
@@ -151,13 +132,11 @@ public struct CommandPalette: View {
         if status == .searching, results.isEmpty {
             Section {
                 HStack {
-                    Spacer()
+                    Spacer(minLength: 0)
                     ProgressView()
-                    Spacer()
+                    Spacer(minLength: 0)
                 }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .padding(.vertical, Spacing.s8)
+                .padding(.vertical, Spacing.s6)
                 .accessibilityLabel("Searching")
             }
         } else if !results.isEmpty {
@@ -165,17 +144,9 @@ public struct CommandPalette: View {
                 ForEach(Array(results.enumerated()), id: \.element.id) { entry in
                     resultRow(entry.element)
                         .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
-                        .listRowInsets(EdgeInsets(
-                            top: Spacing.s2,
-                            leading: PageLayout.gutter,
-                            bottom: Spacing.s2,
-                            trailing: PageLayout.gutter
-                        ))
                 }
             } header: {
                 Text(results.count == 1 ? "1 match" : "\(results.count) matches")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(theme.muted)
                     .textCase(nil)
             }
         } else if !trimmed.isEmpty, status == .idle {
@@ -183,13 +154,9 @@ public struct CommandPalette: View {
                 Text("No matches for “\(trimmed)”")
                     .font(.subheadline)
                     .foregroundStyle(theme.muted)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, Spacing.s6)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+                    .padding(.vertical, Spacing.s4)
             }
         }
-        // Empty query: leave the list blank — the searchable field is the prompt.
     }
 
     private func resultRow(_ hit: CommandPaletteHit) -> some View {
@@ -199,16 +166,16 @@ public struct CommandPalette: View {
             HStack(alignment: .center, spacing: Spacing.s3) {
                 featuredThumb(hit)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Spacing.s1) {
                     Text(hit.title)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(theme.foreground)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
 
                     HStack(spacing: Spacing.s2) {
                         Text(hit.kindLabel)
-                            .font(.caption2.weight(.medium))
+                            .font(.caption2.weight(.semibold))
                             .foregroundStyle(theme.muted)
 
                         if let excerpt = hit.excerpt, !excerpt.isEmpty {
@@ -230,7 +197,7 @@ public struct CommandPalette: View {
 
     @ViewBuilder
     private func featuredThumb(_ hit: CommandPaletteHit) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Radii.base, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Radii.md, style: .continuous)
         Group {
             if let url = hit.imageURL {
                 AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
@@ -284,9 +251,10 @@ private struct PaletteBounce: ViewModifier {
     @State private var shown = false
 
     func body(content: Content) -> some View {
+        // Opacity + slight rise only — scale left ghosts of the title on top of rows.
         content
             .opacity(shown ? 1 : 0)
-            .offset(y: shown ? 0 : 8)
+            .offset(y: shown ? 0 : 6)
             .onAppear { play() }
             .onChange(of: trigger) { _, _ in
                 shown = false
