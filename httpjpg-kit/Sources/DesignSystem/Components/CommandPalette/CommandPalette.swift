@@ -74,34 +74,46 @@ public struct CommandPalette: View {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && status != .answering
 
-        return VStack(alignment: .leading, spacing: Spacing.s2) {
+        return HStack(spacing: Spacing.s3) {
+            Text(statusLabel)
+                .font(.caption)
+                .foregroundStyle(theme.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             Button {
                 onAsk(trimmed)
             } label: {
-                Label(
-                    trimmed.isEmpty ? "Ask a question…" : "Ask",
-                    systemImage: "sparkles"
-                )
-                .font(.body.weight(.semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.s1)
+                Label("Ask", systemImage: "sparkles")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(canSubmit ? Palette.white : theme.muted)
+                    .padding(.horizontal, Spacing.s3)
+                    .padding(.vertical, Spacing.s2)
+                    .liquidGlass(
+                        in: Capsule(),
+                        tint: canSubmit ? Palette.primary.s500 : theme.chromeFill,
+                        isInteractive: canSubmit
+                    )
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Palette.primary.s500)
-            .controlSize(.large)
+            .buttonStyle(.plain)
             .disabled(!canSubmit)
-
-            if trimmed.isEmpty {
-                Text("Type a question above, then tap Ask.")
-                    .font(.caption)
-                    .foregroundStyle(theme.muted)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            .accessibilityHint("Asks the site assistant about your query")
         }
         .padding(.horizontal, PageLayout.gutter)
         .padding(.vertical, Spacing.s3)
         .background(.bar)
-        .accessibilityHint("Asks the site assistant about your query")
+    }
+
+    private var statusLabel: String {
+        switch status {
+        case .searching: return "searching…"
+        case .answering: return "thinking…"
+        case .error: return "try the results"
+        case .idle:
+            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { return "type to search or ask" }
+            if results.isEmpty { return "no matches" }
+            return results.count == 1 ? "1 match" : "\(results.count) matches"
+        }
     }
 
     // MARK: - Answer
@@ -318,12 +330,6 @@ public struct CommandPalette: View {
 
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
-    }
-
-    private var canAsk: Bool {
-        isAskEnabled
-            && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && status != .answering
     }
 }
 
