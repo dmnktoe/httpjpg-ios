@@ -60,7 +60,31 @@ public struct CommandPalette: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if canAsk {
+                askBar
+            }
+        }
         .accessibilityLabel("Search results")
+    }
+
+    private var askBar: some View {
+        Button {
+            onAsk(query.trimmingCharacters(in: .whitespacesAndNewlines))
+        } label: {
+            Label("Ask", systemImage: "sparkles")
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.s1)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Palette.primary.s500)
+        .controlSize(.large)
+        .disabled(status == .answering)
+        .padding(.horizontal, PageLayout.gutter)
+        .padding(.vertical, Spacing.s3)
+        .background(.bar)
+        .accessibilityHint("Asks the site assistant about your query")
     }
 
     // MARK: - Answer

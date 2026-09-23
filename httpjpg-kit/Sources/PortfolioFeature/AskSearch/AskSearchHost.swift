@@ -72,18 +72,6 @@ struct AskSearchHost: View {
                         model.close()
                     }
                 }
-
-                if model.isAskAvailable,
-                   !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            model.ask()
-                        } label: {
-                            Label("Ask", systemImage: "sparkles")
-                        }
-                    }
-                }
             }
         }
         .pageTheme(theme)
