@@ -42,9 +42,7 @@ struct AskSearchHost: View {
                 action: model.action,
                 status: model.status,
                 errorMessage: model.errorMessage,
-                isAskEnabled: model.isAskAvailable,
                 onSelect: select,
-                onAsk: { _ in model.ask() },
                 onAction: { action in
                     select(
                         CommandPaletteHit(
