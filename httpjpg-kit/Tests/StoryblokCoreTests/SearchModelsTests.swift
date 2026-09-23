@@ -7,7 +7,8 @@ final class SearchModelsTests: XCTestCase {
         let data = Data("""
         {
           "results": [
-            {"id":"1","title":"ATLAS","href":"/work/atlas","kind":"work","excerpt":"map work"},
+            {"id":"1","title":"ATLAS","href":"/work/atlas","kind":"work","excerpt":"map work",
+             "featured":{"source":"https://a.storyblok.com/f/1/2000x1000/x/photo.jpg","focus":"10x20:30x40"}},
             {"id":"2","title":"CV","href":"/cv","kind":"page"}
           ],
           "suggestions": ["atlas", "atelier"]
@@ -19,6 +20,23 @@ final class SearchModelsTests: XCTestCase {
         XCTAssertEqual(response.results.map(\.kind), [.work, .page])
         XCTAssertEqual(response.suggestions, ["atlas", "atelier"])
         XCTAssertEqual(response.results.first?.excerpt, "map work")
+        XCTAssertEqual(
+            response.results.first?.featured?.source,
+            "https://a.storyblok.com/f/1/2000x1000/x/photo.jpg"
+        )
+        XCTAssertEqual(
+            response.results.first?.featured?.thumbURL?.absoluteString,
+            "https://a.storyblok.com/f/1/2000x1000/x/photo.jpg/m/200x0/filters:quality(75):focal(10x20:200x0)"
+        )
+        XCTAssertNil(response.results[1].featured)
+    }
+
+    func testEmptyFeaturedIsDropped() throws {
+        let data = Data("""
+        {"id":"1","title":"ATLAS","href":"/work/atlas","kind":"work","featured":{"source":""}}
+        """.utf8)
+        let hit = try JSONDecoder().decode(SearchHit.self, from: data)
+        XCTAssertNil(hit.featured)
     }
 
     func testAskStreamParsesSourcesDeltasActionsAndErrors() {

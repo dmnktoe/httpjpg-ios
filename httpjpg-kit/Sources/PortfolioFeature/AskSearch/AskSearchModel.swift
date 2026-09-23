@@ -172,7 +172,8 @@ final class AskSearchModel {
                         title: $0.title,
                         href: $0.href,
                         kind: $0.kind == .work ? .work : .page,
-                        excerpt: $0.excerpt
+                        excerpt: $0.excerpt,
+                        imageURL: $0.featured?.thumbURL
                     )
                 }
                 suggestions = response.suggestions

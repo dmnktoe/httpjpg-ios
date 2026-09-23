@@ -4,6 +4,9 @@ import Tokens
 /// Presentational Ask · Search surface. Networking and routing live in the
 /// feature layer; this view only paints the glass chrome the website's
 /// `CommandPalette` describes.
+///
+/// Layout is two surfaces with air between them: a Liquid Glass search bar on
+/// top, then a separate results stack whose rows bounce in one by one.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -23,8 +26,11 @@ public struct CommandPalette: View {
     public var onSuggestion: (String) -> Void
 
     @Environment(\.pageTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isFocused: Bool
     @State private var activeIndex = 0
+
+    private static let thumbSize: CGFloat = 48
 
     public init(
         query: String,
@@ -65,7 +71,7 @@ public struct CommandPalette: View {
     public var body: some View {
         ZStack {
             backdrop
-            panel
+            content
                 .padding(.horizontal, Spacing.s4)
                 .padding(.top, Spacing.s10)
                 .padding(.bottom, Spacing.s4)
@@ -90,30 +96,30 @@ public struct CommandPalette: View {
             .accessibilityAddTraits(.isButton)
     }
 
-    private var panel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            inputRow
+    private var content: some View {
+        VStack(alignment: .leading, spacing: Spacing.s3) {
+            searchBar
+
             if !suggestions.isEmpty {
                 suggestionStrip
             }
+
             if showsAnswer {
                 answerPanel
             }
-            resultsList
-            footer
+
+            if showsResultsStack {
+                resultsStack
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
-                .strokeBorder(theme.chromeStroke, lineWidth: 1)
-        }
-        .shadow(color: Palette.black.opacity(Opacities.dimmed), radius: 24, y: 12)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Search and ask")
     }
 
-    private var inputRow: some View {
+    // MARK: - Search bar
+
+    private var searchBar: some View {
         HStack(alignment: .center, spacing: Spacing.s3) {
             Text(">")
                 .font(Typography.mono(Typography.Size.md))
@@ -136,11 +142,9 @@ public struct CommandPalette: View {
                     onQueryChange("")
                     isFocused = true
                 } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: Typography.Size.sm, weight: .semibold))
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: Typography.Size.base))
                         .foregroundStyle(theme.muted)
-                        .frame(width: Spacing.s7, height: Spacing.s7)
-                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear")
@@ -151,8 +155,8 @@ public struct CommandPalette: View {
                     .padding(.horizontal, Spacing.s2)
                     .padding(.vertical, Spacing.s1)
                     .overlay {
-                        RoundedRectangle(cornerRadius: Radii.sm, style: .continuous)
-                            .strokeBorder(theme.border, lineWidth: 1)
+                        Capsule()
+                            .strokeBorder(theme.chromeStroke, lineWidth: 1)
                     }
             }
             .buttonStyle(.plain)
@@ -160,10 +164,15 @@ public struct CommandPalette: View {
         }
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
-        .overlay(alignment: .bottom) {
-            theme.border.frame(height: 1)
+        .liquidGlass(in: Capsule(), isInteractive: true)
+        .overlay {
+            Capsule()
+                .strokeBorder(theme.chromeStroke, lineWidth: 1)
         }
+        .shadow(color: Palette.black.opacity(Opacities.dimmed), radius: 16, y: 8)
     }
+
+    // MARK: - Suggestions
 
     private var suggestionStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -185,13 +194,10 @@ public struct CommandPalette: View {
                     .accessibilityLabel("Try \(suggestion)")
                 }
             }
-            .padding(.horizontal, Spacing.s4)
-            .padding(.vertical, Spacing.s3)
-        }
-        .overlay(alignment: .bottom) {
-            theme.border.frame(height: 1)
         }
     }
+
+    // MARK: - Answer
 
     private var answerPanel: some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
@@ -254,10 +260,15 @@ public struct CommandPalette: View {
         .padding(.vertical, Spacing.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .leading) {
-            theme.link.frame(width: 2)
+            Capsule()
+                .fill(theme.link)
+                .frame(width: 3)
+                .padding(.vertical, Spacing.s3)
         }
-        .overlay(alignment: .bottom) {
-            theme.border.frame(height: 1)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
+                .strokeBorder(theme.chromeStroke, lineWidth: 1)
         }
     }
 
@@ -272,59 +283,125 @@ public struct CommandPalette: View {
         }
     }
 
-    private var resultsList: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(results.enumerated()), id: \.element.id) { entry in
-                    resultRow(entry.element, isActive: entry.offset == activeIndex)
-                        .onTapGesture { onSelect(entry.element) }
-                        .onHover { hovering in
-                            if hovering { activeIndex = entry.offset }
+    // MARK: - Results
+
+    private var resultsStack: some View {
+        VStack(alignment: .leading, spacing: Spacing.s2) {
+            ScrollView {
+                LiquidGlassContainer(spacing: Spacing.s2) {
+                    LazyVStack(alignment: .leading, spacing: Spacing.s2) {
+                        ForEach(Array(results.enumerated()), id: \.element.id) { entry in
+                            resultRow(entry.element, isActive: entry.offset == activeIndex)
+                                .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
+                                .onTapGesture { onSelect(entry.element) }
+                                .onHover { hovering in
+                                    if hovering { activeIndex = entry.offset }
+                                }
                         }
+                    }
                 }
             }
+            .frame(maxHeight: 320)
+            .scrollIndicators(.hidden)
+
+            footer
+                .padding(.horizontal, Spacing.s1)
+                .padding(.top, Spacing.s1)
         }
-        .frame(maxHeight: 280)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Search results")
     }
 
     private func resultRow(_ hit: CommandPaletteHit, isActive: Bool) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: Spacing.s3) {
-            MonoText(
-                hit.kindLabel,
-                size: Typography.Size.sm,
-                tracking: Typography.Tracking.wide(Typography.Size.sm),
-                opacity: Opacities.subtle
-            )
-            .frame(width: 56, alignment: .leading)
+        HStack(alignment: .center, spacing: Spacing.s3) {
+            featuredThumb(hit, isActive: isActive)
 
             VStack(alignment: .leading, spacing: Spacing.s1) {
-                Text(hit.title)
-                    .font(Typography.sansBold(Typography.Size.md))
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.s2) {
+                    MonoText(
+                        hit.kindLabel,
+                        size: Typography.Size.xs,
+                        tracking: Typography.Tracking.wider(Typography.Size.xs),
+                        opacity: Opacities.subtle
+                    )
                     .foregroundStyle(isActive ? theme.background : theme.foreground)
-                    .lineLimit(1)
+
+                    Text(hit.title)
+                        .font(Typography.sansBold(Typography.Size.md))
+                        .foregroundStyle(isActive ? theme.background : theme.foreground)
+                        .lineLimit(1)
+                }
 
                 if let excerpt = hit.excerpt, !excerpt.isEmpty {
-                    MonoText(excerpt, size: Typography.Size.sm, opacity: Opacities.muted)
-                        .foregroundStyle(isActive ? theme.background : theme.foreground)
+                    Text(excerpt)
+                        .font(Typography.mono(Typography.Size.sm))
+                        .foregroundStyle(isActive ? theme.background.opacity(Opacities.muted) : theme.muted)
                         .lineLimit(2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, Spacing.s4)
-        .padding(.vertical, Spacing.s2)
-        .background(isActive ? theme.foreground : Color.clear)
+        .padding(.horizontal, Spacing.s3)
+        .padding(.vertical, Spacing.s3)
+        .liquidGlass(
+            in: RoundedRectangle(cornerRadius: Radii.xl, style: .continuous),
+            tint: isActive ? theme.foreground : theme.chromeFill,
+            isInteractive: true,
+            isOpaque: isActive
+        )
         .overlay(alignment: .leading) {
-            Rectangle()
+            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
                 .fill(isActive ? theme.link : Color.clear)
                 .frame(width: 3)
+                .padding(.vertical, Spacing.s2)
         }
-        .contentShape(Rectangle())
+        .overlay {
+            RoundedRectangle(cornerRadius: Radii.xl, style: .continuous)
+                .strokeBorder(isActive ? theme.link.opacity(0.5) : theme.chromeStroke, lineWidth: 1)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: Radii.xl, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(hit.kindLabel), \(hit.title)")
         .accessibilityAddTraits(.isButton)
+        .animation(Motion.stateChange, value: isActive)
+    }
+
+    @ViewBuilder
+    private func featuredThumb(_ hit: CommandPaletteHit, isActive: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Radii.md, style: .continuous)
+        Group {
+            if let url = hit.imageURL {
+                AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    case .failure, .empty:
+                        thumbPlaceholder(isActive: isActive)
+                    @unknown default:
+                        thumbPlaceholder(isActive: isActive)
+                    }
+                }
+            } else {
+                thumbPlaceholder(isActive: isActive)
+            }
+        }
+        .frame(width: Self.thumbSize, height: Self.thumbSize)
+        .clipShape(shape)
+        .overlay {
+            shape.strokeBorder(
+                isActive ? theme.background.opacity(Opacities.subtle) : theme.chromeStroke,
+                lineWidth: 1
+            )
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func thumbPlaceholder(isActive: Bool) -> some View {
+        ZStack {
+            (isActive ? theme.background.opacity(0.18) : theme.border.opacity(Opacities.subtle))
+            MonoText("▣", size: Typography.Size.md, opacity: Opacities.subtle)
+                .foregroundStyle(isActive ? theme.background : theme.muted)
+        }
     }
 
     private var footer: some View {
@@ -351,12 +428,9 @@ public struct CommandPalette: View {
                 .accessibilityHint("Submits the question to the site assistant")
             }
         }
-        .padding(.horizontal, Spacing.s4)
-        .padding(.vertical, Spacing.s2)
-        .overlay(alignment: .top) {
-            theme.border.frame(height: 1)
-        }
     }
+
+    // MARK: - Helpers
 
     private var queryBinding: Binding<String> {
         Binding(
@@ -371,6 +445,10 @@ public struct CommandPalette: View {
 
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
+    }
+
+    private var showsResultsStack: Bool {
+        !results.isEmpty || status == .searching || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var canAsk: Bool {
@@ -399,6 +477,47 @@ public struct CommandPalette: View {
         if canAsk {
             onAsk(trimmed)
         }
+    }
+}
+
+// MARK: - Bounce
+
+private struct PaletteBounce: ViewModifier {
+    let index: Int
+    let trigger: String
+    let reduceMotion: Bool
+
+    @State private var shown = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 14)
+            .scaleEffect(shown ? 1 : 0.94, anchor: .top)
+            .onAppear { play() }
+            .onChange(of: trigger) { _, _ in
+                shown = false
+                play()
+            }
+    }
+
+    private func play() {
+        if reduceMotion {
+            shown = true
+            return
+        }
+        // Tiny defer so the reset above can paint before the spring runs.
+        DispatchQueue.main.async {
+            withAnimation(Motion.palettePop.delay(Double(index) * 0.045)) {
+                shown = true
+            }
+        }
+    }
+}
+
+private extension View {
+    func paletteBounce(index: Int, trigger: String, reduceMotion: Bool) -> some View {
+        modifier(PaletteBounce(index: index, trigger: trigger, reduceMotion: reduceMotion))
     }
 }
 

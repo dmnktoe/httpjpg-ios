@@ -12,9 +12,10 @@ public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
     public let href: String
     public let kind: Kind
     public let excerpt: String?
+    public let featured: SearchFeatured?
 
     private enum CodingKeys: String, CodingKey {
-        case id, title, href, kind, excerpt
+        case id, title, href, kind, excerpt, featured
     }
 
     public init(
@@ -22,13 +23,15 @@ public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
         title: String,
         href: String,
         kind: Kind,
-        excerpt: String? = nil
+        excerpt: String? = nil,
+        featured: SearchFeatured? = nil
     ) {
         self.id = id
         self.title = title
         self.href = href
         self.kind = kind
         self.excerpt = excerpt
+        self.featured = featured
     }
 
     public init(from decoder: any Decoder) throws {
@@ -38,6 +41,38 @@ public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
         href = container.cmsString(forKey: .href) ?? ""
         kind = container.cmsString(forKey: .kind).flatMap(Kind.init(rawValue:)) ?? .page
         excerpt = container.cmsString(forKey: .excerpt)
+        let decoded = container.cmsValue(SearchFeatured.self, forKey: .featured)
+        featured = decoded.flatMap { $0.isEmpty ? nil : $0 }
+    }
+}
+
+/// First image on the story — same asset the web nav hover preview uses.
+public struct SearchFeatured: Decodable, Hashable, Sendable {
+    public let source: String
+    public let focus: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case source, focus
+    }
+
+    public init(source: String, focus: String? = nil) {
+        self.source = source
+        self.focus = focus
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        source = container.cmsString(forKey: .source) ?? ""
+        focus = container.cmsString(forKey: .focus)
+    }
+
+    public var isEmpty: Bool { source.isEmpty }
+
+    /// Storyblok thumb URL the palette can load directly.
+    public var thumbURL: URL? {
+        guard !isEmpty else { return nil }
+        let processed = ImageService.Preset.thumb(source, focus: focus ?? "")
+        return URL(string: processed)
     }
 }
 
