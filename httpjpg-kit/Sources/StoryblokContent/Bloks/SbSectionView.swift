@@ -11,12 +11,22 @@ public struct SbSectionView: View {
     }
 
     public var body: some View {
-        BlokListView(blok.content)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                (Palette.named(blok.backgroundColor) ?? .clear)
-                    .padding(.horizontal, -PageLayout.gutter)
+        Group {
+            if blok.usesContainer {
+                BlokListView(blok.content)
+                    .blokContainerFrame(
+                        size: blok.containerSize,
+                        centered: blok.containerAlign != "left"
+                    )
+            } else {
+                BlokListView(blok.content)
             }
-            .blokSpacing(blok.spacing, appliesHorizontal: false)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            (Palette.named(blok.backgroundColor) ?? .clear)
+                .padding(.horizontal, -PageLayout.gutter)
+        }
+        .blokSpacing(blok.spacing, appliesHorizontal: false)
     }
 }

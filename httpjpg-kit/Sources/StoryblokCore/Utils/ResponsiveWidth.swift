@@ -11,23 +11,37 @@ public enum ResponsiveWidth {
         desktop: String?,
         viewportWidth: CGFloat
     ) -> CGFloat? {
-        let chosen: String?
-        if viewportWidth >= desktopBreakpoint, let desktop, !desktop.isEmpty {
-            chosen = desktop
-        } else if viewportWidth >= tabletBreakpoint, let tablet, !tablet.isEmpty {
-            chosen = tablet
-        } else {
-            chosen = base
-        }
+        let chosen = choice(base: base, tablet: tablet, desktop: desktop, viewportWidth: viewportWidth)
         return parsePercent(chosen)
     }
 
-    /// `nil` for a full-width value: 100% is the layout default, not a constraint.
+    public static func choice(
+        base: String?,
+        tablet: String?,
+        desktop: String?,
+        viewportWidth: CGFloat
+    ) -> String? {
+        let tabletResolved = nonEmpty(tablet) ?? nonEmpty(base)
+        let desktopResolved = nonEmpty(desktop) ?? nonEmpty(tablet) ?? nonEmpty(base)
+        if viewportWidth >= desktopBreakpoint {
+            return desktopResolved
+        }
+        if viewportWidth >= tabletBreakpoint {
+            return tabletResolved
+        }
+        return nonEmpty(base)
+    }
+
     public static func parsePercent(_ raw: String?) -> CGFloat? {
         guard let raw, raw.hasSuffix("%"),
               let value = Double(raw.dropLast()),
               value > 0, value < 100
         else { return nil }
         return CGFloat(value) / 100
+    }
+
+    private static func nonEmpty(_ raw: String?) -> String? {
+        guard let raw, !raw.isEmpty else { return nil }
+        return raw
     }
 }
