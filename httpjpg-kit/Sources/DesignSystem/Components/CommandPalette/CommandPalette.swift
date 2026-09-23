@@ -61,7 +61,9 @@ public struct CommandPalette: View {
         .scrollContentBackground(.hidden)
         .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if canAsk {
+            // Always visible when Ask is enabled — empty query keeps it disabled
+            // so the affordance doesn't appear/disappear while typing.
+            if isAskEnabled {
                 askBar
             }
         }
@@ -69,18 +71,33 @@ public struct CommandPalette: View {
     }
 
     private var askBar: some View {
-        Button {
-            onAsk(query.trimmingCharacters(in: .whitespacesAndNewlines))
-        } label: {
-            Label("Ask", systemImage: "sparkles")
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let canSubmit = !trimmed.isEmpty && status != .answering
+
+        return VStack(alignment: .leading, spacing: Spacing.s2) {
+            Button {
+                onAsk(trimmed)
+            } label: {
+                Label(
+                    trimmed.isEmpty ? "Ask a question…" : "Ask",
+                    systemImage: "sparkles"
+                )
                 .font(.body.weight(.semibold))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.s1)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Palette.primary.s500)
+            .controlSize(.large)
+            .disabled(!canSubmit)
+
+            if trimmed.isEmpty {
+                Text("Type a question above, then tap Ask.")
+                    .font(.caption)
+                    .foregroundStyle(theme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
-        .buttonStyle(.borderedProminent)
-        .tint(Palette.primary.s500)
-        .controlSize(.large)
-        .disabled(status == .answering)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.vertical, Spacing.s3)
         .background(.bar)
@@ -301,6 +318,12 @@ public struct CommandPalette: View {
 
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
+    }
+
+    private var canAsk: Bool {
+        isAskEnabled
+            && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && status != .answering
     }
 }
 
