@@ -19,6 +19,7 @@ let package = Package(
         .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.14.2")),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", .upToNextMajor(from: "1.19.6")),
+        .package(url: "https://github.com/Livsy90/IntelligenceGlow.git", from: "1.0.0"),
     ],
     targets: [
         .target(
@@ -33,6 +34,7 @@ let package = Package(
 
                 .product(name: "MarqueeLabel", package: "MarqueeLabel", condition: .when(platforms: [.iOS])),
                 .product(name: "SVGView", package: "SVGView", condition: .when(platforms: [.iOS])),
+                .product(name: "IntelligenceGlow", package: "IntelligenceGlow", condition: .when(platforms: [.iOS])),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

@@ -1,10 +1,13 @@
 import SwiftUI
 import Tokens
+#if canImport(IntelligenceGlow)
+import IntelligenceGlow
+#endif
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// Glass answer panel · quiet text action · continuous result rows on the
-/// sheet surface. No inset-grouped cards, no loud CTAs, no bottom chrome.
+/// Glass answer panel with an Intelligence sweep · quiet text action ·
+/// continuous result rows. No inset-grouped cards, no loud CTAs, no bottom chrome.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -45,6 +48,18 @@ public struct CommandPalette: View {
     }
 
     public var body: some View {
+        Group {
+            if isIdleEmpty {
+                idleHint
+            } else {
+                resultsScroll
+            }
+        }
+        .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
+        .accessibilityLabel("Search results")
+    }
+
+    private var resultsScroll: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.s5) {
                 if showsAnswer {
@@ -59,8 +74,6 @@ public struct CommandPalette: View {
         }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
-        .accessibilityLabel("Search results")
     }
 
     // MARK: - Answer
@@ -131,10 +144,7 @@ public struct CommandPalette: View {
         }
         .padding(Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass(in: Self.panelShape)
-        .overlay {
-            Self.panelShape.strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
-        }
+        .modifier(AnswerGlassSweep(shape: Self.panelShape))
     }
 
     private var streamingCaret: some View {
@@ -188,8 +198,6 @@ public struct CommandPalette: View {
                     Self.panelShape.strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
                 }
             }
-        } else if trimmed.isEmpty, !showsAnswer {
-            idleHint
         } else if !trimmed.isEmpty, status == .idle, !showsAnswer {
             Text("No matches for “\(trimmed)”")
                 .font(.subheadline)
@@ -201,18 +209,36 @@ public struct CommandPalette: View {
     }
 
     private var idleHint: some View {
-        VStack(alignment: .leading, spacing: Spacing.s2) {
-            Text("Search the site")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(theme.foreground)
-            Text("Type to filter · sparkles to ask")
-                .font(.subheadline)
+        VStack(spacing: Spacing.s4) {
+            Text(Ascii.sparkles)
+                .font(Typography.mono(Typography.Size.sm))
                 .foregroundStyle(theme.muted)
+                .opacity(Opacities.subtle)
+                .accessibilityHidden(true)
+
+            VStack(spacing: Spacing.s2) {
+                Text("search the site")
+                    .font(Typography.mono(Typography.Size.base, weight: .semibold))
+                    .foregroundStyle(theme.foreground)
+                    .textCase(.lowercase)
+
+                Text("type to filter · sparkles to ask")
+                    .font(Typography.mono(Typography.Size.sm))
+                    .foregroundStyle(theme.muted)
+                    .opacity(Opacities.muted)
+            }
+
+            Text(Ascii.dividerDots)
+                .font(Typography.mono(Typography.Size.xs))
+                .foregroundStyle(theme.muted)
+                .opacity(Opacities.dimmed)
+                .accessibilityHidden(true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, Spacing.s6)
-        .padding(.horizontal, Spacing.s1)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.horizontal, Spacing.s6)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("Search the site. Type to filter, sparkles to ask.")
     }
 
     private func resultRow(_ hit: CommandPaletteHit) -> some View {
@@ -300,6 +326,43 @@ public struct CommandPalette: View {
     private var showsAnswer: Bool {
         !answer.isEmpty || status == .answering || status == .error
     }
+
+    private var isIdleEmpty: Bool {
+        query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !showsAnswer
+            && results.isEmpty
+            && status != .searching
+    }
+}
+
+// MARK: - Answer glass + Intelligence sweep
+
+/// Clear glass answer surface with a moving Intelligence sweep. No hairline
+/// stroke and no drop shadow — the sweep is the only edge treatment.
+private struct AnswerGlassSweep<S: InsettableShape>: ViewModifier {
+    let shape: S
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        let glassed = content.liquidGlass(in: shape)
+
+        #if canImport(IntelligenceGlow)
+        if #available(iOS 17.0, *) {
+            glassed.intelligenceSweep(
+                in: shape,
+                borderColor: Palette.primary.s500.opacity(0.55),
+                blurRadius: 45,
+                lineWidth: 0.7,
+                sweepSpan: 90,
+                sweepOffset: 220
+            )
+        } else {
+            glassed
+        }
+        #else
+        glassed
+        #endif
+    }
 }
 
 // MARK: - Bounce
@@ -345,8 +408,6 @@ private struct FlowSources: View {
     let sources: [CommandPaletteSource]
     let onSelect: (CommandPaletteSource) -> Void
 
-    @Environment(\.pageTheme) private var theme
-
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.s2) {
@@ -360,9 +421,6 @@ private struct FlowSources: View {
                             .padding(.horizontal, Spacing.s3)
                             .padding(.vertical, Spacing.s1)
                             .liquidGlass(in: .capsule)
-                            .overlay {
-                                Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
-                            }
                     }
                     .buttonStyle(.plain)
                 }
