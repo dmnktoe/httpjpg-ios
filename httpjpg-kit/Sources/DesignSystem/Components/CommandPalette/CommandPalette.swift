@@ -13,9 +13,7 @@ public struct CommandPalette: View {
     public var action: CommandPaletteAction?
     public var status: CommandPaletteStatus
     public var errorMessage: String?
-    public var isAskEnabled: Bool
     public var onSelect: (CommandPaletteHit) -> Void
-    public var onAsk: (String) -> Void
     public var onAction: (CommandPaletteAction) -> Void
 
     @Environment(\.pageTheme) private var theme
@@ -31,9 +29,7 @@ public struct CommandPalette: View {
         action: CommandPaletteAction? = nil,
         status: CommandPaletteStatus = .idle,
         errorMessage: String? = nil,
-        isAskEnabled: Bool = true,
         onSelect: @escaping (CommandPaletteHit) -> Void,
-        onAsk: @escaping (String) -> Void,
         onAction: @escaping (CommandPaletteAction) -> Void = { _ in }
     ) {
         self.query = query
@@ -43,9 +39,7 @@ public struct CommandPalette: View {
         self.action = action
         self.status = status
         self.errorMessage = errorMessage
-        self.isAskEnabled = isAskEnabled
         self.onSelect = onSelect
-        self.onAsk = onAsk
         self.onAction = onAction
     }
 
