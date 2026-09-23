@@ -499,11 +499,12 @@ public struct DividerBlok: Decodable, Identifiable {
     public let pattern: String?
     public let label: String?
     public let color: String?
+    public let thickness: CGFloat
 
     public let gap: String?
 
     private enum CodingKeys: String, CodingKey {
-        case variant, orientation, pattern, label, color, spacing
+        case variant, orientation, pattern, label, color, spacing, thickness
     }
 
     public init(from decoder: any Decoder) throws {
@@ -516,6 +517,8 @@ public struct DividerBlok: Decodable, Identifiable {
         pattern = container.cmsString(forKey: .pattern)
         label = container.cmsString(forKey: .label)
         color = container.cmsString(forKey: .color)
+        // Web default is `1px`; bare numbers are treated as points.
+        thickness = CSSLength.points(container.cmsString(forKey: .thickness)) ?? 1
         gap = container.cmsString(forKey: .spacing)
     }
 }

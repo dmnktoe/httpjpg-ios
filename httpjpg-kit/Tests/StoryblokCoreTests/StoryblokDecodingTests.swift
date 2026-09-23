@@ -117,6 +117,14 @@ final class StoryblokDecodingTests: XCTestCase {
         """)
         XCTAssertEqual(blok.gap, "6")
         XCTAssertEqual(blok.spacing.marginTop, 16)
+        XCTAssertEqual(blok.thickness, 1)
+    }
+
+    func testDividerDecodesThicknessFromCSSLength() throws {
+        let blok = try decode(DividerBlok.self, """
+        {"_uid":"d2","component":"divider","thickness":"4px"}
+        """)
+        XCTAssertEqual(blok.thickness, 4)
     }
 
     func testSpacingDecodesFromNumbersAsWellAsStrings() throws {
