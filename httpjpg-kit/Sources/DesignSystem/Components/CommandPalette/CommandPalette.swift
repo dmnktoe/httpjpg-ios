@@ -3,7 +3,7 @@ import Tokens
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// White inset-grouped rows — one list language, no floating card stack.
+/// Quiet answer · white inset-grouped hits. No loud CTAs, no bottom chrome.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -59,23 +59,30 @@ public struct CommandPalette: View {
 
     @ViewBuilder
     private var answerSection: some View {
-        Section("Answer") {
-            VStack(alignment: .leading, spacing: Spacing.s2) {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.s3) {
                 if let errorMessage, status == .error {
                     Text(errorMessage)
                         .font(.subheadline)
                         .foregroundStyle(Palette.danger.s500)
                 } else {
-                    HStack(alignment: .firstTextBaseline, spacing: 0) {
-                        Text(answer.isEmpty && status == .answering ? " " : answer)
-                            .font(.body)
-                            .foregroundStyle(theme.foreground)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
+                    HStack(alignment: .top, spacing: Spacing.s3) {
+                        Capsule()
+                            .fill(Palette.primary.s500)
+                            .frame(width: 3)
+                            .padding(.vertical, 2)
 
-                        if status == .answering {
-                            streamingCaret
+                        HStack(alignment: .firstTextBaseline, spacing: 0) {
+                            Text(answer.isEmpty && status == .answering ? " " : answer)
+                                .font(.body)
+                                .foregroundStyle(theme.foreground)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
+
+                            if status == .answering {
+                                streamingCaret
+                            }
                         }
                     }
                 }
@@ -101,14 +108,20 @@ public struct CommandPalette: View {
                     Button {
                         onAction(action)
                     } label: {
-                        Text("Go to \(action.title)")
+                        HStack(spacing: Spacing.s1) {
+                            Text("Go to \(action.title)")
+                            Image(systemName: "arrow.right")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Palette.primary.s500)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                    .padding(.top, Spacing.s1)
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.vertical, Spacing.s1)
+        } header: {
+            Text(status == .answering ? "Thinking…" : "Answer")
+                .textCase(nil)
         }
     }
 
@@ -116,7 +129,7 @@ public struct CommandPalette: View {
         TimelineView(.periodic(from: .now, by: 0.5)) { context in
             let on = Int(context.date.timeIntervalSinceReferenceDate * 2) % 2 == 0
             Rectangle()
-                .fill(theme.link)
+                .fill(Palette.primary.s500)
                 .frame(width: 2, height: 14)
                 .opacity(on ? 1 : 0)
                 .accessibilityHidden(true)
@@ -149,7 +162,7 @@ public struct CommandPalette: View {
                 Text(results.count == 1 ? "1 match" : "\(results.count) matches")
                     .textCase(nil)
             }
-        } else if !trimmed.isEmpty, status == .idle {
+        } else if !trimmed.isEmpty, status == .idle, !showsAnswer {
             Section {
                 Text("No matches for “\(trimmed)”")
                     .font(.subheadline)
@@ -251,7 +264,6 @@ private struct PaletteBounce: ViewModifier {
     @State private var shown = false
 
     func body(content: Content) -> some View {
-        // Opacity + slight rise only — scale left ghosts of the title on top of rows.
         content
             .opacity(shown ? 1 : 0)
             .offset(y: shown ? 0 : 6)
@@ -292,8 +304,9 @@ private struct FlowSources: View {
                     Button(source.title) {
                         onSelect(source)
                     }
-                    .font(.caption)
-                    .buttonStyle(.borderless)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Palette.primary.s500)
+                    .buttonStyle(.plain)
                 }
             }
         }

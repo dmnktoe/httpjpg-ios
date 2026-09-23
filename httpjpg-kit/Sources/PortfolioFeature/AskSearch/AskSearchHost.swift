@@ -5,8 +5,8 @@ import Tokens
 
 /// System sheet + native `.searchable`.
 ///
-/// Ask lives in a bottom sparkles orb (not the trailing toolbar) so the system
-/// search chrome — the clear ✕ — cannot hide it while typing.
+/// Ask is a primary sparkles orb in the trailing toolbar. We keep the search
+/// presentation from hiding toolbar items so the ✕ / Cancel never eats it.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
@@ -62,20 +62,22 @@ struct AskSearchHost: View {
             .searchable(
                 text: queryBinding,
                 placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search or ask a question…"
+                prompt: "Search or ask…"
             )
+            .searchPresentationToolbarBehavior(.avoidHidingContent)
             .onSubmit(of: .search) {
                 submitSearch()
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if model.isAskAvailable {
-                    askDock
-                }
-            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("Cancel", systemImage: "xmark") {
                         model.close()
+                    }
+                }
+
+                if model.isAskAvailable {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        askOrb
                     }
                 }
             }
@@ -85,47 +87,26 @@ struct AskSearchHost: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Clear glass circle, primary sparkles only — no white / filled tint.
-    private var askDock: some View {
+    /// Clear glass · primary sparkles only — sits next to Cancel, always.
+    private var askOrb: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
 
-        return HStack(alignment: .center, spacing: Spacing.s3) {
-            Text(statusLabel)
-                .font(.caption)
-                .foregroundStyle(theme.muted)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button {
-                model.ask()
-            } label: {
-                Image(systemName: "sparkles")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(canSubmit ? Palette.primary.s500 : theme.muted)
-                    .frame(width: 40, height: 40)
-                    .liquidGlass(in: Circle(), isInteractive: canSubmit)
-            }
-            .buttonStyle(.plain)
-            .disabled(!canSubmit)
-            .accessibilityLabel("Ask")
-            .accessibilityHint("Ask the site assistant about your search")
+        return Button {
+            model.ask()
+        } label: {
+            Image(systemName: "sparkles")
+                .font(.system(size: Typography.Size.md, weight: .semibold))
+                .foregroundStyle(canSubmit ? Palette.primary.s500 : theme.muted)
+                .frame(width: PillMetrics.orbDiameter, height: PillMetrics.orbDiameter)
+                .contentShape(.circle)
+                .liquidGlass(in: .circle, isInteractive: canSubmit)
         }
-        .padding(.horizontal, PageLayout.gutter)
-        .padding(.vertical, Spacing.s3)
-        .background(.bar)
-    }
-
-    private var statusLabel: String {
-        switch model.status {
-        case .searching: return "searching…"
-        case .answering: return "thinking…"
-        case .error: return "try the results"
-        case .idle:
-            let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty { return "search, then tap ✦ to ask" }
-            if model.results.isEmpty { return "no matches — ask anyway" }
-            return model.results.count == 1 ? "1 match" : "\(model.results.count) matches"
-        }
+        .buttonStyle(.plain)
+        .disabled(!canSubmit)
+        .accessibilityLabel("Ask")
+        .accessibilityHint("Ask the site assistant about your search")
+        .opacity(canSubmit ? 1 : 0.55)
     }
 
     private var queryBinding: Binding<String> {
@@ -137,12 +118,13 @@ struct AskSearchHost: View {
 
     private func submitSearch() {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let first = model.results.first {
-            select(first)
-            return
-        }
+        // Prefer ask on submit when available — search hits are tappable in the list.
         if model.isAskAvailable, !trimmed.isEmpty {
             model.ask()
+            return
+        }
+        if let first = model.results.first {
+            select(first)
         }
     }
 
