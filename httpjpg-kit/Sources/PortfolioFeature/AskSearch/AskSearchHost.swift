@@ -5,8 +5,9 @@ import Tokens
 
 /// System sheet + native `.searchable`.
 ///
-/// Ask is a primary sparkles orb in the trailing toolbar. We keep the search
-/// presentation from hiding toolbar items so the ✕ / Cancel never eats it.
+/// Cancel and Ask sit as a trailing glass pair — clear orbs, Ask sparkles in
+/// primary only. Search chrome is kept from eating them while the field is
+/// focused.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
@@ -57,28 +58,23 @@ struct AskSearchHost: View {
                     )
                 }
             )
-            .navigationTitle("Search")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(
                 text: queryBinding,
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Search or ask…"
             )
-            .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .modifier(KeepSearchToolbarVisible())
             .onSubmit(of: .search) {
                 submitSearch()
             }
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", systemImage: "xmark") {
-                        model.close()
-                    }
-                }
-
-                if model.isAskAvailable {
-                    ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    if model.isAskAvailable {
                         askOrb
                     }
+                    closeOrb
                 }
             }
         }
@@ -87,26 +83,32 @@ struct AskSearchHost: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Clear glass · primary sparkles only — sits next to Cancel, always.
+    /// Clear glass · primary sparkles only — sits beside Close.
     private var askOrb: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
+        let label = canSubmit ? Palette.primary.s500 : theme.muted
 
         return Button {
             model.ask()
         } label: {
             Image(systemName: "sparkles")
-                .font(.system(size: Typography.Size.md, weight: .semibold))
-                .foregroundStyle(canSubmit ? Palette.primary.s500 : theme.muted)
-                .frame(width: PillMetrics.orbDiameter, height: PillMetrics.orbDiameter)
-                .contentShape(.circle)
-                .liquidGlass(in: .circle, isInteractive: canSubmit)
         }
-        .buttonStyle(.plain)
+        .modifier(ClearGlassOrb(label: label))
         .disabled(!canSubmit)
+        .opacity(canSubmit ? 1 : 0.55)
         .accessibilityLabel("Ask")
         .accessibilityHint("Ask the site assistant about your search")
-        .opacity(canSubmit ? 1 : 0.55)
+    }
+
+    private var closeOrb: some View {
+        Button {
+            model.close()
+        } label: {
+            Image(systemName: "xmark")
+        }
+        .modifier(ClearGlassOrb(label: theme.foreground))
+        .accessibilityLabel("Close")
     }
 
     private var queryBinding: Binding<String> {
@@ -146,6 +148,39 @@ struct AskSearchHost: View {
             openURL(url)
         default:
             onNavigate(destination)
+        }
+    }
+}
+
+/// Keeps Cancel / Ask visible while the system search field is focused.
+private struct KeepSearchToolbarVisible: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.1, *) {
+            content.searchPresentationToolbarBehavior(.avoidHidingContent)
+        } else {
+            content
+        }
+    }
+}
+
+/// Untinted toolbar glass with a coloured glyph. iOS 26 keeps the system orb;
+/// older OS draws a clear `glassOrb`.
+private struct ClearGlassOrb: ViewModifier {
+    let label: Color
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .foregroundStyle(label)
+                .tint(label)
+        } else {
+            content.buttonStyle(
+                .glassOrb(
+                    PillTint(fill: nil, label: label),
+                    diameter: PillMetrics.compactOrbDiameter
+                )
+            )
         }
     }
 }

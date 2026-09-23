@@ -3,7 +3,8 @@ import Tokens
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// Quiet answer · white inset-grouped hits. No loud CTAs, no bottom chrome.
+/// Glass answer panel · quiet text action · continuous result rows on the
+/// sheet surface. No inset-grouped cards, no loud CTAs, no bottom chrome.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -18,7 +19,8 @@ public struct CommandPalette: View {
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let thumbSize: CGFloat = 48
+    private static let thumbSize: CGFloat = 44
+    private static let panelShape = RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
 
     public init(
         query: String,
@@ -43,85 +45,95 @@ public struct CommandPalette: View {
     }
 
     public var body: some View {
-        List {
-            if showsAnswer {
-                answerSection
-            }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: Spacing.s5) {
+                if showsAnswer {
+                    answerPanel
+                }
 
-            resultsSection
+                resultsBlock
+            }
+            .padding(.horizontal, Spacing.s4)
+            .padding(.top, Spacing.s2)
+            .padding(.bottom, Spacing.s8)
         }
-        .listStyle(.insetGrouped)
+        .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.interactively)
         .animation(reduceMotion ? nil : Motion.stateChange, value: resultKey)
         .accessibilityLabel("Search results")
     }
 
     // MARK: - Answer
 
-    @ViewBuilder
-    private var answerSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: Spacing.s3) {
-                if let errorMessage, status == .error {
-                    Text(errorMessage)
-                        .font(.subheadline)
-                        .foregroundStyle(Palette.danger.s500)
-                } else {
-                    HStack(alignment: .top, spacing: Spacing.s3) {
-                        Capsule()
-                            .fill(Palette.primary.s500)
-                            .frame(width: 3)
-                            .padding(.vertical, 2)
+    private var answerPanel: some View {
+        VStack(alignment: .leading, spacing: Spacing.s3) {
+            HStack(spacing: Spacing.s2) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: Typography.Size.sm, weight: .semibold))
+                    .foregroundStyle(Palette.primary.s500)
+                    .accessibilityHidden(true)
 
-                        HStack(alignment: .firstTextBaseline, spacing: 0) {
-                            Text(answer.isEmpty && status == .answering ? " " : answer)
-                                .font(.body)
-                                .foregroundStyle(theme.foreground)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
+                Text(status == .answering ? "Thinking…" : "Answer")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(theme.foreground)
+            }
 
-                            if status == .answering {
-                                streamingCaret
-                            }
-                        }
+            if let errorMessage, status == .error {
+                Text(errorMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.danger.s500)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text(answer.isEmpty && status == .answering ? " " : answer)
+                        .font(.body)
+                        .foregroundStyle(theme.foreground)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityLabel(answer.isEmpty ? "Thinking" : answer)
+
+                    if status == .answering {
+                        streamingCaret
                     }
-                }
-
-                if !sources.isEmpty {
-                    FlowSources(sources: sources) { source in
-                        if let hit = results.first(where: { $0.href == source.href }) {
-                            onSelect(hit)
-                        } else {
-                            onSelect(
-                                CommandPaletteHit(
-                                    id: source.href,
-                                    title: source.title,
-                                    href: source.href,
-                                    kind: .page
-                                )
-                            )
-                        }
-                    }
-                }
-
-                if let action, status != .answering {
-                    Button {
-                        onAction(action)
-                    } label: {
-                        HStack(spacing: Spacing.s1) {
-                            Text("Go to \(action.title)")
-                            Image(systemName: "arrow.right")
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Palette.primary.s500)
-                    }
-                    .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical, Spacing.s1)
-        } header: {
-            Text(status == .answering ? "Thinking…" : "Answer")
-                .textCase(nil)
+
+            if !sources.isEmpty {
+                FlowSources(sources: sources) { source in
+                    if let hit = results.first(where: { $0.href == source.href }) {
+                        onSelect(hit)
+                    } else {
+                        onSelect(
+                            CommandPaletteHit(
+                                id: source.href,
+                                title: source.title,
+                                href: source.href,
+                                kind: .page
+                            )
+                        )
+                    }
+                }
+            }
+
+            if let action, status != .answering {
+                Button {
+                    onAction(action)
+                } label: {
+                    HStack(spacing: Spacing.s1) {
+                        Text("Go to \(action.title)")
+                            .lineLimit(1)
+                        Image(systemName: "arrow.right")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Palette.primary.s500)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(Spacing.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .liquidGlass(in: Self.panelShape)
+        .overlay {
+            Self.panelShape.strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
         }
     }
 
@@ -139,37 +151,68 @@ public struct CommandPalette: View {
     // MARK: - Results
 
     @ViewBuilder
-    private var resultsSection: some View {
+    private var resultsBlock: some View {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if status == .searching, results.isEmpty {
-            Section {
-                HStack {
-                    Spacer(minLength: 0)
-                    ProgressView()
-                    Spacer(minLength: 0)
-                }
-                .padding(.vertical, Spacing.s6)
-                .accessibilityLabel("Searching")
+            HStack {
+                Spacer(minLength: 0)
+                ProgressView()
+                Spacer(minLength: 0)
             }
+            .padding(.vertical, Spacing.s8)
+            .accessibilityLabel("Searching")
         } else if !results.isEmpty {
-            Section {
-                ForEach(Array(results.enumerated()), id: \.element.id) { entry in
-                    resultRow(entry.element)
-                        .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
-                }
-            } header: {
+            VStack(alignment: .leading, spacing: Spacing.s3) {
                 Text(results.count == 1 ? "1 match" : "\(results.count) matches")
-                    .textCase(nil)
-            }
-        } else if !trimmed.isEmpty, status == .idle, !showsAnswer {
-            Section {
-                Text("No matches for “\(trimmed)”")
-                    .font(.subheadline)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.muted)
-                    .padding(.vertical, Spacing.s4)
+                    .padding(.horizontal, Spacing.s1)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(results.enumerated()), id: \.element.id) { entry in
+                        if entry.offset > 0 {
+                            Divider()
+                                .overlay(theme.border.opacity(Opacities.subtle))
+                                .padding(.leading, Self.thumbSize + Spacing.s3)
+                        }
+
+                        resultRow(entry.element)
+                            .paletteBounce(index: entry.offset, trigger: resultKey, reduceMotion: reduceMotion)
+                    }
+                }
+                .padding(.horizontal, Spacing.s3)
+                .padding(.vertical, Spacing.s1)
+                .background(theme.background.opacity(0.72), in: Self.panelShape)
+                .overlay {
+                    Self.panelShape.strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
+                }
             }
+        } else if trimmed.isEmpty, !showsAnswer {
+            idleHint
+        } else if !trimmed.isEmpty, status == .idle, !showsAnswer {
+            Text("No matches for “\(trimmed)”")
+                .font(.subheadline)
+                .foregroundStyle(theme.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, Spacing.s6)
+                .padding(.horizontal, Spacing.s1)
         }
+    }
+
+    private var idleHint: some View {
+        VStack(alignment: .leading, spacing: Spacing.s2) {
+            Text("Search the site")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(theme.foreground)
+            Text("Type to filter · sparkles to ask")
+                .font(.subheadline)
+                .foregroundStyle(theme.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, Spacing.s6)
+        .padding(.horizontal, Spacing.s1)
+        .accessibilityElement(children: .combine)
     }
 
     private func resultRow(_ hit: CommandPaletteHit) -> some View {
@@ -200,8 +243,13 @@ public struct CommandPalette: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: Typography.Size.xs, weight: .semibold))
+                    .foregroundStyle(theme.muted.opacity(Opacities.muted))
+                    .accessibilityHidden(true)
             }
-            .padding(.vertical, Spacing.s1)
+            .padding(.vertical, Spacing.s3)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -210,7 +258,7 @@ public struct CommandPalette: View {
 
     @ViewBuilder
     private func featuredThumb(_ hit: CommandPaletteHit) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Radii.md, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Radii.lg, style: .continuous)
         Group {
             if let url = hit.imageURL {
                 AsyncImage(url: url, transaction: Transaction(animation: Motion.mediaIn)) { phase in
@@ -297,15 +345,25 @@ private struct FlowSources: View {
     let sources: [CommandPaletteSource]
     let onSelect: (CommandPaletteSource) -> Void
 
+    @Environment(\.pageTheme) private var theme
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.s3) {
+            HStack(spacing: Spacing.s2) {
                 ForEach(sources) { source in
-                    Button(source.title) {
+                    Button {
                         onSelect(source)
+                    } label: {
+                        Text(source.title)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Palette.primary.s500)
+                            .padding(.horizontal, Spacing.s3)
+                            .padding(.vertical, Spacing.s1)
+                            .liquidGlass(in: .capsule)
+                            .overlay {
+                                Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
+                            }
                     }
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Palette.primary.s500)
                     .buttonStyle(.plain)
                 }
             }
