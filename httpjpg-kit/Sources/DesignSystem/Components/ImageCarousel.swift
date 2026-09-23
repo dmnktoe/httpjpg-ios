@@ -84,8 +84,23 @@ public struct ImageCarousel<Slide: View>: View {
             }
         }
         .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
+        // Fade uses a ZStack (not TabView), so swipe has to be wired by hand —
+        // same gesture the work-card carousel gets for free via `.page`.
+        .contentShape(Rectangle())
+        .gesture(fadeSwipeGesture)
         .overlay(alignment: .bottomLeading) { counter }
         .overlay(alignment: .topTrailing) { navigation }
+    }
+
+    private var fadeSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onEnded { value in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                guard abs(horizontal) > abs(vertical), abs(horizontal) > 40 else { return }
+                arrowTaps += 1
+                advance(by: horizontal < 0 ? 1 : -1)
+            }
     }
 
     @ViewBuilder
