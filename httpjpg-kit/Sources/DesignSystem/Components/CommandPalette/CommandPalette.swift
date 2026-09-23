@@ -1,13 +1,13 @@
 import SwiftUI
 import Tokens
-#if canImport(IntelligenceGlow)
+#if os(iOS)
 import IntelligenceGlow
 #endif
 
 /// Ask · Search results under the system `.searchable` field.
 ///
-/// Glass answer panel with an Intelligence sweep · quiet text action ·
-/// continuous result rows. No inset-grouped cards, no loud CTAs, no bottom chrome.
+/// Glass answer panel with a looping Intelligence-style sweep · quiet text
+/// action · continuous result rows.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -24,6 +24,8 @@ public struct CommandPalette: View {
 
     private static let thumbSize: CGFloat = 44
     private static let panelShape = RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
+    /// Room for the sweep blur to bleed past the card without ScrollView clipping.
+    private static let sweepBleed: CGFloat = 28
 
     public init(
         query: String,
@@ -64,9 +66,11 @@ public struct CommandPalette: View {
             LazyVStack(alignment: .leading, spacing: Spacing.s5) {
                 if showsAnswer {
                     answerPanel
+                        .padding(.horizontal, Self.sweepBleed)
                 }
 
                 resultsBlock
+                    .padding(.horizontal, showsAnswer ? Self.sweepBleed : 0)
             }
             .padding(.horizontal, Spacing.s4)
             .padding(.top, Spacing.s2)
@@ -74,6 +78,7 @@ public struct CommandPalette: View {
         }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
+        .scrollClipDisabled()
     }
 
     // MARK: - Answer
@@ -194,9 +199,6 @@ public struct CommandPalette: View {
                 .padding(.horizontal, Spacing.s3)
                 .padding(.vertical, Spacing.s1)
                 .background(theme.background.opacity(0.72), in: Self.panelShape)
-                .overlay {
-                    Self.panelShape.strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
-                }
             }
         } else if !trimmed.isEmpty, status == .idle, !showsAnswer {
             Text("No matches for “\(trimmed)”")
@@ -337,32 +339,111 @@ public struct CommandPalette: View {
 
 // MARK: - Answer glass + Intelligence sweep
 
-/// Clear glass answer surface with a moving Intelligence sweep. No hairline
-/// stroke and no drop shadow — the sweep is the only edge treatment.
+/// Clear glass + a *looping* Intelligence glass sweep.
+///
+/// Livsy90’s `intelligenceSweep` uses a one-shot `KeyframeAnimator`, so the
+/// glow vanishes after ~2.6s. We keep their palette and compositing, drive
+/// rotation with `TimelineView`, and let the blur bleed outside the card.
 private struct AnswerGlassSweep<S: InsettableShape>: ViewModifier {
     let shape: S
 
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        let glassed = content.liquidGlass(in: shape)
+    private let blurRadius: CGFloat = 45
+    private let lineWidth: CGFloat = 1.2
+    private let sweepSpan: Double = 90
+    private let sweepOffset: Double = 220
+    private let period: TimeInterval = 2.6
 
-        #if canImport(IntelligenceGlow)
-        if #available(iOS 17.0, *) {
-            glassed.intelligenceSweep(
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let glassed = clearGlass(content)
+
+        #if os(iOS)
+        glassed
+            .background {
+                sweepLayers
+                    .allowsHitTesting(false)
+            }
+            // Soft multi-layer glow from IntelligenceGlow (continuously regenerates).
+            .intelligenceOverlay(
                 in: shape,
-                borderColor: Palette.primary.s500.opacity(0.55),
-                blurRadius: 45,
-                lineWidth: 0.7,
-                sweepSpan: 90,
-                sweepOffset: 220
+                lineWidths: [3, 6, 10],
+                blurs: [0, 6, 14],
+                updateInterval: 0.45,
+                animationDurations: [0.5, 0.7, 1.0]
             )
-        } else {
-            glassed
-        }
         #else
         glassed
         #endif
     }
+
+    @ViewBuilder
+    private func clearGlass(_ content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.clear, in: shape)
+        } else {
+            content.liquidGlass(in: shape)
+        }
+    }
+
+    #if os(iOS)
+    @ViewBuilder
+    private var sweepLayers: some View {
+        let colors: [Color] = .intelligenceColors
+        let border = Palette.primary.s500
+
+        ZStack {
+            shape.stroke(border.opacity(0.22), lineWidth: lineWidth)
+
+            if reduceMotion {
+                sweepContent(rotation: 0, colors: colors, border: border)
+            } else {
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
+                    let t = context.date.timeIntervalSinceReferenceDate
+                    let rotation = (t.truncatingRemainder(dividingBy: period) / period) * 360
+                    sweepContent(rotation: rotation, colors: colors, border: border)
+                }
+            }
+        }
+        .padding(0.5)
+    }
+
+    private func sweepContent(rotation: Double, colors: [Color], border: Color) -> some View {
+        let borderGradient = AngularGradient(
+            colors: [.clear, border, .clear],
+            center: .center,
+            startAngle: .degrees(sweepOffset + rotation),
+            endAngle: .degrees(sweepOffset + sweepSpan + rotation)
+        )
+        let sweepGradient = LinearGradient(
+            colors: colors,
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        return ZStack {
+            shape
+                .fill(sweepGradient)
+                .mask {
+                    Rectangle()
+                        .overlay {
+                            shape
+                                .blur(radius: blurRadius)
+                                .blendMode(.destinationOut)
+                        }
+                        .compositingGroup()
+                }
+                .mask {
+                    shape
+                        .fill(borderGradient)
+                        .blur(radius: blurRadius / 1.5)
+                        .padding(-blurRadius * 2)
+                }
+
+            shape.stroke(borderGradient, lineWidth: lineWidth)
+        }
+    }
+    #endif
 }
 
 // MARK: - Bounce

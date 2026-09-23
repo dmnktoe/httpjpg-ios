@@ -87,11 +87,10 @@ struct AskSearchHost: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Clear liquid glass · sparkles + “Ask” in primary.
+    /// Sparkles + “Ask” in primary — one system toolbar glass rim only.
     ///
-    /// On iOS 26 the toolbar already glasses the control — drawing our own
-    /// `liquidGlass` stacked a second rim (the “double border”). Older OS
-    /// still needs the capsule fill.
+    /// Do not stack `.glass` / `liquidGlass` on top of the toolbar chrome; that
+    /// was the concentric double border.
     private var askPill: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
@@ -104,7 +103,7 @@ struct AskSearchHost: View {
                 .labelStyle(.titleAndIcon)
                 .font(.subheadline.weight(.semibold))
         }
-        .modifier(AskToolbarGlass(label: label, enabled: canSubmit))
+        .foregroundStyle(label)
         .disabled(!canSubmit)
         .opacity(canSubmit ? 1 : 0.55)
         .accessibilityLabel("Ask")
@@ -159,32 +158,6 @@ private struct KeepSearchToolbarVisible: ViewModifier {
             content.searchPresentationToolbarBehavior(.avoidHidingContent)
         } else {
             content
-        }
-    }
-}
-
-/// Single glass rim for the Ask pill. System glass on iOS 26; one clear
-/// capsule below that — never both.
-private struct AskToolbarGlass: ViewModifier {
-    let label: Color
-    let enabled: Bool
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content
-                .foregroundStyle(label)
-                .tint(label)
-                .buttonStyle(.glass)
-                .buttonBorderShape(.capsule)
-        } else {
-            content
-                .foregroundStyle(label)
-                .padding(.horizontal, PillMetrics.compactHorizontalPadding)
-                .padding(.vertical, PillMetrics.compactVerticalPadding)
-                .contentShape(.capsule)
-                .liquidGlass(in: .capsule, isInteractive: enabled)
-                .buttonStyle(.plain)
         }
     }
 }
