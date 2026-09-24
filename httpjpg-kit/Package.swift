@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "WatchFeature", targets: ["WatchFeature"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
         .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.14.2")),
