@@ -121,6 +121,17 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(GlyphDigits.format(10), "𝟙⊘")
         XCTAssertEqual(GlyphDigits.format(0), "⊘")
     }
+
+    func testExternalArrowForcesTextPresentation() {
+        XCTAssertEqual(
+            Array(ExternalArrow.glyph.unicodeScalars.map(\.value)),
+            [0x2197, 0xFE0E],
+            "VS-15 stops Helvetica falling back to the ↗️ emoji"
+        )
+        XCTAssertEqual(ExternalArrow.preferringText("content ↗"), "content \(ExternalArrow.glyph)")
+        XCTAssertEqual(ExternalArrow.preferringText("↗\u{FE0F}"), ExternalArrow.glyph)
+        XCTAssertEqual(ExternalArrow.preferringText(ExternalArrow.glyph), ExternalArrow.glyph)
+    }
 }
 
 final class WorkCardDateTests: XCTestCase {

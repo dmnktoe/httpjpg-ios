@@ -24,7 +24,7 @@ struct SidebarProjectRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if item.isExternal {
-                MonoText("↗", size: Typography.Size.sm, opacity: Opacities.subtle)
+                MonoText(ExternalArrow.glyph, size: Typography.Size.sm, opacity: Opacities.subtle)
             }
         }
         .padding(.vertical, Spacing.s3)
