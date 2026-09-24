@@ -15,6 +15,7 @@ public struct SbDividerView: View {
             variant: BrutalDivider.Variant(rawValue: blok.variant) ?? .solid,
             pattern: blok.pattern ?? Ascii.dividerStars,
             label: blok.label,
+            thickness: blok.thickness,
             color: Palette.named(blok.color)
         )
         .padding(.vertical, SpacingScale.points(blok.gap) ?? 0)
