@@ -11,6 +11,7 @@ public struct SbContainerView: View {
 
     public var body: some View {
         BlokListView(blok.body)
+            .blokContainerFrame(size: blok.width, centered: blok.isCentered)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Palette.named(blok.backgroundColor) ?? .clear)
             .blokSpacing(blok.spacing, appliesHorizontal: false)
