@@ -15,4 +15,6 @@ xcuserdata/
 .swiftpm/
 Packages/
 httpjpg-kit/.build/
+# Keep Package.resolved tracked (pins app SPM deps). Only ignore Xcode's
+# local SPM configuration directory under the workspace.
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration/
