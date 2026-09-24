@@ -139,6 +139,29 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(blok.work.isEmpty)
         XCTAssertTrue(blok.showsDividers)
         XCTAssertEqual(blok.dividerVariant, "ascii")
+        XCTAssertEqual(blok.gap, Spacing.s6)
+        XCTAssertEqual(blok.dividerSpacing, Spacing.s4)
+        XCTAssertTrue(blok.isStacked)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 390), 1)
+    }
+
+    func testWorkListDecodesGapColumnsAndDividerChrome() throws {
+        let blok = try decode(WorkListBlok.self, """
+        {"_uid":"w2","component":"work_list","work":[],
+         "gap":"3","columns":"1","columnsMd":"2","columnsLg":"3",
+         "showDividers":true,"dividerVariant":"dashed",
+         "dividerColor":"neutral.400","dividerSpacing":"2"}
+        """)
+        XCTAssertEqual(blok.gap, Spacing.s3)
+        XCTAssertEqual(blok.columns, 1)
+        XCTAssertEqual(blok.columnsMd, 2)
+        XCTAssertEqual(blok.columnsLg, 3)
+        XCTAssertFalse(blok.isStacked)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 390), 1)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 800), 2)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 1200), 3)
+        XCTAssertEqual(blok.dividerColor, "neutral.400")
+        XCTAssertEqual(blok.dividerSpacing, Spacing.s2)
     }
 
     func testSlideshowDecodesPresentationFieldsOnly() throws {
