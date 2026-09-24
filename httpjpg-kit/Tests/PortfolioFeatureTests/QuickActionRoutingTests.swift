@@ -1,4 +1,5 @@
 import StoryblokCore
+import UIKit
 import WidgetFeature
 import XCTest
 
@@ -137,5 +138,25 @@ final class QuickActionRoutingTests: XCTestCase {
         XCTAssertEqual(app.infoPath.map(\.slug), ["feed-xml_html"])
         XCTAssertEqual(app.takePendingPlayback(), track)
         XCTAssertNil(app.pendingPlayback)
+    }
+
+    func testASearchDeepLinkIsANoOpUntilAskIsEnabled() throws {
+        let app = makeApp()
+
+        app.open(try XCTUnwrap(WidgetDeepLink.search(query: "atlas")))
+
+        XCTAssertNil(app.askSearch, "ask_enabled defaults off, so the palette stays unmounted")
+    }
+
+    func testASearchQuickActionParsesItsPrefill() {
+        let item = UIApplicationShortcutItem(
+            type: QuickAction.Kind.search.type,
+            localizedTitle: "Search",
+            localizedSubtitle: nil,
+            icon: nil,
+            userInfo: [QuickAction.UserInfoKey.query: "atlas" as NSString]
+        )
+
+        XCTAssertEqual(QuickAction(item), .search(query: "atlas"))
     }
 }

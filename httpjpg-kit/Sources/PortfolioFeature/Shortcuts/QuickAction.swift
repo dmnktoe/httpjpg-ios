@@ -6,9 +6,13 @@ enum QuickAction: Equatable {
 
     case shuffle(pool: [String])
 
+    /// Opens the Ask · Search palette, optionally prefilled.
+    case search(query: String?)
+
     enum Kind: String, CaseIterable {
         case work
         case shuffle
+        case search
 
         var type: String {
             (Bundle.main.bundleIdentifier ?? "httpjpg") + ".quickaction." + rawValue
@@ -24,6 +28,7 @@ enum QuickAction: Equatable {
         static let slug = "slug"
         static let title = "title"
         static let pool = "pool"
+        static let query = "query"
     }
 
     init?(_ item: UIApplicationShortcutItem) {
@@ -36,6 +41,9 @@ enum QuickAction: Equatable {
             let pool = (info[UserInfoKey.pool] as? [String] ?? []).filter { !$0.isEmpty }
             guard !pool.isEmpty else { return nil }
             self = .shuffle(pool: pool)
+        case .search:
+            let query = info[UserInfoKey.query] as? String
+            self = .search(query: query?.isEmpty == false ? query : nil)
         case nil:
             return nil
         }
@@ -45,6 +53,7 @@ enum QuickAction: Equatable {
         switch self {
         case .work: return .work
         case .shuffle: return .shuffle
+        case .search: return .search
         }
     }
 
@@ -54,6 +63,8 @@ enum QuickAction: Equatable {
             return WorkRoute(slug: slug, title: title)
         case .shuffle(let pool):
             return pool.randomElement().map { WorkRoute(slug: $0, title: $0) }
+        case .search:
+            return nil
         }
     }
 }

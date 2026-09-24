@@ -33,6 +33,85 @@ public actor SiteAPI {
         await get(WeatherNow.self, path: "/api/weather")
     }
 
+    /// Ranked portfolio hits from `GET /api/search`. Empty query returns empty results.
+    public func search(query: String, limit: Int = 8) async throws -> SearchResponse {
+        let trimmed = String(query.trimmingCharacters(in: .whitespacesAndNewlines).prefix(120))
+        guard !trimmed.isEmpty else { return SearchResponse() }
+
+        guard let searchURL = URL(string: "/api/search", relativeTo: origin)?.absoluteURL,
+              var components = URLComponents(url: searchURL, resolvingAgainstBaseURL: false)
+        else { throw SiteAPIError.badURL }
+        components.queryItems = [
+            URLQueryItem(name: "q", value: trimmed),
+            URLQueryItem(name: "limit", value: String(min(max(limit, 1), 20))),
+        ]
+        guard let url = components.url else { throw SiteAPIError.badURL }
+
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 10
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw SiteAPIError.transport("missing response")
+        }
+        guard (200 ..< 300).contains(http.statusCode) else {
+            throw SiteAPIError.http(status: http.statusCode)
+        }
+        return try JSONDecoder().decode(SearchResponse.self, from: data)
+    }
+
+    /// Streams NDJSON events from `POST /api/ask`. Yields `.askUnavailable` on 503.
+    public func ask(question: String) -> AsyncThrowingStream<AskStreamEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    try await self.writeAskStream(question: question, into: continuation)
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    private func writeAskStream(
+        question: String,
+        into continuation: AsyncThrowingStream<AskStreamEvent, Error>.Continuation
+    ) async throws {
+        let trimmed = String(question.trimmingCharacters(in: .whitespacesAndNewlines).prefix(500))
+        guard !trimmed.isEmpty else { throw SiteAPIError.http(status: 400) }
+        guard let url = URL(string: "/api/ask", relativeTo: origin)?.absoluteURL else {
+            throw SiteAPIError.badURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 60
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["question": trimmed])
+
+        let (bytes, response) = try await session.bytes(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw SiteAPIError.transport("missing response")
+        }
+        if http.statusCode == 503 {
+            throw SiteAPIError.askUnavailable
+        }
+        guard (200 ..< 300).contains(http.statusCode) else {
+            throw SiteAPIError.http(status: http.statusCode)
+        }
+
+        for try await line in bytes.lines {
+            try Task.checkCancellation()
+            if let event = AskStreamEvent.parse(line) {
+                continuation.yield(event)
+            }
+        }
+    }
+
     private func get<T: Decodable>(_ type: T.Type, path: String) async -> T? {
         guard let url = URL(string: path, relativeTo: origin) else { return nil }
         var request = URLRequest(url: url)

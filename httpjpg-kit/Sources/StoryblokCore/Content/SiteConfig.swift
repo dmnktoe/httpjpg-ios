@@ -144,6 +144,9 @@ public struct WidgetFlags: Decodable, Sendable {
     public let isPsnTrophyEnabled: Bool
     public let isDiscogsEnabled: Bool
     public let isXEnabled: Bool
+    /// Gates the Ask · Search command palette. Off until the CMS opts in — same
+    /// default as the website's `ask_enabled`.
+    public let isAskEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
         case discordEnabled = "discord_enabled"
@@ -151,6 +154,7 @@ public struct WidgetFlags: Decodable, Sendable {
         case psnTrophyEnabled = "psn_trophy_enabled"
         case discogsEnabled = "discogs_enabled"
         case xEnabled = "x_enabled"
+        case askEnabled = "ask_enabled"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -160,6 +164,7 @@ public struct WidgetFlags: Decodable, Sendable {
         isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
         isDiscogsEnabled = container.cmsBool(forKey: .discogsEnabled)
         isXEnabled = container.cmsBool(forKey: .xEnabled)
+        isAskEnabled = container.cmsBool(forKey: .askEnabled)
     }
 
     public init(
@@ -167,13 +172,15 @@ public struct WidgetFlags: Decodable, Sendable {
         isLetterboxdEnabled: Bool,
         isPsnTrophyEnabled: Bool = false,
         isDiscogsEnabled: Bool = false,
-        isXEnabled: Bool = false
+        isXEnabled: Bool = false,
+        isAskEnabled: Bool = false
     ) {
         self.isDiscordEnabled = isDiscordEnabled
         self.isLetterboxdEnabled = isLetterboxdEnabled
         self.isPsnTrophyEnabled = isPsnTrophyEnabled
         self.isDiscogsEnabled = isDiscogsEnabled
         self.isXEnabled = isXEnabled
+        self.isAskEnabled = isAskEnabled
     }
 
     public static let allOff = WidgetFlags(isDiscordEnabled: false, isLetterboxdEnabled: false)
