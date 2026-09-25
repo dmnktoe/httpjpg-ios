@@ -6,7 +6,6 @@ enum QuickAction: Equatable {
 
     case shuffle(pool: [String])
 
-    /// Opens the Ask · Search palette, optionally prefilled.
     case search(query: String?)
 
     enum Kind: String, CaseIterable {

@@ -4,10 +4,6 @@ import Tokens
 import IntelligenceGlow
 #endif
 
-/// Ask · Search results under the system `.searchable` field.
-///
-/// Reply card appears only after the answer finishes — clear glass + the
-/// stock IntelligenceGlow sweep. Result rows stay full width.
 public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
@@ -79,9 +75,7 @@ public struct CommandPalette: View {
         .scrollClipDisabled()
     }
 
-    // MARK: - Answer
 
-    /// Compact wait state — no glass card, so the list width never jumps.
     private var thinkingPlaceholder: some View {
         HStack(spacing: Spacing.s3) {
             ProgressView()
@@ -157,7 +151,6 @@ public struct CommandPalette: View {
         .modifier(AnswerGlassSweep(shape: Self.panelShape))
     }
 
-    // MARK: - Results
 
     @ViewBuilder
     private var resultsBlock: some View {
@@ -313,14 +306,12 @@ public struct CommandPalette: View {
         }
     }
 
-    // MARK: - Helpers
 
     private var resultKey: String {
         results.map(\.id).joined(separator: "|")
     }
 
     private var showsAnswer: Bool {
-        // Wait until the stream finishes — no growing glow card mid-delta.
         status != .answering && (!answer.isEmpty || status == .error)
     }
 
@@ -332,11 +323,7 @@ public struct CommandPalette: View {
     }
 }
 
-// MARK: - Answer glass + Intelligence sweep
 
-/// Matches the IntelligenceGlow README example:
-/// `glassEffect(.clear)` + `intelligenceSweep(blurRadius: 45, sweepSpan: 90, …)`.
-/// No extra overlay / custom stroke — those made the glow too loud and inset the list.
 private struct AnswerGlassSweep<S: InsettableShape>: ViewModifier {
     let shape: S
 
@@ -368,7 +355,6 @@ private struct AnswerGlassSweep<S: InsettableShape>: ViewModifier {
     }
 }
 
-// MARK: - Bounce
 
 private struct PaletteBounce: ViewModifier {
     let index: Int

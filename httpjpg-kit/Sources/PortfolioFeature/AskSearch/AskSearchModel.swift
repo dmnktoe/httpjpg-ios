@@ -3,8 +3,6 @@ import Foundation
 import Observation
 import StoryblokCore
 
-/// Stateful shell for the Ask · Search palette — the iOS twin of the web
-/// `AskWidget`. Holds debounce, abort, and stream state; the view only paints.
 @MainActor
 @Observable
 final class AskSearchModel {
@@ -19,14 +17,12 @@ final class AskSearchModel {
     private(set) var action: CommandPaletteAction?
     private(set) var status: CommandPaletteStatus = .idle
     private(set) var errorMessage: String?
-    /// Flips off after a 503 so the ask affordance hides for the rest of the session.
     private(set) var isAskAvailable = true
 
     private var searchTask: Task<Void, Never>?
     private var askTask: Task<Void, Never>?
     private var searchGeneration = 0
 
-    /// Matches the web debounce — long enough to skip mid-typing, short enough to feel live.
     private static let searchDebounceNanoseconds: UInt64 = 140_000_000
 
     init(origin: URL, session: URLSession = .shared) {
@@ -80,7 +76,6 @@ final class AskSearchModel {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, isAskAvailable else { return }
 
-        // A late search "idle" must not paint over an in-flight answer.
         searchTask?.cancel()
         askTask?.cancel()
 

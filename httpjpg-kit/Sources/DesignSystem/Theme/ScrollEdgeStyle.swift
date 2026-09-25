@@ -1,18 +1,10 @@
 import SwiftUI
 
 public extension View {
-    /// Fades content out under floating chrome — the tab bar, a drawer's own
-    /// header — where a defined edge would cut the page off mid-scroll.
     func softScrollEdges(_ edges: Edge.Set = .all) -> some View {
         modifier(ScrollEdges(style: .soft, edges: edges))
     }
 
-    /// For a page under a titled navigation bar: a hard top edge, so the bar
-    /// separates itself once content scrolls beneath it and leaves the page
-    /// alone at rest, and a soft bottom one under the floating tab bar.
-    ///
-    /// This is the system's own behaviour — `.soft` on the top edge is what
-    /// dissolved the rule in the first place.
     func navigationScrollEdges() -> some View {
         modifier(ScrollEdges(style: .hard, edges: .top))
             .modifier(ScrollEdges(style: .soft, edges: .bottom))

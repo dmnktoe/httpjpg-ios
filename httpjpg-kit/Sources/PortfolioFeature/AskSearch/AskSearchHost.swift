@@ -3,10 +3,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// System sheet + native `.searchable` toolbar.
-///
-/// Ask is a compact Liquid Glass pill (sparkles + “Ask”) in the trailing
-/// toolbar, kept visible while the search field is focused.
 struct AskSearchHost: View {
     @Bindable var model: AskSearchModel
     let onNavigate: (SearchDestination) -> Void
@@ -87,10 +83,6 @@ struct AskSearchHost: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Sparkles + “Ask” in primary — one system toolbar glass rim only.
-    ///
-    /// Do not stack `.glass` / `liquidGlass` on top of the toolbar chrome; that
-    /// was the concentric double border.
     private var askPill: some View {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         let canSubmit = !trimmed.isEmpty && model.status != .answering
@@ -119,7 +111,6 @@ struct AskSearchHost: View {
 
     private func submitSearch() {
         let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        // Prefer ask on submit when available — search hits are tappable in the list.
         if model.isAskAvailable, !trimmed.isEmpty {
             model.ask()
             return
@@ -151,7 +142,6 @@ struct AskSearchHost: View {
     }
 }
 
-/// Keeps Cancel / Ask visible while the system search field is focused.
 private struct KeepSearchToolbarVisible: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 17.1, *) {

@@ -33,7 +33,6 @@ public actor SiteAPI {
         await get(WeatherNow.self, path: "/api/weather")
     }
 
-    /// Ranked portfolio hits from `GET /api/search`. Empty query returns empty results.
     public func search(query: String, limit: Int = 8) async throws -> SearchResponse {
         let trimmed = String(query.trimmingCharacters(in: .whitespacesAndNewlines).prefix(120))
         guard !trimmed.isEmpty else { return SearchResponse() }
@@ -61,7 +60,6 @@ public actor SiteAPI {
         return try JSONDecoder().decode(SearchResponse.self, from: data)
     }
 
-    /// Streams NDJSON events from `POST /api/ask`. Yields `.askUnavailable` on 503.
     public func ask(question: String) -> AsyncThrowingStream<AskStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {

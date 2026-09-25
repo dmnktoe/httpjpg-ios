@@ -2,20 +2,13 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// The app's bottom navigation: one glass pill per tab.
-///
-/// Idle pills match the hamburger glass; the selected tab wears primary so the
-/// bar reads as the app chrome rather than a CMS accent.
 struct TabPillBar: View {
     let selection: AppModel.Tab
 
-    /// Shared with the mini player so the two shapes morph as one stack rather
-    /// than sliding past each other.
     let glass: Namespace.ID
 
     let onSelect: (AppModel.Tab) -> Void
 
-    /// The mini player matches the pill row's width, so the row reports it.
     let onWidthChange: (CGFloat) -> Void
 
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom

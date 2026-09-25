@@ -2,7 +2,7 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// SwiftUI `Text` ignores `NSParagraphStyle` justification. UITextView does not.
+// SwiftUI Text ignores justified NSParagraphStyle, so justified text is drawn by UIKit.
 public struct AlignedText: View {
     private let attributed: AttributedString
     private let align: TextAlign

@@ -25,7 +25,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  # ── Skip the pipeline on release PRs (mirrors httpjpg) ──────────────
   guard:
     name: Guard
     runs-on: ubuntu-latest
@@ -53,16 +52,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: httpjpg-ios
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: dmnktoe/httpjpg
           path: httpjpg
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
 
@@ -76,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Install SwiftLint
         env:
@@ -98,7 +97,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Select Xcode
         shell: bash
@@ -140,7 +139,6 @@ jobs:
         run: |
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
           brew list periphery >/dev/null 2>&1 || brew install peripheryapp/periphery/periphery
-          # Maestro CLI (local simulator driver — no Maestro Cloud / Apple account)
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
           xcodegen --version
@@ -210,7 +208,7 @@ jobs:
 
       - name: Upload size report
         if: always() && steps.build_app.outputs.size_kb != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: simulator-app-size
           path: build/size/
@@ -285,7 +283,7 @@ jobs:
 
       - name: Upload snapshots
         if: always() && hashFiles('httpjpg-kit/Tests/DesignSystemTests/__Snapshots__/**') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: design-system-snapshots
           path: httpjpg-kit/Tests/DesignSystemTests/__Snapshots__/
@@ -293,7 +291,7 @@ jobs:
 
       - name: Coverage → Codecov
         if: always() && hashFiles('build/TestResults.xcresult') != ''
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
@@ -303,7 +301,7 @@ jobs:
 
       - name: Upload xcresult
         if: always() && hashFiles('build/TestResults.xcresult') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: test-results
           path: build/TestResults.xcresult
@@ -337,7 +335,7 @@ jobs:
 
       - name: Upload periphery baseline
         if: always() && hashFiles('periphery-baseline.json') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: periphery-baseline
           path: periphery-baseline.json
@@ -363,7 +361,7 @@ jobs:
 
       - name: Upload Maestro diagnostics
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: maestro-diagnostics
           path: |

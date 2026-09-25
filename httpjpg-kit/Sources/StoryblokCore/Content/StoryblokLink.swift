@@ -61,8 +61,6 @@ public struct StoryblokLink: Decodable, Hashable, Sendable {
 
     public var isEmpty: Bool { href == nil }
 
-    /// Mirrors web `isExternalLink`: absolute http(s)/mailto/tel get the ↗.
-    /// Story links stay relative and do not.
     public var isExternal: Bool {
         guard let href else { return false }
         return href.hasPrefix("http://")

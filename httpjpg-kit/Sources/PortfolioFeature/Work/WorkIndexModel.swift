@@ -61,8 +61,6 @@ final class WorkIndexModel {
         return counts
     }
 
-    /// Derived against the tags currently on offer, so a payload that drops the
-    /// selected tag cannot leave an empty list behind an active chip.
     var activeTag: String? {
         guard let selectedTag, availableTags.contains(selectedTag) else { return nil }
         return selectedTag

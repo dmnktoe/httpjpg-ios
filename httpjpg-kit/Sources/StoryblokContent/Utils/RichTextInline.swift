@@ -73,8 +73,6 @@ public enum RichTextInline {
             case .strike:
                 fragment.strikethroughStyle = .single
             case .code:
-                // Web always uses sm mono on a chip; padding/radius land as
-                // AttributedString background only — SwiftUI has no mark-level box.
                 fragment.font = Typography.mono(Typography.Size.sm)
                 fragment.backgroundColor = codeBackground
             case .link:

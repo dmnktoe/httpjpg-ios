@@ -1,12 +1,9 @@
 import AVFoundation
 
-/// Routes AVFoundation so silent UI video can loop without becoming Now Playing,
-/// and so the in-app music player only claims the session once a track starts.
 public enum MediaAudioSession {
-    /// Work-card loops and muted feed clips. Mixes with Music / Spotify.
-    /// Leaves an exclusive `.playback` session alone so in-app audio keeps ducking others.
     public static func prepareSilentVideo() {
         let session = AVAudioSession.sharedInstance()
+        // Silent video must not replace the exclusive session used by the in-app player.
         if isExclusivePlayback(session) { return }
         guard session.category != .ambient else { return }
         try? session.setCategory(.ambient, mode: .default)
@@ -18,7 +15,6 @@ public enum MediaAudioSession {
         try session.setActive(true)
     }
 
-    /// Drops Now Playing ownership and lets the previous source resume.
     public static func resignExclusivePlayback() {
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false, options: .notifyOthersOnDeactivation)

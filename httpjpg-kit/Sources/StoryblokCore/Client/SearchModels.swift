@@ -1,6 +1,5 @@
 import Foundation
 
-/// One hit from `GET /api/search`. Mirrors the web `SearchResult` / ranking shape.
 public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
     public enum Kind: String, Decodable, Sendable, Hashable {
         case work
@@ -46,7 +45,6 @@ public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// First image on the story — same asset the web nav hover preview uses.
 public struct SearchFeatured: Decodable, Hashable, Sendable {
     public let source: String
     public let focus: String?
@@ -68,7 +66,6 @@ public struct SearchFeatured: Decodable, Hashable, Sendable {
 
     public var isEmpty: Bool { source.isEmpty }
 
-    /// Storyblok thumb URL the palette can load directly.
     public var thumbURL: URL? {
         guard !isEmpty else { return nil }
         let processed = ImageService.Preset.thumb(source, focus: focus ?? "")
@@ -96,7 +93,6 @@ public struct SearchResponse: Decodable, Sendable {
     }
 }
 
-/// Slim citation the ask stream hands the palette before the answer tokens.
 public struct AskSource: Decodable, Hashable, Sendable {
     public let title: String
     public let href: String
@@ -120,7 +116,6 @@ public struct AskSource: Decodable, Hashable, Sendable {
     }
 }
 
-/// Derived navigate offer from a finished ask answer — same-origin site paths only.
 public struct AskNavigateAction: Hashable, Sendable {
     public let href: String
     public let title: String
@@ -132,7 +127,6 @@ public struct AskNavigateAction: Hashable, Sendable {
         self.kind = kind
     }
 
-    /// Re-validates the action the server derived: site-relative, not protocol-relative.
     public static func parse(_ value: Any?) -> AskNavigateAction? {
         guard let object = value as? [String: Any] else { return nil }
         guard object["type"] as? String == "navigate" else { return nil }
@@ -146,7 +140,6 @@ public struct AskNavigateAction: Hashable, Sendable {
     }
 }
 
-/// One NDJSON line from `POST /api/ask`.
 public enum AskStreamEvent: Sendable, Equatable {
     case sources([AskSource])
     case delta(String)
@@ -191,12 +184,10 @@ public enum AskStreamEvent: Sendable, Equatable {
 public enum SiteAPIError: Error, Equatable, Sendable {
     case badURL
     case http(status: Int)
-    /// Ask is not configured on the deployment (no Groq key) — search still works.
     case askUnavailable
     case transport(String)
 }
 
-/// Turns a search / ask `href` into an in-app destination.
 public enum SearchDestination: Equatable, Sendable {
     case work(slug: String, title: String)
     case page(slug: String, title: String)

@@ -1,9 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// One chip behind every tag on cards, related work and the filter. Matches the
-/// web `Tag` / `TagButton` recipe: sans label, pill border, page colours, and a
-/// dimmed `#` that assistive tech skips so the authored casing is what is read.
 public struct TagChip: View {
     private let tag: String
     private let isSelected: Bool
@@ -12,8 +9,6 @@ public struct TagChip: View {
 
     @Environment(\.pageTheme) private var theme
 
-    /// Opacity of the `#` marker. Off-palette on purpose: the web `TagMarker` is
-    /// `0.45`, between `Opacities.dimmed` and `Opacities.subtle`.
     private static let markerOpacity: Double = 0.45
 
     public init(

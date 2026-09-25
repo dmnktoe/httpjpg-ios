@@ -43,8 +43,6 @@ public struct RootView: View {
             PlayerScreen(player: player)
         }
         .background {
-            // Keeps the search sheet presenter mounted whenever Ask is enabled,
-            // without sitting in the hit-testing overlay path.
             if let askSearch = model.askSearch {
                 AskSearchHost(model: askSearch) { destination in
                     model.navigate(destination)
@@ -88,8 +86,6 @@ public struct RootView: View {
     }
 
     private func bottomBar(_ player: AudioPlayerModel) -> some View {
-        // One container for both bars: glass cannot sample other glass, so the
-        // player and the pill row have to blend as a single stack.
         LiquidGlassContainer(spacing: Spacing.s2) {
             VStack(spacing: Spacing.s2) {
                 MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)

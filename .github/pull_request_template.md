@@ -4,17 +4,11 @@
 
 ## what & why
 
-<!-- One or two sentences. What changes, and what it fixes or unlocks. -->
-
 Closes #
 
 ## scope
 
-<!-- Which targets / surfaces? e.g. `Tokens`, `DesignSystem`, `StoryblokContent`, `PortfolioFeature`, `WatchFeature`, `WidgetFeature`, app / watch / widgets -->
-
 ## change type
-
-<!-- Pick one. It decides the changelog section and the version bump. -->
 
 - [ ] `feat` — new feature · **Added** · minor
 - [ ] `fix` — bug fix · **Fixed** · patch
@@ -26,8 +20,6 @@ Closes #
 - [ ] carries a `BREAKING CHANGE:` footer · **⚠ BREAKING** · major
 
 ## screenshots / recordings
-
-<!-- Before / after for anything visual. Drag files in here, or delete the section. -->
 
 ---
 
@@ -66,5 +58,3 @@ Closes #
 ---
 
 ## notes for reviewers
-
-<!-- Anything unresolved, any trade-off you made on purpose, anything to look at first. -->

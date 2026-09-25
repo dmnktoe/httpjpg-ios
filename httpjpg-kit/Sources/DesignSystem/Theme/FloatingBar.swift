@@ -20,7 +20,6 @@ private struct FloatingBar<Bar: View>: ViewModifier {
         } else {
             content.safeAreaInset(edge: edge, spacing: 0) {
                 if edge == .top {
-                    // Scroll-edge glass is iOS 26-only; Material.bar is the same idea.
                     bar.background(.bar)
                 } else {
                     bar

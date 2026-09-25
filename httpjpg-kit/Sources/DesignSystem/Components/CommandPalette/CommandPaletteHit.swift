@@ -1,6 +1,5 @@
 import Foundation
 
-/// One searchable row the palette can highlight and open.
 public struct CommandPaletteHit: Identifiable, Hashable, Sendable {
     public enum Kind: String, Sendable, Hashable {
         case work
@@ -12,7 +11,6 @@ public struct CommandPaletteHit: Identifiable, Hashable, Sendable {
     public let href: String
     public let kind: Kind
     public let excerpt: String?
-    /// Featured image thumb — already cropped by the feature layer.
     public let imageURL: URL?
 
     public init(

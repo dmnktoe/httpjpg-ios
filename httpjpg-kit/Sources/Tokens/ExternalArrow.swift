@@ -1,14 +1,9 @@
 import Foundation
 
-/// The ↗ the web appends to external links.
-///
-/// U+2197 has an emoji twin (↗️). Helvetica — the button sans — has no ↗
-/// glyph, and without a text variation selector iOS fills that hole with
-/// Apple Color Emoji. VS-15 (`U+FE0E`) keeps the text presentation.
 public enum ExternalArrow {
+    // Helvetica lacks ↗, so VS-15 prevents fallback to Apple Color Emoji.
     public static let glyph = "↗\u{FE0E}"
 
-    /// Rewrites ↗ / ↗️ in CMS copy so a pasted emoji form does not survive.
     public static func preferringText(_ string: String) -> String {
         var output = String.UnicodeScalarView()
         output.reserveCapacity(string.unicodeScalars.count + 4)

@@ -2,7 +2,6 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// Trailing magnifier that opens the Ask · Search palette when CMS `ask_enabled` is on.
 struct AskSearchToolbar: ViewModifier {
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme

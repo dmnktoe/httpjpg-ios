@@ -13,7 +13,6 @@ public struct AdjacentWorkItem: Identifiable, Hashable, Sendable {
 }
 
 public enum AdjacentWork {
-    /// Prev/next neighbours in the work index, sorted by date descending like the web.
     public static func neighbours(
         for slug: String,
         in items: [WorkItem]

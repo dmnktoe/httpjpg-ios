@@ -1,6 +1,5 @@
 import Foundation
 
-/// "Go to …" offer derived from the finished ask answer.
 public struct CommandPaletteAction: Hashable, Sendable {
     public let href: String
     public let title: String

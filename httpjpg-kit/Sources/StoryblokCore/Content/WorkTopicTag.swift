@@ -1,7 +1,5 @@
 import Foundation
 
-/// One entry in the CMS work-tag vocabulary. The stored `value` is what
-/// Storyblok keeps on the story; `label` is what a visitor reads.
 public struct WorkTopicTag: Hashable, Sendable {
     public enum Group: String, Sendable, CaseIterable {
         case discipline
@@ -110,8 +108,6 @@ public struct WorkTopicTag: Hashable, Sendable {
         byValue[value]
     }
 
-    /// Values outside the vocabulary are dropped rather than rendered as a raw
-    /// slug, which is what makes retiring a tag safe.
     public static func resolve(_ values: [String]) -> [WorkTopicTag] {
         var seen = Set<String>()
         var resolved: [WorkTopicTag] = []

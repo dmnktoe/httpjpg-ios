@@ -8,7 +8,6 @@ public struct Headline: View {
         case three = 3
         case four = 4
 
-        /// Web tops the visual scale at h4; h5/h6 keep semantics with h4 size.
         public static func clamping(_ raw: Int) -> Level {
             Level(rawValue: min(max(raw, 1), 4)) ?? .two
         }
@@ -35,9 +34,6 @@ public struct Headline: View {
     private let alignment: TextAlign
     private let lineSpacingRatio: CGFloat
 
-    /// A justified headline is drawn by UIKit, which never sees
-    /// `foregroundStyle` — so a caller with a colour of its own has to hand it
-    /// over rather than apply it from outside. `nil` inherits, as `Text` does.
     private let color: Color?
 
     @Environment(\.viewportWidth) private var viewportWidth
@@ -80,8 +76,6 @@ public struct Headline: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    /// The colour handed to UIKit for a justified headline. `foregroundStyle`
-    /// cannot reach there, so this is the only thing that decides it.
     func resolvedColor(for theme: PageTheme) -> Color {
         color ?? theme.foreground
     }

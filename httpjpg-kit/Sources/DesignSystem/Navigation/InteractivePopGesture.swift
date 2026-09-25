@@ -3,10 +3,7 @@ import SwiftUI
 import UIKit
 
 public extension View {
-    /// Keeps the edge swipe-back alive when the system back button is hidden
-    /// for a custom toolbar control. Without this, UIKit disables the
-    /// interactive pop gesture as soon as `navigationBarBackButtonHidden`
-    /// is set.
+    // UIKit disables edge-swipe navigation when the system back button is hidden.
     func enablesInteractivePopGesture() -> some View {
         background(InteractivePopGestureInstaller())
     }
