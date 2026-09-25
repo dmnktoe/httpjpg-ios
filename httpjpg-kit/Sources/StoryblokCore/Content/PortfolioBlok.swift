@@ -222,14 +222,10 @@ public struct WorkBlok: Decodable, Identifiable {
     public let link: StoryblokLink?
     public let isExternalOnly: Bool
     public let isListedInApp: Bool
-    /// Free-text Project Accent Color from the work page (`#RGB` / `#RRGGBB`).
-    /// Nil when unset or cleared.
     public let accentColor: String?
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
-    /// Topic tags from the CMS vocabulary. Separate from the story's
-    /// Storyblok `tag_list`, which decides Projects vs Websites.
     public let tags: [String]
 
     private enum CodingKeys: String, CodingKey {
@@ -258,8 +254,7 @@ public struct WorkBlok: Decodable, Identifiable {
         dateEnd = container.cmsString(forKey: .dateEnd)
         link = container.cmsValue(StoryblokLink.self, forKey: .link)
         isExternalOnly = container.cmsBool(forKey: .externalOnly)
-        // Work published before the toggle existed carries no `show_in_app`,
-        // and Storyblok does not backfill defaults into existing stories.
+        // Storyblok does not backfill defaults into stories published before this toggle existed.
         isListedInApp = container.cmsBool(forKey: .showInApp, default: true)
         accentColor = container.cmsString(forKey: .accentColor)
         isDark = container.cmsBool(forKey: .isDark)
@@ -517,7 +512,6 @@ public struct DividerBlok: Decodable, Identifiable {
         pattern = container.cmsString(forKey: .pattern)
         label = container.cmsString(forKey: .label)
         color = container.cmsString(forKey: .color)
-        // Web default is `1px`; bare numbers are treated as points.
         thickness = CSSLength.points(container.cmsString(forKey: .thickness)) ?? 1
         gap = container.cmsString(forKey: .spacing)
     }
@@ -663,7 +657,6 @@ public struct WorkListBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         work = container.cmsArray(Story<PortfolioBlok>.self, forKey: .work)
         workUUIDs = container.cmsArray(String.self, forKey: .work)
-        // Web WorkList defaults gap to 24 when the CMS field is empty.
         gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s6
         columns = min(max(container.cmsInt(forKey: .columns) ?? 1, 1), 4)
         columnsMd = container.cmsInt(forKey: .columnsMd).map { min(max($0, 1), 4) }
@@ -673,12 +666,10 @@ public struct WorkListBlok: Decodable, Identifiable {
         dividerVariant = container.cmsString(forKey: .dividerVariant) ?? "solid"
         dividerPattern = container.cmsString(forKey: .dividerPattern)
         dividerColor = container.cmsString(forKey: .dividerColor)
-        // Web Divider defaults spacing to "4" when unset.
         dividerSpacing = SpacingScale.points(container.cmsString(forKey: .dividerSpacing)) ?? Spacing.s4
         showsTagFilter = container.cmsBool(forKey: .enableTagFilter)
     }
 
-    /// Matches web `isStacked`: dividers only render when every breakpoint is a single column.
     public var isStacked: Bool {
         columns == 1 && columnsMd == nil && columnsLg == nil
     }

@@ -35,8 +35,6 @@ struct SidebarView: View {
         .padding(.top, Spacing.s2)
         .padding(.bottom, Spacing.s5)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // The list now pins its year headers, so they scroll up to this edge —
-        // without a fill they would read straight through the site name.
         .background(theme.drawerBackground)
     }
 
@@ -116,9 +114,6 @@ struct SidebarView: View {
         }
         .padding(.top, Spacing.s4)
         .padding(.bottom, Spacing.s2)
-        // Pinned, so it needs a fill — and the gutter is applied to the stack
-        // above it, so the fill has to bleed back out to the drawer edges or
-        // rows show through beside it.
         .background {
             theme.drawerBackground
                 .padding(.horizontal, -PageLayout.gutter)
@@ -149,7 +144,6 @@ struct SidebarView: View {
         }
     }
 
-    /// The work the page behind the drawer is showing, if any.
     private var currentSlug: String? {
         app.selectedTab == .work ? app.workPath.last?.slug : nil
     }

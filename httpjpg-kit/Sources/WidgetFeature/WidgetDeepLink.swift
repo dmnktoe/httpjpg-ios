@@ -10,7 +10,6 @@ public enum WidgetDeepLink {
         case page(slug: String)
         case info
         case play(AudioTrack)
-        /// Opens the Ask · Search palette; `query` is an optional prefill.
         case search(query: String?)
     }
 

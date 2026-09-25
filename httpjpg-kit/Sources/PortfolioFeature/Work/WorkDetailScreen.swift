@@ -20,8 +20,6 @@ struct WorkDetailScreen: View {
     @Environment(\.pageTheme) private var theme
 
     @State private var model: WorkDetailModel?
-    /// Token the current `model` was loaded for — paired with `app.workRouteToken`
-    /// so external routing can force a refresh without wiping scroll on a plain pop.
     @State private var loadedRouteToken: Int?
     @State private var imageViewerHeld = false
 
@@ -56,10 +54,6 @@ struct WorkDetailScreen: View {
         }
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             let token = app.workRouteToken
-            // Pushing related work cancels this task on the covered screen; on
-            // pop it restarts with the same id. Reusing the loaded model keeps
-            // ScrollView position. Recreate only for a new slug or when an
-            // external route bumps `workRouteToken`.
             if let model,
                model.slug == route.slug,
                case .loaded = model.state,
@@ -82,7 +76,6 @@ struct WorkDetailScreen: View {
         app.workIndex.allWork.first { $0.slug == route.slug }
     }
 
-    /// Prefer the loaded detail, then the index card, then the route payload.
     private var accentToken: String? {
         loadedDetail?.accentColor ?? indexItem?.accentColor ?? route.accentColor
     }
@@ -130,8 +123,6 @@ struct WorkDetailScreen: View {
         .accessibilityLabel("Share")
     }
 
-    /// The page forces its own appearance, so the toolbar has to be tinted
-    /// against that theme rather than the ambient one.
     private var headerTheme: PageTheme {
         pageIsDark ? .dark : theme
     }
@@ -213,7 +204,6 @@ struct WorkDetailScreen: View {
             .padding(.top, Spacing.s6)
             .padding(.bottom, bottomBarClearance)
         }
-        // Soft top dissolves the nav-bar hairline (no inline title to seat it).
         .softScrollEdges()
     }
 

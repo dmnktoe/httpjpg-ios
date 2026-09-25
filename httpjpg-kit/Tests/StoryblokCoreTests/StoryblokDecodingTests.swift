@@ -270,9 +270,6 @@ final class StoryblokDecodingTests: XCTestCase {
         )
     }
 
-    /// CDN clips have no `WxH` in the path and an empty CMS ratio. The player
-    /// must still size from the poster, otherwise the surface collapses to
-    /// zero height (Blence titantron on work detail).
     func testNativeCdnVideoKeepsPosterDimensionsWhenAspectRatioIsEmpty() throws {
         let blok = try decode(VideoBlok.self, """
         {"_uid":"v6","component":"video","source":"native","aspectRatio":"",
@@ -290,8 +287,6 @@ final class StoryblokDecodingTests: XCTestCase {
         )
     }
 
-    /// Mirrors web `toDimension` / `resolveMediaAspectRatio` — Storyblok often
-    /// ships `width`/`height` on the asset even when the filename has no `WxH`.
     func testAssetDimensionsDecodeAndDriveMediaAspectRatio() throws {
         let asset = try decode(StoryblokAsset.self, """
         {"filename":"https://cdn.httpjpg.com/clip.mp4","is_external_url":true,
@@ -593,7 +588,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(bars[0].imageURL?.absoluteString, "https://cdn.example/bar.gif")
         XCTAssertEqual(bars[0].link?.href, "https://example.com/profile")
 
-        // Empty filename still decodes; the view filters it out like web.
         XCTAssertNil(bars[1].imageURL)
         XCTAssertEqual(bars[1].accessibilityText, "skipped-empty")
 

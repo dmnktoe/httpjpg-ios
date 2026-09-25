@@ -14,9 +14,6 @@ public struct RelatedWorkMatch: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Neighbours scored by the rarity of the tags they share. Two stories both
-/// tagged `web` say nothing on a site where everything is web; two both tagged
-/// `glsl` say a great deal.
 public enum RelatedWork {
     public static func neighbours(
         id: String,

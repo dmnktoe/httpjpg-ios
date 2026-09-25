@@ -11,7 +11,5 @@ public enum Motion {
 
     public static let drawer: Animation = .interactiveSpring(response: 0.3, dampingFraction: 0.9)
 
-    /// Staggered result rows in the Ask · Search palette — springy enough to
-    /// read as bounce, damped enough that eight rows don't feel chaotic.
     public static let palettePop: Animation = .spring(response: 0.42, dampingFraction: 0.68)
 }

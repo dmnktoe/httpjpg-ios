@@ -1,6 +1,5 @@
 import AppIntents
 
-/// Opens the Ask · Search palette, optionally prefilled — the Shortcuts / Siri entry.
 public struct OpenSearchIntent: AppIntent {
     public static var title: LocalizedStringResource { "Search Portfolio" }
 

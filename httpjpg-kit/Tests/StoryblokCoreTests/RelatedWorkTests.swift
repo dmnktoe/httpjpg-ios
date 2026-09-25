@@ -13,9 +13,6 @@ final class RelatedWorkTests: XCTestCase {
         XCTAssertTrue(neighbours.isEmpty)
     }
 
-    /// `shader` is the only neighbour that shares the rare `swift` tag, so it
-    /// ranks first. `a`/`b`/`c`/`site` all share equally common `web`; the
-    /// remaining slots fill alphabetically among them (default limit is 3).
     func testScoresByTheRarityOfSharedTags() {
         let current = item("atlas", tags: ["swift", "web"])
         let rareTwin = item("shader", tags: ["swift"])

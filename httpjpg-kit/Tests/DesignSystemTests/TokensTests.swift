@@ -32,8 +32,6 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Palette.onNamed("black"), Palette.white)
         XCTAssertEqual(Palette.onNamed("white"), Palette.black)
         XCTAssertNil(Palette.onNamed(nil))
-        // Ramp tokens resolve too — chrome accents arrive as `primary.700`, not
-        // only hex. Glyph contrast for those lives in AccentContrastTests.
         XCTAssertEqual(Palette.onNamed("primary.500"), Palette.white)
     }
 
@@ -65,7 +63,6 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Headline.Level.one.clamp.min, 36)
         XCTAssertEqual(Headline.Level.two.clamp.max, 48)
         XCTAssertEqual(Headline.Level.three.clamp.min, 24)
-        // clamp(1.25rem, 2vw + 0.25rem, 1.5rem) → (20, 0.02, 4, 24)
         XCTAssertEqual(Headline.Level.four.clamp.min, 20)
         XCTAssertEqual(Headline.Level.four.clamp.slope, 0.02)
         XCTAssertEqual(Headline.Level.four.clamp.intercept, 4)

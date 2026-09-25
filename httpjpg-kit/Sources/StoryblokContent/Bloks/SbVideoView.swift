@@ -136,13 +136,9 @@ public struct SbVideoView: View {
         .contentShape(Rectangle())
     }
 
-    /// Matches web `Video` / `SbVideo` resolution order, then iOS-only poster
-    /// fallbacks (AVPlayer has no HTML intrinsic layout). Empty CMS + a CDN
-    /// filename without `WxH` used to pass `nil` into `VideoSurface`, which
-    /// collapsed the player to zero height (Blence titantron).
+    // AVPlayer has no intrinsic HTML-style size; nil here previously collapsed videos to zero height.
     private var resolvedAspectRatio: CGFloat {
         if let cms = blok.aspectRatio { return cms }
-        // Web: `resolveMediaAspectRatio(mediaWidth, mediaHeight)` from the asset.
         if let fromAsset = blok.asset?.mediaAspectRatio { return fromAsset }
         if let video = ImageService.aspectRatio(of: blok.asset?.filename) { return video }
         if let fromPoster = blok.poster?.mediaAspectRatio { return fromPoster }
@@ -169,8 +165,6 @@ public struct SbVideoView: View {
     }
 }
 
-/// Popup card for a native video — plain sheet like `PlayerScreen`, with a
-/// system toolbar close (not a floating orb over AVKit chrome).
 private struct VideoLightboxViewer: View {
     let url: URL
     let posterURL: URL?

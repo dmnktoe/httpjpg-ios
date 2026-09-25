@@ -2,9 +2,6 @@ import AVFoundation
 import SwiftUI
 import Tokens
 
-/// Full-bleed overlay matching web `VideoControls` (PR #448): tap the picture
-/// to play/pause when controls are on; keep chrome visible while paused so
-/// Play stays discoverable on touch.
 struct VideoPlaybackControls: View {
     let player: AVPlayer
     let showsControls: Bool

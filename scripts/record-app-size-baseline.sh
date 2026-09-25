@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Rewrite ci/baselines/simulator-app-size.json from a measured kibibyte size.
 set -euo pipefail
 
 size_kb="${1:?usage: record-app-size-baseline.sh <size-kb> [baseline-json]}"

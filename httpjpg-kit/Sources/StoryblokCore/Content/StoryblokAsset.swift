@@ -12,8 +12,6 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
     public let source: String?
     public let contentType: String?
     public let isExternalURL: Bool
-    /// Storyblok asset payload fields — used when the CDN path has no `WxH`
-    /// segment (mirrors web `mediaWidth` / `mediaHeight`).
     public let width: Int?
     public let height: Int?
 
@@ -48,7 +46,6 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
         height = Self.decodePositiveDimension(container, forKey: .height)
     }
 
-    /// Same tolerance as web `toDimension`: numbers, numeric strings, ignore ≤0.
     private static func decodePositiveDimension(
         _ container: KeyedDecodingContainer<CodingKeys>,
         forKey key: CodingKeys
@@ -78,7 +75,6 @@ public struct StoryblokAsset: Decodable, Hashable, Sendable, Identifiable {
 
     public var isEmpty: Bool { filename?.isEmpty ?? true }
 
-    /// Aspect from payload `width`/`height` when both are positive.
     public var mediaAspectRatio: CGFloat? {
         guard let width, let height, width > 0, height > 0 else { return nil }
         return CGFloat(width) / CGFloat(height)

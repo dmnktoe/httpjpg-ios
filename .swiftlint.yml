@@ -1,5 +1,3 @@
-# Keep this lean — annotations in CI, not a style rewrite. Mirror the
-# conventions in CLAUDE.md; turn rules on only when they catch real drift.
 
 disabled_rules:
   - todo

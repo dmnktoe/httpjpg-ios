@@ -17,8 +17,6 @@ public struct WorkItem: Identifiable, Hashable, Sendable {
     public let isDraft: Bool
     public let isExternal: Bool
 
-    /// Whether the CMS lists this work in the app's work list. The sidebar
-    /// ignores it and keeps showing every published work.
     public let isListedInApp: Bool
     public let accentColor: String?
     public let isDark: Bool
@@ -136,8 +134,6 @@ public struct WorkCollection: Sendable {
         }
     }
 
-    /// The work list is not hand-curated the way the website's `work_list`
-    /// bloks are, so the CMS toggle decides what lands in it.
     public func listedItems(for variant: MenuLink.Variant) -> [WorkItem] {
         items(for: variant).filter(\.isListedInApp)
     }

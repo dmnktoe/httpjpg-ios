@@ -4,11 +4,7 @@ import SwiftUI
 
 public struct VideoSurface: View {
     public enum Layout: Sendable {
-        /// Inline: keep the CMS (or measured) aspect box and cover-fill it
-        /// (web `object-fit: cover`).
         case fitted
-        /// Fullscreen stage: occupy the proposed size and letterbox the clip
-        /// (`resizeAspect`) so a 16:9 never crops on a portrait phone.
         case contained
     }
 
@@ -28,9 +24,6 @@ public struct VideoSurface: View {
     @State private var looper: AVPlayerLooper?
     @State private var isConfigured = false
     @State private var isPosterVisible = true
-    /// Refined from the clip's natural size once the asset loads — avoids
-    /// pillarboxing when the CMS/poster ratio does not match the file
-    /// (web uses intrinsic layout or `object-fit: cover` instead).
     @State private var measuredAspectRatio: CGFloat?
 
     public init(
@@ -59,8 +52,6 @@ public struct VideoSurface: View {
         framedSurface
             .overlay { poster }
             .overlay {
-                // Lightbox uses AVKit `VideoPlayer` chrome; custom overlay is
-                // only for the inline cover-fitted surface (web #448 parity).
                 if showsControls, layout == .fitted {
                     VideoPlaybackControls(player: player, showsControls: true)
                 }
@@ -102,8 +93,6 @@ public struct VideoSurface: View {
     @ViewBuilder
     private var surface: some View {
         if showsControls, layout == .contained {
-            // Native transport chrome in the fullscreen stage — AVKit already
-            // letterboxes, matching `.contained` / `resizeAspect`.
             VideoPlayer(player: player)
         } else {
             PlayerLayerView(player: player, videoGravity: videoGravity)

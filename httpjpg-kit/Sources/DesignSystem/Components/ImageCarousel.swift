@@ -84,8 +84,6 @@ public struct ImageCarousel<Slide: View>: View {
             }
         }
         .frame(height: PageLayout.cardWidth(viewport: viewportWidth) / aspectRatio)
-        // Fade uses a ZStack (not TabView), so swipe has to be wired by hand —
-        // same gesture the work-card carousel gets for free via `.page`.
         .contentShape(Rectangle())
         .gesture(fadeSwipeGesture)
         .overlay(alignment: .bottomLeading) { counter }

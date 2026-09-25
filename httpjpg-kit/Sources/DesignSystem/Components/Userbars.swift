@@ -1,8 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// Classic forum userbar strip — 350×19, unsmoothed, stacked with a 1px gap.
-/// Mirrors `@httpjpg/ui` `Userbars`.
 public struct Userbars: View {
     public struct Item: Identifiable, Hashable, Sendable {
         public let id: String
@@ -31,7 +29,6 @@ public struct Userbars: View {
 
     public var body: some View {
         if !items.isEmpty {
-            // 1pt matches the web `gap: 1px` between classic bars — off the spacing scale on purpose.
             VStack(spacing: 1) {
                 ForEach(items) { item in
                     row(item)

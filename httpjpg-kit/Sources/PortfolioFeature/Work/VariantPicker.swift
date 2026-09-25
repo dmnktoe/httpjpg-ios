@@ -3,9 +3,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// The collection switch above the work list. Same pill row as the tag filter
-/// — idle hamburger glass, accent when selected — one size down and packed to
-/// the leading edge.
 struct VariantPicker: View {
     let selection: MenuLink.Variant
     let onSelect: (MenuLink.Variant) -> Void

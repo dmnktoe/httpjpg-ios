@@ -57,9 +57,7 @@ public final class AppModel {
     let workIndex: WorkIndexModel
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
-    /// Nil until config says Ask is on — mirrors the web mount gate.
     private(set) var askSearch: AskSearchModel?
-    /// Held when a deep link / intent opens search before config has loaded.
     private var pendingSearch: PendingSearch?
 
     private struct PendingSearch {

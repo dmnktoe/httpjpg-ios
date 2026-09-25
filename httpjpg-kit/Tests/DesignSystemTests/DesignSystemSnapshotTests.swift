@@ -6,9 +6,6 @@ import XCTest
 
 @testable import DesignSystem
 
-/// Visual baselines for DesignSystem primitives that stay stable without network
-/// or motion. CI records with `SNAPSHOT_TESTING_RECORD=missing` when
-/// `__Snapshots__` is absent — commit the artifact afterward.
 @MainActor
 final class DesignSystemSnapshotTests: XCTestCase {
     func testTagChipIdleAndSelected() {
@@ -60,7 +57,6 @@ final class DesignSystemSnapshotTests: XCTestCase {
     }
 
     func testAsciiTapeAndSkeleton() {
-        // SkeletonBlock pulses via onAppear; keep this snapshot static.
         let view = VStack(alignment: .leading, spacing: Spacing.s4) {
             AsciiTape()
             AsciiArt(Ascii.dividerDots, label: "divider", size: Typography.Size.xs)

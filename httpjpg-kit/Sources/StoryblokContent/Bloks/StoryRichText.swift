@@ -77,7 +77,6 @@ public struct StoryRichText: View {
             )
 
         case .codeBlock(_, let content):
-            // Mirrors storyblok-richtext CodeBlockRenderer: white on neutral.900 pre.
             return AnyView(
                 ScrollView(.horizontal, showsIndicators: false) {
                     Text(RichTextInline.plainText(content))

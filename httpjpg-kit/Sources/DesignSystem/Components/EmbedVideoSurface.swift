@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 import WebKit
 
-/// In-app YouTube / Vimeo player — mirrors `@httpjpg/ui` `Video` embed iframes.
 public struct EmbedVideoSurface: View {
     public enum Source: String {
         case youtube
@@ -82,7 +81,6 @@ public struct EmbedVideoSurface: View {
         autoPlays && !reduceMotion
     }
 
-    /// Builds the vendor embed URL the web `Video` component loads in an iframe.
     public static func playerURL(
         source: Source,
         from urlString: String,
@@ -95,7 +93,6 @@ public struct EmbedVideoSurface: View {
 
         switch source {
         case .youtube:
-            // `playlist` is required for YouTube's loop flag to actually repeat.
             var items: [URLQueryItem] = [
                 URLQueryItem(name: "autoplay", value: autoPlays ? "1" : "0"),
                 URLQueryItem(name: "loop", value: loops ? "1" : "0"),
@@ -105,6 +102,7 @@ public struct EmbedVideoSurface: View {
                 URLQueryItem(name: "rel", value: "0"),
             ]
             if loops {
+                // YouTube ignores loop=1 unless playlist repeats the video ID.
                 items.append(URLQueryItem(name: "playlist", value: id))
             }
             return url(hostPath: "https://www.youtube.com/embed/\(id)", items: items)
@@ -120,7 +118,6 @@ public struct EmbedVideoSurface: View {
         }
     }
 
-    /// Same ID extraction as `@httpjpg/ui` `getYouTubeId` / `getVimeoId`.
     public static func videoID(source: Source, from urlString: String) -> String? {
         let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
@@ -130,12 +127,10 @@ public struct EmbedVideoSurface: View {
             if trimmed.count == 11, !trimmed.contains("/"), !trimmed.contains("?") {
                 return trimmed
             }
-            // youtu.be/, /embed/, /watch?v=, /v/, /u/…/
             let pattern = #"(?i)^.*(?:youtu\.be/|/(?:embed|v|shorts)/|/u/\w+/|(?:watch\?).*(?:^|[?&])v=)([^#&?/]{11})"#
             if let match = firstCapture(pattern, in: trimmed), match.count == 11 {
                 return match
             }
-            // Fallback matching the web regex's final capture group.
             let loose = #"(?i)(?:v=|/embed/|/v/|youtu\.be/|/shorts/)([^#&?]{11})"#
             if let match = firstCapture(loose, in: trimmed), match.count == 11 {
                 return match
@@ -181,7 +176,7 @@ private struct EmbedWebView: UIViewRepresentable {
         }
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
-        // Vendor autoplay is gated by the embed query string; don't add a second prompt.
+        // Autoplay is encoded in the embed URL; this prevents WebKit from applying a second gate.
         config.mediaTypesRequiringUserActionForPlayback = []
 
         let webView = WKWebView(frame: .zero, configuration: config)

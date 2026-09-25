@@ -34,8 +34,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
 
     private static var pageCorner: CGFloat { Spacing.s12 }
 
-    /// Soft enough that the page still reads under the drawer, heavy enough to
-    /// mark it inactive now that open no longer shrinks the content.
     private static var scrimOpacity: Double { 0.28 }
 
     public init(
@@ -82,8 +80,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
     private var main: some View {
         content
             .scrollDisabled(drag.isArmed || isOpen)
-            // The scrim is what marks the page as inactive now that it neither
-            // shrinks nor drains, so it carries a little more weight.
             .overlay {
                 Rectangle()
                     .fill(Palette.black)
@@ -93,8 +89,6 @@ public struct SidebarContainer<Sidebar: View, Content: View>: View {
                     .ignoresSafeArea()
             }
             .clipShape(RoundedRectangle(cornerRadius: Self.pageCorner, style: .continuous))
-            // The page sits over the drawer; without this the left edge reads
-            // flush against the sidebar.
             .shadow(color: pageShadow, radius: Spacing.s3 * progress)
             .offset(x: offset)
             .accessibilityHidden(isOpen)
