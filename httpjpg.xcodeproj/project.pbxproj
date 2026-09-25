@@ -429,6 +429,7 @@
 		AA0000000000000000000054 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				ENABLE_PREVIEWS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -441,6 +442,7 @@
 		AA0000000000000000000055 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				ENABLE_PREVIEWS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -454,6 +456,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AA0000000000000000000027 /* Widgets.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -468,6 +471,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AA0000000000000000000027 /* Widgets.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -482,6 +486,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AA0000000000000000000068 /* Watch.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -499,6 +504,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AA0000000000000000000068 /* Watch.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

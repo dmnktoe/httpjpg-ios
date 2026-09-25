@@ -52,6 +52,7 @@ targets:
       Release: Config/Shared.xcconfig
     settings:
       base:
+        DEVELOPMENT_TEAM: 9WTRWY5M2A
         INFOPLIST_FILE: httpjpg/Info.plist
         GENERATE_INFOPLIST_FILE: true
         ENABLE_PREVIEWS: true
@@ -75,6 +76,7 @@ targets:
       Release: Config/Widgets.xcconfig
     settings:
       base:
+        DEVELOPMENT_TEAM: 9WTRWY5M2A
         GENERATE_INFOPLIST_FILE: true
 
   httpjpg-watch:
@@ -96,4 +98,5 @@ targets:
       Release: Config/Watch.xcconfig
     settings:
       base:
+        DEVELOPMENT_TEAM: 9WTRWY5M2A
         GENERATE_INFOPLIST_FILE: true
