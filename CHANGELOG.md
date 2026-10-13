@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.1.0...v1.2.0) (2026-10-13)
+
+
+### Added
+
+* **layout:** responsive spacing, container, grid, prose width ([#90](https://github.com/dmnktoe/httpjpg-ios/issues/90)) ([ab4dce7](https://github.com/dmnktoe/httpjpg-ios/commit/ab4dce784df9ebdda9c13390f648f0133fae6ba8))
+
 ## [1.1.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.0.2...v1.1.0) (2026-10-13)
 
 
