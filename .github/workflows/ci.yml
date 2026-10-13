@@ -275,7 +275,7 @@ jobs:
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
-          SNAPSHOT_TESTING_RECORD: ${{ steps.snapshots.outputs.record }}
+          TEST_RUNNER_SNAPSHOT_TESTING_RECORD: ${{ steps.snapshots.outputs.record }}
 
       - name: Raw test log
         if: failure() && hashFiles('httpjpg-kit/test.log') != ''
