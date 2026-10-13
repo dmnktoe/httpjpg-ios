@@ -63,7 +63,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 22
+          node-version: 24
 
       - run: node scripts/check-blok-registry.mjs --web-repo=../httpjpg
         working-directory: httpjpg-ios
@@ -94,7 +94,7 @@ jobs:
     name: Build & test
     needs: [guard]
     if: needs.guard.outputs.run == 'true'
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -275,7 +275,7 @@ jobs:
             | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
         env:
           NSUnbufferedIO: YES
-          SNAPSHOT_TESTING_RECORD: ${{ steps.snapshots.outputs.record }}
+          TEST_RUNNER_SNAPSHOT_TESTING_RECORD: ${{ steps.snapshots.outputs.record }}
 
       - name: Raw test log
         if: failure() && hashFiles('httpjpg-kit/test.log') != ''

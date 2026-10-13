@@ -8,12 +8,17 @@ import XCTest
 
 @MainActor
 final class DesignSystemSnapshotTests: XCTestCase {
+    private static let image: Snapshotting<UIViewController, UIImage> = .image(
+        perceptualPrecision: 0.98,
+        traits: UITraitCollection(displayScale: 2)
+    )
+
     func testTagChipIdleAndSelected() {
         let idle = chip(selected: false)
         let selected = chip(selected: true)
 
-        assertSnapshot(of: host(idle, size: CGSize(width: 320, height: 80)), as: .image, named: "tag-chip-idle")
-        assertSnapshot(of: host(selected, size: CGSize(width: 320, height: 80)), as: .image, named: "tag-chip-selected")
+        assertSnapshot(of: host(idle, size: CGSize(width: 320, height: 80)), as: Self.image, named: "tag-chip-idle")
+        assertSnapshot(of: host(selected, size: CGSize(width: 320, height: 80)), as: Self.image, named: "tag-chip-selected")
     }
 
     func testHeadlineLevels() {
@@ -30,7 +35,7 @@ final class DesignSystemSnapshotTests: XCTestCase {
 
         assertSnapshot(
             of: host(view, size: CGSize(width: 320, height: 220)),
-            as: .image,
+            as: Self.image,
             named: "headline-stack"
         )
     }
@@ -51,7 +56,7 @@ final class DesignSystemSnapshotTests: XCTestCase {
 
         assertSnapshot(
             of: host(view, size: CGSize(width: 320, height: 220)),
-            as: .image,
+            as: Self.image,
             named: "brutal-buttons"
         )
     }
@@ -69,7 +74,7 @@ final class DesignSystemSnapshotTests: XCTestCase {
 
         assertSnapshot(
             of: host(view, size: CGSize(width: 320, height: 100)),
-            as: .image,
+            as: Self.image,
             named: "ascii-furniture"
         )
     }
