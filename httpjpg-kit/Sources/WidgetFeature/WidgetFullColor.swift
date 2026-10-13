@@ -2,9 +2,7 @@ import SwiftUI
 import WidgetKit
 
 extension Image {
-    /// Keeps photographic widget content visible under iOS 18 tinted home-screen
-    /// rendering. Without this, WidgetKit fills non-transparent pixels with the
-    /// accent color and photos collapse to solid blocks.
+    // Tinted widgets replace non-transparent image pixels with the accent unless fullColor is explicit.
     @ViewBuilder
     func widgetFullColor() -> some View {
         if #available(iOS 18.0, *) {

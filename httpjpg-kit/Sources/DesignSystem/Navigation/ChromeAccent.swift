@@ -1,18 +1,10 @@
 import SwiftUI
 import Tokens
 
-/// The accent a page hands down to the chrome drawn over it.
-///
-/// A work story carries a CMS colour; everything floating on top of that page —
-/// the toolbar orbs, the carousel arrows, the image viewer's close button —
-/// reads it from here rather than being passed it through every intermediate
-/// view. `PillTint.control(_:accent:onAccent:)` turns the pair into colours.
 private struct ChromeAccentKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }
 
-/// The glyph colour that contrasts with `chromeAccent`, resolved once by
-/// `Palette.onNamed(_:)` where the token is still a string.
 private struct ChromeOnAccentKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }

@@ -125,7 +125,7 @@ public indirect enum RichTextNode: Decodable {
         }
     }
 
-    /// A cleared richtext field still arrives as a `doc` wrapping one blank paragraph.
+    // A cleared Storyblok rich-text field still contains a document with one blank paragraph.
     public var hasContent: Bool {
         switch self {
         case .text(let value, _):
@@ -152,8 +152,7 @@ public enum RichTextAlignment: String, Sendable {
     case right
     case justify
 
-    /// Storyblok emits `left` / `center` / `right` / `justify`. Anything else
-    /// (including the editor's `start`) is treated as unset, matching the web.
+    // The editor also emits values such as start; treating them as unset matches the web renderer.
     public init?(cmsValue: String?) {
         guard let cmsValue else { return nil }
         self.init(rawValue: cmsValue)

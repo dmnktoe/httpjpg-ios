@@ -18,6 +18,7 @@ struct WorkIndexScreen: View {
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .sidebarMenuToolbar()
+                .askSearchToolbar()
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         if app.workIndex.isLoading {

@@ -36,7 +36,6 @@ struct InfoFooter: View {
             )
             .padding(.vertical, Spacing.s5)
 
-            // Web nests the wave inside the widget slot, then renders userbars, then version.
             Userbars(items: userbarItems)
 
             MonoText(

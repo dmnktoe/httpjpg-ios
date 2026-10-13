@@ -75,7 +75,6 @@ final class EmbedVideoSurfaceTests: XCTestCase {
         XCTAssertEqual(value("mute", in: items), "1")
         XCTAssertEqual(value("controls", in: items), "0")
         XCTAssertEqual(value("playsinline", in: items), "1")
-        // YouTube only honours loop when the same id is also the playlist.
         XCTAssertEqual(value("playlist", in: items), "dQw4w9WgXcQ")
     }
 

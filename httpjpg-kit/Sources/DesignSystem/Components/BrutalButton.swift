@@ -65,7 +65,6 @@ public struct BrutalButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            // Web button recipe uses regular sans — bold was overweight on iOS.
             .font(Typography.sans(size.font))
             .foregroundStyle(variant.label)
             .padding(.horizontal, size.horizontalPadding)

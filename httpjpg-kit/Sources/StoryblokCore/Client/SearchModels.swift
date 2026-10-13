@@ -1,0 +1,225 @@
+import Foundation
+
+public struct SearchHit: Decodable, Hashable, Identifiable, Sendable {
+    public enum Kind: String, Decodable, Sendable, Hashable {
+        case work
+        case page
+    }
+
+    public let id: String
+    public let title: String
+    public let href: String
+    public let kind: Kind
+    public let excerpt: String?
+    public let featured: SearchFeatured?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, title, href, kind, excerpt, featured
+    }
+
+    public init(
+        id: String,
+        title: String,
+        href: String,
+        kind: Kind,
+        excerpt: String? = nil,
+        featured: SearchFeatured? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.href = href
+        self.kind = kind
+        self.excerpt = excerpt
+        self.featured = featured
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = container.cmsString(forKey: .id) ?? UUID().uuidString
+        title = container.cmsString(forKey: .title) ?? ""
+        href = container.cmsString(forKey: .href) ?? ""
+        kind = container.cmsString(forKey: .kind).flatMap(Kind.init(rawValue:)) ?? .page
+        excerpt = container.cmsString(forKey: .excerpt)
+        let decoded = container.cmsValue(SearchFeatured.self, forKey: .featured)
+        featured = decoded.flatMap { $0.isEmpty ? nil : $0 }
+    }
+}
+
+public struct SearchFeatured: Decodable, Hashable, Sendable {
+    public let source: String
+    public let focus: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case source, focus
+    }
+
+    public init(source: String, focus: String? = nil) {
+        self.source = source
+        self.focus = focus
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        source = container.cmsString(forKey: .source) ?? ""
+        focus = container.cmsString(forKey: .focus)
+    }
+
+    public var isEmpty: Bool { source.isEmpty }
+
+    public var thumbURL: URL? {
+        guard !isEmpty else { return nil }
+        let processed = ImageService.Preset.thumb(source, focus: focus ?? "")
+        return URL(string: processed)
+    }
+}
+
+public struct SearchResponse: Decodable, Sendable {
+    public let results: [SearchHit]
+    public let suggestions: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case results, suggestions
+    }
+
+    public init(results: [SearchHit] = [], suggestions: [String] = []) {
+        self.results = results
+        self.suggestions = suggestions
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        results = container.cmsArray(SearchHit.self, forKey: .results)
+        suggestions = container.cmsArray(String.self, forKey: .suggestions)
+    }
+}
+
+public struct AskSource: Decodable, Hashable, Sendable {
+    public let title: String
+    public let href: String
+    public let kind: SearchHit.Kind?
+
+    private enum CodingKeys: String, CodingKey {
+        case title, href, kind
+    }
+
+    public init(title: String, href: String, kind: SearchHit.Kind? = nil) {
+        self.title = title
+        self.href = href
+        self.kind = kind
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = container.cmsString(forKey: .title) ?? ""
+        href = container.cmsString(forKey: .href) ?? ""
+        kind = container.cmsString(forKey: .kind).flatMap(SearchHit.Kind.init(rawValue:))
+    }
+}
+
+public struct AskNavigateAction: Hashable, Sendable {
+    public let href: String
+    public let title: String
+    public let kind: SearchHit.Kind
+
+    public init(href: String, title: String, kind: SearchHit.Kind) {
+        self.href = href
+        self.title = title
+        self.kind = kind
+    }
+
+    public static func parse(_ value: Any?) -> AskNavigateAction? {
+        guard let object = value as? [String: Any] else { return nil }
+        guard object["type"] as? String == "navigate" else { return nil }
+        guard let href = object["href"] as? String,
+              href.hasPrefix("/"),
+              !href.hasPrefix("//")
+        else { return nil }
+        guard let title = object["title"] as? String, !title.isEmpty else { return nil }
+        let kind = (object["kind"] as? String).flatMap(SearchHit.Kind.init(rawValue:)) ?? .page
+        return AskNavigateAction(href: href, title: title, kind: kind)
+    }
+}
+
+public enum AskStreamEvent: Sendable, Equatable {
+    case sources([AskSource])
+    case delta(String)
+    case action(AskNavigateAction)
+    case error(String)
+
+    public static func parse(_ line: String) -> AskStreamEvent? {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else { return nil }
+
+        guard
+            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let type = object["type"] as? String
+        else { return nil }
+
+        switch type {
+        case "sources":
+            let raw = object["sources"] as? [[String: Any]] ?? []
+            let sources = raw.compactMap { entry -> AskSource? in
+                guard let title = entry["title"] as? String, let href = entry["href"] as? String else {
+                    return nil
+                }
+                let kind = (entry["kind"] as? String).flatMap(SearchHit.Kind.init(rawValue:))
+                return AskSource(title: title, href: href, kind: kind)
+            }
+            return .sources(sources)
+        case "delta":
+            guard let text = object["text"] as? String else { return nil }
+            return .delta(text)
+        case "action":
+            guard let action = AskNavigateAction.parse(object["action"]) else { return nil }
+            return .action(action)
+        case "error":
+            let message = object["error"] as? String ?? "ai_failed"
+            return .error(message)
+        default:
+            return nil
+        }
+    }
+}
+
+public enum SiteAPIError: Error, Equatable, Sendable {
+    case badURL
+    case http(status: Int)
+    case askUnavailable
+    case transport(String)
+}
+
+public enum SearchDestination: Equatable, Sendable {
+    case work(slug: String, title: String)
+    case page(slug: String, title: String)
+    case workIndex
+    case external(URL)
+
+    public static func resolve(href: String, title: String) -> SearchDestination? {
+        let trimmed = href.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(),
+           scheme == "http" || scheme == "https"
+        {
+            return .external(url)
+        }
+
+        let path = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
+        if path.isEmpty || path == StorySlug.home {
+            return .workIndex
+        }
+
+        if path.hasPrefix(StorySlug.workPrefix) {
+            let slug = String(path.dropFirst(StorySlug.workPrefix.count))
+                .split(separator: "/")
+                .first
+                .map(String.init) ?? ""
+            guard !slug.isEmpty else { return nil }
+            return .work(slug: slug, title: title.isEmpty ? slug : title)
+        }
+
+        let slug = path.split(separator: "/").first.map(String.init) ?? path
+        guard !slug.isEmpty else { return nil }
+        return .page(slug: slug, title: title.isEmpty ? slug : title)
+    }
+}

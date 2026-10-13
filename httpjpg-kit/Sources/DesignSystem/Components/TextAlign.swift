@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// CMS text alignment (`left` / `center` / `right` / `justify`).
-/// SwiftUI `Text` cannot justify, so that case is drawn with `AlignedText`.
 public enum TextAlign: String, Sendable {
     case left
     case center

@@ -31,25 +31,16 @@ public struct PageTheme: Sendable, Equatable {
 
     public var link: Color { Palette.primary.s500 }
 
-    /// Inline `<code>` chip. Light by default; flips under isDark so pageFg
-    /// stays readable — same as storyblok-richtext `_pageDark`.
     public var codeChipBackground: Color {
         isDark ? Palette.neutral.s800 : Palette.neutral.s100
     }
 
-    /// Tint behind an idle piece of chrome. Kept light so Liquid Glass still
-    /// refracts the page instead of reading as a grey disc.
     public var chromeFill: Color { isDark ? Palette.neutral.s900.opacity(0.55) : Palette.white.opacity(0.5) }
 
     public var chromeLabel: Color { isDark ? Palette.white.opacity(0.92) : Palette.neutral.s800 }
 
-    /// A hairline, not a border: enough to seat the pill on a photo, invisible
-    /// on a flat page.
     public var chromeStroke: Color { foreground.opacity(isDark ? 0.16 : 0.12) }
 
-    /// Selected chrome inverts the page, the same move the tag chips and the
-    /// sidebar button make. The old white-on-white active pill only read by its
-    /// stroke in light mode.
     public var chromeActiveFill: Color { foreground.opacity(0.92) }
 
     public var chromeActiveLabel: Color { background }
@@ -94,8 +85,6 @@ private struct ForcedPageSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         let theme = forcesDark ? PageTheme.dark : ambient
-        // Local pageTheme + colorScheme only — enough for Liquid Glass to
-        // pick dark materials. No preferredColorScheme (that paints the list).
         let surface = content
             .pageTheme(theme)
             .pageSurface(theme)

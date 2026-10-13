@@ -1,13 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// A capsule of Liquid Glass around a text label.
-///
-/// Idle pills are untinted system glass (hamburger); selected pills are tinted
-/// glass so they stay in the shared glass container. Written as a `ButtonStyle`
-/// so every pill in the app — tab bar, work filter, variant picker, the reset
-/// button in info — gets the press state, the hit shape and the accessibility
-/// traits from SwiftUI instead of restating them.
 public struct GlassPillButtonStyle: ButtonStyle {
     public enum Size: Sendable {
         case regular

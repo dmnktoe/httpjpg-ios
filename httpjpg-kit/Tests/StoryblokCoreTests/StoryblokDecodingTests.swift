@@ -117,6 +117,14 @@ final class StoryblokDecodingTests: XCTestCase {
         """)
         XCTAssertEqual(blok.gap, "6")
         XCTAssertEqual(blok.spacing.marginTop, 16)
+        XCTAssertEqual(blok.thickness, 1)
+    }
+
+    func testDividerDecodesThicknessFromCSSLength() throws {
+        let blok = try decode(DividerBlok.self, """
+        {"_uid":"d2","component":"divider","thickness":"4px"}
+        """)
+        XCTAssertEqual(blok.thickness, 4)
     }
 
     func testSpacingDecodesFromNumbersAsWellAsStrings() throws {
@@ -139,6 +147,29 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(blok.work.isEmpty)
         XCTAssertTrue(blok.showsDividers)
         XCTAssertEqual(blok.dividerVariant, "ascii")
+        XCTAssertEqual(blok.gap, Spacing.s6)
+        XCTAssertEqual(blok.dividerSpacing, Spacing.s4)
+        XCTAssertTrue(blok.isStacked)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 390), 1)
+    }
+
+    func testWorkListDecodesGapColumnsAndDividerChrome() throws {
+        let blok = try decode(WorkListBlok.self, """
+        {"_uid":"w2","component":"work_list","work":[],
+         "gap":"3","columns":"1","columnsMd":"2","columnsLg":"3",
+         "showDividers":true,"dividerVariant":"dashed",
+         "dividerColor":"neutral.400","dividerSpacing":"2"}
+        """)
+        XCTAssertEqual(blok.gap, Spacing.s3)
+        XCTAssertEqual(blok.columns, 1)
+        XCTAssertEqual(blok.columnsMd, 2)
+        XCTAssertEqual(blok.columnsLg, 3)
+        XCTAssertFalse(blok.isStacked)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 390), 1)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 800), 2)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 1200), 3)
+        XCTAssertEqual(blok.dividerColor, "neutral.400")
+        XCTAssertEqual(blok.dividerSpacing, Spacing.s2)
     }
 
     func testSlideshowDecodesPresentationFieldsOnly() throws {
@@ -239,9 +270,6 @@ final class StoryblokDecodingTests: XCTestCase {
         )
     }
 
-    /// CDN clips have no `WxH` in the path and an empty CMS ratio. The player
-    /// must still size from the poster, otherwise the surface collapses to
-    /// zero height (Blence titantron on work detail).
     func testNativeCdnVideoKeepsPosterDimensionsWhenAspectRatioIsEmpty() throws {
         let blok = try decode(VideoBlok.self, """
         {"_uid":"v6","component":"video","source":"native","aspectRatio":"",
@@ -259,8 +287,6 @@ final class StoryblokDecodingTests: XCTestCase {
         )
     }
 
-    /// Mirrors web `toDimension` / `resolveMediaAspectRatio` — Storyblok often
-    /// ships `width`/`height` on the asset even when the filename has no `WxH`.
     func testAssetDimensionsDecodeAndDriveMediaAspectRatio() throws {
         let asset = try decode(StoryblokAsset.self, """
         {"filename":"https://cdn.httpjpg.com/clip.mp4","is_external_url":true,
@@ -562,7 +588,6 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertEqual(bars[0].imageURL?.absoluteString, "https://cdn.example/bar.gif")
         XCTAssertEqual(bars[0].link?.href, "https://example.com/profile")
 
-        // Empty filename still decodes; the view filters it out like web.
         XCTAssertNil(bars[1].imageURL)
         XCTAssertEqual(bars[1].accessibilityText, "skipped-empty")
 
@@ -641,28 +666,32 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
+        XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
     func testWidgetFlagsReadBothBooleansAndStrings() throws {
         let config = try decode(SiteConfig.self, """
         {"discord_enabled":false,"letterboxd_enabled":"false",
-         "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true"}
+         "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true",
+         "ask_enabled":"true"}
         """)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
         XCTAssertTrue(config.widgets.isPsnTrophyEnabled)
         XCTAssertTrue(config.widgets.isDiscogsEnabled)
         XCTAssertTrue(config.widgets.isXEnabled)
+        XCTAssertTrue(config.widgets.isAskEnabled)
     }
 
     func testClearedWidgetFlagsFallBackToTheirDefaults() throws {
         let config = try decode(SiteConfig.self, """
-        {"discord_enabled":"","psn_trophy_enabled":"","discogs_enabled":"","x_enabled":""}
+        {"discord_enabled":"","psn_trophy_enabled":"","discogs_enabled":"","x_enabled":"","ask_enabled":""}
         """)
         XCTAssertTrue(config.widgets.isDiscordEnabled, "a cleared field is not an off switch")
         XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
+        XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
     func testMarqueeCarriesSpeedDirectionAndRepeat() throws {

@@ -31,8 +31,6 @@ final class WatchAppModel {
 
     var items: [WorkItem] {
         guard case .loaded(let collection) = state else { return [] }
-        // The watch has no drawer to fall back on, so its one list follows the
-        // same CMS toggle the phone's work list does.
         return collection.listedItems(for: variant)
     }
 

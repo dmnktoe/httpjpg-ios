@@ -228,14 +228,10 @@ public struct WorkBlok: Decodable, Identifiable {
     public let link: StoryblokLink?
     public let isExternalOnly: Bool
     public let isListedInApp: Bool
-    /// Free-text Project Accent Color from the work page (`#RGB` / `#RRGGBB`).
-    /// Nil when unset or cleared.
     public let accentColor: String?
     public let isDark: Bool
     public let body: [PortfolioBlok]
 
-    /// Topic tags from the CMS vocabulary. Separate from the story's
-    /// Storyblok `tag_list`, which decides Projects vs Websites.
     public let tags: [String]
 
     private enum CodingKeys: String, CodingKey {
@@ -264,8 +260,7 @@ public struct WorkBlok: Decodable, Identifiable {
         dateEnd = container.cmsString(forKey: .dateEnd)
         link = container.cmsValue(StoryblokLink.self, forKey: .link)
         isExternalOnly = container.cmsBool(forKey: .externalOnly)
-        // Work published before the toggle existed carries no `show_in_app`,
-        // and Storyblok does not backfill defaults into existing stories.
+        // Storyblok does not backfill defaults into stories published before this toggle existed.
         isListedInApp = container.cmsBool(forKey: .showInApp, default: true)
         accentColor = container.cmsString(forKey: .accentColor)
         isDark = container.cmsBool(forKey: .isDark)
@@ -619,11 +614,12 @@ public struct DividerBlok: Decodable, Identifiable {
     public let pattern: String?
     public let label: String?
     public let color: String?
+    public let thickness: CGFloat
 
     public let gap: String?
 
     private enum CodingKeys: String, CodingKey {
-        case variant, orientation, pattern, label, color, spacing
+        case variant, orientation, pattern, label, color, spacing, thickness
     }
 
     public init(from decoder: any Decoder) throws {
@@ -636,6 +632,7 @@ public struct DividerBlok: Decodable, Identifiable {
         pattern = container.cmsString(forKey: .pattern)
         label = container.cmsString(forKey: .label)
         color = container.cmsString(forKey: .color)
+        thickness = CSSLength.points(container.cmsString(forKey: .thickness)) ?? 1
         gap = container.cmsString(forKey: .spacing)
     }
 }
@@ -755,15 +752,22 @@ public struct WorkListBlok: Decodable, Identifiable {
     public let work: [Story<PortfolioBlok>]
 
     public let workUUIDs: [String]
+    public let gap: CGFloat
     public let columns: Int
+    public let columnsMd: Int?
+    public let columnsLg: Int?
     public let variant: String
     public let showsDividers: Bool
     public let dividerVariant: String
     public let dividerPattern: String?
+    public let dividerColor: String?
+    public let dividerSpacing: CGFloat
     public let showsTagFilter: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case work, columns, variant, showDividers, dividerVariant, dividerPattern, enableTagFilter
+        case work, gap, columns, columnsMd, columnsLg, variant
+        case showDividers, dividerVariant, dividerPattern, dividerColor, dividerSpacing
+        case enableTagFilter
     }
 
     public init(from decoder: any Decoder) throws {
@@ -773,12 +777,31 @@ public struct WorkListBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         work = container.cmsArray(Story<PortfolioBlok>.self, forKey: .work)
         workUUIDs = container.cmsArray(String.self, forKey: .work)
-        columns = container.cmsInt(forKey: .columns) ?? 1
+        gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s6
+        columns = min(max(container.cmsInt(forKey: .columns) ?? 1, 1), 4)
+        columnsMd = container.cmsInt(forKey: .columnsMd).map { min(max($0, 1), 4) }
+        columnsLg = container.cmsInt(forKey: .columnsLg).map { min(max($0, 1), 4) }
         variant = container.cmsString(forKey: .variant) ?? "default"
         showsDividers = container.cmsBool(forKey: .showDividers)
         dividerVariant = container.cmsString(forKey: .dividerVariant) ?? "solid"
         dividerPattern = container.cmsString(forKey: .dividerPattern)
+        dividerColor = container.cmsString(forKey: .dividerColor)
+        dividerSpacing = SpacingScale.points(container.cmsString(forKey: .dividerSpacing)) ?? Spacing.s4
         showsTagFilter = container.cmsBool(forKey: .enableTagFilter)
+    }
+
+    public var isStacked: Bool {
+        columns == 1 && columnsMd == nil && columnsLg == nil
+    }
+
+    public func columnCount(viewportWidth: CGFloat) -> Int {
+        if viewportWidth >= ResponsiveWidth.desktopBreakpoint {
+            return columnsLg ?? columnsMd ?? columns
+        }
+        if viewportWidth >= ResponsiveWidth.tabletBreakpoint {
+            return columnsMd ?? columns
+        }
+        return columns
     }
 }
 

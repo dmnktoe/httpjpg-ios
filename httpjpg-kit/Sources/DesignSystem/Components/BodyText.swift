@@ -48,9 +48,6 @@ public struct BodyText: View {
     private let lineLimit: Int?
     private let lineHeight: CGFloat?
 
-    /// Justified body text is drawn by UIKit, which never sees
-    /// `foregroundStyle` — so a caller with a colour of its own has to hand it
-    /// over rather than apply it from outside. `nil` inherits, as `Text` does.
     private let color: Color?
 
     @Environment(\.pageTheme) private var theme
@@ -99,8 +96,6 @@ public struct BodyText: View {
         .frame(maxWidth: .infinity, alignment: alignment.frame)
     }
 
-    /// The colour handed to UIKit for justified body text. `foregroundStyle`
-    /// cannot reach there, so this is the only thing that decides it.
     func resolvedColor(for theme: PageTheme) -> Color {
         color ?? theme.foreground
     }

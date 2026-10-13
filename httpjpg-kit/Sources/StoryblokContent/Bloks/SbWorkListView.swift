@@ -29,18 +29,10 @@ public struct SbWorkListView: View {
                 )
             }
 
-            ForEach(Array(visibleModels.enumerated()), id: \.element.id) { entry in
-                NavigationLink(value: route(for: entry.element)) {
-                    WorkCardView(entry.element, variant: cardVariant)
-                }
-                .buttonStyle(.plain)
-
-                if blok.showsDividers, entry.offset < visibleModels.count - 1 {
-                    BrutalDivider(
-                        variant: BrutalDivider.Variant(rawValue: blok.dividerVariant) ?? .solid,
-                        pattern: blok.dividerPattern ?? Ascii.dividerStars
-                    )
-                }
+            if isStacked {
+                stackedList
+            } else {
+                gridList
             }
         }
         .blokSpacing(blok.spacing)
@@ -52,6 +44,38 @@ public struct SbWorkListView: View {
         }
     }
 
+    private var stackedList: some View {
+        VStack(alignment: .leading, spacing: blok.gap) {
+            ForEach(Array(visibleModels.enumerated()), id: \.element.id) { entry in
+                cardLink(entry.element)
+
+                if blok.showsDividers, entry.offset < visibleModels.count - 1 {
+                    BrutalDivider(
+                        variant: BrutalDivider.Variant(rawValue: blok.dividerVariant) ?? .solid,
+                        pattern: blok.dividerPattern ?? Ascii.dividerStars,
+                        color: Palette.named(blok.dividerColor)
+                    )
+                    .padding(.vertical, blok.dividerSpacing)
+                }
+            }
+        }
+    }
+
+    private var gridList: some View {
+        LazyVGrid(columns: gridColumns, alignment: .leading, spacing: blok.gap) {
+            ForEach(visibleModels) { model in
+                cardLink(model)
+            }
+        }
+    }
+
+    private func cardLink(_ model: WorkCardModel) -> some View {
+        NavigationLink(value: route(for: model)) {
+            WorkCardView(model, variant: cardVariant)
+        }
+        .buttonStyle(.plain)
+    }
+
     private var needsFetch: Bool {
         blok.work.isEmpty && !blok.workUUIDs.isEmpty && fetchedItems == nil
     }
@@ -60,12 +84,34 @@ public struct SbWorkListView: View {
         WorkRoute(slug: model.slug, title: model.title, previewURL: model.externalURL)
     }
 
+    private var isStacked: Bool {
+        blok.isStacked
+    }
+
+    private var columnCount: Int {
+        max(blok.columnCount(viewportWidth: viewportWidth), 1)
+    }
+
+    private var gridColumns: [GridItem] {
+        Array(
+            repeating: GridItem(.flexible(), spacing: blok.gap, alignment: .topLeading),
+            count: columnCount
+        )
+    }
+
+    private var cardTargetWidth: CGFloat {
+        let full = PageLayout.cardWidth(viewport: viewportWidth)
+        guard columnCount > 1 else { return full }
+        let gutters = blok.gap * CGFloat(columnCount - 1)
+        return max((full - gutters) / CGFloat(columnCount), 0)
+    }
+
     private var models: [WorkCardModel] {
         if !blok.work.isEmpty {
             return blok.work.compactMap {
                 WorkCardAdapter.model(
                     for: $0,
-                    targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
+                    targetWidth: cardTargetWidth,
                     scale: displayScale
                 )
             }
@@ -73,7 +119,7 @@ public struct SbWorkListView: View {
         return (fetchedItems ?? []).map {
             WorkCardAdapter.model(
                 for: $0,
-                targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
+                targetWidth: cardTargetWidth,
                 scale: displayScale
             )
         }

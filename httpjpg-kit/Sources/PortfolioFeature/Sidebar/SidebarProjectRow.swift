@@ -6,8 +6,6 @@ import Tokens
 struct SidebarProjectRow: View {
     let item: WorkItem
 
-    /// The drawer stays open behind a pushed detail page, so the row for the
-    /// project you are reading marks itself.
     var isCurrent = false
 
     @Environment(\.pageTheme) private var theme
@@ -24,13 +22,11 @@ struct SidebarProjectRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if item.isExternal {
-                MonoText("↗", size: Typography.Size.sm, opacity: Opacities.subtle)
+                MonoText(ExternalArrow.glyph, size: Typography.Size.sm, opacity: Opacities.subtle)
             }
         }
         .padding(.vertical, Spacing.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // In the gutter rather than in the row, so marking a project does not
-        // indent the whole list.
         .overlay(alignment: .leading) { marker }
         .contentShape(Rectangle())
         .animation(Motion.stateChange, value: isCurrent)

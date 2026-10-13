@@ -9,7 +9,6 @@ final class TabBarStateTests: XCTestCase {
         AppModel(configuration: StoryblokConfiguration(accessToken: "test-token"))
     }
 
-    // MARK: - Visited tabs (keep-alive mounting)
 
     func testTheInitialTabCountsAsVisited() {
         XCTAssertEqual(makeApp().visitedTabs, [.work])

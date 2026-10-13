@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Compare a measured kibibyte size against ci/baselines/simulator-app-size.json.
-# Soft ceiling: warn (exit 0) under +5%, fail at or above +10%. Missing baseline is informational.
 set -euo pipefail
 
 size_kb="${1:?usage: compare-app-size.sh <size-kb> [baseline-json]}"

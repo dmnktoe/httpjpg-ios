@@ -23,5 +23,16 @@ struct HttpjpgShortcuts: AppShortcutsProvider {
             shortTitle: "Shuffle Work",
             systemImageName: "shuffle"
         )
+
+        AppShortcut(
+            intent: OpenSearchIntent(),
+            phrases: [
+                "Search \(.applicationName)",
+                "Search in \(.applicationName)",
+                "Ask \(.applicationName)",
+            ],
+            shortTitle: "Search",
+            systemImageName: "magnifyingglass"
+        )
     }
 }

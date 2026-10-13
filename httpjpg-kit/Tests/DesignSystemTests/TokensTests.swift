@@ -32,8 +32,6 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Palette.onNamed("black"), Palette.white)
         XCTAssertEqual(Palette.onNamed("white"), Palette.black)
         XCTAssertNil(Palette.onNamed(nil))
-        // Ramp tokens resolve too — chrome accents arrive as `primary.700`, not
-        // only hex. Glyph contrast for those lives in AccentContrastTests.
         XCTAssertEqual(Palette.onNamed("primary.500"), Palette.white)
     }
 
@@ -65,7 +63,6 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Headline.Level.one.clamp.min, 36)
         XCTAssertEqual(Headline.Level.two.clamp.max, 48)
         XCTAssertEqual(Headline.Level.three.clamp.min, 24)
-        // clamp(1.25rem, 2vw + 0.25rem, 1.5rem) → (20, 0.02, 4, 24)
         XCTAssertEqual(Headline.Level.four.clamp.min, 20)
         XCTAssertEqual(Headline.Level.four.clamp.slope, 0.02)
         XCTAssertEqual(Headline.Level.four.clamp.intercept, 4)
@@ -120,6 +117,17 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(GlyphDigits.format(4), "५")
         XCTAssertEqual(GlyphDigits.format(10), "𝟙⊘")
         XCTAssertEqual(GlyphDigits.format(0), "⊘")
+    }
+
+    func testExternalArrowForcesTextPresentation() {
+        XCTAssertEqual(
+            Array(ExternalArrow.glyph.unicodeScalars.map(\.value)),
+            [0x2197, 0xFE0E],
+            "VS-15 stops Helvetica falling back to the ↗️ emoji"
+        )
+        XCTAssertEqual(ExternalArrow.preferringText("content ↗"), "content \(ExternalArrow.glyph)")
+        XCTAssertEqual(ExternalArrow.preferringText("↗\u{FE0F}"), ExternalArrow.glyph)
+        XCTAssertEqual(ExternalArrow.preferringText(ExternalArrow.glyph), ExternalArrow.glyph)
     }
 }
 

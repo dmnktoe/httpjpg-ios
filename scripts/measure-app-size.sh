@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Measure an .app bundle in kibibytes (du -k).
 set -euo pipefail
 
 app="${1:?usage: measure-app-size.sh <path-to.app>}"

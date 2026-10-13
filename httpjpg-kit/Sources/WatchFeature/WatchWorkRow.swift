@@ -33,6 +33,6 @@ struct WatchWorkRow: View {
 
     private var caption: String {
         let stamp = item.date.map(WorkCardDate.stamp(of:)) ?? WorkYearGroup.undatedYear
-        return item.isExternal ? stamp + " ↗" : stamp
+        return item.isExternal ? stamp + " " + ExternalArrow.glyph : stamp
     }
 }

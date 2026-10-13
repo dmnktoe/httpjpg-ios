@@ -1,8 +1,7 @@
 import SwiftUI
 
 public struct ColorRamp: Sendable {
-    /// Kept alongside the colours because contrast has to be computed from the
-    /// channels, and `Color` will not hand them back.
+    // Contrast calculations need RGB channels, which SwiftUI Color does not expose.
     private let hexes: [Int: UInt32]
 
     public let s50: Color
@@ -126,17 +125,11 @@ public enum Palette {
         }
     }
 
-    /// Black or white glyph color that contrasts with a CMS accent, in any shape
-    /// `named(_:)` accepts — `#RGB`, `#RRGGBB`, `black`, `white` or a ramp step
-    /// like `accent.500`. Ramp tokens used to fall through here and leave the
-    /// chrome guessing, which is why toolbar glyphs went black on `primary.700`.
     public static func onNamed(_ value: String?) -> Color? {
         guard let prefersLight = prefersLightForeground(value) else { return nil }
         return prefersLight ? white : black
     }
 
-    /// Whether a colour token is dark enough to need light glyphs on top. The
-    /// navigation bar asks so its title agrees with the buttons beside it.
     public static func prefersLightForeground(_ value: String?) -> Bool? {
         guard let hex = resolvedHex(value) else { return nil }
         return prefersLightForeground(hex: hex)
@@ -179,9 +172,7 @@ public enum Palette {
         return UInt32(expanded, radix: 16)
     }
 
-    /// White glyphs once the fill is mid-dark — WCAG's black/white flip is 0.179,
-    /// which left terracotta and primary.500 on black. 0.4 catches those while
-    /// keeping lime/yellow on black.
+    // WCAG’s 0.179 flip left mid-dark brand colors with illegible black glyphs.
     private static let lightForegroundLuminance = 0.4
 
     private static func prefersLightForeground(hex: UInt32) -> Bool {

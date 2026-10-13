@@ -217,10 +217,8 @@ struct RelatedWorkSection: View {
         .accessibilityLabel(accessibilityLabel(for: match))
     }
 
-    /// Web `RELATED_CARD_ASPECT_RATIO` — grid cards are `4/3`, list thumbs `1/1`.
     private static let gridAspectRatio: CGFloat = 4.0 / 3.0
 
-    /// Two-column cell width — crop sized to the column, not the 40pt list thumb.
     private var gridThumbPoints: CGFloat {
         max((viewportWidth - PageLayout.gutter * 2 - Spacing.s6) / 2, 120)
     }

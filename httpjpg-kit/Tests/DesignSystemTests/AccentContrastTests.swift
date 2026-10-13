@@ -2,9 +2,6 @@ import SwiftUI
 import Tokens
 import XCTest
 
-/// `onNamed` used to understand only hex and the two keywords, so a ramp token
-/// like `primary.700` resolved a colour but no glyph to put on it — the chrome
-/// then fell back to black on a near-black fill.
 final class AccentContrastTests: XCTestCase {
     func testHexAccentsStillResolve() {
         XCTAssertEqual(Palette.onNamed("#000000"), Palette.white)

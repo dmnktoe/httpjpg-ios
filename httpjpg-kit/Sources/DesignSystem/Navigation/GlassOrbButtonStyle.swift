@@ -1,11 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// The round sibling of `GlassPillButtonStyle`: one symbol, one fixed diameter.
-///
-/// Every circular control goes through this — the detail-page back, share and
-/// preview buttons, the image viewer's close, the carousel arrows — so they all
-/// pick up the same accent, the same hairline and the same press.
 public struct GlassOrbButtonStyle: ButtonStyle {
     private let tint: PillTint
     private let diameter: CGFloat

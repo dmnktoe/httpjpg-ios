@@ -4,11 +4,6 @@ import XCTest
 
 @testable import DesignSystem
 
-/// Justified text is drawn by `AlignedText`, a `UIViewRepresentable`, and UIKit
-/// never sees `foregroundStyle`. A blok that set `color` on a justified
-/// headline or paragraph therefore lost it — the text fell back to the page
-/// foreground. These pin the colour to the parameter that actually reaches
-/// UIKit, not to a modifier applied from outside.
 final class JustifiedTextColorTests: XCTestCase {
     func testAJustifiedHeadlineKeepsTheColourItWasGiven() {
         let cms = Palette.named("neutral.300")

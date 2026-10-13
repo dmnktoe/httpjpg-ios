@@ -1,17 +1,9 @@
 import SwiftUI
 import Tokens
 
-/// A row of glass pills where exactly one is selected.
-///
-/// Idle pills use the same untinted Liquid Glass as the toolbar hamburger;
-/// the selected one is tinted glass. Selection only restyles each pill — the
-/// bar does not animate layout, or idle neighbours slide sideways.
 public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
-    /// How the pills divide the row.
     public enum Distribution: Sendable {
-        /// Equal widths across the full row — the bottom tab bar.
         case fill
-        /// Content widths, packed to the leading edge — an inline picker.
         case leading
     }
 
@@ -30,9 +22,6 @@ public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
 
     @Environment(\.pageTheme) private var theme
 
-    /// Used only when the caller has no namespace of its own to share. A bar
-    /// that sits next to other glass — the tab bar over the mini player — passes
-    /// one in so the shapes morph across the whole stack.
     @Namespace private var localNamespace
 
     public init(
@@ -77,14 +66,10 @@ public struct SegmentedPillBar<Item: Hashable, Label: View>: View {
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { width in
             onWidthChange?(width)
         }
-        // Tint changes animate inside each pill; a bar-level animation would
-        // also interpolate GlassEffectContainer layout and shove idle pills.
         .sensoryFeedback(.selection, trigger: selection)
         .accessibilityElement(children: .contain)
     }
 
-    /// `.fill` lets each label push its pill to an equal share of the row;
-    /// `.leading` leaves every pill at its content width.
     private var maxLabelWidth: CGFloat? {
         distribution == .fill ? .infinity : nil
     }

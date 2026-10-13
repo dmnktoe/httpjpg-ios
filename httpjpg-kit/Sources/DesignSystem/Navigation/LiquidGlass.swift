@@ -1,26 +1,10 @@
 import SwiftUI
 
-/// The one place in the package that names a Liquid Glass symbol.
-///
-/// Callers ask for `.liquidGlass(in:tint:)` and get the best surface the running
-/// OS can draw: real glass on iOS 26+, a tinted material below it.
 public enum LiquidGlass {
-    /// Tint strength on iOS 17–25, where `.ultraThinMaterial` is still doing
-    /// most of the work underneath.
     static let materialTintOpacity: Double = 0.55
 }
 
 public extension View {
-    /// Paints a Liquid Glass surface behind this view.
-    ///
-    /// - Parameters:
-    ///   - shape: the surface outline; also the hit and highlight shape.
-    ///   - tint: the colour the glass takes. `nil` asks for untinted system
-    ///     glass — the same backing the toolbar hamburger uses.
-    ///   - isInteractive: adds the press-and-drag highlight for controls.
-    ///   - isOpaque: fills the shape with the tint outright instead of glassing
-    ///     it. Selected pills ask for this so they read as `.glassProminent`
-    ///     against idle clear glass.
     func liquidGlass(
         in shape: some Shape = .capsule,
         tint: Color? = nil,
@@ -35,15 +19,12 @@ public extension View {
         ))
     }
 
-    /// Joins this surface to a morph identity. Sibling surfaces sharing a
-    /// `LiquidGlassContainer` melt into one another instead of cross-fading.
     func liquidGlassID(_ id: some Hashable, in namespace: Namespace.ID) -> some View {
         modifier(LiquidGlassIdentity(id: id, namespace: namespace))
     }
 
-    /// `liquidGlassID` for a shape that may or may not want to morph. Carries
-    /// its own label so it cannot overload against the form it calls.
     @ViewBuilder
+    // A distinct label avoids overload ambiguity with liquidGlassID(_:in:).
     func liquidGlassID(ifPresent id: AnyHashable?, in namespace: Namespace.ID?) -> some View {
         if let id, let namespace {
             liquidGlassID(id, in: namespace)
@@ -62,8 +43,7 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
     @ViewBuilder
     func body(content: Content) -> some View {
         if isInteractive {
-            // Interactive glass derives its highlight from the view bounds, which
-            // rounds to a rect on small square frames — clipping keeps an orb round.
+            // Interactive glass derives a rectangular highlight from small square view bounds.
             surface(content).clipShape(shape)
         } else {
             surface(content)
@@ -73,9 +53,7 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
     @ViewBuilder
     private func surface(_ content: Content) -> some View {
         if let tint, isOpaque {
-            // Flat, and not a layer of glass with a solid fill in front of it:
-            // glass always renders *behind* what it backs, so an opaque fill
-            // would bury its highlights and cost a blur pass for nothing.
+            // Glass renders behind content, so an opaque foreground fill would hide its highlights.
             content.background(tint, in: shape)
         } else if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
@@ -84,8 +62,6 @@ private struct LiquidGlassSurface<S: Shape>: ViewModifier {
                 .background(tint.opacity(LiquidGlass.materialTintOpacity), in: shape)
                 .background(.ultraThinMaterial, in: shape)
         } else {
-            // Untinted fallback for pre-glass OS: frosted material without a
-            // chrome wash, close to the clear system glass idle pills use.
             content.background(.ultraThinMaterial, in: shape)
         }
     }

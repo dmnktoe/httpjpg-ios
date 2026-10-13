@@ -98,7 +98,6 @@ struct MiniPlayerBar: View {
         .overlay(Rectangle().stroke(tint.stroke ?? .clear, lineWidth: PillMetrics.hairline))
     }
 
-    /// The bar is chrome, so it wears exactly what an unselected pill wears.
     private var tint: PillTint {
         .idle(theme)
     }

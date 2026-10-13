@@ -11,9 +11,6 @@ public struct SbCodeBlockView: View {
     }
 
     public var body: some View {
-        // Match storyblok-richtext <pre>: dark fill, radius, no border.
-        // Outer vertical rhythm comes from blokSpacing / the richtext VStack —
-        // don't add a second margin here.
         VStack(alignment: .leading, spacing: 0) {
             if blok.filename != nil || blok.language != nil {
                 HStack(spacing: Spacing.s3) {

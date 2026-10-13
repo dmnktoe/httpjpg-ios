@@ -1,4 +1,3 @@
-# Simulator-only smoke. Build with CONTENT_SOURCE=mock so fixtures load offline.
 appId: com.yl33ly.httpjpg
 ---
 - launchApp

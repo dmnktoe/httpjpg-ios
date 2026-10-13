@@ -5,7 +5,6 @@ import XCTest
 @testable import DesignSystem
 
 final class PillTintTests: XCTestCase {
-    // MARK: - Selection
 
     func testAnUnselectedPillWearsClearSystemGlass() {
         let tint = PillTint.forSelection(false, theme: .light, accent: Palette.named("#FF0000"))
@@ -16,8 +15,6 @@ final class PillTintTests: XCTestCase {
         XCTAssertEqual(tint.label, PageTheme.light.foreground)
     }
 
-    /// Tinting every pill in a row with the accent leaves nothing to mark the
-    /// selection, so the accent only lands on the selected one.
     func testTheAccentOnlyReachesTheSelectedPill() {
         let accent = Palette.named("#FF0000")
 
@@ -41,7 +38,6 @@ final class PillTintTests: XCTestCase {
         XCTAssertFalse(light.isOpaque)
     }
 
-    // MARK: - Controls
 
     func testAControlFallsBackToChromeWithoutAnAccent() {
         let tint = PillTint.control(.dark)
@@ -56,9 +52,6 @@ final class PillTintTests: XCTestCase {
         XCTAssertEqual(tint.label, Palette.white)
     }
 
-    /// `Glass.tint` stays sheer however saturated the colour, so an accented
-    /// header button has to ask for the fill underneath or it reads as a hint of
-    /// the accent rather than the accent.
     func testAnAccentedControlFillsOutright() {
         let accent = Palette.named("#FF0000")
         let tint = PillTint.control(.light, accent: accent)
@@ -73,8 +66,6 @@ final class PillTintTests: XCTestCase {
         XCTAssertFalse(PillTint.idle(.light).isOpaque)
     }
 
-    /// A control over a photo cannot borrow the page theme — the backdrop is the
-    /// image, so it stays dark in both appearances.
     func testAControlOverMediaIgnoresTheTheme() {
         XCTAssertEqual(PillTint.overMedia(), PillTint.overMedia())
         XCTAssertEqual(PillTint.overMedia().label, Palette.white)

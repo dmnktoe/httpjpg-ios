@@ -24,7 +24,6 @@ public final class AudioPlayerModel {
     @ObservationIgnored private var artworkTask: Task<Void, Never>?
     @ObservationIgnored private var remoteCommandsInstalled = false
 
-    /// Session and Control Center stay untouched until a track actually starts.
     public init() {}
 
     public func play(_ newTrack: AudioTrack) {
@@ -149,7 +148,7 @@ public final class AudioPlayerModel {
         guard remoteCommandsInstalled else { return }
         remoteCommandsInstalled = false
         let center = MPRemoteCommandCenter.shared()
-        // nil drops every handler this process registered for the command.
+        // nil removes every target this process registered for the command.
         center.playCommand.removeTarget(nil)
         center.pauseCommand.removeTarget(nil)
         center.togglePlayPauseCommand.removeTarget(nil)

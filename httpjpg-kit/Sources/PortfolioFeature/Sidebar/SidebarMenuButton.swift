@@ -1,11 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// The drawer's close button: a solid disc inverting the page.
-///
-/// Deliberately not glass — it sits on the drawer, which is a flat surface with
-/// nothing behind it to refract. The header buttons over a page are the
-/// system's glass controls instead.
 struct SidebarMenuButton: View {
     let systemName: String
     let label: String

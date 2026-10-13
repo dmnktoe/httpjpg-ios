@@ -72,26 +72,17 @@ public struct SiteConfig: Decodable, Sendable {
         self.features = features
     }
 
-    /// Matches the CMS default on `site_name`. Used when neither General nor SEO
-    /// has a title, so the chrome still has a wordmark.
     public static let fallbackName = "㋡httpjpg.com"
 
-    /// Brand from the General tab. Falls back through the SEO title for spaces
-    /// that predate `site_name`.
     public var displayName: String {
         siteName ?? seoTitle ?? Self.fallbackName
     }
 
-    /// Homepage title from the SEO tab (`seo_title` / Default Page Title).
-    /// The website uses this as the root document title, then suffixes
-    /// `site_name`; the work index is that homepage on iOS.
     public var defaultPageTitle: String {
         seoTitle ?? siteName ?? Self.fallbackName
     }
 }
 
-/// The Features tab on the config story. Defaults match the website: every
-/// toggle is off until the CMS explicitly enables it.
 public struct FeatureFlags: Decodable, Sendable {
     public let isLastUpdatedBadgeEnabled: Bool
     public let isWebVitalsBadgeEnabled: Bool
@@ -144,6 +135,7 @@ public struct WidgetFlags: Decodable, Sendable {
     public let isPsnTrophyEnabled: Bool
     public let isDiscogsEnabled: Bool
     public let isXEnabled: Bool
+    public let isAskEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
         case discordEnabled = "discord_enabled"
@@ -151,6 +143,7 @@ public struct WidgetFlags: Decodable, Sendable {
         case psnTrophyEnabled = "psn_trophy_enabled"
         case discogsEnabled = "discogs_enabled"
         case xEnabled = "x_enabled"
+        case askEnabled = "ask_enabled"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -160,6 +153,7 @@ public struct WidgetFlags: Decodable, Sendable {
         isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
         isDiscogsEnabled = container.cmsBool(forKey: .discogsEnabled)
         isXEnabled = container.cmsBool(forKey: .xEnabled)
+        isAskEnabled = container.cmsBool(forKey: .askEnabled)
     }
 
     public init(
@@ -167,13 +161,15 @@ public struct WidgetFlags: Decodable, Sendable {
         isLetterboxdEnabled: Bool,
         isPsnTrophyEnabled: Bool = false,
         isDiscogsEnabled: Bool = false,
-        isXEnabled: Bool = false
+        isXEnabled: Bool = false,
+        isAskEnabled: Bool = false
     ) {
         self.isDiscordEnabled = isDiscordEnabled
         self.isLetterboxdEnabled = isLetterboxdEnabled
         self.isPsnTrophyEnabled = isPsnTrophyEnabled
         self.isDiscogsEnabled = isDiscogsEnabled
         self.isXEnabled = isXEnabled
+        self.isAskEnabled = isAskEnabled
     }
 
     public static let allOff = WidgetFlags(isDiscordEnabled: false, isLetterboxdEnabled: false)
@@ -221,7 +217,6 @@ public struct FooterConfig: Decodable, Sendable {
     public let copyrightText: String?
     public let links: [MenuLink]
     public let backgroundImage: StoryblokAsset?
-    /// Classic 350×19 forum bars nested under the footer config.
     public let userbars: [Userbar]
 
     private enum CodingKeys: String, CodingKey {
@@ -240,7 +235,6 @@ public struct FooterConfig: Decodable, Sendable {
     }
 }
 
-/// One CMS `userbar` blok. Skipped when the asset has no filename — same as web.
 public struct Userbar: Decodable, Identifiable, Sendable, Hashable {
     public let id: String
     public let image: StoryblokAsset?
@@ -262,7 +256,6 @@ public struct Userbar: Decodable, Identifiable, Sendable, Hashable {
         link = container.cmsValue(StoryblokLink.self, forKey: .link)
     }
 
-    /// Display alt: authored text, then the asset alt, then `"userbar"`.
     public var accessibilityText: String {
         if let alt, !alt.isEmpty { return alt }
         if let imageAlt = image?.alt, !imageAlt.isEmpty { return imageAlt }

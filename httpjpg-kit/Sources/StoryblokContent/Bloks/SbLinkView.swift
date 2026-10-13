@@ -24,7 +24,7 @@ public struct SbLinkView: View {
                         .font(Typography.sans(Typography.Size.base))
                         .underline()
                     if blok.showsExternalIcon {
-                        MonoText("↗", size: Typography.Size.sm)
+                        MonoText(ExternalArrow.glyph, size: Typography.Size.sm)
                     }
                 }
             }

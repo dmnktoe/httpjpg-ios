@@ -8,7 +8,7 @@ public enum AppLocale: String, CaseIterable, Sendable, Identifiable {
 
     public var pickerLabel: String { rawValue.uppercased() }
 
-    /// CDN `language` param. Omit for the space default so Storyblok does not 404.
+    // Storyblok returns 404 when the space-default locale is sent as language=en.
     public var storyblokLanguageParam: String? {
         self == .en ? nil : rawValue
     }

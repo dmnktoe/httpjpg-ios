@@ -24,7 +24,7 @@ struct InfoLinksSection: View {
                             Favicon(for: entry.url)
                             MonoText(entry.link.label.lowercased(), size: Typography.Size.sm)
                             Spacer(minLength: 0)
-                            MonoText("↗", size: Typography.Size.sm)
+                            MonoText(ExternalArrow.glyph, size: Typography.Size.sm)
                                 .foregroundStyle(theme.link)
                         }
                         .padding(.vertical, Spacing.s3)

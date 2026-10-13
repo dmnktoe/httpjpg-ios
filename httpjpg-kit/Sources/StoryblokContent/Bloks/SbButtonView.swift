@@ -19,10 +19,9 @@ public struct SbButtonView: View {
             openURL(url)
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.s1) {
-                Text(blok.text)
-                // Web appends ↗ for absolute http(s)/mailto/tel hrefs.
+                Text(verbatim: ExternalArrow.preferringText(blok.text))
                 if blok.link?.isExternal == true {
-                    Text("↗")
+                    Text(verbatim: ExternalArrow.glyph)
                         .accessibilityHidden(true)
                 }
             }

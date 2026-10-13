@@ -17,6 +17,7 @@ struct InfoScreen: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .sidebarMenuToolbar()
+            .askSearchToolbar()
             .navigationDestination(for: PageRoute.self) { route in
                 PageScreen(slug: route.slug, title: route.title, isDarkHint: route.isDark)
             }

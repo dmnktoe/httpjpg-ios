@@ -1,11 +1,5 @@
 import Foundation
 
-/// Marketing + build numbers from the host app's Info.plist.
-///
-/// Xcode fills `CFBundleShortVersionString` / `CFBundleVersion` from
-/// `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `Config/Shared.xcconfig`
-/// (widgets and watch include that file). Release Please bumps the marketing
-/// version; the release workflow bumps the build after each tag.
 public struct AppVersion: Sendable, Equatable {
     public let marketing: String
     public let build: String
@@ -15,7 +9,6 @@ public struct AppVersion: Sendable, Equatable {
         self.build = build
     }
 
-    /// `v1.0.0 (1)` — matches the info footer on the website.
     public var displayString: String {
         "v\(marketing) (\(build))"
     }

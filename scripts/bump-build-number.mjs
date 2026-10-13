@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-/**
- * Increment CURRENT_PROJECT_VERSION in Config/Shared.xcconfig by 1.
- * Used after a release-please tag so the next builds carry a new CFBundleVersion.
- *
- * Prints `bumped=true|false` and `build=<n>` to $GITHUB_OUTPUT when present.
- */
 import { readFileSync, writeFileSync } from "node:fs";
 import { appendFileSync } from "node:fs";
 
