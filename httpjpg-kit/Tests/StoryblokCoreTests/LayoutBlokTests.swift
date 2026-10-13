@@ -26,9 +26,20 @@ final class LayoutBlokTests: XCTestCase {
         XCTAssertEqual(blok.columns, "2")
         XCTAssertEqual(blok.columnsMd, "3")
         XCTAssertEqual(blok.columnsLg, "auto")
-        XCTAssertEqual(blok.columnCount(viewportWidth: 400, layoutWidth: 400), 2)
-        XCTAssertEqual(blok.columnCount(viewportWidth: 800, layoutWidth: 800), 3)
-        XCTAssertEqual(blok.columnCount(viewportWidth: 1200, layoutWidth: 1200), 6)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 400, layoutWidth: 400, columnGap: blok.gap), 2)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 800, layoutWidth: 800, columnGap: blok.gap), 3)
+        // auto-fit with 200pt minimum tracks: (1200 + 16) / (200 + 16) → 5, not ceil(1200 / 200).
+        XCTAssertEqual(blok.columnCount(viewportWidth: 1200, layoutWidth: 1200, columnGap: blok.gap), 5)
+    }
+
+    func testGridColumnsTolerateNumbers() throws {
+        let blok = try decode(GridBlok.self, """
+        {"_uid":"g2","component":"grid","items":[],"columns":2,"columnsMd":4}
+        """)
+        XCTAssertEqual(blok.columns, "2")
+        XCTAssertEqual(blok.columnsMd, "4")
+        XCTAssertNil(blok.columnsLg)
+        XCTAssertEqual(blok.columnCount(viewportWidth: 1200, layoutWidth: 1200, columnGap: 0), 4)
     }
 
     func testGridItemDecodesSpanAndVisibility() throws {
@@ -40,6 +51,7 @@ final class LayoutBlokTests: XCTestCase {
         XCTAssertEqual(blok.colSpanMd, "full")
         XCTAssertTrue(blok.isHidden(viewportWidth: 390))
         XCTAssertFalse(blok.isHidden(viewportWidth: 800))
+        XCTAssertFalse(blok.isHidden(viewportWidth: 1200))
         XCTAssertEqual(blok.resolvedColumnSpan(viewportWidth: 390), .columns(2))
         XCTAssertEqual(blok.resolvedColumnSpan(viewportWidth: 800), .full)
     }

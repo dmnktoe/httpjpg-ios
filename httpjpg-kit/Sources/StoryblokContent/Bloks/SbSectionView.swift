@@ -16,7 +16,7 @@ public struct SbSectionView: View {
                 BlokListView(blok.content)
                     .blokContainerFrame(
                         size: blok.containerSize,
-                        centered: blok.containerAlign != "left"
+                        centered: blok.containerAlign == "center"
                     )
             } else {
                 BlokListView(blok.content)

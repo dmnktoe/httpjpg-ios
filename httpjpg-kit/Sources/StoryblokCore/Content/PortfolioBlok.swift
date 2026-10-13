@@ -349,8 +349,8 @@ public struct GridBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         items = container.cmsArray(PortfolioBlok.self, forKey: .items)
         columns = container.cmsColumnOption(forKey: .columns)
-        columnsMd = container.cmsString(forKey: .columnsMd)
-        columnsLg = container.cmsString(forKey: .columnsLg)
+        columnsMd = container.cmsColumnOption(forKey: .columnsMd)
+        columnsLg = container.cmsColumnOption(forKey: .columnsLg)
         gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s4
         rowGap = SpacingScale.points(container.cmsString(forKey: .rowGap))
         columnGap = SpacingScale.points(container.cmsString(forKey: .columnGap))
@@ -360,13 +360,14 @@ public struct GridBlok: Decodable, Identifiable {
         flow = container.cmsString(forKey: .flow)
     }
 
-    public func columnCount(viewportWidth: CGFloat, layoutWidth: CGFloat) -> Int {
+    public func columnCount(viewportWidth: CGFloat, layoutWidth: CGFloat, columnGap: CGFloat) -> Int {
         GridResponsive.columnCount(
             base: columns,
             tablet: columnsMd,
             desktop: columnsLg,
             viewportWidth: viewportWidth,
-            layoutWidth: layoutWidth
+            layoutWidth: layoutWidth,
+            columnGap: columnGap
         )
     }
 }
@@ -446,17 +447,6 @@ public struct GridItemBlok: Decodable, Identifiable {
             desktop: colSpanLg,
             viewportWidth: viewportWidth
         )
-    }
-
-    public func resolvedRowSpan(viewportWidth: CGFloat) -> Int {
-        let raw = ResponsiveWidth.choice(
-            base: rowSpan,
-            tablet: rowSpanMd,
-            desktop: rowSpanLg,
-            viewportWidth: viewportWidth
-        )
-        guard let raw, raw != "full", let value = Int(raw), value > 0 else { return 1 }
-        return value
     }
 }
 
