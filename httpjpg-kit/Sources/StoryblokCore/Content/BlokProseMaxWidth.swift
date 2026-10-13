@@ -12,7 +12,7 @@ public enum BlokProseMaxWidth {
         if raw == "none" {
             return nil
         }
-        if raw.hasSuffix("ch"), let count = Double(raw.dropLast()) {
+        if raw.hasSuffix("ch"), let count = Double(raw.dropLast(2)) {
             return CGFloat(count) * characterWidth
         }
         return 65 * characterWidth
