@@ -93,16 +93,24 @@ struct BlokSpacingModifier: ViewModifier {
 
     let appliesHorizontal: Bool
 
+    @Environment(\.viewportWidth) private var viewportWidth
+
     func body(content: Content) -> some View {
+        let resolved = spacing.resolved(viewportWidth: viewportWidth)
         content
-            .padding(.top, (spacing.paddingTop ?? 0) + (spacing.marginTop ?? 0))
-            .padding(.bottom, (spacing.paddingBottom ?? 0) + (spacing.marginBottom ?? 0))
-            .padding(.leading, appliesHorizontal ? leading : 0)
-            .padding(.trailing, appliesHorizontal ? trailing : 0)
+            .padding(.top, (resolved.paddingTop ?? 0) + (resolved.marginTop ?? 0))
+            .padding(.bottom, (resolved.paddingBottom ?? 0) + (resolved.marginBottom ?? 0))
+            .padding(.leading, appliesHorizontal ? leading(resolved) : 0)
+            .padding(.trailing, appliesHorizontal ? trailing(resolved) : 0)
     }
 
-    private var leading: CGFloat { (spacing.paddingLeading ?? 0) + (spacing.marginLeading ?? 0) }
-    private var trailing: CGFloat { (spacing.paddingTrailing ?? 0) + (spacing.marginTrailing ?? 0) }
+    private func leading(_ resolved: BlokSpacing.Resolved) -> CGFloat {
+        (resolved.paddingLeading ?? 0) + (resolved.marginLeading ?? 0)
+    }
+
+    private func trailing(_ resolved: BlokSpacing.Resolved) -> CGFloat {
+        (resolved.paddingTrailing ?? 0) + (resolved.marginTrailing ?? 0)
+    }
 }
 
 extension View {

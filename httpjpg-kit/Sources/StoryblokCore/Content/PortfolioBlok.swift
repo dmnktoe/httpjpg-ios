@@ -189,6 +189,12 @@ extension KeyedDecodingContainer {
         guard let raw = cmsString(forKey: key) else { return fallback }
         return raw == "true" || raw == "1"
     }
+
+    func cmsColumnOption(forKey key: Key) -> String? {
+        if let raw = cmsString(forKey: key) { return raw }
+        if let value = cmsInt(forKey: key) { return String(value) }
+        return nil
+    }
 }
 
 public struct PageBlok: Decodable, Identifiable {
@@ -269,8 +275,12 @@ public struct SectionBlok: Decodable, Identifiable {
     public let backgroundColor: String?
     public let content: [PortfolioBlok]
 
+    public let usesContainer: Bool
+    public let containerSize: String
+    public let containerAlign: String
+
     private enum CodingKeys: String, CodingKey {
-        case bgColor, content
+        case bgColor, content, useContainer, containerSize, containerAlign
     }
 
     public init(from decoder: any Decoder) throws {
@@ -280,6 +290,9 @@ public struct SectionBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         backgroundColor = container.cmsString(forKey: .bgColor)
         content = container.cmsArray(PortfolioBlok.self, forKey: .content)
+        usesContainer = container.cmsBool(forKey: .useContainer)
+        containerSize = container.cmsString(forKey: .containerSize) ?? "2xl"
+        containerAlign = container.cmsString(forKey: .containerAlign) ?? "center"
     }
 }
 
@@ -289,8 +302,11 @@ public struct ContainerBlok: Decodable, Identifiable {
     public let backgroundColor: String?
     public let body: [PortfolioBlok]
 
+    public let width: String
+    public let isCentered: Bool
+
     private enum CodingKeys: String, CodingKey {
-        case bgColor, body
+        case bgColor, body, width, center
     }
 
     public init(from decoder: any Decoder) throws {
@@ -300,6 +316,8 @@ public struct ContainerBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         backgroundColor = container.cmsString(forKey: .bgColor)
         body = container.cmsArray(PortfolioBlok.self, forKey: .body)
+        width = container.cmsString(forKey: .width) ?? "lg"
+        isCentered = container.cmsBool(forKey: .center, default: true)
     }
 }
 
@@ -308,11 +326,20 @@ public struct GridBlok: Decodable, Identifiable {
     public let spacing: BlokSpacing
     public let items: [PortfolioBlok]
 
-    public let columns: Int
+    public let columns: String?
+    public let columnsMd: String?
+    public let columnsLg: String?
     public let gap: CGFloat
+    public let rowGap: CGFloat?
+    public let columnGap: CGFloat?
+    public let align: String?
+    public let justify: String?
+    public let justifyContent: String?
+    public let flow: String?
 
     private enum CodingKeys: String, CodingKey {
-        case items, columns, gap
+        case items, columns, columnsMd, columnsLg, gap, rowGap, columnGap
+        case align, justify, justifyContent, flow
     }
 
     public init(from decoder: any Decoder) throws {
@@ -321,8 +348,27 @@ public struct GridBlok: Decodable, Identifiable {
         id = envelope.uid
         spacing = envelope.spacing
         items = container.cmsArray(PortfolioBlok.self, forKey: .items)
-        columns = container.cmsInt(forKey: .columns) ?? 1
+        columns = container.cmsColumnOption(forKey: .columns)
+        columnsMd = container.cmsColumnOption(forKey: .columnsMd)
+        columnsLg = container.cmsColumnOption(forKey: .columnsLg)
         gap = SpacingScale.points(container.cmsString(forKey: .gap)) ?? Spacing.s4
+        rowGap = SpacingScale.points(container.cmsString(forKey: .rowGap))
+        columnGap = SpacingScale.points(container.cmsString(forKey: .columnGap))
+        align = container.cmsString(forKey: .align)
+        justify = container.cmsString(forKey: .justify)
+        justifyContent = container.cmsString(forKey: .justifyContent)
+        flow = container.cmsString(forKey: .flow)
+    }
+
+    public func columnCount(viewportWidth: CGFloat, layoutWidth: CGFloat, columnGap: CGFloat) -> Int {
+        GridResponsive.columnCount(
+            base: columns,
+            tablet: columnsMd,
+            desktop: columnsLg,
+            viewportWidth: viewportWidth,
+            layoutWidth: layoutWidth,
+            columnGap: columnGap
+        )
     }
 }
 
@@ -330,8 +376,33 @@ public struct GridItemBlok: Decodable, Identifiable {
     public let id: String
     public let content: [PortfolioBlok]
 
+    public let colSpan: String?
+    public let colSpanMd: String?
+    public let colSpanLg: String?
+    public let rowSpan: String?
+    public let rowSpanMd: String?
+    public let rowSpanLg: String?
+    public let colStart: Int?
+    public let colStartMd: Int?
+    public let colStartLg: Int?
+    public let colEnd: Int?
+    public let rowStart: Int?
+    public let rowStartMd: Int?
+    public let rowStartLg: Int?
+    public let rowEnd: Int?
+    public let alignSelf: String?
+    public let justifySelf: String?
+    public let hiddenBase: Bool
+    public let hiddenMd: Bool
+    public let hiddenLg: Bool
+
     private enum CodingKeys: String, CodingKey {
         case content
+        case colSpan, colSpanMd, colSpanLg, rowSpan, rowSpanMd, rowSpanLg
+        case colStart, colStartMd, colStartLg, colEnd
+        case rowStart, rowStartMd, rowStartLg, rowEnd
+        case alignSelf, justifySelf
+        case hiddenBase, hiddenMd, hiddenLg
     }
 
     public init(from decoder: any Decoder) throws {
@@ -339,6 +410,43 @@ public struct GridItemBlok: Decodable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = envelope.uid
         content = container.cmsArray(PortfolioBlok.self, forKey: .content)
+        colSpan = container.cmsString(forKey: .colSpan)
+        colSpanMd = container.cmsString(forKey: .colSpanMd)
+        colSpanLg = container.cmsString(forKey: .colSpanLg)
+        rowSpan = container.cmsString(forKey: .rowSpan)
+        rowSpanMd = container.cmsString(forKey: .rowSpanMd)
+        rowSpanLg = container.cmsString(forKey: .rowSpanLg)
+        colStart = container.cmsInt(forKey: .colStart)
+        colStartMd = container.cmsInt(forKey: .colStartMd)
+        colStartLg = container.cmsInt(forKey: .colStartLg)
+        colEnd = container.cmsInt(forKey: .colEnd)
+        rowStart = container.cmsInt(forKey: .rowStart)
+        rowStartMd = container.cmsInt(forKey: .rowStartMd)
+        rowStartLg = container.cmsInt(forKey: .rowStartLg)
+        rowEnd = container.cmsInt(forKey: .rowEnd)
+        alignSelf = container.cmsString(forKey: .alignSelf)
+        justifySelf = container.cmsString(forKey: .justifySelf)
+        hiddenBase = container.cmsBool(forKey: .hiddenBase)
+        hiddenMd = container.cmsBool(forKey: .hiddenMd)
+        hiddenLg = container.cmsBool(forKey: .hiddenLg)
+    }
+
+    public func isHidden(viewportWidth: CGFloat) -> Bool {
+        GridResponsive.isHidden(
+            viewportWidth: viewportWidth,
+            hiddenBase: hiddenBase,
+            hiddenMd: hiddenMd,
+            hiddenLg: hiddenLg
+        )
+    }
+
+    public func resolvedColumnSpan(viewportWidth: CGFloat) -> GridColumnSpan {
+        GridResponsive.resolvedSpan(
+            base: colSpan,
+            tablet: colSpanMd,
+            desktop: colSpanLg,
+            viewportWidth: viewportWidth
+        )
     }
 }
 
@@ -424,9 +532,10 @@ public struct RichTextBlok: Decodable, Identifiable {
     public let spacing: BlokSpacing
     public let content: RichTextNode?
     public let color: String?
+    public let maxWidth: String?
 
     private enum CodingKeys: String, CodingKey {
-        case content, color
+        case content, color, maxWidth
     }
 
     public init(from decoder: any Decoder) throws {
@@ -436,6 +545,7 @@ public struct RichTextBlok: Decodable, Identifiable {
         spacing = envelope.spacing
         content = container.cmsValue(RichTextNode.self, forKey: .content)
         color = container.cmsString(forKey: .color)
+        maxWidth = container.cmsString(forKey: .maxWidth)
     }
 }
 
