@@ -18,15 +18,20 @@ final class AskSearchModel {
     private(set) var status: CommandPaletteStatus = .idle
     private(set) var errorMessage: String?
     private(set) var isAskAvailable = true
+    private(set) var recentQueries: [String]
 
+    private let recents: RecentSearches
     private var searchTask: Task<Void, Never>?
     private var askTask: Task<Void, Never>?
     private var searchGeneration = 0
 
     private static let searchDebounceNanoseconds: UInt64 = 140_000_000
 
-    init(origin: URL, session: URLSession = .shared) {
+    init(origin: URL, session: URLSession = .shared, defaults: UserDefaults = .standard) {
+        let recents = RecentSearches(defaults: defaults)
         self.api = SiteAPI(origin: origin, session: session)
+        self.recents = recents
+        self.recentQueries = recents.all
     }
 
     func open(prefill: String? = nil) {
@@ -72,6 +77,16 @@ final class AskSearchModel {
         setQuery(value)
     }
 
+    /// Called once a query led somewhere (a tap or an ask), so only queries that paid off are offered back.
+    func rememberQuery() {
+        recentQueries = recents.remember(query)
+    }
+
+    func clearRecents() {
+        recents.clear()
+        recentQueries = []
+    }
+
     func ask() {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, isAskAvailable else { return }
@@ -84,6 +99,7 @@ final class AskSearchModel {
         action = nil
         errorMessage = nil
         status = .answering
+        recentQueries = recents.remember(trimmed)
         Telemetry.signal("ask.submitted", parameters: ["length": "\(trimmed.count)"])
 
         askTask = Task { [weak self] in

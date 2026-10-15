@@ -9,6 +9,7 @@ struct AskSearchHost: View {
 
     @Environment(\.openURL) private var openURL
     @Environment(\.pageTheme) private var theme
+    @State private var detent: PresentationDetent = .medium
 
     var body: some View {
         Color.clear
@@ -36,11 +37,14 @@ struct AskSearchHost: View {
             CommandPalette(
                 query: model.query,
                 results: model.results,
+                suggestions: model.suggestions,
+                recents: model.recentQueries,
                 answer: model.answer,
                 sources: model.sources,
                 action: model.action,
                 status: model.status,
                 errorMessage: model.errorMessage,
+                isAskAvailable: model.isAskAvailable,
                 onSelect: select,
                 onAction: { action in
                     select(
@@ -51,7 +55,10 @@ struct AskSearchHost: View {
                             kind: action.kind
                         )
                     )
-                }
+                },
+                onQuery: { model.selectSuggestion($0) },
+                onAsk: { model.ask() },
+                onClearRecents: { model.clearRecents() }
             )
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.inline)
@@ -79,8 +86,16 @@ struct AskSearchHost: View {
             }
         }
         .pageTheme(theme)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $detent)
         .presentationDragIndicator(.visible)
+        // An answer needs the room: lift the sheet as soon as the assistant starts, not when the user notices.
+        .onChange(of: model.status) { _, status in
+            guard status == .answering else { return }
+            detent = .large
+        }
+        .onChange(of: model.isOpen) { _, isOpen in
+            if isOpen { detent = .medium }
+        }
     }
 
     private var askPill: some View {
@@ -128,6 +143,7 @@ struct AskSearchHost: View {
                 "queryLength": "\(model.query.trimmingCharacters(in: .whitespacesAndNewlines).count)",
             ]
         )
+        model.rememberQuery()
         guard let destination = model.destination(for: hit.href, title: hit.title) else {
             model.close()
             return
