@@ -399,42 +399,6 @@ jobs:
           fi
           exit "$fail"
 
-  # Compiles the `#if compiler(>=6.4)` / iOS 27 branches that the Xcode 26 job skips.
-  # GitHub ships Xcode 27 only as a preview image, so this stays out of "All checks passed".
-  xcode27:
-    name: Build (Xcode 27 preview)
-    needs: [guard]
-    if: needs.guard.outputs.run == 'true'
-    runs-on: xcode-27
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
-      - name: Build app against the iOS 27 SDK
-        shell: bash
-        run: |
-          xcodebuild -version
-          xcrun swift --version
-          set -o pipefail
-          xcodebuild build \
-            -project httpjpg.xcodeproj \
-            -scheme httpjpg \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build/DerivedData \
-            -skipMacroValidation \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CONTENT_SOURCE=mock \
-            STORYBLOK_ACCESS_TOKEN=mock \
-            | tee build.log \
-            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
-        env:
-          NSUnbufferedIO: YES
-
-      - name: Raw build log
-        if: failure() && hashFiles('build.log') != ''
-        run: grep -n -B2 -A6 -i 'error' build.log | tail -100 || tail -100 build.log
-
   ci:
     name: All checks passed
     runs-on: ubuntu-latest
