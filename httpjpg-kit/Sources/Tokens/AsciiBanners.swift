@@ -2,6 +2,8 @@ import Foundation
 
 public enum Ascii {
     public static let sparkles = "·°•. ⋆ ✦ ⋆ .•°·"
+    public static let askMark = "·✦·"
+    public static let askGlyph = "✦"
     public static let tape = "▰▰▰▱▱▱▰▰▰▱▱▱▰▰▰"
 
     public static let dividerStars = "*ੈ✩‧₊˚༺☆༻*ੈ✩‧₊˚"

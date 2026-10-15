@@ -33,7 +33,16 @@ struct AskSearchHost: View {
     }
 
     private var sheet: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            CommandPaletteHeader(
+                query: queryBinding,
+                isAskAvailable: model.isAskAvailable,
+                isAnswering: model.status == .answering,
+                onSubmit: submitSearch,
+                onAsk: { model.ask() },
+                onClose: { model.close() }
+            )
+
             CommandPalette(
                 query: model.query,
                 results: model.results,
@@ -60,30 +69,6 @@ struct AskSearchHost: View {
                 onAsk: { model.ask() },
                 onClearRecents: { model.clearRecents() }
             )
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(
-                text: queryBinding,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search or ask…"
-            )
-            .modifier(KeepSearchToolbarVisible())
-            .onSubmit(of: .search) {
-                submitSearch()
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        model.close()
-                    }
-                }
-
-                if model.isAskAvailable {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        askPill
-                    }
-                }
-            }
         }
         .pageTheme(theme)
         .presentationDetents([.medium, .large], selection: $detent)
@@ -96,25 +81,6 @@ struct AskSearchHost: View {
         .onChange(of: model.isOpen) { _, isOpen in
             if isOpen { detent = .medium }
         }
-    }
-
-    private var askPill: some View {
-        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let canSubmit = !trimmed.isEmpty && model.status != .answering
-        let label = canSubmit ? Palette.primary.s500 : theme.muted
-
-        return Button {
-            model.ask()
-        } label: {
-            Label("Ask", systemImage: "sparkles")
-                .labelStyle(.titleAndIcon)
-                .font(.subheadline.weight(.semibold))
-        }
-        .foregroundStyle(label)
-        .disabled(!canSubmit)
-        .opacity(canSubmit ? 1 : 0.55)
-        .accessibilityLabel("Ask")
-        .accessibilityHint("Ask the site assistant about your search")
     }
 
     private var queryBinding: Binding<String> {
@@ -154,16 +120,6 @@ struct AskSearchHost: View {
             openURL(url)
         default:
             onNavigate(destination)
-        }
-    }
-}
-
-private struct KeepSearchToolbarVisible: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 17.1, *) {
-            content.searchPresentationToolbarBehavior(.avoidHidingContent)
-        } else {
-            content
         }
     }
 }

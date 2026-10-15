@@ -17,27 +17,25 @@ struct CommandPaletteResultRow: View {
                 thumb
 
                 VStack(alignment: .leading, spacing: Spacing.s1) {
+                    kindEyebrow
+
                     Text(CommandPaletteHighlight.attributed(hit.title, terms: terms, marker: marker))
                         .font(Typography.sansBold(Typography.Size.base))
                         .foregroundStyle(theme.foreground)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
-                    HStack(alignment: .firstTextBaseline, spacing: Spacing.s2) {
-                        kindTag
-
-                        if let snippet {
-                            Text(CommandPaletteHighlight.attributed(
-                                snippet,
-                                terms: terms,
-                                marker: marker,
-                                ink: theme.foreground
-                            ))
-                            .font(Typography.sans(Typography.Size.sm))
-                            .foregroundStyle(theme.muted)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                        }
+                    if let snippet {
+                        Text(CommandPaletteHighlight.attributed(
+                            snippet,
+                            terms: terms,
+                            marker: marker,
+                            ink: theme.foreground
+                        ))
+                        .font(Typography.sans(Typography.Size.sm))
+                        .foregroundStyle(theme.muted)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -65,13 +63,13 @@ struct CommandPaletteResultRow: View {
         return CommandPaletteHighlight.snippet(excerpt, terms: terms)
     }
 
-    private var kindTag: some View {
+    // Sits above the title like the site's eyebrow labels; a boxed tag next to wrapping text floated.
+    private var kindEyebrow: some View {
         Text(hit.kindLabel.lowercased())
             .font(Typography.mono(Typography.Size.xxs, weight: .semibold))
-            .tracking(Typography.Tracking.wider(Typography.Size.xxs))
+            .tracking(Typography.Tracking.widest(Typography.Size.xxs))
             .foregroundStyle(theme.muted)
-            .padding(.horizontal, Spacing.s1)
-            .overlay(RoundedRectangle(cornerRadius: Radii.sm).stroke(theme.border, lineWidth: 1))
+            .opacity(Opacities.muted)
             .accessibilityHidden(true)
     }
 

@@ -9,10 +9,10 @@ appId: com.yl33ly.httpjpg
     timeout: 45000
 - tapOn: "Search"
 - extendedWaitUntil:
-    visible: "Search or ask…"
+    visible: "search or ask…"
     timeout: 20000
 - takeScreenshot: search-01-idle
-- tapOn: "Search or ask…"
+- tapOn: "search or ask…"
 - inputText: "what is blence about"
 - extendedWaitUntil:
     visible: ".*match.*"
@@ -31,7 +31,7 @@ appId: com.yl33ly.httpjpg
 - takeScreenshot: search-05-answer-settled
 - scroll
 - takeScreenshot: search-06-answer-scrolled
-- tapOn: "Cancel"
+- tapOn: "Close search"
 - extendedWaitUntil:
     visible: "Open menu"
     timeout: 20000

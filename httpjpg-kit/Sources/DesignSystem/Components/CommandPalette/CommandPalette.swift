@@ -204,7 +204,7 @@ public struct CommandPalette: View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
             sectionLabel(status == .error ? "try again" : "or ask the site")
 
-            CommandPaletteChip(glyph: "✦", title: trimmedQuery, tone: .accent, action: onAsk)
+            CommandPaletteChip(glyph: Ascii.askGlyph, title: trimmedQuery, tone: .accent, action: onAsk)
                 .accessibilityLabel("Ask about \(trimmedQuery)")
         }
     }
@@ -244,7 +244,7 @@ public struct CommandPalette: View {
                     .font(Typography.mono(Typography.Size.base, weight: .semibold))
                     .foregroundStyle(theme.foreground)
 
-                Text(isAskAvailable ? "type to filter · sparkles to ask" : "type to filter")
+                Text(isAskAvailable ? "type to filter · enter to ask" : "type to filter")
                     .font(Typography.mono(Typography.Size.sm))
                     .foregroundStyle(theme.muted)
                     .opacity(Opacities.muted)
@@ -259,7 +259,7 @@ public struct CommandPalette: View {
         .multilineTextAlignment(.center)
         .padding(.horizontal, Spacing.s6)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Search the site. Type to filter, sparkles to ask.")
+        .accessibilityLabel("Search the site. Type to filter, enter to ask.")
     }
 
     private var recentsBlock: some View {

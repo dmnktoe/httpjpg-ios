@@ -70,8 +70,8 @@ struct CommandPaletteAnswerPanel: View {
 
     private var header: some View {
         HStack(spacing: Spacing.s2) {
-            Image(systemName: "sparkles")
-                .font(.system(size: Typography.Size.sm, weight: .semibold))
+            Text(Ascii.askMark)
+                .font(Typography.mono(Typography.Size.sm, weight: .semibold))
                 .foregroundStyle(errorMessage == nil ? Palette.primary.s500 : Palette.danger.s500)
                 .accessibilityHidden(true)
 
