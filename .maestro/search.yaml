@@ -18,19 +18,27 @@ appId: com.yl33ly.httpjpg
     visible: ".*match.*"
     timeout: 30000
 - takeScreenshot: search-02-results
-- pressKey: Enter
-# No assertion here: a fast answer is settled before "thinking" could be asserted.
-- takeScreenshot: search-03-asking
+# Maestro normally waits for the UI to settle after an action; the glow animates until it
+# fades, so a settling tap (or Enter) only returns once the glow is already gone.
+- tapOn:
+    text: "Ask"
+    waitToSettleTimeoutMs: 200
+- takeScreenshot: search-03-thinking-glow
+- extendedWaitUntil:
+    visible: "answering"
+    timeout: 30000
+    optional: true
+- takeScreenshot: search-04-streaming-glow
 # "answer" once the stream settled, "no answer" if the assistant failed; both are worth a picture.
 - extendedWaitUntil:
     visible: "answer|no answer"
     timeout: 150000
-- takeScreenshot: search-04-answer-fresh
+- takeScreenshot: search-05-answer-lingering-glow
 - waitForAnimationToEnd:
     timeout: 6000
-- takeScreenshot: search-05-answer-settled
+- takeScreenshot: search-06-answer-settled
 - scroll
-- takeScreenshot: search-06-answer-scrolled
+- takeScreenshot: search-07-answer-scrolled
 - tapOn: "Close search"
 - extendedWaitUntil:
     visible: "Open menu"
@@ -41,4 +49,4 @@ appId: com.yl33ly.httpjpg
 - extendedWaitUntil:
     visible: "recent"
     timeout: 20000
-- takeScreenshot: search-07-recent
+- takeScreenshot: search-08-recent
