@@ -10,10 +10,6 @@ on:
         description: "Record missing DesignSystem snapshot baselines"
         type: boolean
         default: false
-      write_periphery_baseline:
-        description: "Rewrite periphery-baseline.json from the current scan"
-        type: boolean
-        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -138,11 +134,9 @@ jobs:
         shell: bash
         run: |
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
-          brew list periphery >/dev/null 2>&1 || brew install peripheryapp/periphery/periphery
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
           xcodegen --version
-          periphery version
           "$HOME/.maestro/bin/maestro" --version
 
       - name: Validate project.yml
@@ -307,40 +301,6 @@ jobs:
           path: build/TestResults.xcresult
           retention-days: 14
 
-      - name: Periphery
-        id: periphery
-        shell: bash
-        run: |
-          set -o pipefail
-          args=(scan --config .periphery.yml)
-          # Prefer the index from the earlier xcodebuild (macros already trusted).
-          for cand in \
-            build/DerivedData/Index.noindex/DataStore \
-            build/DerivedData/Index/DataStore
-          do
-            if [ -d "$cand" ]; then
-              args+=(--skip-build --index-store-path "$cand")
-              echo "Using index store at $cand"
-              break
-            fi
-          done
-          if [ "${{ github.event.inputs.write_periphery_baseline }}" = "true" ] || [ ! -f periphery-baseline.json ]; then
-            echo "::notice::Writing periphery baseline"
-            periphery "${args[@]}" --write-baseline periphery-baseline.json | tee periphery.log
-            echo "wrote_baseline=true" >> "$GITHUB_OUTPUT"
-          else
-            periphery "${args[@]}" | tee periphery.log
-            echo "wrote_baseline=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Upload periphery baseline
-        if: always() && hashFiles('periphery-baseline.json') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: periphery-baseline
-          path: periphery-baseline.json
-          retention-days: 14
-
       - name: Maestro smoke
         continue-on-error: true
         shell: bash
@@ -377,10 +337,6 @@ jobs:
           fail=0
           if [ -n "$(git status --porcelain -- httpjpg-kit/Tests/DesignSystemTests/__Snapshots__)" ]; then
             echo "::error::Snapshot baselines changed — download the design-system-snapshots artifact and commit them."
-            fail=1
-          fi
-          if [ -n "$(git status --porcelain -- periphery-baseline.json)" ]; then
-            echo "::error::periphery-baseline.json changed — download the periphery-baseline artifact and commit it."
             fail=1
           fi
           exit "$fail"

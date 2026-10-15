@@ -9,6 +9,7 @@ struct AskSearchHost: View {
 
     @Environment(\.openURL) private var openURL
     @Environment(\.pageTheme) private var theme
+    @State private var detent: PresentationDetent = .medium
 
     var body: some View {
         Color.clear
@@ -32,15 +33,27 @@ struct AskSearchHost: View {
     }
 
     private var sheet: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            CommandPaletteHeader(
+                query: queryBinding,
+                isAskAvailable: model.isAskAvailable,
+                isAnswering: model.status == .answering,
+                onSubmit: submitSearch,
+                onAsk: { model.ask() },
+                onClose: { model.close() }
+            )
+
             CommandPalette(
                 query: model.query,
                 results: model.results,
+                suggestions: model.suggestions,
+                recents: model.recentQueries,
                 answer: model.answer,
                 sources: model.sources,
                 action: model.action,
                 status: model.status,
                 errorMessage: model.errorMessage,
+                isAskAvailable: model.isAskAvailable,
                 onSelect: select,
                 onAction: { action in
                     select(
@@ -51,55 +64,24 @@ struct AskSearchHost: View {
                             kind: action.kind
                         )
                     )
-                }
+                },
+                onQuery: { model.selectSuggestion($0) },
+                onAsk: { model.ask() },
+                onClearRecents: { model.clearRecents() },
+                onForgetRecent: { model.forgetRecent($0) }
             )
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(
-                text: queryBinding,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search or ask…"
-            )
-            .modifier(KeepSearchToolbarVisible())
-            .onSubmit(of: .search) {
-                submitSearch()
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        model.close()
-                    }
-                }
-
-                if model.isAskAvailable {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        askPill
-                    }
-                }
-            }
         }
         .pageTheme(theme)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $detent)
         .presentationDragIndicator(.visible)
-    }
-
-    private var askPill: some View {
-        let trimmed = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let canSubmit = !trimmed.isEmpty && model.status != .answering
-        let label = canSubmit ? Palette.primary.s500 : theme.muted
-
-        return Button {
-            model.ask()
-        } label: {
-            Label("Ask", systemImage: "sparkles")
-                .labelStyle(.titleAndIcon)
-                .font(.subheadline.weight(.semibold))
+        // An answer needs the room: lift the sheet as soon as the assistant starts, not when the user notices.
+        .onChange(of: model.status) { _, status in
+            guard status == .answering else { return }
+            detent = .large
         }
-        .foregroundStyle(label)
-        .disabled(!canSubmit)
-        .opacity(canSubmit ? 1 : 0.55)
-        .accessibilityLabel("Ask")
-        .accessibilityHint("Ask the site assistant about your search")
+        .onChange(of: model.isOpen) { _, isOpen in
+            if isOpen { detent = .medium }
+        }
     }
 
     private var queryBinding: Binding<String> {
@@ -128,6 +110,7 @@ struct AskSearchHost: View {
                 "queryLength": "\(model.query.trimmingCharacters(in: .whitespacesAndNewlines).count)",
             ]
         )
+        model.rememberQuery()
         guard let destination = model.destination(for: hit.href, title: hit.title) else {
             model.close()
             return
@@ -138,16 +121,6 @@ struct AskSearchHost: View {
             openURL(url)
         default:
             onNavigate(destination)
-        }
-    }
-}
-
-private struct KeepSearchToolbarVisible: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 17.1, *) {
-            content.searchPresentationToolbarBehavior(.avoidHidingContent)
-        } else {
-            content
         }
     }
 }
