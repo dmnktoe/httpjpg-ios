@@ -44,7 +44,6 @@ public struct BrutalDivider: View {
             Text(label ?? pattern)
                 .font(Typography.mono(Typography.Size.sm))
                 .foregroundStyle(color ?? theme.foreground)
-                .opacity(color == nil ? Opacities.subtle : 1)
                 .frame(maxWidth: .infinity)
                 .lineLimit(1)
                 .accessibilityHidden(true)
