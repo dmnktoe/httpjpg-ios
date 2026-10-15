@@ -400,22 +400,26 @@ jobs:
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b || xcrun simctl boot "$SIMULATOR_UDID"
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
           xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
-          mkdir -p "$GITHUB_WORKSPACE/maestro-screenshots"
-          if ! maestro --device "$SIMULATOR_UDID" test \
-            -e SCREENSHOT_DIR="$GITHUB_WORKSPACE/maestro-screenshots" \
-            .maestro/search.yaml; then
-            echo "::warning::Maestro search flow failed; whatever it captured before failing is still uploaded."
-            exit 1
-          fi
+          # Once per appearance; Maestro files each run's shots under ~/.maestro/tests/<timestamp>/search/.
+          status=0
+          for appearance in light dark; do
+            xcrun simctl ui "$SIMULATOR_UDID" appearance "$appearance"
+            echo "::group::Maestro search flow ($appearance)"
+            if ! maestro --device "$SIMULATOR_UDID" test .maestro/search.yaml; then
+              echo "::warning::Maestro search flow ($appearance) failed; whatever it captured before failing is still uploaded."
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          xcrun simctl ui "$SIMULATOR_UDID" appearance light
+          exit "$status"
 
       - name: Upload search screenshots
         if: always() && steps.build_app.outputs.app_path != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: search-screenshots
-          path: |
-            maestro-screenshots/
-            ~/.maestro/tests/
+          path: ~/.maestro/tests/
           if-no-files-found: warn
           retention-days: 14
 
