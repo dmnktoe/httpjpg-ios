@@ -96,14 +96,14 @@ public struct CommandPaletteHeader: View {
         }
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
-        .background(theme.codeChipBackground.opacity(Opacities.muted), in: Self.fieldShape)
-        .overlay(Self.fieldShape.stroke(fieldStroke, lineWidth: 1))
+        .liquidGlass(in: Self.fieldShape, tint: theme.chromeFill)
+        .overlay(Self.fieldShape.strokeBorder(fieldStroke, lineWidth: PillMetrics.hairline))
         .animation(Motion.stateChange, value: isFocused)
         .animation(Motion.stateChange, value: query.isEmpty)
     }
 
     private var fieldStroke: Color {
-        isFocused ? theme.foreground.opacity(Opacities.subtle) : theme.border.opacity(Opacities.subtle)
+        isFocused ? theme.chromeActiveStroke.opacity(Opacities.subtle) : theme.chromeStroke
     }
 
     private var askButton: some View {
@@ -117,11 +117,20 @@ public struct CommandPaletteHeader: View {
                 Text("ask")
             }
             .font(Typography.mono(Typography.Size.sm, weight: .semibold))
-            .foregroundStyle(canAsk ? theme.background : theme.muted)
+            .foregroundStyle(canAsk ? theme.chromeActiveLabel : theme.muted)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s3)
-            .background(canAsk ? theme.foreground : Color.clear, in: Capsule())
-            .overlay(Capsule().stroke(canAsk ? theme.foreground : theme.border, lineWidth: 1))
+            .contentShape(Capsule())
+            .liquidGlass(
+                in: Capsule(),
+                tint: canAsk ? theme.chromeActiveFill : theme.chromeFill,
+                isInteractive: true
+            )
+            .overlay {
+                if !canAsk {
+                    Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
+                }
+            }
         }
         .buttonStyle(.plain)
         .disabled(!canAsk)
@@ -134,11 +143,8 @@ public struct CommandPaletteHeader: View {
         Button(action: onClose) {
             Text("×")
                 .font(Typography.mono(Typography.Size.base, weight: .semibold))
-                .foregroundStyle(theme.foreground)
-                .frame(width: Self.closeSize, height: Self.closeSize)
-                .background(theme.codeChipBackground, in: Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glassOrb(.control(theme), diameter: Self.closeSize))
         .accessibilityLabel("Close search")
     }
 }
