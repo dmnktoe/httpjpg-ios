@@ -46,8 +46,8 @@ jobs:
 
   bump-build:
     name: Bump build number
-    needs: [release-please]
-    if: needs.release-please.outputs.release_created == 'true'
+    # Every commit on main gets its own build number; the bump commit itself must not bump again.
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(ios): bump build') }}"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -63,8 +63,10 @@ jobs:
           app-id: ${{ secrets.HTTPJPG_BOT_APP_ID }}
           private-key: ${{ secrets.HTTPJPG_BOT_PRIVATE_KEY }}
 
+      # Check out the branch tip rather than github.sha so a queued run builds on the previous bump.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ github.ref }}
           token: ${{ steps.bot-token.outputs.token || secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Bump CURRENT_PROJECT_VERSION
@@ -77,5 +79,5 @@ jobs:
           git config user.name "httpjpg-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Config/Shared.xcconfig
-          git commit -m "chore(ios): bump build to ${{ steps.bump.outputs.build }}"
+          git commit -m "chore(ios): bump build to ${{ steps.bump.outputs.build }} [skip ci]"
           git push
