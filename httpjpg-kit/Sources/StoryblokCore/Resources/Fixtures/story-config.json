@@ -26,6 +26,7 @@
       "author_url": "https://www.httpjpg.com",
       "discord_enabled": false,
       "letterboxd_enabled": false,
+      "ask_enabled": true,
       "header_menu": [
         {
           "_uid": "b6b56a0e-b73f-55de-9252-47e4c47dea2d",
