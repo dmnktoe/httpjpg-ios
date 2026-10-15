@@ -93,7 +93,10 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 60
     steps:
+      # Full history so the Set build number phase stamps the real commit count instead of skipping.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
 
       - name: Select Xcode
         shell: bash

@@ -157,6 +157,7 @@
 			buildConfigurationList = AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "httpjpg" */;
 			buildPhases = (
 				AA0000000000000000000012 /* Sources */,
+				AA000000000000000000007C /* Set build number */,
 				AA0000000000000000000013 /* Frameworks */,
 				AA0000000000000000000014 /* Resources */,
 				AA000000000000000000001B /* Embed Foundation Extensions */,
@@ -185,6 +186,7 @@
 			buildConfigurationList = AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "httpjpg-widgets" */;
 			buildPhases = (
 				AA000000000000000000001C /* Sources */,
+				AA000000000000000000007D /* Set build number */,
 				AA000000000000000000001A /* Frameworks */,
 				AA000000000000000000001F /* Resources */,
 			);
@@ -207,6 +209,7 @@
 			buildConfigurationList = AA0000000000000000000079 /* Build configuration list for PBXNativeTarget "httpjpg-watch" */;
 			buildPhases = (
 				AA0000000000000000000062 /* Sources */,
+				AA000000000000000000007E /* Set build number */,
 				AA0000000000000000000063 /* Frameworks */,
 				AA0000000000000000000064 /* Resources */,
 			);
@@ -320,6 +323,69 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AA000000000000000000007C /* Set build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Set build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
+		};
+		AA000000000000000000007D /* Set build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Set build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
+		};
+		AA000000000000000000007E /* Set build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Set build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AA0000000000000000000012 /* Sources */ = {
