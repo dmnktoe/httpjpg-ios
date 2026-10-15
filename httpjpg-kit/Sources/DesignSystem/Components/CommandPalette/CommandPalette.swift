@@ -239,16 +239,10 @@ public struct CommandPalette: View {
                 .opacity(Opacities.subtle)
                 .accessibilityHidden(true)
 
-            VStack(spacing: Spacing.s2) {
-                Text("search the site")
-                    .font(Typography.mono(Typography.Size.base, weight: .semibold))
-                    .foregroundStyle(theme.foreground)
-
-                Text(isAskAvailable ? "type to filter · enter to ask" : "type to filter")
-                    .font(Typography.mono(Typography.Size.sm))
-                    .foregroundStyle(theme.muted)
-                    .opacity(Opacities.muted)
-            }
+            // The header's eyebrow already says "search the site"; the hint only adds the how.
+            Text(isAskAvailable ? "type to filter · enter to ask" : "type to filter")
+                .font(Typography.mono(Typography.Size.sm))
+                .foregroundStyle(theme.muted)
 
             Text(Ascii.dividerDots)
                 .font(Typography.mono(Typography.Size.xs))

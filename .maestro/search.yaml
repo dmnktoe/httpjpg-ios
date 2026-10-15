@@ -36,6 +36,8 @@ appId: com.yl33ly.httpjpg
     visible: "Open menu"
     timeout: 20000
 - tapOn: "Search"
+# The sheet reopens on the last query; recents only show on an empty field.
+- tapOn: "Clear search"
 - extendedWaitUntil:
     visible: "recent"
     timeout: 20000
