@@ -157,11 +157,11 @@
 			buildConfigurationList = AA0000000000000000000053 /* Build configuration list for PBXNativeTarget "httpjpg" */;
 			buildPhases = (
 				AA0000000000000000000012 /* Sources */,
-				AA000000000000000000007C /* Set build number */,
 				AA0000000000000000000013 /* Frameworks */,
 				AA0000000000000000000014 /* Resources */,
 				AA000000000000000000001B /* Embed Foundation Extensions */,
 				AA0000000000000000000074 /* Embed Watch Content */,
+				AA000000000000000000007C /* Set build number */,
 			);
 			buildRules = (
 			);
@@ -186,9 +186,9 @@
 			buildConfigurationList = AA0000000000000000000056 /* Build configuration list for PBXNativeTarget "httpjpg-widgets" */;
 			buildPhases = (
 				AA000000000000000000001C /* Sources */,
-				AA000000000000000000007D /* Set build number */,
 				AA000000000000000000001A /* Frameworks */,
 				AA000000000000000000001F /* Resources */,
+				AA000000000000000000007D /* Set build number */,
 			);
 			buildRules = (
 			);
@@ -209,9 +209,9 @@
 			buildConfigurationList = AA0000000000000000000079 /* Build configuration list for PBXNativeTarget "httpjpg-watch" */;
 			buildPhases = (
 				AA0000000000000000000062 /* Sources */,
-				AA000000000000000000007E /* Set build number */,
 				AA0000000000000000000063 /* Frameworks */,
 				AA0000000000000000000064 /* Resources */,
+				AA000000000000000000007E /* Set build number */,
 			);
 			buildRules = (
 			);

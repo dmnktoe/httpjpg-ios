@@ -47,7 +47,7 @@ targets:
         embed: true
       - target: httpjpg-watch
         embed: true
-    postCompileScripts: &setBuildNumber
+    postBuildScripts: &setBuildNumber
       - name: Set build number
         script: '"$SRCROOT/scripts/set-build-number.sh"'
         inputFiles:
@@ -77,7 +77,7 @@ targets:
         product: StoryblokContent
       - package: httpjpg-kit
         product: WidgetFeature
-    postCompileScripts: *setBuildNumber
+    postBuildScripts: *setBuildNumber
     configFiles:
       Debug: Config/Widgets.xcconfig
       Release: Config/Widgets.xcconfig
@@ -100,7 +100,7 @@ targets:
         product: StoryblokCore
       - package: httpjpg-kit
         product: WatchFeature
-    postCompileScripts: *setBuildNumber
+    postBuildScripts: *setBuildNumber
     configFiles:
       Debug: Config/Watch.xcconfig
       Release: Config/Watch.xcconfig
