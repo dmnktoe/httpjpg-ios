@@ -41,10 +41,12 @@ public struct BrutalDivider: View {
         case .dotted:
             line(stroke, dash: [1, 3])
         case .ascii:
+            // The web Divider paints a CMS colour at full strength; only the
+            // themed fallback is dimmed so it reads as furniture, not copy.
             Text(label ?? pattern)
                 .font(Typography.mono(Typography.Size.sm))
                 .foregroundStyle(color ?? theme.foreground)
-                .opacity(Opacities.subtle)
+                .opacity(color == nil ? Opacities.subtle : 1)
                 .frame(maxWidth: .infinity)
                 .lineLimit(1)
                 .accessibilityHidden(true)
