@@ -1,6 +1,9 @@
 appId: com.yl33ly.httpjpg
 # Walks the ask/search sheet and saves a screenshot per state. Search and ask
 # hit the live site API, so this flow needs network and costs one ask.
+# Run with -e SCREENSHOT_DIR=<absolute dir>; screenshots land there.
+env:
+  SCREENSHOT_DIR: .
 ---
 - launchApp
 - extendedWaitUntil:
@@ -10,27 +13,28 @@ appId: com.yl33ly.httpjpg
 - extendedWaitUntil:
     visible: "Search or ask…"
     timeout: 20000
-- takeScreenshot: search-01-idle
+- takeScreenshot: ${SCREENSHOT_DIR}/search-01-idle
 - tapOn: "Search or ask…"
 - inputText: "what is blence about"
 - extendedWaitUntil:
     visible: ".*match.*"
     timeout: 30000
-- takeScreenshot: search-02-results
+- takeScreenshot: ${SCREENSHOT_DIR}/search-02-results
 - pressKey: Enter
 - extendedWaitUntil:
     visible: "thinking|answering"
     timeout: 20000
-- takeScreenshot: search-03-thinking
+- takeScreenshot: ${SCREENSHOT_DIR}/search-03-thinking
+# "answer" once the stream settled, "no answer" if the assistant failed; both are worth a picture.
 - extendedWaitUntil:
-    visible: "answer"
-    timeout: 90000
-- takeScreenshot: search-04-answer-glowing
+    visible: "answer|no answer"
+    timeout: 150000
+- takeScreenshot: ${SCREENSHOT_DIR}/search-04-answer-glowing
 - waitForAnimationToEnd:
     timeout: 6000
-- takeScreenshot: search-05-answer-settled
+- takeScreenshot: ${SCREENSHOT_DIR}/search-05-answer-settled
 - scroll
-- takeScreenshot: search-06-answer-scrolled
+- takeScreenshot: ${SCREENSHOT_DIR}/search-06-answer-scrolled
 - tapOn: "Cancel"
 - extendedWaitUntil:
     visible: "Open menu"
@@ -39,4 +43,4 @@ appId: com.yl33ly.httpjpg
 - extendedWaitUntil:
     visible: "recent"
     timeout: 20000
-- takeScreenshot: search-07-recent
+- takeScreenshot: ${SCREENSHOT_DIR}/search-07-recent

@@ -400,19 +400,23 @@ jobs:
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b || xcrun simctl boot "$SIMULATOR_UDID"
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
           xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
-          mkdir -p maestro-screenshots
-          cd maestro-screenshots
-          if ! maestro --device "$SIMULATOR_UDID" test ../.maestro/search.yaml; then
+          mkdir -p "$GITHUB_WORKSPACE/maestro-screenshots"
+          if ! maestro --device "$SIMULATOR_UDID" test \
+            -e SCREENSHOT_DIR="$GITHUB_WORKSPACE/maestro-screenshots" \
+            .maestro/search.yaml; then
             echo "::warning::Maestro search flow failed; whatever it captured before failing is still uploaded."
             exit 1
           fi
 
       - name: Upload search screenshots
-        if: always() && hashFiles('maestro-screenshots/*.png') != ''
+        if: always() && steps.build_app.outputs.app_path != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: search-screenshots
-          path: maestro-screenshots/*.png
+          path: |
+            maestro-screenshots/
+            ~/.maestro/tests/
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Require committed baselines
