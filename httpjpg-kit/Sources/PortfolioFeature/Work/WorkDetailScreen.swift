@@ -15,7 +15,7 @@ private struct ReadingToolbarMinimize: ViewModifier {
     func body(content: Content) -> some View {
         #if compiler(>=6.4)
         if #available(iOS 27.0, *) {
-            content.toolbarMinimizeBehavior(.onScrollDown, for: .navigationBar)
+            content.toolbarMinimizationBehavior(.onScrollDown, for: .navigationBar)
         } else {
             content
         }
