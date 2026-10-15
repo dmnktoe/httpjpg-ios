@@ -111,6 +111,19 @@ public struct StoryRichText: View {
                 }
             )
 
+        case .table(let rows):
+            return AnyView(table(rows))
+
+        case .tableRow(let cells):
+            return AnyView(table([.tableRow(cells)]))
+
+        case .tableCell(_, let content):
+            return AnyView(
+                VStack(alignment: .leading, spacing: Spacing.s2) {
+                    blocks(of: .document(content))
+                }
+            )
+
         case .blok(let bloks):
             return AnyView(BlokListView(bloks))
 
@@ -155,6 +168,28 @@ public struct StoryRichText: View {
                 .multilineTextAlignment(align.multiline)
                 .frame(maxWidth: .infinity, alignment: align.frame)
         )
+    }
+
+    // The site leaves tables unstyled, so cells line up as a plain grid without rules.
+    private func table(_ rows: [RichTextNode]) -> some View {
+        Grid(alignment: .topLeading, horizontalSpacing: Spacing.s4, verticalSpacing: Spacing.s2) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { row in
+                GridRow {
+                    ForEach(Array(row.element.children.enumerated()), id: \.offset) { cell in
+                        if case .tableCell(let isHeader, let content) = cell.element {
+                            VStack(alignment: .leading, spacing: Spacing.s2) {
+                                blocks(of: .document(content))
+                            }
+                            .fontWeight(isHeader ? .bold : .regular)
+                            .gridColumnAlignment(.leading)
+                        } else {
+                            block(cell.element)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func list(_ items: [RichTextNode], marker: @escaping (Int) -> String) -> some View {
