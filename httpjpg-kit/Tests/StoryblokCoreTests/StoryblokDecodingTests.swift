@@ -478,6 +478,32 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(rule.hasContent)
     }
 
+    func testRichTextDecodesTableNodes() throws {
+        let document = try decode(RichTextNode.self, """
+        {"type":"doc","content":[
+          {"type":"table","content":[
+            {"type":"tableRow","content":[
+              {"type":"tableHeader","attrs":{"colspan":1,"rowspan":1,"colwidth":null},"content":[
+                {"type":"paragraph","content":[{"type":"text","text":"Title"}]}]},
+              {"type":"tableCell","attrs":{"colspan":1,"rowspan":1,"colwidth":null,"backgroundColor":null},"content":[
+                {"type":"paragraph","content":[{"type":"text","text":"BLENCE NETWORK"}]}]}]}]}
+        ]}
+        """)
+        guard case .document(let children) = document, case .table(let rows) = children.first else {
+            return XCTFail("expected a table")
+        }
+        guard case .tableRow(let cells) = rows.first, cells.count == 2 else {
+            return XCTFail("expected a two-cell row")
+        }
+        guard case .tableCell(let isHeader, _) = cells[0], case .tableCell(let isPlain, _) = cells[1] else {
+            return XCTFail("expected two cells")
+        }
+        XCTAssertTrue(isHeader)
+        XCTAssertFalse(isPlain)
+        XCTAssertTrue(document.hasContent, "a table full of text is content, not an empty field")
+        XCTAssertEqual(extractPlainText(document), "Title BLENCE NETWORK")
+    }
+
     func testHeadingLevelFallsBackWhenAttrsAreMissing() throws {
         let node = try decode(RichTextNode.self, #"{"type":"heading","content":[]}"#)
         guard case .heading(let level, _, _) = node else {

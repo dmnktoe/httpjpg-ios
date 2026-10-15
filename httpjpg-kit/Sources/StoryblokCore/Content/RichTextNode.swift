@@ -14,6 +14,9 @@ public indirect enum RichTextNode: Decodable {
     case text(String, marks: [RichTextMark])
     case image(source: String?, alt: String?, copyright: String?, credit: String?)
     case emoji(String)
+    case table([RichTextNode])
+    case tableRow([RichTextNode])
+    case tableCell(isHeader: Bool, content: [RichTextNode])
 
     case blok([PortfolioBlok])
     case unknown(type: String)
@@ -101,6 +104,14 @@ public indirect enum RichTextNode: Decodable {
             )
         case "emoji":
             self = .emoji(attributes?.emoji ?? attributes?.name ?? "")
+        case "table":
+            self = .table(children)
+        case "tableRow":
+            self = .tableRow(children)
+        case "tableCell":
+            self = .tableCell(isHeader: false, content: children)
+        case "tableHeader":
+            self = .tableCell(isHeader: true, content: children)
         case "blok":
             self = .blok(attributes?.body ?? [])
         default:
@@ -114,11 +125,14 @@ public indirect enum RichTextNode: Decodable {
              .bulletList(let nodes),
              .orderedList(let nodes),
              .listItem(let nodes),
-             .blockquote(let nodes):
+             .blockquote(let nodes),
+             .table(let nodes),
+             .tableRow(let nodes):
             return nodes
         case .paragraph(_, let nodes),
              .heading(_, _, let nodes),
-             .codeBlock(_, let nodes):
+             .codeBlock(_, let nodes),
+             .tableCell(_, let nodes):
             return nodes
         case .horizontalRule, .hardBreak, .text, .image, .emoji, .blok, .unknown:
             return []
