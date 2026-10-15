@@ -104,7 +104,6 @@ public indirect enum RichTextNode: Decodable {
             )
         case "emoji":
             self = .emoji(attributes?.emoji ?? attributes?.name ?? "")
-        // The table editor emits camelCase node names, unlike the snake_case block types.
         case "table":
             self = .table(children)
         case "tableRow":
