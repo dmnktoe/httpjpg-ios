@@ -7,7 +7,6 @@ PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg
 // x-release-please-start-version
 MARKETING_VERSION = 1.2.0
 // x-release-please-end
-// Fallback only: scripts/set-build-number.sh stamps the commit count over it at build time.
 CURRENT_PROJECT_VERSION = 4
 IPHONEOS_DEPLOYMENT_TARGET = 17.0
 TARGETED_DEVICE_FAMILY = 1,2
@@ -22,7 +21,6 @@ INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 
 ASSETCATALOG_COMPILER_APPICON_NAME = httpjpg
-// The Set build number phase reads .git, which the script sandbox blocks.
 ENABLE_USER_SCRIPT_SANDBOXING = NO
 CODE_SIGN_STYLE = Automatic
 DEVELOPMENT_TEAM = 9WTRWY5M2A
