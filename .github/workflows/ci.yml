@@ -138,7 +138,21 @@ jobs:
         shell: bash
         run: |
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
-          brew list periphery >/dev/null 2>&1 || brew install peripheryapp/periphery/periphery
+          # Homebrew disabled `depends_on macos: :catalina`, which the periphery cask still
+          # declares, so the tap no longer installs; fetch the same release zip the cask wraps.
+          if ! command -v periphery >/dev/null 2>&1; then
+            periphery_version=2.21.2
+            periphery_sha=e5b4e802f794df230a2e4b9d5bb176626b3a9fd74ea6cf7d0d42c20ebe57fd4a
+            curl -LsS -o periphery.zip \
+              "https://github.com/peripheryapp/periphery/releases/download/${periphery_version}/periphery-${periphery_version}.zip"
+            echo "${periphery_sha}  periphery.zip" | shasum -a 256 -c -
+            mkdir -p "$HOME/.local/bin"
+            unzip -oq periphery.zip -d "$HOME/.local/bin"
+            rm periphery.zip
+            chmod +x "$HOME/.local/bin/periphery"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
           xcodegen --version
