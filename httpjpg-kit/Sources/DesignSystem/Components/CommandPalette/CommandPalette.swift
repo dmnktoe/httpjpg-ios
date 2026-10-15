@@ -17,6 +17,7 @@ public struct CommandPalette: View {
     public var onQuery: (String) -> Void
     public var onAsk: () -> Void
     public var onClearRecents: () -> Void
+    public var onForgetRecent: (String) -> Void
 
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -39,7 +40,8 @@ public struct CommandPalette: View {
         onAction: @escaping (CommandPaletteAction) -> Void = { _ in },
         onQuery: @escaping (String) -> Void = { _ in },
         onAsk: @escaping () -> Void = {},
-        onClearRecents: @escaping () -> Void = {}
+        onClearRecents: @escaping () -> Void = {},
+        onForgetRecent: @escaping (String) -> Void = { _ in }
     ) {
         self.query = query
         self.results = results
@@ -56,6 +58,7 @@ public struct CommandPalette: View {
         self.onQuery = onQuery
         self.onAsk = onAsk
         self.onClearRecents = onClearRecents
+        self.onForgetRecent = onForgetRecent
     }
 
     public var body: some View {
@@ -269,14 +272,23 @@ public struct CommandPalette: View {
                     .accessibilityLabel("Clear recent searches")
             }
 
-            FlowLayout(spacing: Spacing.s2) {
-                ForEach(recents, id: \.self) { recent in
-                    CommandPaletteChip(glyph: "↺", title: recent) {
-                        onQuery(recent)
+            VStack(spacing: 0) {
+                ForEach(Array(recents.enumerated()), id: \.element) { entry in
+                    if entry.offset > 0 {
+                        Divider()
+                            .overlay(theme.border.opacity(Opacities.subtle))
+                            .padding(.leading, Spacing.s7)
                     }
-                    .accessibilityHint("Searches for this again")
+
+                    CommandPaletteRecentRow(
+                        query: entry.element,
+                        onSelect: { onQuery(entry.element) },
+                        onForget: { onForgetRecent(entry.element) }
+                    )
                 }
             }
+            .modifier(SwipeActionsContainerIfAvailable())
+            .animation(reduceMotion ? nil : Motion.stateChange, value: recents)
         }
     }
 
@@ -321,6 +333,21 @@ public struct CommandPalette: View {
             && !showsAnswerPanel
             && results.isEmpty
             && status != .searching
+    }
+}
+
+/// Lets the recent rows swipe outside a List. iOS 27 SDK only, so Xcode 26 (Swift 6.3) skips it at compile time.
+private struct SwipeActionsContainerIfAvailable: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.4)
+        if #available(iOS 27.0, *) {
+            content.swipeActionsContainer()
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
     }
 }
 

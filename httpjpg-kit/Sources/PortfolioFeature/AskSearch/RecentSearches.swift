@@ -28,6 +28,14 @@ struct RecentSearches {
         return next
     }
 
+    /// Drops one remembered query, matched the same case-insensitive way `remember` dedupes.
+    @discardableResult
+    func forget(_ query: String) -> [String] {
+        let next = all.filter { $0.caseInsensitiveCompare(query) != .orderedSame }
+        defaults.set(next, forKey: Self.key)
+        return next
+    }
+
     func clear() {
         defaults.removeObject(forKey: Self.key)
     }

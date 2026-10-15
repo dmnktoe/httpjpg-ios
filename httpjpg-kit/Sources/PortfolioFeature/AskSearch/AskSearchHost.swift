@@ -67,7 +67,8 @@ struct AskSearchHost: View {
                 },
                 onQuery: { model.selectSuggestion($0) },
                 onAsk: { model.ask() },
-                onClearRecents: { model.clearRecents() }
+                onClearRecents: { model.clearRecents() },
+                onForgetRecent: { model.forgetRecent($0) }
             )
         }
         .pageTheme(theme)

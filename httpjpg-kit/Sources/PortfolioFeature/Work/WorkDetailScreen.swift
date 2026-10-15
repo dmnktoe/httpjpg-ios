@@ -9,6 +9,22 @@ private struct WorkDetailLoadID: Hashable {
     let token: Int
 }
 
+/// Work pages are long reads: on iOS 27 the orbs slide away while scrolling down and return on the way up.
+/// The API exists only in the iOS 27 SDK, so Xcode 26 (Swift 6.3) compiles this to a no-op.
+private struct ReadingToolbarMinimize: ViewModifier {
+    func body(content: Content) -> some View {
+        #if compiler(>=6.4)
+        if #available(iOS 27.0, *) {
+            content.toolbarMinimizeBehavior(.onScrollDown, for: .navigationBar)
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
 struct WorkDetailScreen: View {
     let route: WorkRoute
 
@@ -52,6 +68,7 @@ struct WorkDetailScreen: View {
                 trailingButtons
             }
         }
+        .modifier(ReadingToolbarMinimize())
         .task(id: WorkDetailLoadID(slug: route.slug, token: app.workRouteToken)) {
             let token = app.workRouteToken
             if let model,

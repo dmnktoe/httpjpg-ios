@@ -32,6 +32,16 @@ final class RecentSearchesTests: XCTestCase {
         XCTAssertEqual(recents.all.first, "query 9")
     }
 
+    func testForgetDropsOnlyThatQueryWhateverItsCase() {
+        let recents = RecentSearches(defaults: makeDefaults())
+        recents.remember("blence")
+        recents.remember("sentiment")
+
+        XCTAssertEqual(recents.forget("BLENCE"), ["sentiment"])
+        XCTAssertEqual(recents.all, ["sentiment"])
+        XCTAssertEqual(recents.forget("not there"), ["sentiment"])
+    }
+
     func testClearForgetsEverything() {
         let recents = RecentSearches(defaults: makeDefaults())
         recents.remember("blence")

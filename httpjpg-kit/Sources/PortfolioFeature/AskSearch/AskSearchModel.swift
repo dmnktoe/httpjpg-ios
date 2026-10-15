@@ -82,6 +82,10 @@ final class AskSearchModel {
         recentQueries = recents.remember(query)
     }
 
+    func forgetRecent(_ query: String) {
+        recentQueries = recents.forget(query)
+    }
+
     func clearRecents() {
         recents.clear()
         recentQueries = []
