@@ -96,9 +96,11 @@ struct WorkIndexScreen: View {
 
     private func masthead(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Headline(app.defaultPageTitle, level: .two, lineSpacing: -0.45)
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
+            if app.hasSiteConfig {
+                headline(app.defaultPageTitle)
+            } else {
+                headlineSkeleton
+            }
 
             VariantPicker(
                 selection: model.variant,
@@ -120,6 +122,26 @@ struct WorkIndexScreen: View {
         }
         .padding(.top, Spacing.s2)
         .animation(Motion.stateChange, value: model.availableTags)
+    }
+
+    private func headline(_ title: String) -> some View {
+        Headline(title, level: .two, lineSpacing: -0.45)
+            .lineLimit(2)
+            .minimumScaleFactor(0.7)
+    }
+
+    // Sized by a hidden two-line headline so the real title, which runs to two
+    // lines in the CMS, replaces it without reflowing the page.
+    private var headlineSkeleton: some View {
+        headline(" \n ")
+            .hidden()
+            .overlay(alignment: .leading) {
+                VStack(alignment: .leading, spacing: Spacing.s2) {
+                    SkeletonBlock(width: 300, height: nil)
+                    SkeletonBlock(width: 200, height: nil)
+                }
+            }
+            .accessibilityHidden(true)
     }
 
     // Holds the filter toggle's line so the tags arriving don't push the list down.
