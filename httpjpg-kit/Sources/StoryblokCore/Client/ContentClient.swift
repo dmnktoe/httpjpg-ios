@@ -88,6 +88,15 @@ public final class ContentClient: @unchecked Sendable {
         }
     }
 
+    /// The last config this device fetched, however old, read straight from the
+    /// response cache. Lets the masthead lay out with the real title on launch
+    /// instead of reflowing once `siteConfig()` returns.
+    public func cachedSiteConfig() -> SiteConfig? {
+        let request = storyRequest(at: StorySlug.config, locale: .en)
+        guard let data = cache.data(for: request, allowsStale: true) else { return nil }
+        return try? Self.decoder().decode(StoryResponse<SiteConfig>.self, from: data).story.content
+    }
+
     public func clearCache() {
         cache.removeAll()
     }
@@ -126,6 +135,15 @@ public final class ContentClient: @unchecked Sendable {
         locale: AppLocale,
         refresh: Bool
     ) async throws -> Story<Content> {
+        let data = try await load(storyRequest(at: slug, locale: locale), refresh: refresh)
+        do {
+            return try Self.decoder().decode(StoryResponse<Content>.self, from: data).story
+        } catch {
+            throw ContentError.decoding(String(describing: error))
+        }
+    }
+
+    private func storyRequest(at slug: String, locale: AppLocale) -> URLRequest {
         var queryItems = [
             URLQueryItem(name: "resolve_relations", value: PortfolioBlok.relations),
         ]
@@ -133,14 +151,7 @@ public final class ContentClient: @unchecked Sendable {
             queryItems.append(URLQueryItem(name: "language", value: language))
             queryItems.append(URLQueryItem(name: "fallback_lang", value: "default"))
         }
-
-        let request = buildRequest(path: "stories/\(slug)", queryItems: queryItems)
-        let data = try await load(request, refresh: refresh)
-        do {
-            return try Self.decoder().decode(StoryResponse<Content>.self, from: data).story
-        } catch {
-            throw ContentError.decoding(String(describing: error))
-        }
+        return buildRequest(path: "stories/\(slug)", queryItems: queryItems)
     }
 
     private func stories<Content: Decodable>(
