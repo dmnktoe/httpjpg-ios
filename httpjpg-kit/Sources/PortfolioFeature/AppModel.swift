@@ -69,6 +69,7 @@ public final class AppModel {
         self.client = client
         self.workIndex = WorkIndexModel(client: client)
         self.info = InfoModel(client: client)
+        self.config = client.cachedSiteConfig() ?? .fallback
     }
 
     public var configuration: StoryblokConfiguration { client.configuration }

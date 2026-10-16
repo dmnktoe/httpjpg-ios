@@ -105,7 +105,9 @@ struct WorkIndexScreen: View {
                 onSelect: { model.select(variant: $0) }
             )
 
-            if !model.availableTags.isEmpty {
+            if !model.isLoaded {
+                tagFilterPlaceholder
+            } else if !model.availableTags.isEmpty {
                 WorkTagFilter(
                     tags: model.availableTags,
                     counts: model.tagCounts,
@@ -118,6 +120,17 @@ struct WorkIndexScreen: View {
         }
         .padding(.top, Spacing.s2)
         .animation(Motion.stateChange, value: model.availableTags)
+    }
+
+    // Holds the filter toggle's line so the tags arriving don't push the list down.
+    private var tagFilterPlaceholder: some View {
+        Text(verbatim: "[ + ] FILTER · 0 tags")
+            .font(Typography.mono(Typography.Size.xs))
+            .hidden()
+            .overlay(alignment: .leading) {
+                SkeletonBlock(height: Typography.Size.xs)
+            }
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder
