@@ -32,6 +32,7 @@ struct InfoScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
+                    InfoTicker(config: app.config)
                     pages
                     InfoLinksSection(links: app.config.headerMenu)
                 }
