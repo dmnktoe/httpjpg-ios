@@ -19,7 +19,8 @@ public enum CommandPaletteHighlight {
             .filter { $0.count >= 3 && !stopWords.contains($0) && seen.insert($0).inserted }
     }
 
-    /// Every occurrence of every term, overlaps merged, in document order.
+    /// Every occurrence of every term that starts a word, overlaps merged, in document order.
+    /// Mid-word hits are skipped: "app" inside "happened" marks a row the reader can't connect to the query.
     public static func ranges(of terms: [String], in text: String) -> [Range<String.Index>] {
         var found: [Range<String.Index>] = []
         for term in terms where !term.isEmpty {
@@ -29,8 +30,12 @@ public enum CommandPaletteHighlight {
                 options: [.caseInsensitive, .diacriticInsensitive],
                 range: window
             ), !match.isEmpty {
-                found.append(match)
-                window = match.upperBound..<text.endIndex
+                if startsWord(match.lowerBound, in: text) {
+                    found.append(match)
+                    window = match.upperBound..<text.endIndex
+                } else {
+                    window = text.index(after: match.lowerBound)..<text.endIndex
+                }
             }
         }
         return merge(found)
@@ -72,6 +77,12 @@ public enum CommandPaletteHighlight {
         theme.isDark
             ? Palette.accent.s500.opacity(Opacities.dimmed)
             : Palette.accent.s300.opacity(Opacities.muted)
+    }
+
+    private static func startsWord(_ index: String.Index, in text: String) -> Bool {
+        guard index > text.startIndex else { return true }
+        let previous = text[text.index(before: index)]
+        return !previous.isLetter && !previous.isNumber
     }
 
     private static func merge(_ ranges: [Range<String.Index>]) -> [Range<String.Index>] {
