@@ -11,11 +11,13 @@ final class SearchModelsTests: XCTestCase {
              "featured":{"source":"https://a.storyblok.com/f/1/2000x1000/x/photo.jpg","focus":"10x20:30x40"}},
             {"id":"2","title":"CV","href":"/cv","kind":"page"}
           ],
-          "suggestions": ["atlas", "atelier"]
+          "suggestions": ["atlas", "atelier"],
+          "terms": ["atlas"]
         }
         """.utf8)
         let response = try JSONDecoder().decode(SearchResponse.self, from: data)
 
+        XCTAssertEqual(response.terms, ["atlas"])
         XCTAssertEqual(response.results.map(\.title), ["ATLAS", "CV"])
         XCTAssertEqual(response.results.map(\.kind), [.work, .page])
         XCTAssertEqual(response.suggestions, ["atlas", "atelier"])
@@ -29,6 +31,13 @@ final class SearchModelsTests: XCTestCase {
             "https://a.storyblok.com/f/1/2000x1000/x/photo.jpg/m/200x0/filters:quality(75):focal(10x20:200x0)"
         )
         XCTAssertNil(response.results[1].featured)
+    }
+
+    func testSearchResponseWithoutTermsDecodesAsEmpty() throws {
+        let data = Data(#"{"results":[],"suggestions":[]}"#.utf8)
+        let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+
+        XCTAssertEqual(response.terms, [])
     }
 
     func testEmptyFeaturedIsDropped() throws {

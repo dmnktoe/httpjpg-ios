@@ -22,6 +22,21 @@ struct CommandPaletteAnswerPanel: View {
     // The site assistant cites its sources inline as `[n]` or `[n, m]`; those get the mono treatment of the chips below.
     private static let citation = #/\[\d+(?:\s*,\s*\d+)*\]/#
 
+    // Inline `[n]` become links on this private scheme; the panel's openURL handler turns them into a source tap.
+    private static let citationScheme = "httpjpg-citation"
+
+    static func citationURL(_ number: Int) -> URL? {
+        URL(string: "\(citationScheme)://source/\(number)")
+    }
+
+    /// The source an inline citation link points at, or nil for any other URL.
+    static func source(for url: URL, in sources: [CommandPaletteSource]) -> CommandPaletteSource? {
+        guard url.scheme == citationScheme, let number = Int(url.lastPathComponent),
+              sources.indices.contains(number - 1)
+        else { return nil }
+        return sources[number - 1]
+    }
+
     struct CitedSource: Identifiable {
         let number: Int
         let source: CommandPaletteSource
@@ -125,7 +140,13 @@ struct CommandPaletteAnswerPanel: View {
                 .lineSpacing(Spacing.s1)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .tint(Palette.primary.s500)
         }
+        .environment(\.openURL, OpenURLAction { url in
+            guard let source = Self.source(for: url, in: sources) else { return .systemAction }
+            onSource(source)
+            return .handled
+        })
         .accessibilityLabel(answer)
     }
 
@@ -135,6 +156,12 @@ struct CommandPaletteAnswerPanel: View {
             guard let range = Range(match.range, in: text) else { continue }
             text[range].font = Typography.mono(Typography.Size.xs, weight: .semibold)
             text[range].foregroundColor = Palette.primary.s500
+            for digits in answer[match.range].matches(of: #/\d+/#) {
+                guard let number = Int(digits.output), sources.indices.contains(number - 1),
+                      let link = Range(digits.range, in: text)
+                else { continue }
+                text[link].link = Self.citationURL(number)
+            }
         }
         if isStreaming {
             var cursor = AttributedString(" ▍")

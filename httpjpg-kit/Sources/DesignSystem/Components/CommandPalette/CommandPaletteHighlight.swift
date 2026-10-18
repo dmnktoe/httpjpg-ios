@@ -19,6 +19,9 @@ public enum CommandPaletteHighlight {
             .filter { $0.count >= 3 && !stopWords.contains($0) && seen.insert($0).inserted }
     }
 
+    // Below this a term only marks a whole word, the rule the server ranks by: "app" as a prefix lights up "appearance".
+    private static let minPrefixLength = 4
+
     /// Every occurrence of every term that starts a word, overlaps merged, in document order.
     /// Mid-word hits are skipped: "app" inside "happened" marks a row the reader can't connect to the query.
     public static func ranges(of terms: [String], in text: String) -> [Range<String.Index>] {
@@ -30,7 +33,9 @@ public enum CommandPaletteHighlight {
                 options: [.caseInsensitive, .diacriticInsensitive],
                 range: window
             ), !match.isEmpty {
-                if startsWord(match.lowerBound, in: text) {
+                if startsWord(match.lowerBound, in: text),
+                   term.count >= minPrefixLength || endsWord(match.upperBound, in: text)
+                {
                     found.append(match)
                     window = match.upperBound..<text.endIndex
                 } else {
@@ -83,6 +88,12 @@ public enum CommandPaletteHighlight {
         guard index > text.startIndex else { return true }
         let previous = text[text.index(before: index)]
         return !previous.isLetter && !previous.isNumber
+    }
+
+    private static func endsWord(_ index: String.Index, in text: String) -> Bool {
+        guard index < text.endIndex else { return true }
+        let next = text[index]
+        return !next.isLetter && !next.isNumber
     }
 
     private static func merge(_ ranges: [Range<String.Index>]) -> [Range<String.Index>] {

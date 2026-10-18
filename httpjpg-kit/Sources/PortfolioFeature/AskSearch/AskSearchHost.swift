@@ -37,6 +37,7 @@ struct AskSearchHost: View {
             query: model.query,
             results: model.results,
             suggestions: model.suggestions,
+            highlightTerms: model.terms,
             recents: model.recentQueries,
             answer: model.answer,
             sources: model.sources,

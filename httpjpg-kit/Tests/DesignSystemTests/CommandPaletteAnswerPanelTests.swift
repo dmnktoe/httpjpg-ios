@@ -19,4 +19,18 @@ final class CommandPaletteAnswerPanelTests: XCTestCase {
         XCTAssertEqual(CommandPaletteAnswerPanel.citedSources(in: "See [0] and [9].", from: sources).count, 0)
         XCTAssertEqual(CommandPaletteAnswerPanel.citedSources(in: "No citations here.", from: sources).count, 0)
     }
+
+    func testCitationLinksResolveToTheirSource() throws {
+        let url = try XCTUnwrap(CommandPaletteAnswerPanel.citationURL(3))
+
+        XCTAssertEqual(CommandPaletteAnswerPanel.source(for: url, in: sources)?.title, "Work 3")
+    }
+
+    func testOtherLinksAndOutOfRangeCitationsAreLeftToTheSystem() throws {
+        let web = try XCTUnwrap(URL(string: "https://httpjpg.com/work/3"))
+        let tooFar = try XCTUnwrap(CommandPaletteAnswerPanel.citationURL(9))
+
+        XCTAssertNil(CommandPaletteAnswerPanel.source(for: web, in: sources))
+        XCTAssertNil(CommandPaletteAnswerPanel.source(for: tooFar, in: sources))
+    }
 }
