@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/storyblok/storyblok-swift.git",
       "state" : {
-        "revision" : "083c91d5d9851e7cbaaab0b63c7b4170413de9ef",
-        "version" : "0.3.0"
+        "revision" : "beacb130fe968e8efd9ba2a6a37d8414cefa622e",
+        "version" : "1.0.0"
       }
     },
     {
