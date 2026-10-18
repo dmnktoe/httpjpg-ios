@@ -125,7 +125,7 @@ struct WorkIndexScreen: View {
     }
 
     private func headline(_ title: String) -> some View {
-        Headline(title, level: .two, lineSpacing: -0.45)
+        Headline(title, level: .two, lineSpacing: -0.3)
             .lineLimit(2)
             .minimumScaleFactor(0.7)
     }

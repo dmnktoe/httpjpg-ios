@@ -67,7 +67,7 @@ public struct Headline: View {
                 Text(text)
                     .font(Typography.headline(size))
                     .tracking(size * level.trackingRatio)
-                    .lineSpacing(size * lineSpacingRatio)
+                    .modifier(HeadlineLeading(size: size, ratio: lineSpacingRatio))
                     .multilineTextAlignment(alignment.multiline)
                     .foregroundStyle(color.map(AnyShapeStyle.init) ?? AnyShapeStyle(.foreground))
             }
@@ -89,6 +89,27 @@ public struct Headline: View {
             max: spec.max,
             width: viewportWidth
         )
+    }
+}
+
+// SwiftUI drops negative lineSpacing (NSParagraphStyle clamps it to zero), so the
+// tight leading headlines ask for only lands through iOS 26's lineHeight, whose
+// multiple is of the point size rather than the font's natural line height.
+private struct HeadlineLeading: ViewModifier {
+    let size: CGFloat
+    let ratio: CGFloat
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.lineHeight(.multiple(factor: naturalLineHeight + ratio))
+        } else {
+            content.lineSpacing(size * ratio)
+        }
+    }
+
+    private var naturalLineHeight: CGFloat {
+        let font = Typography.uiHeadline(size)
+        return font.lineHeight / font.pointSize
     }
 }
 
