@@ -23,8 +23,7 @@ struct TabPillBar: View {
             onSelect: onSelect,
             onWidthChange: onWidthChange,
             label: { tab in
-                Text(tab.label)
-                    .font(Typography.mono(Typography.Size.xs))
+                TabPillLabel(tab: tab, isSelected: tab == selection)
             },
             accessibilityName: { tab in tab.accessibilityLabel }
         )
