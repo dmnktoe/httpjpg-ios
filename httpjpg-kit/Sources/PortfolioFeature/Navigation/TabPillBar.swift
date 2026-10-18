@@ -14,7 +14,7 @@ struct TabPillBar: View {
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     var body: some View {
-        SegmentedPillBar(
+        GlassTabBar(
             AppModel.Tab.allCases,
             selection: selection,
             accent: Palette.primary.s500,
@@ -23,7 +23,10 @@ struct TabPillBar: View {
             onSelect: onSelect,
             onWidthChange: onWidthChange,
             label: { tab in
-                TabPillLabel(tab: tab, isSelected: tab == selection)
+                ScrambleText(tab.label, isActive: tab == selection, alignment: .center) { text in
+                    Text(text)
+                        .font(Typography.mono(Typography.Size.xs))
+                }
             },
             accessibilityName: { tab in tab.accessibilityLabel }
         )
