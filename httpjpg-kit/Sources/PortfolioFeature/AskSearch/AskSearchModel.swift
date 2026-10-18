@@ -12,6 +12,8 @@ final class AskSearchModel {
     var query = ""
     private(set) var results: [CommandPaletteHit] = []
     private(set) var suggestions: [String] = []
+    /// What the server ranked on, so the marker matches the results it belongs to.
+    private(set) var terms: [String] = []
     private(set) var answer = ""
     private(set) var sources: [CommandPaletteSource] = []
     private(set) var action: CommandPaletteAction?
@@ -67,6 +69,7 @@ final class AskSearchModel {
             searchTask?.cancel()
             results = []
             suggestions = []
+            terms = []
             status = .idle
             return
         }
@@ -192,6 +195,7 @@ final class AskSearchModel {
                     )
                 }
                 suggestions = response.suggestions
+                terms = response.terms
                 status = .idle
             } catch is CancellationError {
                 return
@@ -199,6 +203,7 @@ final class AskSearchModel {
                 guard !Task.isCancelled, generation == searchGeneration else { return }
                 results = []
                 suggestions = []
+                terms = []
                 status = .idle
             }
         }

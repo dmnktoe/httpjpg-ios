@@ -19,8 +19,43 @@ struct CommandPaletteAnswerPanel: View {
     // The sweep keeps running this long after the last token, so a finished answer still reads as fresh.
     private static let glowLinger: Duration = .milliseconds(1600)
     private static let cursorBlink: TimeInterval = 0.5
-    // The site assistant cites its sources inline as `[n]`; those get the mono treatment of the chips below.
-    private static let citation = #/\[\d+\]/#
+    // The site assistant cites its sources inline as `[n]` or `[n, m]`; those get the mono treatment of the chips below.
+    private static let citation = #/\[\d+(?:\s*,\s*\d+)*\]/#
+
+    // Inline `[n]` become links on this private scheme; the panel's openURL handler turns them into a source tap.
+    private static let citationScheme = "httpjpg-citation"
+
+    static func citationURL(_ number: Int) -> URL? {
+        URL(string: "\(citationScheme)://source/\(number)")
+    }
+
+    /// The source an inline citation link points at, or nil for any other URL.
+    static func source(for url: URL, in sources: [CommandPaletteSource]) -> CommandPaletteSource? {
+        guard url.scheme == citationScheme, let number = Int(url.lastPathComponent),
+              sources.indices.contains(number - 1)
+        else { return nil }
+        return sources[number - 1]
+    }
+
+    struct CitedSource: Identifiable {
+        let number: Int
+        let source: CommandPaletteSource
+        var id: Int { number }
+    }
+
+    /// Only the sources the answer cites, keeping the server's numbering so a chip matches its inline `[n]`.
+    /// The server sends every document it retrieved as context; the ones the answer never cites aren't its sources.
+    static func citedSources(in answer: String, from sources: [CommandPaletteSource]) -> [CitedSource] {
+        var cited = Set<Int>()
+        for match in answer.matches(of: citation) {
+            for digits in match.output.split(whereSeparator: { !$0.isNumber }) {
+                if let number = Int(digits), sources.indices.contains(number - 1) {
+                    cited.insert(number)
+                }
+            }
+        }
+        return cited.sorted().map { CitedSource(number: $0, source: sources[$0 - 1]) }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
@@ -37,8 +72,9 @@ struct CommandPaletteAnswerPanel: View {
                 prose
             }
 
-            if !sources.isEmpty {
-                sourceChips
+            let cited = Self.citedSources(in: answer, from: sources)
+            if !cited.isEmpty {
+                sourceChips(cited)
             }
 
             if let action {
@@ -104,7 +140,13 @@ struct CommandPaletteAnswerPanel: View {
                 .lineSpacing(Spacing.s1)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .tint(Palette.primary.s500)
         }
+        .environment(\.openURL, OpenURLAction { url in
+            guard let source = Self.source(for: url, in: sources) else { return .systemAction }
+            onSource(source)
+            return .handled
+        })
         .accessibilityLabel(answer)
     }
 
@@ -114,6 +156,12 @@ struct CommandPaletteAnswerPanel: View {
             guard let range = Range(match.range, in: text) else { continue }
             text[range].font = Typography.mono(Typography.Size.xs, weight: .semibold)
             text[range].foregroundColor = Palette.primary.s500
+            for digits in answer[match.range].matches(of: #/\d+/#) {
+                guard let number = Int(digits.output), sources.indices.contains(number - 1),
+                      let link = Range(digits.range, in: text)
+                else { continue }
+                text[link].link = Self.citationURL(number)
+            }
         }
         if isStreaming {
             var cursor = AttributedString(" ▍")
@@ -134,7 +182,7 @@ struct CommandPaletteAnswerPanel: View {
         .accessibilityLabel("Thinking")
     }
 
-    private var sourceChips: some View {
+    private func sourceChips(_ cited: [CitedSource]) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
             Text("sources")
                 .font(Typography.mono(Typography.Size.xxs))
@@ -142,11 +190,11 @@ struct CommandPaletteAnswerPanel: View {
                 .opacity(Opacities.muted)
 
             FlowLayout(spacing: Spacing.s2) {
-                ForEach(Array(sources.enumerated()), id: \.element.id) { entry in
-                    CommandPaletteChip(glyph: "[\(entry.offset + 1)]", title: entry.element.title) {
-                        onSource(entry.element)
+                ForEach(cited) { entry in
+                    CommandPaletteChip(glyph: "[\(entry.number)]", title: entry.source.title) {
+                        onSource(entry.source)
                     }
-                    .accessibilityLabel("Source \(entry.offset + 1), \(entry.element.title)")
+                    .accessibilityLabel("Source \(entry.number), \(entry.source.title)")
                 }
             }
         }

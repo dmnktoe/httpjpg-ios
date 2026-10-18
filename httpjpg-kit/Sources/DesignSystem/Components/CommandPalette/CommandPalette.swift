@@ -5,6 +5,7 @@ public struct CommandPalette: View {
     public var query: String
     public var results: [CommandPaletteHit]
     public var suggestions: [String]
+    public var highlightTerms: [String]
     public var recents: [String]
     public var answer: String
     public var sources: [CommandPaletteSource]
@@ -29,6 +30,7 @@ public struct CommandPalette: View {
         query: String,
         results: [CommandPaletteHit],
         suggestions: [String] = [],
+        highlightTerms: [String] = [],
         recents: [String] = [],
         answer: String = "",
         sources: [CommandPaletteSource] = [],
@@ -46,6 +48,7 @@ public struct CommandPalette: View {
         self.query = query
         self.results = results
         self.suggestions = suggestions
+        self.highlightTerms = highlightTerms
         self.recents = recents
         self.answer = answer
         self.sources = sources
@@ -304,8 +307,9 @@ public struct CommandPalette: View {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    // The server's terms belong to the results on screen; the local split only covers an older deployment.
     private var terms: [String] {
-        CommandPaletteHighlight.terms(in: query)
+        highlightTerms.isEmpty ? CommandPaletteHighlight.terms(in: query) : highlightTerms
     }
 
     private var pendingSuggestions: [String] {

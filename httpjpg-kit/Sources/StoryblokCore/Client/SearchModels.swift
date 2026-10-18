@@ -76,20 +76,24 @@ public struct SearchFeatured: Decodable, Hashable, Sendable {
 public struct SearchResponse: Decodable, Sendable {
     public let results: [SearchHit]
     public let suggestions: [String]
+    /// The normalized words the server ranked on. Older deployments omit it, so it decodes as empty.
+    public let terms: [String]
 
     private enum CodingKeys: String, CodingKey {
-        case results, suggestions
+        case results, suggestions, terms
     }
 
-    public init(results: [SearchHit] = [], suggestions: [String] = []) {
+    public init(results: [SearchHit] = [], suggestions: [String] = [], terms: [String] = []) {
         self.results = results
         self.suggestions = suggestions
+        self.terms = terms
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         results = container.cmsArray(SearchHit.self, forKey: .results)
         suggestions = container.cmsArray(String.self, forKey: .suggestions)
+        terms = container.cmsArray(String.self, forKey: .terms)
     }
 }
 

@@ -25,6 +25,21 @@ final class CommandPaletteHighlightTests: XCTestCase {
         XCTAssertEqual(ranges.map { String("Le Café"[$0]) }, ["Café"])
     }
 
+    func testRangesOnlyMarkTermsThatStartAWord() {
+        let text = "what happened to the app, an application, 1,100+ commits"
+        let ranges = CommandPaletteHighlight.ranges(of: ["app", "appl", "100"], in: text)
+
+        XCTAssertEqual(ranges.map { String(text[$0]) }, ["app", "appl", "100"])
+        XCTAssertFalse(ranges.contains { text.distance(from: text.startIndex, to: $0.lowerBound) == 6 })
+    }
+
+    func testShortTermsOnlyMarkWholeWords() {
+        let text = "an app, an appearance, ID-100 idea"
+        let ranges = CommandPaletteHighlight.ranges(of: ["app", "id"], in: text)
+
+        XCTAssertEqual(ranges.map { String(text[$0]) }, ["app", "ID"])
+    }
+
     func testSnippetStartsNearTheFirstMatchOnAWordBoundary() {
         let excerpt = "An audiovisual manifesto that serves as a thesis on dermatillomania, framing it as a loop."
 
