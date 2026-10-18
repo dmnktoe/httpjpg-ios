@@ -30,7 +30,11 @@ struct InfoScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
-                    Headline("info", level: .two)
+                    InfoHeader(
+                        config: app.config,
+                        pageCount: pageCount,
+                        isActive: app.selectedTab == .info
+                    )
 
                     pages
                     InfoLinksSection(links: app.config.headerMenu)
@@ -59,6 +63,11 @@ struct InfoScreen: View {
             await app.info.load(force: true)
             await app.footerWidgets?.load()
         }
+    }
+
+    private var pageCount: Int? {
+        guard case .loaded(let summaries) = app.info.state, !summaries.isEmpty else { return nil }
+        return summaries.count
     }
 
     @ViewBuilder
