@@ -8,14 +8,16 @@ struct InfoScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
 
+    private static let title = "˚₊‧ info ‧₊˚"
+
     var body: some View {
         @Bindable var app = app
         return NavigationStack(path: $app.infoPath) {
             ScrollToTopReader(tick: app.scrollToTopTick(for: .info)) {
                 infoList
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(Self.title)
+            .navigationBarTitleDisplayMode(.large)
             .sidebarMenuToolbar()
             .askSearchToolbar()
             .navigationDestination(for: PageRoute.self) { route in
@@ -30,8 +32,7 @@ struct InfoScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
-                    Headline("info", level: .two)
-
+                    InfoTicker(config: app.config)
                     pages
                     InfoLinksSection(links: app.config.headerMenu)
                 }

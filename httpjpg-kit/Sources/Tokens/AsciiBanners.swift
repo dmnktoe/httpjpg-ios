@@ -5,6 +5,7 @@ public enum Ascii {
     public static let askMark = "·✦·"
     public static let askGlyph = "✦"
     public static let tape = "▰▰▰▱▱▱▰▰▰▱▱▱▰▰▰"
+    public static let scramble = "░▒▓▚▞✦⋆*+#%@&"
 
     public static let dividerStars = "*ੈ✩‧₊˚༺☆༻*ੈ✩‧₊˚"
     public static let dividerDots = "· ─ · ─ · ─ · ─ ·"

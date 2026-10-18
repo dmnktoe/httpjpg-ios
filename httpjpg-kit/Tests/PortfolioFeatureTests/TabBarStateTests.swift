@@ -50,4 +50,15 @@ final class TabBarStateTests: XCTestCase {
         XCTAssertEqual(app.scrollToTopTick(for: .info), 0)
     }
 
+    func testTheTabBarTakesTheOpenProjectsAccent() {
+        let app = makeApp()
+        XCTAssertNil(app.chromeAccentToken, "the work index keeps the default accent")
+
+        app.workPath = [WorkRoute(slug: "atlas", title: "ATLAS", accentColor: "#FF0055")]
+        XCTAssertEqual(app.chromeAccentToken, "#FF0055")
+
+        app.selectedTab = .info
+        XCTAssertNil(app.chromeAccentToken, "a project left open under work doesn't tint the info tab")
+    }
+
 }

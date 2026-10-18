@@ -21,4 +21,12 @@ public enum PillMetrics {
     public static let pressedScale: CGFloat = 0.96
 
     public static let labelScaleFloor: CGFloat = 0.7
+
+    // Inset between a tab bar's glass and its selection, taken out of the
+    // segment padding so the bar stays as tall as a lone pill.
+    public static let tabInset: CGFloat = Spacing.s1
+
+    public static let scrubStretch: CGFloat = 1.04
+
+    public static let tapSlop: CGFloat = Spacing.s2
 }

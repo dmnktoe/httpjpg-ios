@@ -236,6 +236,13 @@ public final class AppModel {
         }
     }
 
+    // The bottom bar sits outside the navigation stacks, so it never sees the
+    // chromeAccent a work detail sets; it repeats that screen's lookup instead.
+    var chromeAccentToken: String? {
+        guard selectedTab == .work, let route = workPath.last else { return nil }
+        return workIndex.allWork.first { $0.slug == route.slug }?.accentColor ?? route.accentColor
+    }
+
     private(set) var scrollToTopTicks: [Tab: Int] = [:]
 
     func scrollToTopTick(for tab: Tab) -> Int {

@@ -11,6 +11,8 @@ public enum Motion {
 
     public static let drawer: Animation = .interactiveSpring(response: 0.3, dampingFraction: 0.9)
 
+    public static let glide: Animation = .spring(response: 0.38, dampingFraction: 0.74)
+
     public static let palettePop: Animation = .spring(response: 0.42, dampingFraction: 0.68)
 
     public static let glowFade: Animation = .easeInOut(duration: 1.2)
