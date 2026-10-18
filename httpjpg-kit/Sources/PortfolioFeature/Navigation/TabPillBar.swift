@@ -9,8 +9,6 @@ struct TabPillBar: View {
 
     let onSelect: (AppModel.Tab) -> Void
 
-    let onWidthChange: (CGFloat) -> Void
-
     @Environment(\.viewportSafeAreaBottom) private var safeAreaBottom
 
     var body: some View {
@@ -21,7 +19,6 @@ struct TabPillBar: View {
             onAccent: Palette.onNamed("primary.500"),
             in: glass,
             onSelect: onSelect,
-            onWidthChange: onWidthChange,
             label: { tab in
                 ScrambleText(tab.label, isActive: tab == selection, alignment: .center) { text in
                     Text(text)

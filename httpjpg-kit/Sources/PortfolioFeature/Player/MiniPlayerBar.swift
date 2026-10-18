@@ -6,8 +6,6 @@ import Tokens
 struct MiniPlayerBar: View {
     let player: AudioPlayerModel
 
-    let width: CGFloat
-
     let glass: Namespace.ID
 
     private static let rowHeight: CGFloat = 32
@@ -61,7 +59,6 @@ struct MiniPlayerBar: View {
             .foregroundStyle(tint.label)
             .padding(.horizontal, Spacing.s3)
             .padding(.vertical, Spacing.s2)
-            .frame(width: width > 0 ? width : nil)
             .liquidGlass(in: .capsule, tint: tint.fill)
             .liquidGlassID("player", in: glass)
             .clipShape(Capsule())
@@ -75,7 +72,7 @@ struct MiniPlayerBar: View {
                     }
                 }
             )
-            .padding(.horizontal, width > 0 ? 0 : PageLayout.gutter)
+            .padding(.horizontal, PageLayout.gutter)
             .glassReveal()
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Opens the full player")

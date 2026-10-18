@@ -1,6 +1,8 @@
 import SwiftUI
 import Tokens
 
+private let trackSpace = "glass-tab-bar.track"
+
 public struct GlassTabBar<Item: Hashable, Label: View>: View {
     private let items: [Item]
     private let selection: Item
@@ -8,7 +10,6 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
     private let onAccent: Color?
     private let namespace: Namespace.ID?
     private let onSelect: (Item) -> Void
-    private let onWidthChange: ((CGFloat) -> Void)?
     private let label: (Item) -> Label
     private let accessibilityName: (Item) -> String
 
@@ -18,7 +19,7 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
     @Namespace private var indicator
 
     @State private var scrubbed: Item?
-    @State private var trackWidth: CGFloat = 0
+    @State private var segmentFrames: [Item: CGRect] = [:]
 
     public init(
         _ items: [Item],
@@ -27,7 +28,6 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
         onAccent: Color? = nil,
         in namespace: Namespace.ID? = nil,
         onSelect: @escaping (Item) -> Void,
-        onWidthChange: ((CGFloat) -> Void)? = nil,
         @ViewBuilder label: @escaping (Item) -> Label,
         accessibilityName: @escaping (Item) -> String
     ) {
@@ -37,7 +37,6 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
         self.onAccent = onAccent
         self.namespace = namespace
         self.onSelect = onSelect
-        self.onWidthChange = onWidthChange
         self.label = label
         self.accessibilityName = accessibilityName
     }
@@ -49,14 +48,11 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
             }
         }
         .contentShape(.capsule)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { trackWidth = $0 }
+        .coordinateSpace(.named(trackSpace))
         .gesture(scrub)
         .padding(PillMetrics.tabInset)
         .liquidGlass(in: .capsule, isInteractive: true)
         .liquidGlassID(ifPresent: AnyHashable(Self.glassID), in: namespace)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width.rounded() }) { width in
-            onWidthChange?(width)
-        }
         .animation(reduceMotion ? nil : Motion.glide, value: highlighted)
         .animation(Motion.pressed, value: scrubbed == nil)
         .sensoryFeedback(.selection, trigger: highlighted)
@@ -82,9 +78,8 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
         return label(item)
             .lineLimit(1)
             .minimumScaleFactor(PillMetrics.labelScaleFloor)
-            .frame(maxWidth: .infinity)
             .frame(height: PillMetrics.labelHeight)
-            .padding(.horizontal, PillMetrics.compactHorizontalPadding)
+            .padding(.horizontal, PillMetrics.horizontalPadding)
             .padding(.vertical, PillMetrics.verticalPadding - PillMetrics.tabInset)
             .foregroundStyle(isHighlighted ? selectedTint.label : theme.foreground)
             .opacity(isHighlighted ? 1 : Opacities.muted)
@@ -97,6 +92,9 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
                 }
             }
             .contentShape(.capsule)
+            .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(trackSpace)) }) { frame in
+                segmentFrames[item] = frame
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(accessibilityName(item))
             .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
@@ -104,7 +102,7 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
     }
 
     private var scrub: some Gesture {
-        DragGesture(minimumDistance: 0)
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(trackSpace))
             .onChanged { value in
                 scrubbed = item(at: value.location.x)
             }
@@ -120,9 +118,10 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
             }
     }
 
+    // Segments hug their labels, so they differ in width; a touch past either
+    // end of the bar lands on the nearest segment.
     private func item(at x: CGFloat) -> Item? {
-        guard trackWidth > 0, !items.isEmpty else { return nil }
-        let index = Int(x / trackWidth * CGFloat(items.count))
-        return items[min(max(index, 0), items.count - 1)]
+        let laidOut = items.filter { segmentFrames[$0] != nil }
+        return laidOut.first { x < segmentFrames[$0]?.maxX ?? 0 } ?? laidOut.last
     }
 }

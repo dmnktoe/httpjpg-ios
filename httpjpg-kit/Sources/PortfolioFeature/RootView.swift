@@ -9,7 +9,6 @@ public struct RootView: View {
     @State private var player = AudioPlayerModel()
     @State private var quickActionInbox = QuickActionInbox.shared
 
-    @State private var pillRowWidth: CGFloat = 0
     @Environment(\.colorScheme) private var systemScheme
 
     @Namespace private var chrome
@@ -88,12 +87,11 @@ public struct RootView: View {
     private func bottomBar(_ player: AudioPlayerModel) -> some View {
         LiquidGlassContainer(spacing: Spacing.s2) {
             VStack(spacing: Spacing.s2) {
-                MiniPlayerBar(player: player, width: pillRowWidth, glass: chrome)
+                MiniPlayerBar(player: player, glass: chrome)
                 TabPillBar(
                     selection: model.selectedTab,
                     glass: chrome,
-                    onSelect: { model.select(tab: $0) },
-                    onWidthChange: { pillRowWidth = $0 }
+                    onSelect: { model.select(tab: $0) }
                 )
             }
         }
