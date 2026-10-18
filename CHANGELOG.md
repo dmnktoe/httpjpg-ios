@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.2.0...v1.3.0) (2026-10-18)
+
+
+### Added
+
+* **search:** polish the ask/search sheet ([#99](https://github.com/dmnktoe/httpjpg-ios/issues/99)) ([3e81a01](https://github.com/dmnktoe/httpjpg-ios/commit/3e81a01d66feecbb24371c18e843591ac8f6312c))
+
+
+### Fixed
+
+* **divider:** paint ascii dividers at full strength ([#97](https://github.com/dmnktoe/httpjpg-ios/issues/97)) ([320044d](https://github.com/dmnktoe/httpjpg-ios/commit/320044dc7f41f613c3dc2d6cf15c0bda5f1d086d))
+* **richtext:** render Storyblok tables instead of dropping them ([#98](https://github.com/dmnktoe/httpjpg-ios/issues/98)) ([5eb385e](https://github.com/dmnktoe/httpjpg-ios/commit/5eb385e32689fd0274cc23a2d8a57cea29ef58b8))
+* **search:** let results scroll beneath the sheet header ([#105](https://github.com/dmnktoe/httpjpg-ios/issues/105)) ([3b577c2](https://github.com/dmnktoe/httpjpg-ios/commit/3b577c2b9b84469e4acb66c2e2566edd12237d2b))
+* **work:** keep the masthead from shifting when content loads ([#104](https://github.com/dmnktoe/httpjpg-ios/issues/104)) ([39c8614](https://github.com/dmnktoe/httpjpg-ios/commit/39c861415b1e60ff38f5f948390d25ea5846e397))
+
+
+### Tooling
+
+* derive the build number from the repository's commit count ([#103](https://github.com/dmnktoe/httpjpg-ios/issues/103)) ([d6941e8](https://github.com/dmnktoe/httpjpg-ios/commit/d6941e85576cbaa64399e723eb337b29d6b7ad34))
+* raise the simulator app-size baseline to 82744 KiB ([#101](https://github.com/dmnktoe/httpjpg-ios/issues/101)) ([68aba1b](https://github.com/dmnktoe/httpjpg-ios/commit/68aba1b4c8bb9eb739e2d36d6f4949d7ed73e5a4))
+
 ## [1.2.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.1.0...v1.2.0) (2026-10-13)
 
 
