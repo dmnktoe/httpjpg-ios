@@ -33,7 +33,34 @@ struct AskSearchHost: View {
     }
 
     private var sheet: some View {
-        VStack(spacing: 0) {
+        CommandPalette(
+            query: model.query,
+            results: model.results,
+            suggestions: model.suggestions,
+            recents: model.recentQueries,
+            answer: model.answer,
+            sources: model.sources,
+            action: model.action,
+            status: model.status,
+            errorMessage: model.errorMessage,
+            isAskAvailable: model.isAskAvailable,
+            onSelect: select,
+            onAction: { action in
+                select(
+                    CommandPaletteHit(
+                        id: action.href,
+                        title: action.title,
+                        href: action.href,
+                        kind: action.kind
+                    )
+                )
+            },
+            onQuery: { model.selectSuggestion($0) },
+            onAsk: { model.ask() },
+            onClearRecents: { model.clearRecents() },
+            onForgetRecent: { model.forgetRecent($0) }
+        )
+        .modifier(HeaderBar {
             CommandPaletteHeader(
                 query: queryBinding,
                 isAskAvailable: model.isAskAvailable,
@@ -42,35 +69,7 @@ struct AskSearchHost: View {
                 onAsk: { model.ask() },
                 onClose: { model.close() }
             )
-
-            CommandPalette(
-                query: model.query,
-                results: model.results,
-                suggestions: model.suggestions,
-                recents: model.recentQueries,
-                answer: model.answer,
-                sources: model.sources,
-                action: model.action,
-                status: model.status,
-                errorMessage: model.errorMessage,
-                isAskAvailable: model.isAskAvailable,
-                onSelect: select,
-                onAction: { action in
-                    select(
-                        CommandPaletteHit(
-                            id: action.href,
-                            title: action.title,
-                            href: action.href,
-                            kind: action.kind
-                        )
-                    )
-                },
-                onQuery: { model.selectSuggestion($0) },
-                onAsk: { model.ask() },
-                onClearRecents: { model.clearRecents() },
-                onForgetRecent: { model.forgetRecent($0) }
-            )
-        }
+        })
         .pageTheme(theme)
         .presentationDetents([.medium, .large], selection: $detent)
         .presentationDragIndicator(.visible)
@@ -121,6 +120,22 @@ struct AskSearchHost: View {
             openURL(url)
         default:
             onNavigate(destination)
+        }
+    }
+}
+
+// Results scroll beneath the header instead of sliding over it. iOS 26 lets the
+// header join the sheet's scroll edge effect; earlier systems need a backing.
+private struct HeaderBar<Header: View>: ViewModifier {
+    @ViewBuilder let header: () -> Header
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.safeAreaBar(edge: .top, spacing: 0, content: header)
+        } else {
+            content.safeAreaInset(edge: .top, spacing: 0) {
+                header().background(.background)
+            }
         }
     }
 }
