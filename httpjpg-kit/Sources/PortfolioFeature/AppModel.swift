@@ -52,6 +52,10 @@ public final class AppModel {
 
     public private(set) var hasLoadedConfig = false
 
+    // False only until the first config arrives on a device that has never cached
+    // one; the masthead shows a skeleton then instead of the one-line fallback name.
+    private(set) var hasSiteConfig = false
+
     private(set) var pendingPlayback: AudioTrack?
 
     let workIndex: WorkIndexModel
@@ -69,6 +73,9 @@ public final class AppModel {
         self.client = client
         self.workIndex = WorkIndexModel(client: client)
         self.info = InfoModel(client: client)
+        let cached = client.cachedSiteConfig()
+        self.config = cached ?? .fallback
+        self.hasSiteConfig = cached != nil
     }
 
     public var configuration: StoryblokConfiguration { client.configuration }
@@ -85,6 +92,7 @@ public final class AppModel {
         guard !hasLoadedConfig else { return }
         config = await client.siteConfig()
         hasLoadedConfig = true
+        hasSiteConfig = true
         syncAskSearch()
         flushPendingSearch()
     }
@@ -103,6 +111,7 @@ public final class AppModel {
 
         config = await client.siteConfig(refresh: true)
         hasLoadedConfig = true
+        hasSiteConfig = true
         syncAskSearch()
         flushPendingSearch()
 
