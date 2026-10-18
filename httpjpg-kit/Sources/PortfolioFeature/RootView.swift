@@ -90,6 +90,7 @@ public struct RootView: View {
                 MiniPlayerBar(player: player, glass: chrome)
                 TabPillBar(
                     selection: model.selectedTab,
+                    accentToken: model.chromeAccentToken,
                     glass: chrome,
                     onSelect: { model.select(tab: $0) }
                 )

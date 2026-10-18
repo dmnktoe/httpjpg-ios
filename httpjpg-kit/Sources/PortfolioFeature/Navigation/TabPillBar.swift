@@ -5,6 +5,8 @@ import Tokens
 struct TabPillBar: View {
     let selection: AppModel.Tab
 
+    let accentToken: String?
+
     let glass: Namespace.ID
 
     let onSelect: (AppModel.Tab) -> Void
@@ -15,8 +17,8 @@ struct TabPillBar: View {
         GlassTabBar(
             AppModel.Tab.allCases,
             selection: selection,
-            accent: Palette.primary.s500,
-            onAccent: Palette.onNamed("primary.500"),
+            accent: Palette.named(accent),
+            onAccent: Palette.onNamed(accent),
             in: glass,
             onSelect: onSelect,
             label: { tab in
@@ -27,8 +29,16 @@ struct TabPillBar: View {
             },
             accessibilityName: { tab in tab.accessibilityLabel }
         )
+        .animation(Motion.stateChange, value: accent)
         .padding(.horizontal, PageLayout.gutter)
         .padding(.bottom, Spacing.s2 + safeAreaBottom)
         .accessibilityLabel("Sections")
+    }
+
+    private static let defaultAccent = "primary.500"
+
+    private var accent: String {
+        guard let accentToken, Palette.named(accentToken) != nil else { return Self.defaultAccent }
+        return accentToken
     }
 }
