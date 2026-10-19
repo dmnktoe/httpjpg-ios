@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.3.0...v1.4.0) (2026-10-18)
+
+
+### Added
+
+* **nav:** liquid glass tab bar and a native info title ([#107](https://github.com/dmnktoe/httpjpg-ios/issues/107)) ([b264791](https://github.com/dmnktoe/httpjpg-ios/commit/b264791d619861db317e8f28621657b8c055fa6a))
+* **search:** precise highlighting and tappable, cited-only sources ([#106](https://github.com/dmnktoe/httpjpg-ios/issues/106)) ([8ce166f](https://github.com/dmnktoe/httpjpg-ios/commit/8ce166f5cd348c84e7fa4577fae7e721dd037ade))
+
 ## [1.3.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.2.0...v1.3.0) (2026-10-18)
 
 
