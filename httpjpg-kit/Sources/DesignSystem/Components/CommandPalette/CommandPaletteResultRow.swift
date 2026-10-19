@@ -116,7 +116,7 @@ private struct RowPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
-                configuration.isPressed ? theme.codeChipBackground : Color.clear,
+                configuration.isPressed ? theme.border.opacity(Opacities.subtle) : Color.clear,
                 in: RoundedRectangle(cornerRadius: Radii.lg, style: .continuous)
             )
             .animation(Motion.pressed, value: configuration.isPressed)

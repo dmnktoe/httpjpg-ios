@@ -13,6 +13,7 @@ public struct CommandPalette: View {
     public var status: CommandPaletteStatus
     public var errorMessage: String?
     public var isAskAvailable: Bool
+    public var isExpanded: Bool
     public var onSelect: (CommandPaletteHit) -> Void
     public var onAction: (CommandPaletteAction) -> Void
     public var onQuery: (String) -> Void
@@ -38,6 +39,7 @@ public struct CommandPalette: View {
         status: CommandPaletteStatus = .idle,
         errorMessage: String? = nil,
         isAskAvailable: Bool = true,
+        isExpanded: Bool = false,
         onSelect: @escaping (CommandPaletteHit) -> Void,
         onAction: @escaping (CommandPaletteAction) -> Void = { _ in },
         onQuery: @escaping (String) -> Void = { _ in },
@@ -56,6 +58,7 @@ public struct CommandPalette: View {
         self.status = status
         self.errorMessage = errorMessage
         self.isAskAvailable = isAskAvailable
+        self.isExpanded = isExpanded
         self.onSelect = onSelect
         self.onAction = onAction
         self.onQuery = onQuery
@@ -190,7 +193,7 @@ public struct CommandPalette: View {
                 }
                 .padding(.horizontal, Spacing.s1)
                 .padding(.vertical, Spacing.s1)
-                .background(theme.background.opacity(Opacities.muted), in: Self.panelShape)
+                .background(panelFill, in: Self.panelShape)
             }
         } else if !trimmedQuery.isEmpty, status != .searching, !showsAnswerPanel {
             VStack(spacing: Spacing.s3) {
@@ -204,6 +207,11 @@ public struct CommandPalette: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, Spacing.s6)
         }
+    }
+
+    // A fully raised sheet turns opaque in the theme background, so a translucent white card would vanish into it.
+    private var panelFill: Color {
+        isExpanded ? theme.codeChipBackground : theme.background.opacity(Opacities.muted)
     }
 
     private var askPrompt: some View {
