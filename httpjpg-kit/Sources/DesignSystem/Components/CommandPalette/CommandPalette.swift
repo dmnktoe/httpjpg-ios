@@ -191,6 +191,11 @@ public struct CommandPalette: View {
                 .padding(.horizontal, Spacing.s1)
                 .padding(.vertical, Spacing.s1)
                 .background(theme.background.opacity(Opacities.muted), in: Self.panelShape)
+                // At the large detent the sheet turns opaque in the same colour as the fill, so the edge has to carry the card.
+                .overlay {
+                    Self.panelShape
+                        .strokeBorder(theme.border.opacity(Opacities.subtle), lineWidth: 1)
+                }
             }
         } else if !trimmedQuery.isEmpty, status != .searching, !showsAnswerPanel {
             VStack(spacing: Spacing.s3) {
