@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.4.0...v1.4.1) (2026-10-19)
+
+
+### Fixed
+
+* **search:** tint the results card on the full-height sheet ([#110](https://github.com/dmnktoe/httpjpg-ios/issues/110)) ([c923f18](https://github.com/dmnktoe/httpjpg-ios/commit/c923f18679eeb06fdeb6345cbb0e382664c078d0))
+
 ## [1.4.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.3.0...v1.4.0) (2026-10-18)
 
 
