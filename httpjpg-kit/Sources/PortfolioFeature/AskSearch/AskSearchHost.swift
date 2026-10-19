@@ -45,7 +45,6 @@ struct AskSearchHost: View {
             status: model.status,
             errorMessage: model.errorMessage,
             isAskAvailable: model.isAskAvailable,
-            isExpanded: detent == .large,
             onSelect: select,
             onAction: { action in
                 select(

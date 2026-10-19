@@ -35,6 +35,9 @@ public struct PageTheme: Sendable, Equatable {
         isDark ? Palette.neutral.s800 : Palette.neutral.s100
     }
 
+    // A tint of the foreground rather than a solid grey, so a card reads the same on a glass sheet and an opaque one.
+    public var insetFill: Color { foreground.opacity(isDark ? 0.08 : 0.05) }
+
     public var chromeFill: Color { isDark ? Palette.neutral.s900.opacity(0.55) : Palette.white.opacity(0.5) }
 
     public var chromeLabel: Color { isDark ? Palette.white.opacity(0.92) : Palette.neutral.s800 }
