@@ -13,9 +13,10 @@ public enum Motion {
 
     public static let glide: Animation = .spring(response: 0.38, dampingFraction: 0.74)
 
-    // Same damping as `glide`, a beat slower: the tab pill lands first and the
-    // page it names follows it in, with a small overshoot.
-    public static let tabSlide: Animation = .spring(response: 0.5, dampingFraction: 0.74)
+    // A beat slower than `glide`, so the tab pill lands first and the page it
+    // names follows; damped enough that a full-width run overshoots by a few
+    // points, not a lurch.
+    public static let tabSlide: Animation = .spring(response: 0.5, dampingFraction: 0.8)
 
     public static let palettePop: Animation = .spring(response: 0.42, dampingFraction: 0.68)
 

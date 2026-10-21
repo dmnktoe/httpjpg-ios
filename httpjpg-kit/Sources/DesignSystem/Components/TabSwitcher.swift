@@ -7,13 +7,11 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
     private let mounted: Set<Tab>
     private let content: (Tab) -> Content
 
-    @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    // The tab on stage, trailing `selection` by one update. A tab mounted for
-    // the first time is inserted offstage beside the old stage, and only then
-    // does the stage move, so it slides in like a tab that was always there
-    // instead of popping into place.
+    // The tab on stage, trailing `selection` by one update: the arriving page
+    // first renders offstage beside the old stage, then the stage moves and
+    // `tabPageSlide()` carries it in.
     @State private var stage: Tab
 
     public init(
@@ -34,63 +32,35 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
             ForEach(tabs) { tab in
                 if mounted.contains(tab) {
                     content(tab)
-                        .modifier(TabSlide(
-                            position: position(of: tab),
-                            travel: reduceMotion ? 0 : viewportWidth * TabSlide.travelFraction,
-                            recede: reduceMotion ? 0 : TabSlide.recede
-                        ))
-                        .zIndex(selection == tab ? 1 : 0)
+                        .environment(\.tabSlidePosition, position(of: tab))
+                        // The stacks swap in a single frame. Fading them would
+                        // fade the glass in their toolbars too, and glass under
+                        // a partial opacity flickers.
+                        .opacity(selection == tab ? 1 : 0)
+                        .animation(nil, value: selection)
                         .allowsHitTesting(selection == tab)
                         .accessibilityHidden(selection != tab)
-                        .transition(.identity)
                 }
             }
         }
         .onChange(of: selection) { _, newValue in
-            withAnimation(reduceMotion ? Motion.navigate : Motion.tabSlide) {
+            guard !reduceMotion else {
+                stage = newValue
+                return
+            }
+            withAnimation(Motion.tabSlide) {
                 stage = newValue
             }
         }
     }
 
-    // Signed distance from the stage in tab slots, clamped to one: tabs left
-    // of the stage wait offscreen left, the way they read in the tab bar.
+    // Signed distance from the stage in tab slots, clamped to one: a tab left
+    // of the stage waits offscreen left, the way the tabs read in the bar.
     private func position(of tab: Tab) -> CGFloat {
         guard
             let index = tabs.firstIndex(of: tab),
             let onStage = tabs.firstIndex(of: stage)
         else { return 0 }
         return CGFloat(max(-1, min(1, index - onStage)))
-    }
-}
-
-// Shared-axis slide: the page travels a fraction of the screen, not all of
-// it, and fades through rather than crossfading, so the two pages' text never
-// sits on top of each other mid-switch.
-private struct TabSlide: ViewModifier, Animatable {
-    static let travelFraction: CGFloat = 0.3
-
-    static let recede: CGFloat = 0.04
-
-    // Fully transparent by half the travel; squared so the spring's overshoot
-    // past the stage never dips the arriving page's opacity.
-    static let fadeRate: CGFloat = 2
-
-    var position: CGFloat
-    let travel: CGFloat
-    let recede: CGFloat
-
-    var animatableData: CGFloat {
-        get { position }
-        set { position = newValue }
-    }
-
-    func body(content: Content) -> some View {
-        let distance = min(abs(position), 1)
-        let fade = min(distance * Self.fadeRate, 1)
-        content
-            .scaleEffect(1 - distance * recede)
-            .offset(x: position * travel)
-            .opacity(1 - fade * fade)
     }
 }

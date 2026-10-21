@@ -70,6 +70,7 @@ struct WorkIndexScreen: View {
                 }
                 .padding(.horizontal, PageLayout.gutter)
                 .padding(.bottom, bottomBarClearance)
+                .tabPageSlide()
                 .scrollToTopAnchor()
             }
             .softScrollEdges()

@@ -53,6 +53,7 @@ struct InfoScreen: View {
                     .padding(.bottom, Spacing.s10)
             }
             .padding(.bottom, bottomBarClearance)
+            .tabPageSlide()
             .scrollToTopAnchor()
         }
         .softScrollEdges()
