@@ -18,7 +18,7 @@ let package = Package(
         .package(url: "https://github.com/cbpowell/MarqueeLabel.git", .upToNextMajor(from: "4.5.3")),
         .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.14.2")),
-        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", .upToNextMajor(from: "1.19.6")),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", .upToNextMajor(from: "1.19.7")),
         .package(url: "https://github.com/Livsy90/IntelligenceGlow.git", from: "1.0.0"),
     ],
     targets: [
