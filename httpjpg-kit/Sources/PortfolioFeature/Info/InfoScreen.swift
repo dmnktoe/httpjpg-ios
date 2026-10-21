@@ -8,7 +8,7 @@ struct InfoScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
 
-    private static let title = "˚₊‧ info ‧₊˚"
+    private static let title = "˚₊‧ readme ‧₊˚"
 
     var body: some View {
         @Bindable var app = app
