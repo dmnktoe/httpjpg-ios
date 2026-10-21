@@ -16,8 +16,6 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @Namespace private var indicator
-
     @State private var scrubbed: Item?
     @State private var segmentFrames: [Item: CGRect] = [:]
 
@@ -47,6 +45,13 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
                 segment(for: item)
             }
         }
+        .background {
+            // Clipped to the track so a stretch that lands at either end
+            // flattens against the wall instead of poking past the glass.
+            indicator
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .clipShape(.capsule)
+        }
         .contentShape(.capsule)
         .coordinateSpace(.named(trackSpace))
         .gesture(scrub)
@@ -71,6 +76,36 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
         .selected(theme, accent: accent, onAccent: onAccent)
     }
 
+    // One capsule for the whole bar rather than one per segment, so it can
+    // travel between labels and squash-and-stretch on the way, like a drop
+    // of the glass it sits in.
+    @ViewBuilder
+    private var indicator: some View {
+        if let frame = segmentFrames[highlighted] {
+            let squashes = !reduceMotion
+            Capsule()
+                .fill(selectedTint.fill ?? theme.foreground)
+                .keyframeAnimator(initialValue: Squash.rest, trigger: highlighted) { capsule, squash in
+                    capsule.scaleEffect(
+                        x: squashes ? CGFloat(squash.width) : 1,
+                        y: squashes ? CGFloat(squash.height) : 1
+                    )
+                } keyframes: { _ in
+                    KeyframeTrack(\.width) {
+                        CubicKeyframe(Squash.stretch, duration: Squash.lead)
+                        SpringKeyframe(1, duration: Squash.settle, spring: .bouncy)
+                    }
+                    KeyframeTrack(\.height) {
+                        CubicKeyframe(Squash.squash, duration: Squash.lead)
+                        SpringKeyframe(1, duration: Squash.settle, spring: .bouncy)
+                    }
+                }
+                .scaleEffect(x: scrubbed == nil ? 1 : PillMetrics.scrubStretch, y: 1)
+                .frame(width: frame.width, height: frame.height)
+                .offset(x: frame.minX, y: frame.minY)
+        }
+    }
+
     private func segment(for item: Item) -> some View {
         let isHighlighted = item == highlighted
         let isSelected = item == selection
@@ -83,14 +118,6 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
             .padding(.vertical, PillMetrics.verticalPadding - PillMetrics.tabInset)
             .foregroundStyle(isHighlighted ? selectedTint.label : theme.foreground)
             .opacity(isHighlighted ? 1 : Opacities.muted)
-            .background {
-                if isHighlighted {
-                    Capsule()
-                        .fill(selectedTint.fill ?? theme.foreground)
-                        .matchedGeometryEffect(id: Self.glassID, in: indicator)
-                        .scaleEffect(x: scrubbed == nil ? 1 : PillMetrics.scrubStretch, y: 1)
-                }
-            }
             .contentShape(.capsule)
             .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(trackSpace)) }) { frame in
                 segmentFrames[item] = frame
@@ -124,4 +151,22 @@ public struct GlassTabBar<Item: Hashable, Label: View>: View {
         let laidOut = items.filter { segmentFrames[$0] != nil }
         return laidOut.first { x < segmentFrames[$0]?.maxX ?? 0 } ?? laidOut.last
     }
+}
+
+// Widens and flattens the selection while it is in flight, then springs back
+// round as it lands. Kept off `GlassTabBar` because a generic type cannot hold
+// stored statics.
+private struct Squash {
+    var width: Double
+    var height: Double
+
+    static let rest = Squash(width: 1, height: 1)
+
+    static let stretch: Double = 1.16
+
+    static let squash: Double = 0.86
+
+    static let lead: TimeInterval = 0.12
+
+    static let settle: TimeInterval = 0.46
 }
