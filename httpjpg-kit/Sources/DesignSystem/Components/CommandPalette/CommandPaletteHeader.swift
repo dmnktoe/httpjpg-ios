@@ -114,8 +114,9 @@ public struct CommandPaletteHeader: View {
         .animation(Motion.stateChange, value: query.isEmpty)
     }
 
+    // The same hairline the other chrome wears; anything darker reads as a drawn box on glass.
     private var fieldStroke: Color {
-        isFocused ? theme.foreground.opacity(Opacities.subtle) : .clear
+        isFocused ? theme.chromeStroke : .clear
     }
 
     private var askButton: some View {
