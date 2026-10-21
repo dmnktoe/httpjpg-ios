@@ -65,22 +65,31 @@ public struct CommandPaletteHeader: View {
         }
     }
 
+    // A native glass capsule, but with the site's lime mono prompt where the
+    // system would put a magnifier; untinted so it reads as a field, not a button.
     private var field: some View {
-        HStack(spacing: Spacing.s2) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: Typography.Size.md, weight: .semibold))
-                .foregroundStyle(theme.muted)
+        HStack(spacing: Spacing.s3) {
+            Text(">")
+                .font(Typography.mono(Typography.Size.base))
+                .foregroundStyle(Palette.primary.s500)
                 .accessibilityHidden(true)
 
-            TextField("search or ask…", text: $query)
-                .font(Typography.sans(Typography.Size.base))
-                .foregroundStyle(theme.foreground)
-                .focused($isFocused)
-                .submitLabel(.search)
-                .onSubmit(onSubmit)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .accessibilityLabel("Search or ask")
+            TextField(
+                "Search or ask",
+                text: $query,
+                prompt: Text("search or ask…")
+                    .font(Typography.mono(Typography.Size.base))
+                    .foregroundStyle(theme.muted.opacity(Opacities.muted))
+            )
+            .font(Typography.mono(Typography.Size.base))
+            .foregroundStyle(theme.foreground)
+            .tint(Palette.primary.s500)
+            .focused($isFocused)
+            .submitLabel(.search)
+            .onSubmit(onSubmit)
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .accessibilityLabel("Search or ask")
 
             if !query.isEmpty {
                 Button {
@@ -89,6 +98,9 @@ public struct CommandPaletteHeader: View {
                     Text("×")
                         .font(Typography.mono(Typography.Size.base, weight: .semibold))
                         .foregroundStyle(theme.muted)
+                        // The glyph is small; the hit area is not. Width only, so the row's height stays the text's.
+                        .frame(minWidth: Spacing.s8)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
@@ -96,14 +108,15 @@ public struct CommandPaletteHeader: View {
         }
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
-        .liquidGlass(in: Self.fieldShape, tint: theme.chromeFill)
+        .liquidGlass(in: Self.fieldShape)
         .overlay(Self.fieldShape.strokeBorder(fieldStroke, lineWidth: PillMetrics.hairline))
         .animation(Motion.stateChange, value: isFocused)
         .animation(Motion.stateChange, value: query.isEmpty)
     }
 
+    // The same hairline the other chrome wears; anything darker reads as a drawn box on glass.
     private var fieldStroke: Color {
-        isFocused ? theme.chromeActiveStroke.opacity(Opacities.subtle) : theme.chromeStroke
+        isFocused ? theme.chromeStroke : .clear
     }
 
     private var askButton: some View {
