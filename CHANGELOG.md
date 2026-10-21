@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.4.1...v1.5.0) (2026-10-21)
+
+
+### Added
+
+* **info:** retitle the info screen "readme" ([#114](https://github.com/dmnktoe/httpjpg-ios/issues/114)) ([75a3fa5](https://github.com/dmnktoe/httpjpg-ios/commit/75a3fa5f9cdb0e48afdcb27667ef95fb232d79e3))
+
+
+### Fixed
+
+* **nav:** fade only the incoming tab on a switch ([#115](https://github.com/dmnktoe/httpjpg-ios/issues/115)) ([42cdb6a](https://github.com/dmnktoe/httpjpg-ios/commit/42cdb6a4a882bdf74c9fff432536c18735cac6f4))
+* **nav:** pin the toolbar glyph colour inside prominent glass ([#117](https://github.com/dmnktoe/httpjpg-ios/issues/117)) ([6dde90d](https://github.com/dmnktoe/httpjpg-ios/commit/6dde90debc7ec588d03c2b7c7e1e3aa9d3bafbb8))
+* **search:** one results-card fill for both sheet heights ([#112](https://github.com/dmnktoe/httpjpg-ios/issues/112)) ([cb7eb5e](https://github.com/dmnktoe/httpjpg-ios/commit/cb7eb5e92e7b9150f2f9ff89dfd2b514fd46cc24))
+
+
+### Changed
+
+* **search:** lime mono prompt in a native glass query field ([#118](https://github.com/dmnktoe/httpjpg-ios/issues/118)) ([5f9af63](https://github.com/dmnktoe/httpjpg-ios/commit/5f9af63fc052849250abb771d967bff84735199a))
+
+
+### Dependencies
+
+* update dependency pointfreeco/swift-snapshot-testing to from: "1.19.7" ([#116](https://github.com/dmnktoe/httpjpg-ios/issues/116)) ([b2c2e95](https://github.com/dmnktoe/httpjpg-ios/commit/b2c2e95fba3aaf634f2f7adb920b10996806a10d))
+
 ## [1.4.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.4.0...v1.4.1) (2026-10-19)
 
 
