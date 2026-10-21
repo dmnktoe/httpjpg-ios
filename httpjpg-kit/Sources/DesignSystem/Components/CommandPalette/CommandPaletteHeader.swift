@@ -14,7 +14,6 @@ public struct CommandPaletteHeader: View {
     @Environment(\.pageTheme) private var theme
     @FocusState private var isFocused: Bool
 
-    private static let fieldShape = Capsule()
     private static let closeSize: CGFloat = Spacing.s8
     // Focus set the moment the sheet appears is dropped while it is still animating in.
     private static let focusDelay: Duration = .milliseconds(350)
@@ -65,22 +64,31 @@ public struct CommandPaletteHeader: View {
         }
     }
 
+    // Mirrors the site's palette input: a mono prompt on a hairline rule. A glass
+    // capsule with a magnifier read as the system search bar this header replaced.
     private var field: some View {
-        HStack(spacing: Spacing.s2) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: Typography.Size.md, weight: .semibold))
-                .foregroundStyle(theme.muted)
+        HStack(spacing: Spacing.s3) {
+            Text(">")
+                .font(Typography.mono(Typography.Size.base))
+                .foregroundStyle(Palette.primary.s500)
                 .accessibilityHidden(true)
 
-            TextField("search or ask…", text: $query)
-                .font(Typography.sans(Typography.Size.base))
-                .foregroundStyle(theme.foreground)
-                .focused($isFocused)
-                .submitLabel(.search)
-                .onSubmit(onSubmit)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .accessibilityLabel("Search or ask")
+            TextField(
+                "Search or ask",
+                text: $query,
+                prompt: Text("search or ask…")
+                    .font(Typography.mono(Typography.Size.base))
+                    .foregroundStyle(theme.muted.opacity(Opacities.muted))
+            )
+            .font(Typography.mono(Typography.Size.base))
+            .foregroundStyle(theme.foreground)
+            .tint(Palette.primary.s500)
+            .focused($isFocused)
+            .submitLabel(.search)
+            .onSubmit(onSubmit)
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .accessibilityLabel("Search or ask")
 
             if !query.isEmpty {
                 Button {
@@ -89,21 +97,26 @@ public struct CommandPaletteHeader: View {
                     Text("×")
                         .font(Typography.mono(Typography.Size.base, weight: .semibold))
                         .foregroundStyle(theme.muted)
+                        // The glyph is small; the hit area is not. Width only, so the row's height stays the text's.
+                        .frame(minWidth: Spacing.s8)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
-        .liquidGlass(in: Self.fieldShape, tint: theme.chromeFill)
-        .overlay(Self.fieldShape.strokeBorder(fieldStroke, lineWidth: PillMetrics.hairline))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(fieldRule)
+                .frame(height: PillMetrics.hairline)
+        }
         .animation(Motion.stateChange, value: isFocused)
         .animation(Motion.stateChange, value: query.isEmpty)
     }
 
-    private var fieldStroke: Color {
-        isFocused ? theme.chromeActiveStroke.opacity(Opacities.subtle) : theme.chromeStroke
+    private var fieldRule: Color {
+        isFocused ? theme.foreground.opacity(Opacities.subtle) : theme.border
     }
 
     private var askButton: some View {
