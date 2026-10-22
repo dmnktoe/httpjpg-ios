@@ -1,8 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// The sheet's own chrome: eyebrow, close, the query field and the ask action.
-/// Replaces `.searchable`, whose system pills fought the site's mono voice.
 public struct CommandPaletteHeader: View {
     @Binding public var query: String
     public var isAskAvailable: Bool
@@ -16,7 +14,6 @@ public struct CommandPaletteHeader: View {
 
     private static let fieldShape = Capsule()
     private static let closeSize: CGFloat = Spacing.s8
-    // Focus set the moment the sheet appears is dropped while it is still animating in.
     private static let focusDelay: Duration = .milliseconds(350)
 
     public init(
@@ -55,7 +52,6 @@ public struct CommandPaletteHeader: View {
                     askButton
                 }
             }
-            // Lets the ask pill stretch to the field's height instead of its smaller label's.
             .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, Spacing.s4)
@@ -67,9 +63,6 @@ public struct CommandPaletteHeader: View {
         }
     }
 
-    // A native glass capsule, but with the site's lime mono prompt where the
-    // system would put a magnifier; untinted so it reads as a field, not a button.
-    // No stroke: the glass rim already draws the edge, a hairline on top reads as a box.
     private var field: some View {
         HStack(spacing: Spacing.s3) {
             Text(">")
@@ -101,7 +94,6 @@ public struct CommandPaletteHeader: View {
                     Text("×")
                         .font(Typography.mono(Typography.Size.base, weight: .semibold))
                         .foregroundStyle(theme.muted)
-                        // The glyph is small; the hit area is not. Width only, so the row's height stays the text's.
                         .frame(minWidth: Spacing.s8)
                         .contentShape(Rectangle())
                 }
@@ -130,8 +122,6 @@ public struct CommandPaletteHeader: View {
             .padding(.horizontal, Spacing.s4)
             .frame(maxHeight: .infinity)
             .contentShape(Self.fieldShape)
-            // The field's own glass, so the two sit as a pair. Not interactive: that path
-            // clips to the capsule, which cuts off the rim and shadow the field shows.
             .liquidGlass(in: Self.fieldShape, tint: canAsk ? theme.chromeActiveFill : nil)
         }
         .buttonStyle(.plain)
