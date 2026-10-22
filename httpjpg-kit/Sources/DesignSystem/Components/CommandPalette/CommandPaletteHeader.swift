@@ -55,6 +55,8 @@ public struct CommandPaletteHeader: View {
                     askButton
                 }
             }
+            // Lets the ask pill stretch to the field's height instead of its smaller label's.
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, Spacing.s4)
         .padding(.top, Spacing.s5)
@@ -67,6 +69,7 @@ public struct CommandPaletteHeader: View {
 
     // A native glass capsule, but with the site's lime mono prompt where the
     // system would put a magnifier; untinted so it reads as a field, not a button.
+    // No stroke: the glass rim already draws the edge, a hairline on top reads as a box.
     private var field: some View {
         HStack(spacing: Spacing.s3) {
             Text(">")
@@ -109,14 +112,7 @@ public struct CommandPaletteHeader: View {
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
         .liquidGlass(in: Self.fieldShape)
-        .overlay(Self.fieldShape.strokeBorder(fieldStroke, lineWidth: PillMetrics.hairline))
-        .animation(Motion.stateChange, value: isFocused)
         .animation(Motion.stateChange, value: query.isEmpty)
-    }
-
-    // The same hairline the other chrome wears; anything darker reads as a drawn box on glass.
-    private var fieldStroke: Color {
-        isFocused ? theme.chromeStroke : .clear
     }
 
     private var askButton: some View {
@@ -131,19 +127,12 @@ public struct CommandPaletteHeader: View {
             }
             .font(Typography.mono(Typography.Size.sm, weight: .semibold))
             .foregroundStyle(canAsk ? theme.chromeActiveLabel : theme.muted)
-            .padding(.horizontal, Spacing.s3)
-            .padding(.vertical, Spacing.s3)
-            .contentShape(Capsule())
-            .liquidGlass(
-                in: Capsule(),
-                tint: canAsk ? theme.chromeActiveFill : theme.chromeFill,
-                isInteractive: true
-            )
-            .overlay {
-                if !canAsk {
-                    Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
-                }
-            }
+            .padding(.horizontal, Spacing.s4)
+            .frame(maxHeight: .infinity)
+            .contentShape(Self.fieldShape)
+            // The field's own glass, so the two sit as a pair. Not interactive: that path
+            // clips to the capsule, which cuts off the rim and shadow the field shows.
+            .liquidGlass(in: Self.fieldShape, tint: canAsk ? theme.chromeActiveFill : nil)
         }
         .buttonStyle(.plain)
         .disabled(!canAsk)
