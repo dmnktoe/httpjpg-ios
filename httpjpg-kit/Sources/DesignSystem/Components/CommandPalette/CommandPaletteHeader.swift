@@ -1,8 +1,6 @@
 import SwiftUI
 import Tokens
 
-/// The sheet's own chrome: eyebrow, close, the query field and the ask action.
-/// Replaces `.searchable`, whose system pills fought the site's mono voice.
 public struct CommandPaletteHeader: View {
     @Binding public var query: String
     public var isAskAvailable: Bool
@@ -16,7 +14,6 @@ public struct CommandPaletteHeader: View {
 
     private static let fieldShape = Capsule()
     private static let closeSize: CGFloat = Spacing.s8
-    // Focus set the moment the sheet appears is dropped while it is still animating in.
     private static let focusDelay: Duration = .milliseconds(350)
 
     public init(
@@ -55,6 +52,7 @@ public struct CommandPaletteHeader: View {
                     askButton
                 }
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, Spacing.s4)
         .padding(.top, Spacing.s5)
@@ -65,8 +63,6 @@ public struct CommandPaletteHeader: View {
         }
     }
 
-    // A native glass capsule, but with the site's lime mono prompt where the
-    // system would put a magnifier; untinted so it reads as a field, not a button.
     private var field: some View {
         HStack(spacing: Spacing.s3) {
             Text(">")
@@ -98,7 +94,6 @@ public struct CommandPaletteHeader: View {
                     Text("×")
                         .font(Typography.mono(Typography.Size.base, weight: .semibold))
                         .foregroundStyle(theme.muted)
-                        // The glyph is small; the hit area is not. Width only, so the row's height stays the text's.
                         .frame(minWidth: Spacing.s8)
                         .contentShape(Rectangle())
                 }
@@ -109,14 +104,7 @@ public struct CommandPaletteHeader: View {
         .padding(.horizontal, Spacing.s4)
         .padding(.vertical, Spacing.s3)
         .liquidGlass(in: Self.fieldShape)
-        .overlay(Self.fieldShape.strokeBorder(fieldStroke, lineWidth: PillMetrics.hairline))
-        .animation(Motion.stateChange, value: isFocused)
         .animation(Motion.stateChange, value: query.isEmpty)
-    }
-
-    // The same hairline the other chrome wears; anything darker reads as a drawn box on glass.
-    private var fieldStroke: Color {
-        isFocused ? theme.chromeStroke : .clear
     }
 
     private var askButton: some View {
@@ -131,19 +119,10 @@ public struct CommandPaletteHeader: View {
             }
             .font(Typography.mono(Typography.Size.sm, weight: .semibold))
             .foregroundStyle(canAsk ? theme.chromeActiveLabel : theme.muted)
-            .padding(.horizontal, Spacing.s3)
-            .padding(.vertical, Spacing.s3)
-            .contentShape(Capsule())
-            .liquidGlass(
-                in: Capsule(),
-                tint: canAsk ? theme.chromeActiveFill : theme.chromeFill,
-                isInteractive: true
-            )
-            .overlay {
-                if !canAsk {
-                    Capsule().strokeBorder(theme.chromeStroke, lineWidth: PillMetrics.hairline)
-                }
-            }
+            .padding(.horizontal, Spacing.s4)
+            .frame(maxHeight: .infinity)
+            .contentShape(Self.fieldShape)
+            .liquidGlass(in: Self.fieldShape, tint: canAsk ? theme.chromeActiveFill : nil)
         }
         .buttonStyle(.plain)
         .disabled(!canAsk)
