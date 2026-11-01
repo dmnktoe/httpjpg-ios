@@ -1,7 +1,7 @@
 import CoreGraphics
 import WidgetKit
 
-enum ContactSheetLayout {
+enum WorkGridLayout {
     static let maximumTiles = 18
 
     static func columns(for family: WidgetFamily) -> Int {

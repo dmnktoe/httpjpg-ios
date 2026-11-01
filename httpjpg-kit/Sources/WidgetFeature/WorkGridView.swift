@@ -3,8 +3,8 @@ import SwiftUI
 import Tokens
 import WidgetKit
 
-struct ContactSheetView: View {
-    let entry: ContactSheetEntry
+struct WorkGridView: View {
+    let entry: WorkGridEntry
 
     @Environment(\.widgetFamily) private var family
     @Environment(\.pageTheme) private var theme
@@ -68,7 +68,7 @@ struct ContactSheetView: View {
     }
 
     private var columns: Int {
-        ContactSheetLayout.columns(for: family)
+        WorkGridLayout.columns(for: family)
     }
 
     private var rows: [[WorkItem]] {
