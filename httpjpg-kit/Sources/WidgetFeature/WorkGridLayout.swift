@@ -2,7 +2,7 @@ import CoreGraphics
 import WidgetKit
 
 enum WorkGridLayout {
-    static let maximumTiles = 18
+    static let maximumTiles = 12
 
     static func columns(for family: WidgetFamily) -> Int {
         switch family {
@@ -13,9 +13,10 @@ enum WorkGridLayout {
     }
 
     static func rows(for family: WidgetFamily) -> Int {
+        // Medium keeps a single row so every tile still has room for its caption.
         switch family {
-        case .systemLarge, .systemExtraLarge: return 3
-        default: return 2
+        case .systemLarge, .systemExtraLarge: return 2
+        default: return 1
         }
     }
 

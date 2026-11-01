@@ -26,6 +26,7 @@ struct WorkGridWidgetView: View {
 
     var body: some View {
         WorkGridView(entry: entry)
+            .padding(14)
             .pageTheme(theme)
             .containerBackground(for: .widget) {
                 theme.background
