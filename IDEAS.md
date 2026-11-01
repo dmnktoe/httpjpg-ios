@@ -17,9 +17,6 @@ Merkliste, noch nichts davon umgesetzt.
   `NavigationSplitView` mit der Sidebar, freie Fenstergrößen (iPadOS 26),
   mehrere Fenster (`UIApplicationSupportsMultipleScenes` ist aktuell `false`).
 - **Mac**: „Designed for iPad“ auf Apple Silicon fast gratis, sonst Mac Catalyst.
-- **Vision Pro**: iPad-App läuft als Fenster; nativ später.
-- **CarPlay**: passt zum Audio-Player (Audio-App-Entitlement, braucht Freigabe
-  von Apple).
 - **StandBy**: die Widgets prüfen, wie sie im Querformat am Ladegerät wirken.
 
 ## Apple TV
