@@ -10,8 +10,8 @@ same Storyblok space the website reads. The website lives in a separate repo,
 
 ## Stack
 
-- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 / watchOS 10
-  deployment
+- **Swift 6.2 toolchain** (Xcode 26), `swiftLanguageMode(.v5)`, iOS 17 / watchOS 10 /
+  tvOS 17 deployment
 - **SwiftPM local package** `httpjpg-kit` — every line of real code
 - **XcodeGen** — `project.yml` is the source of truth for target structure; the
   `.xcodeproj` is checked in, regenerate with `xcodegen generate`
@@ -31,6 +31,8 @@ same Storyblok space the website reads. The website lives in a separate repo,
 | `WidgetFeature` | home-screen widgets and lock-screen accessories; linked by app *and* extension |
 | `PortfolioFeature` | `apps/portfolio` |
 | `WatchFeature` | the watchOS app's screens |
+| `TopShelfFeature` | the Apple TV Top Shelf carousel; linked by TV app *and* extension |
+| `TVFeature` | the tvOS app's screens |
 
 Dependency direction is one-way: `Tokens` is the leaf, `DesignSystem` and
 `StoryblokCore` may depend on it, `StoryblokContent` on both, the feature layer
@@ -43,12 +45,14 @@ No umbrella re-exports: a file imports the modules it actually names, so
 both, and a file that only wants the palette imports `Tokens` alone. Reading
 the import block should tell you which layers a file touches.
 
-**Platforms.** The package builds for iOS and watchOS, but only `Tokens`,
-`StoryblokCore` and `WatchFeature` are ever compiled for the watch — nothing on
-the wrist links `DesignSystem`, which is why `MarqueeLabel` and `SVGView` are
-`.when(platforms: [.iOS])`. Anything landing in the three shared targets has to
-compile on both; `WatchFeature` is written in portable SwiftUI so the package
-tests type-check it on the iOS simulator too.
+**Platforms.** The package builds for iOS, watchOS and tvOS, but only `Tokens`
+and `StoryblokCore` are shared: the watch adds `WatchFeature`, the TV adds
+`TVFeature` and `TopShelfFeature`, and neither links `DesignSystem`, which is
+why `MarqueeLabel` and `SVGView` are `.when(platforms: [.iOS])`. Anything landing in the two shared
+targets has to compile on all three. `WatchFeature` and `TVFeature` are written
+in portable SwiftUI so the package tests type-check them on the iOS simulator
+too; the few tvOS-only calls (`.card`, `focusSection()`, `TVServices`) sit
+behind `#if os(tvOS)` / `#if canImport(TVServices)`.
 
 ## Conventions
 
@@ -92,8 +96,9 @@ The decoding tests are the valuable ones: Storyblok is loose about field shapes
 `PortfolioBlok.swift` exists because a real payload broke without it. Add a
 test when you add a tolerance.
 
-The watch app is not built by the package tests, but the iOS app embeds it, so
-`xcodebuild build -scheme httpjpg` compiles it for watchOS on every CI run.
+The watch and TV apps are not built by the package tests. The iOS app embeds
+the watch app, so `xcodebuild build -scheme httpjpg` compiles it for watchOS;
+the TV app stands alone and CI builds it with `-scheme httpjpg-tv`.
 
 ## When in Doubt
 

@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
+    tvOS: "17.0"
   createIntermediateGroups: true
   minimumXcodeGenVersion: "2.38.0"
   fileTypes:
@@ -104,6 +105,46 @@ targets:
     configFiles:
       Debug: Config/Watch.xcconfig
       Release: Config/Watch.xcconfig
+    settings:
+      base:
+        DEVELOPMENT_TEAM: 9WTRWY5M2A
+        GENERATE_INFOPLIST_FILE: true
+
+  httpjpg-tv:
+    type: application
+    platform: tvOS
+    sources:
+      - path: httpjpg-tv
+    dependencies:
+      - package: httpjpg-kit
+        product: Tokens
+      - package: httpjpg-kit
+        product: StoryblokCore
+      - package: httpjpg-kit
+        product: TVFeature
+      - target: httpjpg-tv-topshelf
+        embed: true
+    postBuildScripts: *setBuildNumber
+    configFiles:
+      Debug: Config/TV.xcconfig
+      Release: Config/TV.xcconfig
+    settings:
+      base:
+        DEVELOPMENT_TEAM: 9WTRWY5M2A
+        GENERATE_INFOPLIST_FILE: true
+
+  httpjpg-tv-topshelf:
+    type: app-extension
+    platform: tvOS
+    sources:
+      - path: httpjpg-tv-topshelf
+    dependencies:
+      - package: httpjpg-kit
+        product: TopShelfFeature
+    postBuildScripts: *setBuildNumber
+    configFiles:
+      Debug: Config/TopShelf.xcconfig
+      Release: Config/TopShelf.xcconfig
     settings:
       base:
         DEVELOPMENT_TEAM: 9WTRWY5M2A

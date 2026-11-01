@@ -1,0 +1,7 @@
+#include "TV.xcconfig"
+
+PRODUCT_NAME = httpjpg-tv-topshelf
+PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg.topshelf
+INFOPLIST_FILE = httpjpg-tv-topshelf/Info.plist
+
+SKIP_INSTALL = YES

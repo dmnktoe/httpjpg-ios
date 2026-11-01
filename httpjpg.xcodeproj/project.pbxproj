@@ -28,6 +28,13 @@
 		AA000000000000000000006E /* WatchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000072 /* WatchFeature */; };
 		AA000000000000000000007A /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA000000000000000000007B /* StoryblokCore */; };
 		AA0000000000000000000073 /* httpjpg-watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000061 /* httpjpg-watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA00000000000000000000AA /* HttpjpgTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000A1 /* HttpjpgTVApp.swift */; };
+		AA00000000000000000000AB /* ContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000A6 /* ContentProvider.swift */; };
+		AA00000000000000000000AC /* Tokens in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B0 /* Tokens */; };
+		AA00000000000000000000AD /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B1 /* StoryblokCore */; };
+		AA00000000000000000000AE /* TVFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B2 /* TVFeature */; };
+		AA00000000000000000000AF /* TopShelfFeature in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B3 /* TopShelfFeature */; };
+		AA00000000000000000000B4 /* httpjpg-tv-topshelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000A5 /* httpjpg-tv-topshelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +55,14 @@
 		AA0000000000000000000066 /* HttpjpgWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgWatchApp.swift; sourceTree = "<group>"; };
 		AA0000000000000000000067 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000000068 /* Watch.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Watch.xcconfig; sourceTree = "<group>"; };
+		AA00000000000000000000A0 /* httpjpg-tv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "httpjpg-tv.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000A1 /* HttpjpgTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgTVApp.swift; sourceTree = "<group>"; };
+		AA00000000000000000000A2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA00000000000000000000A3 /* TV.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TV.xcconfig; sourceTree = "<group>"; };
+		AA00000000000000000000A4 /* TopShelf.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TopShelf.xcconfig; sourceTree = "<group>"; };
+		AA00000000000000000000A5 /* httpjpg-tv-topshelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "httpjpg-tv-topshelf.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000A6 /* ContentProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProvider.swift; sourceTree = "<group>"; };
+		AA00000000000000000000A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +98,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00000000000000000000B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000AC /* Tokens in Frameworks */,
+				AA00000000000000000000AD /* StoryblokCore in Frameworks */,
+				AA00000000000000000000AE /* TVFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000BD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000AF /* TopShelfFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -93,6 +126,8 @@
 				AA0000000000000000000004 /* httpjpg */,
 				AA0000000000000000000006 /* httpjpg-widgets */,
 				AA0000000000000000000065 /* httpjpg-watch */,
+				AA00000000000000000000A8 /* httpjpg-tv */,
+				AA00000000000000000000A9 /* httpjpg-tv-topshelf */,
 				AA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +138,8 @@
 				AA0000000000000000000011 /* httpjpg.app */,
 				AA0000000000000000000019 /* httpjpg-widgets.appex */,
 				AA0000000000000000000061 /* httpjpg-watch.app */,
+				AA00000000000000000000A0 /* httpjpg-tv.app */,
+				AA00000000000000000000A5 /* httpjpg-tv-topshelf.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -125,6 +162,8 @@
 				AA0000000000000000000023 /* Shared.xcconfig */,
 				AA0000000000000000000027 /* Widgets.xcconfig */,
 				AA0000000000000000000068 /* Watch.xcconfig */,
+				AA00000000000000000000A3 /* TV.xcconfig */,
+				AA00000000000000000000A4 /* TopShelf.xcconfig */,
 				AA0000000000000000000024 /* Secrets.example.xcconfig */,
 			);
 			path = Config;
@@ -147,6 +186,24 @@
 				AA0000000000000000000067 /* Info.plist */,
 			);
 			path = "httpjpg-watch";
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000A8 /* httpjpg-tv */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000A1 /* HttpjpgTVApp.swift */,
+				AA00000000000000000000A2 /* Info.plist */,
+			);
+			path = "httpjpg-tv";
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000A9 /* httpjpg-tv-topshelf */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000A6 /* ContentProvider.swift */,
+				AA00000000000000000000A7 /* Info.plist */,
+			);
+			path = "httpjpg-tv-topshelf";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -227,6 +284,52 @@
 			productReference = AA0000000000000000000061 /* httpjpg-watch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA00000000000000000000B5 /* httpjpg-tv */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000C4 /* Build configuration list for PBXNativeTarget "httpjpg-tv" */;
+			buildPhases = (
+				AA00000000000000000000B6 /* Sources */,
+				AA00000000000000000000B7 /* Frameworks */,
+				AA00000000000000000000B8 /* Resources */,
+				AA00000000000000000000B9 /* Embed Foundation Extensions */,
+				AA00000000000000000000BA /* Set build number */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA00000000000000000000C0 /* PBXTargetDependency */,
+			);
+			name = "httpjpg-tv";
+			packageProductDependencies = (
+				AA00000000000000000000B0 /* Tokens */,
+				AA00000000000000000000B1 /* StoryblokCore */,
+				AA00000000000000000000B2 /* TVFeature */,
+			);
+			productName = "httpjpg-tv";
+			productReference = AA00000000000000000000A0 /* httpjpg-tv.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA00000000000000000000BB /* httpjpg-tv-topshelf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000C7 /* Build configuration list for PBXNativeTarget "httpjpg-tv-topshelf" */;
+			buildPhases = (
+				AA00000000000000000000BC /* Sources */,
+				AA00000000000000000000BD /* Frameworks */,
+				AA00000000000000000000BE /* Resources */,
+				AA00000000000000000000BF /* Set build number */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "httpjpg-tv-topshelf";
+			packageProductDependencies = (
+				AA00000000000000000000B3 /* TopShelfFeature */,
+			);
+			productName = "httpjpg-tv-topshelf";
+			productReference = AA00000000000000000000A5 /* httpjpg-tv-topshelf.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -244,6 +347,12 @@
 						CreatedOnToolsVersion = 26.0;
 					};
 					AA0000000000000000000060 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA00000000000000000000B5 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA00000000000000000000BB = {
 						CreatedOnToolsVersion = 26.0;
 					};
 				};
@@ -267,6 +376,8 @@
 				AA0000000000000000000010 /* httpjpg */,
 				AA0000000000000000000018 /* httpjpg-widgets */,
 				AA0000000000000000000060 /* httpjpg-watch */,
+				AA00000000000000000000B5 /* httpjpg-tv */,
+				AA00000000000000000000BB /* httpjpg-tv-topshelf */,
 			);
 		};
 /* End PBXProject section */
@@ -294,6 +405,17 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00000000000000000000B9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA00000000000000000000B4 /* httpjpg-tv-topshelf.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -319,6 +441,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000000000000000000006B /* httpjpg.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000BE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,6 +521,46 @@
 			shellPath = /bin/sh;
 			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
 		};
+		AA00000000000000000000BA /* Set build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Set build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
+		};
+		AA00000000000000000000BF /* Set build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Set build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/set-build-number.sh\"\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -413,6 +589,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00000000000000000000B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000AA /* HttpjpgTVApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000AB /* ContentProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -425,6 +617,11 @@
 			isa = PBXTargetDependency;
 			target = AA0000000000000000000060 /* httpjpg-watch */;
 			targetProxy = AA0000000000000000000076 /* PBXContainerItemProxy */;
+		};
+		AA00000000000000000000C0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00000000000000000000BB /* httpjpg-tv-topshelf */;
+			targetProxy = AA00000000000000000000C1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -442,6 +639,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = AA0000000000000000000060;
 			remoteInfo = "httpjpg-watch";
+		};
+		AA00000000000000000000C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00000000000000000000BB;
+			remoteInfo = "httpjpg-tv-topshelf";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -584,6 +788,80 @@
 			};
 			name = Release;
 		};
+		AA00000000000000000000C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA00000000000000000000A3 /* TV.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Debug;
+		};
+		AA00000000000000000000C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA00000000000000000000A3 /* TV.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Release;
+		};
+		AA00000000000000000000C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA00000000000000000000A4 /* TopShelf.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Debug;
+		};
+		AA00000000000000000000C6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA00000000000000000000A4 /* TopShelf.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9WTRWY5M2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -619,6 +897,24 @@
 			buildConfigurations = (
 				AA0000000000000000000077 /* Debug */,
 				AA0000000000000000000078 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000C4 /* Build configuration list for PBXNativeTarget "httpjpg-tv" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000000000000C2 /* Debug */,
+				AA00000000000000000000C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000C7 /* Build configuration list for PBXNativeTarget "httpjpg-tv-topshelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000000000000C5 /* Debug */,
+				AA00000000000000000000C6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -676,6 +972,22 @@
 		AA000000000000000000007B /* StoryblokCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = StoryblokCore;
+		};
+		AA00000000000000000000B0 /* Tokens */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Tokens;
+		};
+		AA00000000000000000000B1 /* StoryblokCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StoryblokCore;
+		};
+		AA00000000000000000000B2 /* TVFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TVFeature;
+		};
+		AA00000000000000000000B3 /* TopShelfFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TopShelfFeature;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
