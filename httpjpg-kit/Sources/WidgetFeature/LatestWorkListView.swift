@@ -11,7 +11,7 @@ struct LatestWorkListView: View {
     var body: some View {
         if isLarge {
             VStack(alignment: .leading, spacing: 10) {
-                featured
+                linked(entry.featured) { featured }
                     .frame(maxWidth: .infinity)
                     .frame(height: 150)
                     .clipped()
@@ -19,7 +19,7 @@ struct LatestWorkListView: View {
             }
         } else {
             HStack(spacing: 12) {
-                featured
+                linked(entry.featured) { featured }
                     .frame(width: 110)
                     .clipped()
                 rows
@@ -47,7 +47,7 @@ struct LatestWorkListView: View {
                 .lineLimit(1)
 
             ForEach(entry.items.prefix(isLarge ? 4 : 3)) { item in
-                row(item)
+                linked(item) { row(item) }
             }
 
             if entry.items.isEmpty {
@@ -60,6 +60,28 @@ struct LatestWorkListView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // Each row carries its own link; the widget-wide URL only catches taps
+    // between them and would otherwise send every row to the featured work.
+    @ViewBuilder
+    private func linked<Content: View>(
+        _ item: WorkItem?,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        if let item, let destination = destination(of: item) {
+            Link(destination: destination, label: content)
+                .foregroundStyle(theme.foreground)
+        } else {
+            content()
+        }
+    }
+
+    private func destination(of item: WorkItem) -> URL? {
+        if item.isExternal, let external = item.externalURL {
+            return external
+        }
+        return WidgetDeepLink.work(slug: item.slug)
     }
 
     private func row(_ item: WorkItem) -> some View {
