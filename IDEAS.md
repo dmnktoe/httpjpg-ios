@@ -32,16 +32,9 @@ schon zweisprachig sind.
 `WorkEntity` direkt in Spotlight; ersetzt die eigene `CSSearchableItem`-Logik in
 `WorkSpotlightIndex`. Grundlage für Punkt 7 und dafür, dass Siri Works kennt.
 
-## 6. Widgets: Feed mit Next-Button, StandBy, Contact-Sheet umbenennen
+## 6. Widgets: Feed mit Next-Button, StandBy
 
 - `Button(intent:)` im Feed-Widget, blättert ohne App-Start zum nächsten Work.
-- **„Contact sheet“ umbenennen.** Der Name kommt aus der Fotografie
-  (Kontaktabzug: alle Negative eines Films als Raster auf einem Blatt) und passt
-  zur Film-Metapher von „Frame of the Day“, ist aber unverständlich. Steht im
-  Widget-Namen in der Galerie (`configurationDisplayName`) und in den
-  `ContactSheet…`-Typen in `WidgetFeature`. Den `kind`-String
-  (`com.yl33ly.httpjpg.contact-sheet`) nicht ändern, sonst verschwinden schon
-  platzierte Widgets vom Homescreen.
 - Dabei gleich prüfen, wie die Widgets in StandBy (Querformat am Ladegerät)
   wirken.
 
@@ -84,5 +77,5 @@ kleinen iPhone-App:
 - **Galerie-/Ambient-Modus**: langsamer Ken-Burns-Durchlauf durch alle
   Work-Bilder, Frame of the Day im Vollbild, dazu ASCII-Motive und
   Site-Status-Ticker.
-- **Contact Sheet** als fokussierbares Raster mit Parallax-Postern.
+- **Grid** als fokussierbares Raster mit Parallax-Postern.
 - Musik-Player mit Video im Hintergrund.
