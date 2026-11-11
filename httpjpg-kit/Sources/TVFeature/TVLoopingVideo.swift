@@ -3,8 +3,6 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-// SwiftUI's VideoPlayer always brings its transport bar; a silent loop behind
-// other content needs the bare layer.
 struct TVLoopingVideo: UIViewRepresentable {
     let url: URL
 

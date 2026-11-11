@@ -9,8 +9,6 @@ public struct TVRootView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     public init(configuration: StoryblokConfiguration) {
-        // Full-screen frames run past URLCache's default per-response limit, so
-        // the gallery's prefetch of the next frame would never be served from it.
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 512 << 20)
         model = TVAppModel(configuration: configuration)
     }

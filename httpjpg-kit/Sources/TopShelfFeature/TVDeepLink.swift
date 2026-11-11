@@ -1,7 +1,5 @@
 import Foundation
 
-// WidgetDeepLink sits on DesignSystem, which never builds for tvOS, so the one
-// route the Top Shelf needs is spelled out here in the same httpjpg://work/<slug> shape.
 public enum TVDeepLink {
     static let scheme = "httpjpg"
     static let workHost = "work"

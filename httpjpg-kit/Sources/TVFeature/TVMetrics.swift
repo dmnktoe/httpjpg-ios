@@ -1,7 +1,5 @@
 import CoreGraphics
 
-// The ten-foot scale. Typography.Size stops at phone sizes, which are
-// illegible from a sofa, so the TV screens size their type and cards here.
 enum TVMetrics {
     static let display: CGFloat = 96
     static let title: CGFloat = 48

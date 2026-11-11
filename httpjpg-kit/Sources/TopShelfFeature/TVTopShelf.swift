@@ -3,8 +3,6 @@ import Foundation
 import StoryblokCore
 import TVServices
 
-// A target of its own so the extension links no screens: TVFeature calls
-// UIApplication.shared, which app extensions may not.
 public enum TVTopShelf {
     static let limit = 10
 
@@ -30,7 +28,6 @@ public enum TVTopShelf {
         item.contextTitle = "latest work"
         item.creationDate = work.date
 
-        // The carousel fills the whole screen above the app row: 1920x1080 at 1x.
         let filename = work.media.first { !$0.isVideo }?.filename
         item.setImageURL(
             URL(string: ImageService.processed(filename, crop: "1920x1080/smart")),

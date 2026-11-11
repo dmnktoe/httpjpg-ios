@@ -41,7 +41,6 @@ struct TVSlideshowView: View {
             Palette.black
 
             if let frame = current {
-                // Keyed by position too, so a one-frame loop still restarts its drift.
                 TVKenBurnsFrame(
                     filename: frame.filename,
                     drift: index.isMultiple(of: 2) ? .towardsTopLeading : .towardsBottomTrailing,
@@ -59,7 +58,6 @@ struct TVSlideshowView: View {
             }
 
             if let next {
-                // Loaded off-screen so the crossfade lands on a finished image.
                 TVImage(filename: next.filename, targetWidth: TVMetrics.screenWidth)
                     .frame(width: 1, height: 1)
                     .opacity(0)

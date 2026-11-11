@@ -1,7 +1,5 @@
 import SwiftUI
 
-// The remote's commands only exist on tvOS; the package tests compile this
-// target for the iOS simulator, where the views simply go without them.
 extension View {
     @ViewBuilder
     func tvSlideshowRemote(

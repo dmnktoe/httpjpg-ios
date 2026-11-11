@@ -27,8 +27,6 @@ struct TVWorkGridScreen: View {
         }
     }
 
-    // The focus lift grows a card past its frame; without scrollClipDisabled
-    // the scroll view would cut off the edges of the outer column and the top row.
     private var grid: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: TVMetrics.sectionGap) {

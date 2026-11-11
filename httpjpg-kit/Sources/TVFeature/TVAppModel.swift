@@ -106,7 +106,6 @@ final class TVAppModel {
     }
 
     func loadStatus() async {
-        // The status lines come from the live site, which the fixtures do not stand in for.
         guard client.configuration.source != .mock else { return }
         statusLines = await TVStatusLine.load(client: client, origin: client.configuration.siteOrigin)
     }

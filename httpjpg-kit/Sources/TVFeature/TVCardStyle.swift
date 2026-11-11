@@ -1,7 +1,5 @@
 import SwiftUI
 
-// The package tests compile this target for the iOS simulator, where .card and
-// focusSection() do not exist; there a plain button and no section stand in.
 extension View {
     @ViewBuilder
     func tvCardStyle() -> some View {

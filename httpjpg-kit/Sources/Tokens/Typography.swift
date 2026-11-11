@@ -83,7 +83,6 @@ public enum Typography {
     public static func uiHeadline(_ size: CGFloat) -> UIFont {
         let font = UIFont(name: Family.headline, size: size)
             ?? .systemFont(ofSize: size, weight: .black)
-        // UIKit has no large title on tvOS; title1 is the largest style there.
         #if os(tvOS)
         return UIFontMetrics(forTextStyle: .title1).scaledFont(for: font)
         #else

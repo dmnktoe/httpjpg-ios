@@ -1,7 +1,5 @@
 import Foundation
 
-// The widget's daily pick lives in WidgetFeature, which sits on DesignSystem
-// and never builds for tvOS, so the same day count is spelled out here.
 enum TVFrameOfTheDay {
     static func index(for date: Date, count: Int, calendar: Calendar = .current) -> Int {
         guard count > 0 else { return 0 }
