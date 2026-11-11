@@ -29,6 +29,7 @@
 		AA000000000000000000007A /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA000000000000000000007B /* StoryblokCore */; };
 		AA0000000000000000000073 /* httpjpg-watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000061 /* httpjpg-watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA00000000000000000000AA /* HttpjpgTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000A1 /* HttpjpgTVApp.swift */; };
+		AA00000000000000000000C9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000C8 /* Assets.xcassets */; };
 		AA00000000000000000000AB /* ContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000A6 /* ContentProvider.swift */; };
 		AA00000000000000000000AC /* Tokens in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B0 /* Tokens */; };
 		AA00000000000000000000AD /* StoryblokCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B1 /* StoryblokCore */; };
@@ -57,6 +58,7 @@
 		AA0000000000000000000068 /* Watch.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Watch.xcconfig; sourceTree = "<group>"; };
 		AA00000000000000000000A0 /* httpjpg-tv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "httpjpg-tv.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA00000000000000000000A1 /* HttpjpgTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpjpgTVApp.swift; sourceTree = "<group>"; };
+		AA00000000000000000000C8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA00000000000000000000A2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA00000000000000000000A3 /* TV.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TV.xcconfig; sourceTree = "<group>"; };
 		AA00000000000000000000A4 /* TopShelf.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TopShelf.xcconfig; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 		AA00000000000000000000A8 /* httpjpg-tv */ = {
 			isa = PBXGroup;
 			children = (
+				AA00000000000000000000C8 /* Assets.xcassets */,
 				AA00000000000000000000A1 /* HttpjpgTVApp.swift */,
 				AA00000000000000000000A2 /* Info.plist */,
 			);
@@ -448,6 +451,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA00000000000000000000C9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

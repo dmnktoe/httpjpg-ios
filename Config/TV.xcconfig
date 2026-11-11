@@ -14,5 +14,6 @@ INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents =
 INFOPLIST_KEY_UISupportedInterfaceOrientations =
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad =
 
-// No tvOS icon stack yet; the iPhone .icon does not cover the TV's layered sizes.
-ASSETCATALOG_COMPILER_APPICON_NAME =
+// Icon Composer's .icon does not cover the TV, which wants a layered stack
+// and Top Shelf stills in one brand asset.
+ASSETCATALOG_COMPILER_APPICON_NAME = App Icon & Top Shelf Image
