@@ -80,7 +80,7 @@ jobs:
           curl -sL "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/swiftlint_linux_amd64.zip" \
             -o /tmp/swiftlint.zip
           unzip -o /tmp/swiftlint.zip -d /tmp/swiftlint
-          install -m 755 /tmp/swiftlint/swiftlint /usr/local/bin/swiftlint
+          install -m 755 /tmp/swiftlint/swiftlint-static /usr/local/bin/swiftlint
           swiftlint version
 
       - name: Lint
