@@ -67,8 +67,6 @@ public enum WidgetDeepLink {
         return components.url
     }
 
-    // A widget link can only launch its own app, so the tile of a work that
-    // lives on another site reaches the app as that site's address.
     public static func isExternal(_ url: URL) -> Bool {
         url.scheme == "https" || url.scheme == "http"
     }

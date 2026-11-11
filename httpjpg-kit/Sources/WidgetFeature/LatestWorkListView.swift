@@ -31,8 +31,6 @@ struct LatestWorkListView: View {
         }
     }
 
-    // The picture sits in an overlay so the link is as large as its frame: a
-    // filled image reports its overflowing size, and the link would reach over the rows.
     private var featured: some View {
         Color.clear
             .overlay {
@@ -70,8 +68,6 @@ struct LatestWorkListView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // Each row carries its own link; the widget-wide URL only catches taps
-    // between them and would otherwise send every row to the featured work.
     @ViewBuilder
     private func linked<Content: View>(
         _ item: WorkItem?,

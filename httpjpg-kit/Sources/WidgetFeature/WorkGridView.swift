@@ -39,8 +39,6 @@ struct WorkGridView: View {
         }
     }
 
-    // Explicit tile sizes rather than Grid or flexible stacks: titles of
-    // different lengths would otherwise pull the columns to unequal widths.
     private var grid: some View {
         GeometryReader { proxy in
             let width = (proxy.size.width - Self.gutter * CGFloat(columns - 1)) / CGFloat(columns)
