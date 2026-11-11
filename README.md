@@ -10,7 +10,7 @@
 
 **swiftui · storyblok · swiftpm · xcodegen**
 
-Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, a slide-over drawer holding every project, a home-screen widget, the three latest works one long-press away on the app icon, a watchOS companion that puts the index on the wrist, and an Apple TV app with a slow Ken Burns gallery and the latest works in the Top Shelf.
+Native reader for the [www.httpjpg.com](https://www.httpjpg.com) portfolio, on the same Storyblok space as the site. The look is a port of `@httpjpg/tokens` and `@httpjpg/ui`, not a re-interpretation: mono type, hard edges, ASCII in the rendered UI. Chrome and controls float in Liquid Glass, content stays flat. Work index, story pages, a slide-over drawer holding every project, a home-screen widget, the three latest works one long-press away on the app icon, a watchOS companion that puts the index on the wrist, and an Apple TV app: the works on one wall, a slow Ken Burns gallery that opens on the frame of the day, the feed's tracks and clips, and the latest works in the Top Shelf.
 
 The website lives in [`dmnktoe/httpjpg`](https://github.com/dmnktoe/httpjpg).
 

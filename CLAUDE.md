@@ -51,8 +51,9 @@ and `StoryblokCore` are shared: the watch adds `WatchFeature`, the TV adds
 why `MarqueeLabel` and `SVGView` are `.when(platforms: [.iOS])`. Anything landing in the two shared
 targets has to compile on all three. `WatchFeature` and `TVFeature` are written
 in portable SwiftUI so the package tests type-check them on the iOS simulator
-too; the few tvOS-only calls (`.card`, `focusSection()`, `TVServices`) sit
-behind `#if os(tvOS)` / `#if canImport(TVServices)`.
+too; the few tvOS-only calls (`.card`, `focusSection()`, the remote's move and
+play/pause commands, `TVServices`) sit behind `#if os(tvOS)` /
+`#if canImport(TVServices)`.
 
 ## Conventions
 
