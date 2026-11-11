@@ -2,16 +2,16 @@ import SwiftUI
 import Tokens
 import WidgetKit
 
-public struct ContactSheetWidget: Widget {
-    public static let kind = "com.yl33ly.httpjpg.contact-sheet"
+public struct WorkGridWidget: Widget {
+    public static let kind = "com.yl33ly.httpjpg.work-grid"
 
     public init() {}
 
     public var body: some WidgetConfiguration {
-        StaticConfiguration(kind: Self.kind, provider: ContactSheetProvider()) { entry in
-            ContactSheetWidgetView(entry: entry)
+        StaticConfiguration(kind: Self.kind, provider: WorkGridProvider()) { entry in
+            WorkGridWidgetView(entry: entry)
         }
-        .configurationDisplayName("Contact sheet")
+        .configurationDisplayName("Grid")
         .description("The portfolio as a grid of frames. Every frame opens its work.")
 
         .supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
@@ -19,13 +19,14 @@ public struct ContactSheetWidget: Widget {
     }
 }
 
-struct ContactSheetWidgetView: View {
-    let entry: ContactSheetEntry
+struct WorkGridWidgetView: View {
+    let entry: WorkGridEntry
 
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        ContactSheetView(entry: entry)
+        WorkGridView(entry: entry)
+            .padding(14)
             .pageTheme(theme)
             .containerBackground(for: .widget) {
                 theme.background
