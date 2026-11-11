@@ -1,3 +1,4 @@
+import Foundation
 import StoryblokCore
 
 struct TVStatusLine: Identifiable, Hashable {
