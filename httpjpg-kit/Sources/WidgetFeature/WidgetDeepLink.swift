@@ -67,6 +67,10 @@ public enum WidgetDeepLink {
         return components.url
     }
 
+    public static func isExternal(_ url: URL) -> Bool {
+        url.scheme == "https" || url.scheme == "http"
+    }
+
     public static func destination(from url: URL) -> Destination? {
         guard url.scheme == scheme, let host = url.host else { return nil }
         let slug = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))

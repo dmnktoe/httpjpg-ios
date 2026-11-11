@@ -2,7 +2,7 @@ import StoryblokCore
 import UIKit
 import WidgetKit
 
-struct ContactSheetEntry: TimelineEntry {
+struct WorkGridEntry: TimelineEntry {
     let date: Date
 
     let items: [WorkItem]
@@ -23,9 +23,9 @@ struct ContactSheetEntry: TimelineEntry {
         self.message = message
     }
 
-    static let placeholder = ContactSheetEntry(
+    static let placeholder = WorkGridEntry(
         date: Date(timeIntervalSince1970: 0),
-        items: (0 ..< ContactSheetLayout.maximumTiles).map { position in
+        items: (0 ..< WorkGridLayout.maximumTiles).map { position in
             WorkItem(
                 id: "placeholder-\(position)",
                 slug: "loading-\(position)",
@@ -42,7 +42,7 @@ struct ContactSheetEntry: TimelineEntry {
         }
     )
 
-    static func failure(_ message: String) -> ContactSheetEntry {
-        ContactSheetEntry(date: Date(timeIntervalSince1970: 0), items: [], message: message)
+    static func failure(_ message: String) -> WorkGridEntry {
+        WorkGridEntry(date: Date(timeIntervalSince1970: 0), items: [], message: message)
     }
 }
