@@ -725,6 +725,15 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(status.isEmpty)
     }
 
+    func testSchalkeCrestsDecodeFromDataURIsAndIgnoreAnythingElse() throws {
+        let fixture = try decode(SchalkeFixture.self, """
+        {"home":"Hoffenheim","away":"S04",
+         "homeCrest":"data:image/png;base64,aG9tZQ==","awayCrest":"https://crests.test/s04.png"}
+        """)
+        XCTAssertEqual(fixture.homeCrest, Data("home".utf8))
+        XCTAssertNil(fixture.awayCrest)
+    }
+
     func testSchalkeStatusToleratesAnOffSeasonPayload() throws {
         let status = try decode(SchalkeStatus.self, #"{"fixture":null,"standing":null}"#)
         XCTAssertTrue(status.isEmpty)

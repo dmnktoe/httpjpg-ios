@@ -321,10 +321,12 @@ public struct SchalkeFixture: Decodable, Sendable {
     public let away: String
     public let homeGoals: Int
     public let awayGoals: Int
+    public let homeCrest: Data?
+    public let awayCrest: Data?
     public let outcome: Outcome
 
     private enum CodingKeys: String, CodingKey {
-        case home, away, homeGoals, awayGoals, outcome
+        case home, away, homeGoals, awayGoals, homeCrest, awayCrest, outcome
     }
 
     public init(from decoder: any Decoder) throws {
@@ -333,11 +335,18 @@ public struct SchalkeFixture: Decodable, Sendable {
         away = container.cmsString(forKey: .away) ?? ""
         homeGoals = container.cmsInt(forKey: .homeGoals) ?? 0
         awayGoals = container.cmsInt(forKey: .awayGoals) ?? 0
+        homeCrest = container.cmsString(forKey: .homeCrest).flatMap(Self.imageData(fromDataURI:))
+        awayCrest = container.cmsString(forKey: .awayCrest).flatMap(Self.imageData(fromDataURI:))
         outcome = container.cmsString(forKey: .outcome).flatMap(Outcome.init(rawValue:)) ?? .draw
     }
 
     public var score: String {
         "\(home) \(homeGoals):\(awayGoals) \(away)"
+    }
+
+    private static func imageData(fromDataURI uri: String) -> Data? {
+        guard uri.hasPrefix("data:image/"), let marker = uri.range(of: ";base64,") else { return nil }
+        return Data(base64Encoded: String(uri[marker.upperBound...]))
     }
 }
 

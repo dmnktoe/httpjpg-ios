@@ -96,7 +96,8 @@ final class SiteStatusEntryTests: XCTestCase {
     func testAResultIsTintedByOutcomeAndCarriesThePlace() throws {
         let status: SchalkeStatus = try decode(
             #"""
-            {"fixture": {"home": "Hoffenheim", "away": "S04", "homeGoals": 2, "awayGoals": 1, "outcome": "loss"},
+            {"fixture": {"home": "Hoffenheim", "away": "S04", "homeGoals": 2, "awayGoals": 1, "outcome": "loss",
+                         "homeCrest": "data:image/png;base64,aG9tZQ==", "awayCrest": "data:image/png;base64,YXdheQ=="},
              "standing": {"position": 17, "previousPosition": 16, "trend": "down"}}
             """#
         )
@@ -105,7 +106,8 @@ final class SiteStatusEntryTests: XCTestCase {
 
         XCTAssertEqual(line.text, "Hoffenheim 2:1 S04")
         XCTAssertEqual(line.detail, "↓ 17.")
-        XCTAssertEqual(line.glyph, .dot)
+        XCTAssertEqual(line.leadingImage, Data("home".utf8))
+        XCTAssertEqual(line.trailingImage, Data("away".utf8))
         XCTAssertNotNil(line.tint)
     }
 
@@ -115,7 +117,7 @@ final class SiteStatusEntryTests: XCTestCase {
         let line = try XCTUnwrap(SiteStatusLine(schalke: status))
 
         XCTAssertEqual(line.text, "↑ 4.")
-        XCTAssertNil(line.glyph)
+        XCTAssertNil(line.leadingImage)
     }
 
     func testAnUnknownTrophyTypeStillGetsABadge() throws {

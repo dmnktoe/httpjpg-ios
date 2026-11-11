@@ -1,4 +1,3 @@
-import DesignSystem
 import StoryblokCore
 import SwiftUI
 import Tokens
@@ -8,7 +7,8 @@ struct SiteStatusLine: Identifiable {
     let label: String
     let badge: String
 
-    let glyph: PixelGlyph.Kind?
+    let leadingImage: Data?
+    let trailingImage: Data?
     let text: String
 
     let detail: String?
@@ -19,7 +19,8 @@ struct SiteStatusLine: Identifiable {
         id: String,
         label: String,
         badge: String,
-        glyph: PixelGlyph.Kind? = nil,
+        leadingImage: Data? = nil,
+        trailingImage: Data? = nil,
         text: String,
         detail: String? = nil,
         tint: Color? = nil
@@ -27,7 +28,8 @@ struct SiteStatusLine: Identifiable {
         self.id = id
         self.label = label
         self.badge = badge
-        self.glyph = glyph
+        self.leadingImage = leadingImage
+        self.trailingImage = trailingImage
         self.text = text
         self.detail = detail
         self.tint = tint
@@ -110,7 +112,8 @@ struct SiteStatusLine: Identifiable {
                 id: "schalke",
                 label: "s04:",
                 badge: "⚽",
-                glyph: .dot,
+                leadingImage: fixture.homeCrest,
+                trailingImage: fixture.awayCrest,
                 text: fixture.score,
                 detail: place,
                 tint: Self.tint(for: fixture.outcome)

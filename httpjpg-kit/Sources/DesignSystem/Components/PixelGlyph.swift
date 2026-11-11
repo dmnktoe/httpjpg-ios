@@ -2,7 +2,6 @@ import SwiftUI
 
 public struct PixelGlyph: Shape {
     public enum Kind: Sendable, CaseIterable {
-        case dot
         case arrowUp
         case arrowDown
         case dash
@@ -35,17 +34,6 @@ public struct PixelGlyph: Shape {
 private extension PixelGlyph.Kind {
     var rows: [String] {
         switch self {
-        case .dot:
-            return [
-                "........",
-                "..####..",
-                ".######.",
-                ".######.",
-                ".######.",
-                ".######.",
-                "..####..",
-                "........",
-            ]
         case .arrowUp:
             return Self.arrow
         case .arrowDown:
@@ -66,12 +54,12 @@ private extension PixelGlyph.Kind {
 
     static let arrow = [
         "........",
+        "........",
         "...##...",
         "..####..",
         ".######.",
         "########",
-        "...##...",
-        "...##...",
+        "........",
         "........",
     ]
 }

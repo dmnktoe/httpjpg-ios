@@ -3,6 +3,7 @@ import DesignSystem
 import StoryblokCore
 import SwiftUI
 import Tokens
+import UIKit
 
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
@@ -213,11 +214,11 @@ private struct SchalkeLine: View {
     var body: some View {
         FooterStatusLine(label: "s04:") {
             if let fixture = status.fixture {
-                glyph(.dot, color: color(for: fixture.outcome))
-                    .accessibilityLabel(fixture.outcome.rawValue)
+                crest(fixture.homeCrest)
                 Text(fixture.score)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                crest(fixture.awayCrest)
             }
             if status.fixture != nil, status.standing != nil {
                 Text("·").opacity(Opacities.subtle)
@@ -239,11 +240,14 @@ private struct SchalkeLine: View {
             .frame(width: Spacing.s2, height: Spacing.s2)
     }
 
-    private func color(for outcome: SchalkeFixture.Outcome) -> Color {
-        switch outcome {
-        case .win: return Palette.success.s500
-        case .draw: return Palette.neutral.s500
-        case .loss: return Palette.danger.s500
+    @ViewBuilder
+    private func crest(_ data: Data?) -> some View {
+        if let image = data.flatMap(UIImage.init(data:)) {
+            Image(uiImage: image)
+                .resizable()
+                .interpolation(.none)
+                .frame(width: Typography.Size.md, height: Typography.Size.md)
+                .accessibilityHidden(true)
         }
     }
 
