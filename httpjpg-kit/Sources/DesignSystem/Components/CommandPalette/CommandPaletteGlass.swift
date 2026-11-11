@@ -43,6 +43,7 @@ struct CommandPaletteGlass: ViewModifier {
             .borderBeam(
                 shape: .rounded(cornerRadius),
                 active: isGlowing,
+                colors: BeamPalette.single(Palette.primary.s500),
                 timing: BeamTiming(fade: reduceMotion ? 0 : Motion.glowFadeDuration)
             )
         #else
