@@ -135,6 +135,7 @@ public struct WidgetFlags: Decodable, Sendable {
     public let isPsnTrophyEnabled: Bool
     public let isDiscogsEnabled: Bool
     public let isXEnabled: Bool
+    public let isSchalkeEnabled: Bool
     public let isAskEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
@@ -143,6 +144,7 @@ public struct WidgetFlags: Decodable, Sendable {
         case psnTrophyEnabled = "psn_trophy_enabled"
         case discogsEnabled = "discogs_enabled"
         case xEnabled = "x_enabled"
+        case schalkeEnabled = "schalke_enabled"
         case askEnabled = "ask_enabled"
     }
 
@@ -153,6 +155,7 @@ public struct WidgetFlags: Decodable, Sendable {
         isPsnTrophyEnabled = container.cmsBool(forKey: .psnTrophyEnabled)
         isDiscogsEnabled = container.cmsBool(forKey: .discogsEnabled)
         isXEnabled = container.cmsBool(forKey: .xEnabled)
+        isSchalkeEnabled = container.cmsBool(forKey: .schalkeEnabled)
         isAskEnabled = container.cmsBool(forKey: .askEnabled)
     }
 
@@ -162,6 +165,7 @@ public struct WidgetFlags: Decodable, Sendable {
         isPsnTrophyEnabled: Bool = false,
         isDiscogsEnabled: Bool = false,
         isXEnabled: Bool = false,
+        isSchalkeEnabled: Bool = false,
         isAskEnabled: Bool = false
     ) {
         self.isDiscordEnabled = isDiscordEnabled
@@ -169,6 +173,7 @@ public struct WidgetFlags: Decodable, Sendable {
         self.isPsnTrophyEnabled = isPsnTrophyEnabled
         self.isDiscogsEnabled = isDiscogsEnabled
         self.isXEnabled = isXEnabled
+        self.isSchalkeEnabled = isSchalkeEnabled
         self.isAskEnabled = isAskEnabled
     }
 

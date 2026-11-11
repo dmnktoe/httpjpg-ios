@@ -50,7 +50,13 @@ struct SiteStatusView: View {
                 Text(line.label)
                     .opacity(Opacities.subtle)
             }
-            Text(line.badge)
+            if let glyph = line.glyph {
+                PixelGlyph(glyph)
+                    .fill(line.tint ?? .primary)
+                    .frame(width: Spacing.s2, height: Spacing.s2)
+            } else {
+                Text(line.badge)
+            }
             Text(line.text)
                 .foregroundStyle(line.tint ?? .primary)
                 .lineLimit(1)

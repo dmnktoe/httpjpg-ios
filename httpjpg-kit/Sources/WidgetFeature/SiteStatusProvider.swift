@@ -42,6 +42,7 @@ struct SiteStatusProvider: TimelineProvider {
         async let latestRecord = record(api, enabled: flags.isDiscogsEnabled)
         async let latestTimeline = timeline(api, enabled: flags.isXEnabled)
         async let latestTrophy = trophy(api, enabled: flags.isPsnTrophyEnabled)
+        async let latestSchalke = schalke(api, enabled: flags.isSchalkeEnabled)
         async let now = api.weather()
 
         let entry = await SiteStatusEntry(
@@ -51,6 +52,7 @@ struct SiteStatusProvider: TimelineProvider {
             record: latestRecord,
             timeline: latestTimeline,
             trophy: latestTrophy,
+            schalke: latestSchalke,
             weather: now
         )
 
@@ -81,5 +83,10 @@ struct SiteStatusProvider: TimelineProvider {
     private func trophy(_ api: SiteAPI, enabled: Bool) async -> PsnTrophy? {
         guard enabled else { return nil }
         return await api.latestTrophy()
+    }
+
+    private func schalke(_ api: SiteAPI, enabled: Bool) async -> SchalkeStatus? {
+        guard enabled else { return nil }
+        return await api.schalkeStatus()
     }
 }

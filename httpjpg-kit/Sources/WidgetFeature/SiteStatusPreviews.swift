@@ -14,6 +14,12 @@ extension SiteStatusEntry {
             #"{"profile": {"username": "dmnktoe", "followerCount": 1234}, "posts": [{"text": "shipping"}]}"#
         ),
         trophy: decodeSample(#"{"name": "Nachtfahrt", "game": "Death Stranding", "type": "gold"}"#),
+        schalke: decodeSample(
+            #"""
+            {"fixture": {"home": "S04", "away": "Köln", "homeGoals": 2, "awayGoals": 0, "outcome": "win"},
+             "standing": {"position": 9, "previousPosition": 11, "trend": "up", "points": 17}}
+            """#
+        ),
         weather: decodeSample(#"{"temperature": 18.4, "emoji": "🌤", "condition": "bewölkt"}"#)
     )
 
