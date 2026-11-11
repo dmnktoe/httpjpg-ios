@@ -3,6 +3,7 @@ import DesignSystem
 import StoryblokCore
 import SwiftUI
 import Tokens
+import WidgetFeature
 
 public struct RootView: View {
     @State private var model: AppModel
@@ -10,6 +11,7 @@ public struct RootView: View {
     @State private var quickActionInbox = QuickActionInbox.shared
 
     @Environment(\.colorScheme) private var systemScheme
+    @Environment(\.openURL) private var openURL
 
     @Namespace private var chrome
 
@@ -60,6 +62,10 @@ public struct RootView: View {
             player.play($0)
         }
         .onOpenURL { url in
+            guard !WidgetDeepLink.isExternal(url) else {
+                openURL(url)
+                return
+            }
             model.open(url)
             if let track = model.takePendingPlayback() {
                 Telemetry.signal("player.played")

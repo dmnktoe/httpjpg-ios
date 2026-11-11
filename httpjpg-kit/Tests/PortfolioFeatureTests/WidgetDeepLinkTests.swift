@@ -72,6 +72,13 @@ final class WidgetDeepLinkTests: XCTestCase {
         )
     }
 
+    func testOnlyWebAddressesCountAsExternal() throws {
+        XCTAssertTrue(WidgetDeepLink.isExternal(try XCTUnwrap(URL(string: "https://example.com/atlas"))))
+        XCTAssertTrue(WidgetDeepLink.isExternal(try XCTUnwrap(URL(string: "http://example.com"))))
+        XCTAssertFalse(WidgetDeepLink.isExternal(try XCTUnwrap(WidgetDeepLink.work(slug: "atlas"))))
+        XCTAssertFalse(WidgetDeepLink.isExternal(try XCTUnwrap(URL(string: "mailto:hi@example.com"))))
+    }
+
     func testAPlayLinkRoundTripsTheTrack() throws {
         let track = AudioTrack(
             id: "139e6c5f-4c19-4878-9ec3-c195ff071215",
