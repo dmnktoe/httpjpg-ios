@@ -6,9 +6,14 @@ struct TVWorkDetailScreen: View {
     let item: WorkItem
 
     @State private var slideshow: TVSlideshowStart?
+    @State private var clip: TVClip?
 
     private var frames: [TVGalleryFrame] {
         TVGalleryFrame.frames(of: item)
+    }
+
+    private var clips: [TVClip] {
+        TVClip.clips(of: item)
     }
 
     var body: some View {
@@ -18,12 +23,20 @@ struct TVWorkDetailScreen: View {
                 if frames.count > 1 {
                     stills
                 }
+                if !clips.isEmpty {
+                    videos
+                }
             }
+            // Without rows the intro is exactly one screen and must not scroll.
+            .padding(.bottom, frames.count > 1 || !clips.isEmpty ? TVMetrics.sectionGap : 0)
         }
         .scrollClipDisabled()
         .background { backdrop }
         .fullScreenCover(item: $slideshow) { start in
-            TVSlideshowView(frames: frames, startIndex: start.index, keepsAwake: true)
+            TVSlideshowView(frames: frames, startIndex: start.index, isStarted: true)
+        }
+        .fullScreenCover(item: $clip) { clip in
+            TVVideoScreen(url: clip.url)
         }
     }
 
@@ -84,14 +97,24 @@ struct TVWorkDetailScreen: View {
                     .opacity(Opacities.muted)
             }
 
-            if !frames.isEmpty {
-                Button {
-                    slideshow = TVSlideshowStart(index: 0)
-                } label: {
-                    Label("gallery", systemImage: "play.fill")
+            HStack(spacing: Spacing.s6) {
+                if !frames.isEmpty {
+                    Button {
+                        slideshow = TVSlideshowStart(index: 0)
+                    } label: {
+                        Label("gallery", systemImage: "play.fill")
+                    }
                 }
-                .padding(.top, Spacing.s4)
+                // A work that is only a film still needs a way in from the first screen.
+                if frames.isEmpty, let first = clips.first {
+                    Button {
+                        clip = first
+                    } label: {
+                        Label("play", systemImage: "play.fill")
+                    }
+                }
             }
+            .padding(.top, Spacing.s4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .containerRelativeFrame(.vertical, alignment: .bottomLeading)
@@ -125,7 +148,31 @@ struct TVWorkDetailScreen: View {
             .scrollClipDisabled()
         }
         .tvFocusSection()
-        .padding(.bottom, TVMetrics.sectionGap)
+    }
+
+    private var videos: some View {
+        VStack(alignment: .leading, spacing: Spacing.s4) {
+            Text("clips")
+                .font(Typography.mono(TVMetrics.caption))
+                .opacity(Opacities.muted)
+
+            ScrollView(.horizontal) {
+                LazyHStack(spacing: TVMetrics.cardGap) {
+                    ForEach(Array(clips.enumerated()), id: \.element.id) { index, clip in
+                        Button {
+                            self.clip = clip
+                        } label: {
+                            TVClipCard(clip: clip)
+                        }
+                        .tvCardStyle()
+                        .accessibilityLabel("clip \(index + 1) of \(clips.count)")
+                    }
+                }
+                .padding(.vertical, Spacing.s8)
+            }
+            .scrollClipDisabled()
+        }
+        .tvFocusSection()
     }
 
     private var tags: String {

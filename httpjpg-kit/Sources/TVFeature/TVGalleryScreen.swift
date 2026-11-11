@@ -10,7 +10,7 @@ struct TVGalleryScreen: View {
     var body: some View {
         content
             .fullScreenCover(isPresented: $isPlaying) {
-                TVSlideshowView(frames: model.galleryFrames, keepsAwake: true)
+                TVSlideshowView(frames: model.galleryFrames, isStarted: true, status: model.statusLines)
             }
     }
 
@@ -20,7 +20,8 @@ struct TVGalleryScreen: View {
             TVStateView(art: Ascii.ghost, message: model.isLoaded ? "no frames yet" : "loading…")
         } else {
             // The tab itself already drifts, so the gallery sells itself before
-            // it is started; only the started one keeps the screen awake.
+            // it is started; only the started one keeps the screen awake and
+            // listens to the remote.
             ZStack(alignment: .bottomLeading) {
                 TVSlideshowView(frames: model.galleryFrames, showsCaption: false)
 
@@ -50,6 +51,12 @@ struct TVGalleryScreen: View {
             Text("\(model.galleryFrames.count) frames from \(model.items.count) works, on a slow loop.")
                 .font(Typography.sans(TVMetrics.body))
                 .opacity(Opacities.muted)
+
+            if let today = model.galleryFrames.first {
+                Text("frame of the day · \(today.item.title)")
+                    .font(Typography.mono(TVMetrics.caption))
+                    .opacity(Opacities.subtle)
+            }
 
             Button {
                 isPlaying = true

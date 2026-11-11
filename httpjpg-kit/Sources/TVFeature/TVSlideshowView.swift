@@ -5,19 +5,37 @@ import Tokens
 struct TVSlideshowView: View {
     let frames: [TVGalleryFrame]
     var showsCaption = true
-    var keepsAwake = false
+    var isStarted = false
+    var status: [TVStatusLine] = []
 
     @State private var index: Int
+    @State private var isPaused = false
+    @State private var steps = 0
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static let interval: TimeInterval = 9
     private static let crossfade: Animation = .easeInOut(duration: 1.6)
 
-    init(frames: [TVGalleryFrame], startIndex: Int = 0, showsCaption: Bool = true, keepsAwake: Bool = false) {
+    // Stepping by hand is part of the key, so the timer starts over and the
+    // frame just chosen gets its full interval.
+    private struct Cycle: Equatable {
+        let frames: [TVGalleryFrame]
+        let isPaused: Bool
+        let steps: Int
+    }
+
+    init(
+        frames: [TVGalleryFrame],
+        startIndex: Int = 0,
+        showsCaption: Bool = true,
+        isStarted: Bool = false,
+        status: [TVStatusLine] = []
+    ) {
         self.frames = frames
         self.showsCaption = showsCaption
-        self.keepsAwake = keepsAwake
+        self.isStarted = isStarted
+        self.status = status
         _index = State(initialValue: frames.indices.contains(startIndex) ? startIndex : 0)
     }
 
@@ -50,9 +68,16 @@ struct TVSlideshowView: View {
                     .opacity(0)
             }
         }
+        .overlay(alignment: .bottomTrailing) { ticker }
+        .overlay(alignment: .topTrailing) { pauseMark }
         .ignoresSafeArea()
-        .keepsScreenAwake(keepsAwake)
-        .task(id: frames) { await cycle() }
+        // Only the started show holds the screen, and only while it moves:
+        // a paused frame may hand over to the screen saver.
+        .keepsScreenAwake(isStarted && !isPaused)
+        .tvSlideshowRemote(isEnabled: isStarted, onStep: step) {
+            isPaused.toggle()
+        }
+        .task(id: Cycle(frames: frames, isPaused: isPaused, steps: steps)) { await cycle() }
     }
 
     private func caption(_ frame: TVGalleryFrame) -> some View {
@@ -74,6 +99,37 @@ struct TVSlideshowView: View {
         .padding(TVMetrics.overscanInset)
     }
 
+    // One line of the site's status per frame, opposite the caption.
+    @ViewBuilder
+    private var ticker: some View {
+        if isStarted, !status.isEmpty {
+            let line = status[index % status.count]
+            Text(line.text)
+                .font(Typography.mono(TVMetrics.label))
+                .lineLimit(1)
+                .foregroundStyle(Palette.white)
+                .opacity(Opacities.muted)
+                .shadow(color: Palette.black.opacity(0.6), radius: 24)
+                .frame(maxWidth: TVMetrics.screenWidth / 2, alignment: .trailing)
+                .padding(TVMetrics.overscanInset)
+                .id(line.id)
+                .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var pauseMark: some View {
+        if isPaused {
+            Text("paused")
+                .font(Typography.mono(TVMetrics.label))
+                .foregroundStyle(Palette.white)
+                .opacity(Opacities.muted)
+                .shadow(color: Palette.black.opacity(0.6), radius: 24)
+                .padding(TVMetrics.overscanInset)
+                .transition(.opacity)
+        }
+    }
+
     private var current: TVGalleryFrame? {
         frames.indices.contains(index) ? frames[index] : frames.first
     }
@@ -83,8 +139,16 @@ struct TVSlideshowView: View {
         return frames[(index + 1) % frames.count]
     }
 
-    private func cycle() async {
+    private func step(_ offset: Int) {
         guard frames.count > 1 else { return }
+        withAnimation(Self.crossfade) {
+            index = (index + offset + frames.count) % frames.count
+        }
+        steps += 1
+    }
+
+    private func cycle() async {
+        guard frames.count > 1, !isPaused else { return }
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(Self.interval))
             guard !Task.isCancelled else { return }

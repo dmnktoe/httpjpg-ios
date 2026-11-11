@@ -7,6 +7,7 @@ extension View {
     // A slideshow nobody touches is the point, so the screen saver must not take over.
     func keepsScreenAwake(_ isAwake: Bool) -> some View {
         onAppear { if isAwake { setIdleTimerDisabled(true) } }
+            .onChange(of: isAwake) { _, isAwake in setIdleTimerDisabled(isAwake) }
             .onDisappear { if isAwake { setIdleTimerDisabled(false) } }
     }
 }
