@@ -11,32 +11,40 @@ struct LatestWorkListView: View {
     var body: some View {
         if isLarge {
             VStack(alignment: .leading, spacing: 10) {
-                linked(entry.featured) { featured }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 150)
-                    .clipped()
+                linked(entry.featured) {
+                    featured
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 150)
+                        .clipped()
+                }
                 rows
             }
         } else {
             HStack(spacing: 12) {
-                linked(entry.featured) { featured }
-                    .frame(width: 110)
-                    .clipped()
+                linked(entry.featured) {
+                    featured
+                        .frame(width: 110)
+                        .clipped()
+                }
                 rows
             }
         }
     }
 
-    @ViewBuilder
+    // The picture sits in an overlay so the link is as large as its frame: a
+    // filled image reports its overflowing size, and the link would reach over the rows.
     private var featured: some View {
-        if let image = entry.image {
-            Image(uiImage: image)
-                .resizable()
-                .widgetFullColor()
-                .scaledToFill()
-        } else {
-            theme.border.opacity(0.3)
-        }
+        Color.clear
+            .overlay {
+                if let image = entry.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .widgetFullColor()
+                        .scaledToFill()
+                } else {
+                    theme.border.opacity(0.3)
+                }
+            }
     }
 
     private var rows: some View {
