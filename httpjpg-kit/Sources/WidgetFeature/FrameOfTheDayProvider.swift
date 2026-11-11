@@ -77,7 +77,7 @@ struct FrameOfTheDayProvider: TimelineProvider {
                     listenURL: listenURL
                 )
             )
-        case .video(_, let caption):
+        case .video(_, let caption, _):
             return FrameOfTheDayEntry(
                 date: Date(),
                 image: image,
