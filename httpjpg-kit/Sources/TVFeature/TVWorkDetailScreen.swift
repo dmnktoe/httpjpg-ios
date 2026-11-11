@@ -27,7 +27,6 @@ struct TVWorkDetailScreen: View {
                     videos
                 }
             }
-            // Without rows the intro is exactly one screen and must not scroll.
             .padding(.bottom, frames.count > 1 || !clips.isEmpty ? TVMetrics.sectionGap : 0)
         }
         .scrollClipDisabled()
@@ -60,8 +59,6 @@ struct TVWorkDetailScreen: View {
             .ignoresSafeArea()
     }
 
-    // One screen tall, so the frames row starts below the fold and the
-    // backdrop gets the whole first view.
     private var intro: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
             Spacer(minLength: 0)
@@ -105,7 +102,6 @@ struct TVWorkDetailScreen: View {
                         Label("gallery", systemImage: "play.fill")
                     }
                 }
-                // A work that is only a film still needs a way in from the first screen.
                 if frames.isEmpty, let first = clips.first {
                     Button {
                         clip = first

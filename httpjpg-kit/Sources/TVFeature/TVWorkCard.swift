@@ -6,8 +6,6 @@ struct TVWorkCard: View {
     let item: WorkItem
 
     var body: some View {
-        // Only the frame is the button, the caption sits below it: that way
-        // the focus lift moves the picture alone, like posters in the TV app.
         VStack(alignment: .leading, spacing: Spacing.s4) {
             NavigationLink(value: item) {
                 Color.clear

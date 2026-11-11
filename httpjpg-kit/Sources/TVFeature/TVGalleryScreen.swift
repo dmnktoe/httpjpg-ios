@@ -1,4 +1,3 @@
-import StoryblokCore
 import SwiftUI
 import Tokens
 
@@ -19,9 +18,6 @@ struct TVGalleryScreen: View {
         if model.galleryFrames.isEmpty {
             TVStateView(art: Ascii.ghost, message: model.isLoaded ? "no frames yet" : "loading…")
         } else {
-            // The tab itself already drifts, so the gallery sells itself before
-            // it is started; only the started one keeps the screen awake and
-            // listens to the remote.
             ZStack(alignment: .bottomLeading) {
                 TVSlideshowView(frames: model.galleryFrames, showsCaption: false)
 

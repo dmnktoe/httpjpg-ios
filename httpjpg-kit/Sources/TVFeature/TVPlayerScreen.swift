@@ -8,9 +8,6 @@ struct TVPlayerScreen: View {
 
     @State private var player: TVAudioPlayer
 
-    private static let artworkWidth: CGFloat = 240
-    private static let progressWidth: CGFloat = 640
-
     init(tracks: [AudioTrack], start: AudioTrack, frames: [TVGalleryFrame], loop: URL?) {
         self.frames = frames
         self.loop = loop
@@ -39,8 +36,6 @@ struct TVPlayerScreen: View {
         .tvPlayPause { player.togglePlayPause() }
     }
 
-    // Something that moves behind the music: a silent clip from the feed where
-    // there is one, otherwise the gallery's slow loop.
     @ViewBuilder
     private var backdrop: some View {
         if let loop {
@@ -59,9 +54,9 @@ struct TVPlayerScreen: View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
             if track.artworkURL != nil {
                 Color.clear
-                    .frame(width: Self.artworkWidth, height: Self.artworkWidth)
+                    .frame(width: TVMetrics.playerArtworkWidth, height: TVMetrics.playerArtworkWidth)
                     .overlay {
-                        TVImage(filename: track.artworkURL?.absoluteString, targetWidth: Self.artworkWidth)
+                        TVImage(filename: track.artworkURL?.absoluteString, targetWidth: TVMetrics.playerArtworkWidth)
                     }
                     .clipped()
                     .padding(.bottom, Spacing.s4)
@@ -86,7 +81,7 @@ struct TVPlayerScreen: View {
 
             ProgressView(value: player.progress)
                 .tint(Palette.white)
-                .frame(width: Self.progressWidth)
+                .frame(width: TVMetrics.progressWidth)
                 .padding(.top, Spacing.s4)
                 .accessibilityLabel("progress")
 

@@ -97,7 +97,6 @@ final class TVAudioPlayer {
         isPlaying = true
     }
 
-    // A set runs on into its next track; a single track stops at its start.
     private func trackEnded() {
         if hasSeveralTracks {
             skip(1)

@@ -34,7 +34,6 @@ final class TVAppModelTests: XCTestCase {
         await model.loadFeed()
 
         XCTAssertTrue(model.isFeedLoaded)
-        // The fixture holds one playable file and one SoundCloud link, which has no stream.
         XCTAssertEqual(model.tracks.map(\.title), ["mega mashup (mock)"])
         XCTAssertEqual(model.clips.count, 1)
         XCTAssertEqual(model.clips.first?.url.pathExtension, "mp4")

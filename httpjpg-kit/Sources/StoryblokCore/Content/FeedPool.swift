@@ -11,8 +11,6 @@ public enum FeedPool {
                 track: AudioTrack?,
                 listenURL: URL?
             )
-            // The address is only set for a file a player can open directly;
-            // a YouTube or Vimeo embed has none.
             case video(poster: String?, caption: String?, url: URL?)
         }
 

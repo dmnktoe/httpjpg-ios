@@ -8,8 +8,6 @@ struct TVFeedScreen: View {
     @State private var playing: AudioTrack?
     @State private var clip: TVClip?
 
-    private static let artworkWidth: CGFloat = 300
-
     var body: some View {
         content
             .fullScreenCover(item: $playing) { track in
@@ -92,17 +90,15 @@ struct TVFeedScreen: View {
         .tvFocusSection()
     }
 
-    // Only the picture is the button, as on the work wall, so the focus lift
-    // moves the artwork and leaves its caption in place.
     private func trackCard(_ track: AudioTrack) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
             Button {
                 playing = track
             } label: {
                 Color.clear
-                    .frame(width: Self.artworkWidth, height: Self.artworkWidth)
+                    .frame(width: TVMetrics.artworkWidth, height: TVMetrics.artworkWidth)
                     .overlay {
-                        TVImage(filename: track.artworkURL?.absoluteString, targetWidth: Self.artworkWidth)
+                        TVImage(filename: track.artworkURL?.absoluteString, targetWidth: TVMetrics.artworkWidth)
                     }
                     .clipped()
             }
@@ -110,7 +106,7 @@ struct TVFeedScreen: View {
             .accessibilityLabel([track.title, track.artist].compactMap { $0 }.joined(separator: ", "))
 
             caption(track.title, detail: track.artist)
-                .frame(width: Self.artworkWidth, alignment: .leading)
+                .frame(width: TVMetrics.artworkWidth, alignment: .leading)
         }
     }
 

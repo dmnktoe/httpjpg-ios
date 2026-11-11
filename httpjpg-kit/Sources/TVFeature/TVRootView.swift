@@ -39,8 +39,6 @@ public struct TVRootView: View {
             await model.load()
             await model.loadFeed()
             await model.loadStatus()
-            // A running gallery never leaves the foreground, so the scene
-            // phase alone would not bring new work in.
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(ContentClient.cacheDuration))
                 guard !Task.isCancelled else { return }

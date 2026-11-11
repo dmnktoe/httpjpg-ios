@@ -1,4 +1,3 @@
-import StoryblokCore
 import SwiftUI
 import Tokens
 
@@ -17,8 +16,6 @@ struct TVSlideshowView: View {
     static let interval: TimeInterval = 9
     private static let crossfade: Animation = .easeInOut(duration: 1.6)
 
-    // Stepping by hand is part of the key, so the timer starts over and the
-    // frame just chosen gets its full interval.
     private struct Cycle: Equatable {
         let frames: [TVGalleryFrame]
         let isPaused: Bool
@@ -71,8 +68,6 @@ struct TVSlideshowView: View {
         .overlay(alignment: .bottomTrailing) { ticker }
         .overlay(alignment: .topTrailing) { pauseMark }
         .ignoresSafeArea()
-        // Only the started show holds the screen, and only while it moves:
-        // a paused frame may hand over to the screen saver.
         .keepsScreenAwake(isStarted && !isPaused)
         .tvSlideshowRemote(isEnabled: isStarted, onStep: step) {
             isPaused.toggle()
@@ -95,11 +90,10 @@ struct TVSlideshowView: View {
             }
         }
         .foregroundStyle(Palette.white)
-        .shadow(color: Palette.black.opacity(0.6), radius: 24)
+        .shadow(color: Palette.black.opacity(0.6), radius: Spacing.s6)
         .padding(TVMetrics.overscanInset)
     }
 
-    // One line of the site's status per frame, opposite the caption.
     @ViewBuilder
     private var ticker: some View {
         if isStarted, !status.isEmpty {
@@ -109,7 +103,7 @@ struct TVSlideshowView: View {
                 .lineLimit(1)
                 .foregroundStyle(Palette.white)
                 .opacity(Opacities.muted)
-                .shadow(color: Palette.black.opacity(0.6), radius: 24)
+                .shadow(color: Palette.black.opacity(0.6), radius: Spacing.s6)
                 .frame(maxWidth: TVMetrics.screenWidth / 2, alignment: .trailing)
                 .padding(TVMetrics.overscanInset)
                 .id(line.id)
@@ -124,7 +118,7 @@ struct TVSlideshowView: View {
                 .font(Typography.mono(TVMetrics.label))
                 .foregroundStyle(Palette.white)
                 .opacity(Opacities.muted)
-                .shadow(color: Palette.black.opacity(0.6), radius: 24)
+                .shadow(color: Palette.black.opacity(0.6), radius: Spacing.s6)
                 .padding(TVMetrics.overscanInset)
                 .transition(.opacity)
         }

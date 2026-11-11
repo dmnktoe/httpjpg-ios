@@ -12,6 +12,9 @@ enum TVMetrics {
     static let sectionGap: CGFloat = 64
     static let cardGap: CGFloat = 48
     static let posterWidth: CGFloat = 400
+    static let artworkWidth: CGFloat = 300
+    static let playerArtworkWidth: CGFloat = 240
+    static let progressWidth: CGFloat = 640
     static let proseWidth: CGFloat = 1000
     static let screenWidth: CGFloat = 1920
     static let overscanInset: CGFloat = 80
