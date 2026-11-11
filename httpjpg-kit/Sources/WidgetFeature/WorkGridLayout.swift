@@ -13,7 +13,6 @@ enum WorkGridLayout {
     }
 
     static func rows(for family: WidgetFamily) -> Int {
-        // Medium keeps a single row so every tile still has room for its caption.
         switch family {
         case .systemLarge, .systemExtraLarge: return 2
         default: return 1

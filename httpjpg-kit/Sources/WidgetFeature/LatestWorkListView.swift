@@ -42,7 +42,7 @@ struct LatestWorkListView: View {
                         .widgetFullColor()
                         .scaledToFill()
                 } else {
-                    theme.border.opacity(0.3)
+                    theme.border.opacity(Opacities.dimmed)
                 }
             }
     }
