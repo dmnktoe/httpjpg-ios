@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// A sprite drawn from an 8×8 bitmap, the native counterpart of the web's
-/// `image-rendering: pixelated` status sprites. Drawn as one path so the cells
-/// share no antialiased seams, and it stays crisp at any size without an asset.
 public struct PixelGlyph: Shape {
     public enum Kind: Sendable, CaseIterable {
         case dot
@@ -36,7 +33,6 @@ public struct PixelGlyph: Shape {
 }
 
 private extension PixelGlyph.Kind {
-    // Kept identical to the PNG sprites in the web repo's `public/images/football`.
     var rows: [String] {
         switch self {
         case .dot:

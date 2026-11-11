@@ -8,8 +8,6 @@ struct SiteStatusLine: Identifiable {
     let label: String
     let badge: String
 
-    /// Drawn in place of the badge wherever shapes can render; the badge stays
-    /// for the inline accessory, which is text only.
     let glyph: PixelGlyph.Kind?
     let text: String
 

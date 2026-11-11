@@ -375,8 +375,6 @@ public struct SchalkeStatus: Decodable, Sendable {
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        // Either half can be missing (off-season, table unreachable); a half
-        // without its key fields is treated the same as an absent one.
         let fixture = container.cmsValue(SchalkeFixture.self, forKey: .fixture)
         let standing = container.cmsValue(SchalkeStanding.self, forKey: .standing)
         self.fixture = fixture.flatMap { $0.home.isEmpty || $0.away.isEmpty ? nil : $0 }

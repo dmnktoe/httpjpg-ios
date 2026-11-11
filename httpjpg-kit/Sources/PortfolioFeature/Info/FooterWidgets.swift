@@ -233,7 +233,6 @@ private struct SchalkeLine: View {
         }
     }
 
-    // One point per bitmap cell, so the 8×8 sprite lands on whole pixels.
     private func glyph(_ kind: PixelGlyph.Kind, color: Color) -> some View {
         PixelGlyph(kind)
             .fill(color)
