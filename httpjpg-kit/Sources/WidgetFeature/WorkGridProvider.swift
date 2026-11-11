@@ -39,7 +39,7 @@ struct WorkGridProvider: TimelineProvider {
             let collection = try await client.workIndex(perPage: 40)
 
             let items = Array(
-                (collection.projects + collection.websites)
+                (collection.listedItems(for: .projects) + collection.listedItems(for: .websites))
                     .filter { $0.imageFilenames.first != nil }
                     .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
                     .prefix(WorkGridLayout.tiles(for: context.family))

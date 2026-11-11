@@ -46,7 +46,7 @@ struct LatestWorkProvider: TimelineProvider {
             let collection = try await client.workIndex(perPage: 20)
 
             let items = Array(
-                (collection.projects + collection.websites)
+                (collection.listedItems(for: .projects) + collection.listedItems(for: .websites))
                     .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
                     .prefix(isExtraLarge ? Self.extraLargeEntryCount : Self.entryCount)
             )
