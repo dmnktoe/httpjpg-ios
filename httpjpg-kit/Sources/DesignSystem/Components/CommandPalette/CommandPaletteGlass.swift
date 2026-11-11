@@ -18,7 +18,6 @@ struct CommandPaletteGlass: ViewModifier {
 
     func body(content: Content) -> some View {
         glass(content)
-            // Behind the glass rather than over it, so the beam's glow never washes across the answer text.
             .background { beam }
             .overlay {
                 shape
@@ -40,7 +39,6 @@ struct CommandPaletteGlass: ViewModifier {
     @ViewBuilder
     private var beam: some View {
         #if os(iOS)
-        // The beam does its own fade and pauses its timeline once inactive, so an idle panel costs nothing.
         Color.clear
             .borderBeam(
                 shape: .rounded(cornerRadius),
