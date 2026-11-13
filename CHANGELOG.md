@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.5.0...v1.6.0) (2026-11-13)
+
+
+### Added
+
+* **status:** add the Schalke 04 line to the footer and the status widget ([#126](https://github.com/dmnktoe/httpjpg-ios/issues/126)) ([9bcb716](https://github.com/dmnktoe/httpjpg-ios/commit/9bcb716928f26b6c6b432e0024215a6f867ae5b0))
+* **tv:** add an Apple TV app with a gallery, feed and Top Shelf ([#125](https://github.com/dmnktoe/httpjpg-ios/issues/125)) ([d9e3557](https://github.com/dmnktoe/httpjpg-ios/commit/d9e3557cf4f65f185c662b9b3bed0a5bf8d3c4c8))
+
+
+### Changed
+
+* **widgets:** turn the contact sheet into a captioned work grid ([#124](https://github.com/dmnktoe/httpjpg-ios/issues/124)) ([6903433](https://github.com/dmnktoe/httpjpg-ios/commit/6903433761c01cb394cdcc0673a636ae5c7bbde8))
+
+
+### Dependencies
+
+* update dependency node to v26 ([#120](https://github.com/dmnktoe/httpjpg-ios/issues/120)) ([f06a0b3](https://github.com/dmnktoe/httpjpg-ios/commit/f06a0b3d7f11b63e9a40cd633329c23f8097f2b1))
+* update dependency storyblok/storyblok-swift to v2 ([#122](https://github.com/dmnktoe/httpjpg-ios/issues/122)) ([78a9759](https://github.com/dmnktoe/httpjpg-ios/commit/78a97597cb48153f7c9957f871cc9608b8de3f35))
+
 ## [1.5.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.4.1...v1.5.0) (2026-10-27)
 
 
