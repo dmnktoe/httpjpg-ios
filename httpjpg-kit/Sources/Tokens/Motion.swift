@@ -15,5 +15,7 @@ public enum Motion {
 
     public static let palettePop: Animation = .spring(response: 0.42, dampingFraction: 0.68)
 
-    public static let glowFade: Animation = .easeInOut(duration: 1.2)
+    public static let glowFade: Animation = .easeInOut(duration: glowFadeDuration)
+
+    public static let glowFadeDuration: TimeInterval = 1.2
 }

@@ -21,7 +21,8 @@ let package = Package(
         .package(url: "https://github.com/exyte/SVGView.git", .upToNextMajor(from: "1.0.6")),
         .package(url: "https://github.com/TelemetryDeck/SwiftSDK.git", .upToNextMajor(from: "2.14.2")),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", .upToNextMajor(from: "1.19.7")),
-        .package(url: "https://github.com/Livsy90/IntelligenceGlow.git", from: "1.0.0"),
+        // Upstream has published no tag yet, so this pins the 1.0.0 commit.
+        .package(url: "https://github.com/ismnoiet/border-beam-ios.git", revision: "aa20499b346c37352ac5b443c8734592c17d708d"),
     ],
     targets: [
         .target(
@@ -36,7 +37,7 @@ let package = Package(
 
                 .product(name: "MarqueeLabel", package: "MarqueeLabel", condition: .when(platforms: [.iOS])),
                 .product(name: "SVGView", package: "SVGView", condition: .when(platforms: [.iOS])),
-                .product(name: "IntelligenceGlow", package: "IntelligenceGlow", condition: .when(platforms: [.iOS])),
+                .product(name: "BorderBeam", package: "border-beam-ios", condition: .when(platforms: [.iOS])),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

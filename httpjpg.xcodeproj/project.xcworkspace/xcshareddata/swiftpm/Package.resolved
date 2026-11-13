@@ -2,12 +2,11 @@
   "originHash" : "919629ebcd992b3cb62438d8b2e97a26a084a924409b49256a318d48030e0ac5",
   "pins" : [
     {
-      "identity" : "intelligenceglow",
+      "identity" : "border-beam-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Livsy90/IntelligenceGlow.git",
+      "location" : "https://github.com/ismnoiet/border-beam-ios.git",
       "state" : {
-        "revision" : "f7930bfc4f46012f9263082180b80aa0c6eeda51",
-        "version" : "1.0.0"
+        "revision" : "aa20499b346c37352ac5b443c8734592c17d708d"
       }
     },
     {
