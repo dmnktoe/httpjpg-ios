@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "httpjpg-kit",
-    platforms: [.iOS(.v17), .watchOS(.v10)],
+    platforms: [.iOS(.v17), .watchOS(.v10), .tvOS(.v17)],
     products: [
         .library(name: "Tokens", targets: ["Tokens"]),
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
@@ -12,6 +12,8 @@ let package = Package(
         .library(name: "PortfolioFeature", targets: ["PortfolioFeature"]),
         .library(name: "WidgetFeature", targets: ["WidgetFeature"]),
         .library(name: "WatchFeature", targets: ["WatchFeature"]),
+        .library(name: "TVFeature", targets: ["TVFeature"]),
+        .library(name: "TopShelfFeature", targets: ["TopShelfFeature"]),
     ],
     dependencies: [
         .package(url: "https://github.com/storyblok/storyblok-swift.git", .upToNextMinor(from: "2.0.0")),
@@ -82,6 +84,16 @@ let package = Package(
             dependencies: ["Tokens", "StoryblokCore"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        .target(
+            name: "TVFeature",
+            dependencies: ["Tokens", "StoryblokCore", "TopShelfFeature"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
+            name: "TopShelfFeature",
+            dependencies: ["StoryblokCore"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(
             name: "DesignSystemTests",
             dependencies: [
@@ -105,6 +117,16 @@ let package = Package(
         .testTarget(
             name: "WatchFeatureTests",
             dependencies: ["WatchFeature", "StoryblokCore"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "TVFeatureTests",
+            dependencies: ["TVFeature", "StoryblokCore", "TopShelfFeature"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "TopShelfFeatureTests",
+            dependencies: ["TopShelfFeature"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

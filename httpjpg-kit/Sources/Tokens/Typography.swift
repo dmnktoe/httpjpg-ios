@@ -83,7 +83,11 @@ public enum Typography {
     public static func uiHeadline(_ size: CGFloat) -> UIFont {
         let font = UIFont(name: Family.headline, size: size)
             ?? .systemFont(ofSize: size, weight: .black)
+        #if os(tvOS)
+        return UIFontMetrics(forTextStyle: .title1).scaledFont(for: font)
+        #else
         return UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font)
+        #endif
     }
 
     public static func uiMono(_ size: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {

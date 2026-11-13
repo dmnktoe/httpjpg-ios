@@ -11,7 +11,7 @@ public enum FeedPool {
                 track: AudioTrack?,
                 listenURL: URL?
             )
-            case video(poster: String?, caption: String?)
+            case video(poster: String?, caption: String?, url: URL?)
         }
 
         public let id: String
@@ -28,7 +28,7 @@ public enum FeedPool {
                 return filename
             case .music(_, _, let artworkURL, _, _):
                 return artworkURL
-            case .video(let poster, _):
+            case .video(let poster, _, _):
                 return poster
             }
         }
@@ -112,7 +112,7 @@ public enum FeedPool {
         }
         return Item(
             id: video.id,
-            kind: .video(poster: poster, caption: caption.isEmpty ? nil : caption)
+            kind: .video(poster: poster, caption: caption.isEmpty ? nil : caption, url: video.nativeURL)
         )
     }
 }

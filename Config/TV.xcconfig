@@ -1,0 +1,19 @@
+#include "Shared.xcconfig"
+
+PRODUCT_NAME = httpjpg-tv
+// Same identifier as the iPhone app, so both ship as one universal purchase.
+PRODUCT_BUNDLE_IDENTIFIER = com.yl33ly.httpjpg
+INFOPLIST_FILE = httpjpg-tv/Info.plist
+
+INFOPLIST_KEY_CFBundleDisplayName = httpjpg
+
+// iPhone-only keys inherited from Shared.xcconfig; tvOS has no launch
+// screen, no orientations and no indirect input.
+INFOPLIST_KEY_UILaunchScreen_Generation =
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents =
+INFOPLIST_KEY_UISupportedInterfaceOrientations =
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad =
+
+// Icon Composer's .icon does not cover the TV, which wants a layered stack
+// and Top Shelf stills in one brand asset.
+ASSETCATALOG_COMPILER_APPICON_NAME = App Icon & Top Shelf Image

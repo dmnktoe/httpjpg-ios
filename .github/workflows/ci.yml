@@ -233,6 +233,29 @@ jobs:
         if: failure() && hashFiles('watch-build.log') != ''
         run: grep -n -B2 -A6 -i 'error' watch-build.log | tail -100 || tail -100 watch-build.log
 
+      - name: Build TV app
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project httpjpg.xcodeproj \
+            -scheme httpjpg-tv \
+            -destination 'generic/platform=tvOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CONTENT_SOURCE=mock \
+            STORYBLOK_ACCESS_TOKEN=mock \
+            | tee tv-build.log \
+            | { command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat; }
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Raw TV build log
+        if: failure() && hashFiles('tv-build.log') != ''
+        run: grep -n -B2 -A6 -i 'error' tv-build.log | tail -100 || tail -100 tv-build.log
+
       - name: Snapshot recording mode
         id: snapshots
         shell: bash

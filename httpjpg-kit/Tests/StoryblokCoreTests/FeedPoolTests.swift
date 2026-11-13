@@ -93,11 +93,30 @@ final class FeedPoolTests: XCTestCase {
 
         let items = FeedPool.items(in: bloks)
         XCTAssertEqual(items.count, 1)
-        guard case .video(let poster, let caption) = items[0].kind else {
+        guard case .video(let poster, let caption, let url) = items[0].kind else {
             return XCTFail("expected a video item")
         }
         XCTAssertNil(poster)
         XCTAssertEqual(caption, "live on display")
+        XCTAssertEqual(url?.absoluteString, "https://cdn.httpjpg.com/feed/clip.mp4")
+    }
+
+    func testAnEmbeddedVideoCarriesNoPlayableAddress() throws {
+        let bloks = try decode(
+            """
+            [{"component": "video", "source": "youtube",
+              "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+              "poster": {"filename": "https://a.storyblok.com/f/281211/1920x1080/9a43fe84ff/still.png"}}]
+            """
+        )
+
+        let items = FeedPool.items(in: bloks)
+        XCTAssertEqual(items.count, 1)
+        guard case .video(let poster, _, let url) = items[0].kind else {
+            return XCTFail("expected a video item")
+        }
+        XCTAssertNotNil(poster)
+        XCTAssertNil(url)
     }
 
     func testEmptyMusicAndVideoBloksAreLeftOut() throws {
