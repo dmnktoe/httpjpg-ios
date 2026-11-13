@@ -14,12 +14,13 @@ final class SiteStatusEntryTests: XCTestCase {
                 #"{"profile": {"username": "dmnktoe", "followerCount": 1234}, "posts": [{"text": "shipping"}]}"#
             ),
             trophy: try decode(#"{"name": "Nachtfahrt", "game": "Death Stranding", "type": "gold"}"#),
+            schalke: try decode(#"{"standing": {"position": 17, "trend": "same"}}"#),
             weather: try decode(#"{"temperature": 18.4, "emoji": "🌤", "condition": "bewölkt"}"#)
         )
 
         XCTAssertEqual(
             entry.lines.map(\.id),
-            ["discord", "letterboxd", "discogs", "x", "psn", "weather"]
+            ["discord", "letterboxd", "discogs", "x", "psn", "schalke", "weather"]
         )
     }
 
@@ -31,6 +32,7 @@ final class SiteStatusEntryTests: XCTestCase {
             record: try decode(#"{"title": "", "artist": "DJ Shadow"}"#),
             timeline: try decode(#"{"profile": {"username": "dmnktoe"}, "posts": []}"#),
             trophy: try decode(#"{"name": "", "game": ""}"#),
+            schalke: try decode(#"{"fixture": null, "standing": null}"#),
             weather: try decode(#"{"emoji": "🌧"}"#)
         )
 
@@ -89,6 +91,33 @@ final class SiteStatusEntryTests: XCTestCase {
 
         XCTAssertEqual(line.text, "19°")
         XCTAssertEqual(line.detail, "bewölkt")
+    }
+
+    func testAResultIsTintedByOutcomeAndCarriesThePlace() throws {
+        let status: SchalkeStatus = try decode(
+            #"""
+            {"fixture": {"home": "Hoffenheim", "away": "S04", "homeGoals": 2, "awayGoals": 1, "outcome": "loss",
+                         "homeCrest": "data:image/png;base64,aG9tZQ==", "awayCrest": "data:image/png;base64,YXdheQ=="},
+             "standing": {"position": 17, "previousPosition": 16, "trend": "down"}}
+            """#
+        )
+
+        let line = try XCTUnwrap(SiteStatusLine(schalke: status))
+
+        XCTAssertEqual(line.text, "Hoffenheim 2:1 S04")
+        XCTAssertEqual(line.detail, "↓ 17.")
+        XCTAssertEqual(line.leadingImage, Data("home".utf8))
+        XCTAssertEqual(line.trailingImage, Data("away".utf8))
+        XCTAssertNotNil(line.tint)
+    }
+
+    func testThePlaceStandsAloneWithoutARecentFixture() throws {
+        let status: SchalkeStatus = try decode(#"{"standing": {"position": 4, "trend": "up"}}"#)
+
+        let line = try XCTUnwrap(SiteStatusLine(schalke: status))
+
+        XCTAssertEqual(line.text, "↑ 4.")
+        XCTAssertNil(line.leadingImage)
     }
 
     func testAnUnknownTrophyTypeStillGetsABadge() throws {

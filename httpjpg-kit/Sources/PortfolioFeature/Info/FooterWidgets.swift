@@ -3,6 +3,7 @@ import DesignSystem
 import StoryblokCore
 import SwiftUI
 import Tokens
+import UIKit
 
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
@@ -25,6 +26,9 @@ struct FooterWidgets: View {
                 if let trophy = model.trophy {
                     TrophyLine(trophy: trophy)
                 }
+                if let schalke = model.schalke, !schalke.isEmpty {
+                    SchalkeLine(status: schalke)
+                }
             } else {
                 ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
             }
@@ -42,6 +46,7 @@ struct FooterWidgets: View {
             flags.isDiscogsEnabled ? "discogs:" : nil,
             flags.isXEnabled ? "x:" : nil,
             flags.isPsnTrophyEnabled ? "psn:" : nil,
+            flags.isSchalkeEnabled ? "s04:" : nil,
         ].compactMap { $0 }
     }
 
@@ -200,6 +205,73 @@ private struct TrophyLine: View {
                 .truncationMode(.tail)
                 .opacity(Opacities.muted)
         }
+    }
+}
+
+private struct SchalkeLine: View {
+    let status: SchalkeStatus
+
+    var body: some View {
+        FooterStatusLine(label: "s04:") {
+            if let fixture = status.fixture {
+                crest(fixture.homeCrest)
+                Text(fixture.score)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                crest(fixture.awayCrest)
+            }
+            if status.fixture != nil, status.standing != nil {
+                Text("·").opacity(Opacities.subtle)
+            }
+            if let standing = status.standing {
+                glyph(kind(for: standing.trend), color: color(for: standing.trend))
+                    .accessibilityLabel(trendLabel(for: standing))
+                Text("\(standing.position).")
+                if let points = standing.points {
+                    Text("\(points) pts").opacity(Opacities.subtle)
+                }
+            }
+        }
+    }
+
+    private func glyph(_ kind: PixelGlyph.Kind, color: Color) -> some View {
+        PixelGlyph(kind)
+            .fill(color)
+            .frame(width: Spacing.s2, height: Spacing.s2)
+    }
+
+    @ViewBuilder
+    private func crest(_ data: Data?) -> some View {
+        if let image = data.flatMap(UIImage.init(data:)) {
+            Image(uiImage: image)
+                .resizable()
+                .interpolation(.none)
+                .frame(width: Typography.Size.md, height: Typography.Size.md)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func kind(for trend: SchalkeStanding.Trend) -> PixelGlyph.Kind {
+        switch trend {
+        case .up: return .arrowUp
+        case .down: return .arrowDown
+        case .same: return .dash
+        }
+    }
+
+    private func color(for trend: SchalkeStanding.Trend) -> Color {
+        switch trend {
+        case .up: return Palette.success.s500
+        case .down: return Palette.danger.s500
+        case .same: return Palette.neutral.s500
+        }
+    }
+
+    private func trendLabel(for standing: SchalkeStanding) -> String {
+        guard standing.trend != .same, let previous = standing.previousPosition else {
+            return "unchanged"
+        }
+        return "\(standing.trend.rawValue) from \(previous)."
     }
 }
 

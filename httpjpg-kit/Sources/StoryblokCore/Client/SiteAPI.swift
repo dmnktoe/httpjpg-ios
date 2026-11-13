@@ -29,6 +29,10 @@ public actor SiteAPI {
         await get(XTimeline.self, path: "/api/x")
     }
 
+    public func schalkeStatus() async -> SchalkeStatus? {
+        await get(SchalkeStatus.self, path: "/api/schalke")
+    }
+
     public func weather() async -> WeatherNow? {
         await get(WeatherNow.self, path: "/api/weather")
     }
@@ -306,6 +310,90 @@ public struct XTimeline: Decodable, Sendable {
     }
 
     public var latestPost: XPost? { posts.first }
+}
+
+public struct SchalkeFixture: Decodable, Sendable {
+    public enum Outcome: String, Sendable {
+        case win, draw, loss
+    }
+
+    public let home: String
+    public let away: String
+    public let homeGoals: Int
+    public let awayGoals: Int
+    public let homeCrest: Data?
+    public let awayCrest: Data?
+    public let outcome: Outcome
+
+    private enum CodingKeys: String, CodingKey {
+        case home, away, homeGoals, awayGoals, homeCrest, awayCrest, outcome
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        home = container.cmsString(forKey: .home) ?? ""
+        away = container.cmsString(forKey: .away) ?? ""
+        homeGoals = container.cmsInt(forKey: .homeGoals) ?? 0
+        awayGoals = container.cmsInt(forKey: .awayGoals) ?? 0
+        homeCrest = container.cmsString(forKey: .homeCrest).flatMap(Self.imageData(fromDataURI:))
+        awayCrest = container.cmsString(forKey: .awayCrest).flatMap(Self.imageData(fromDataURI:))
+        outcome = container.cmsString(forKey: .outcome).flatMap(Outcome.init(rawValue:)) ?? .draw
+    }
+
+    public var score: String {
+        "\(home) \(homeGoals):\(awayGoals) \(away)"
+    }
+
+    private static func imageData(fromDataURI uri: String) -> Data? {
+        guard uri.hasPrefix("data:image/"), let marker = uri.range(of: ";base64,") else { return nil }
+        return Data(base64Encoded: String(uri[marker.upperBound...]))
+    }
+}
+
+public struct SchalkeStanding: Decodable, Sendable {
+    public enum Trend: String, Sendable {
+        case up, down, same
+    }
+
+    public let position: Int
+    public let previousPosition: Int?
+    public let trend: Trend
+    public let points: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case position, previousPosition, trend, points
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        position = container.cmsInt(forKey: .position) ?? 0
+        previousPosition = container.cmsInt(forKey: .previousPosition)
+        trend = container.cmsString(forKey: .trend).flatMap(Trend.init(rawValue:)) ?? .same
+        points = container.cmsInt(forKey: .points)
+    }
+}
+
+public struct SchalkeStatus: Decodable, Sendable {
+    public let fixture: SchalkeFixture?
+    public let standing: SchalkeStanding?
+    public let url: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case fixture, standing, url
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let fixture = container.cmsValue(SchalkeFixture.self, forKey: .fixture)
+        let standing = container.cmsValue(SchalkeStanding.self, forKey: .standing)
+        self.fixture = fixture.flatMap { $0.home.isEmpty || $0.away.isEmpty ? nil : $0 }
+        self.standing = standing.flatMap { $0.position > 0 ? $0 : nil }
+        url = container.cmsString(forKey: .url)
+    }
+
+    public var isEmpty: Bool {
+        fixture == nil && standing == nil
+    }
 }
 
 public struct WeatherNow: Decodable, Sendable {

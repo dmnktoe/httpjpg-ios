@@ -10,6 +10,7 @@ struct SiteStatusEntry: TimelineEntry {
     let record: DiscogsRelease?
     let timeline: XTimeline?
     let trophy: PsnTrophy?
+    let schalke: SchalkeStatus?
     let weather: WeatherNow?
 
     let message: String?
@@ -21,6 +22,7 @@ struct SiteStatusEntry: TimelineEntry {
         record: DiscogsRelease? = nil,
         timeline: XTimeline? = nil,
         trophy: PsnTrophy? = nil,
+        schalke: SchalkeStatus? = nil,
         weather: WeatherNow? = nil,
         message: String? = nil
     ) {
@@ -30,6 +32,7 @@ struct SiteStatusEntry: TimelineEntry {
         self.record = record
         self.timeline = timeline
         self.trophy = trophy
+        self.schalke = schalke
         self.weather = weather
         self.message = message
     }
@@ -41,6 +44,7 @@ struct SiteStatusEntry: TimelineEntry {
             record.flatMap(SiteStatusLine.init(record:)),
             post.flatMap { SiteStatusLine(profile: $0.profile, post: $0.post) },
             trophy.flatMap(SiteStatusLine.init(trophy:)),
+            schalke.flatMap(SiteStatusLine.init(schalke:)),
             weather.flatMap(SiteStatusLine.init(weather:)),
         ].compactMap { $0 }
     }

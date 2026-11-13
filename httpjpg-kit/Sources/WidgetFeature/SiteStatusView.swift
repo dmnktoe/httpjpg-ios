@@ -1,6 +1,7 @@
 import DesignSystem
 import SwiftUI
 import Tokens
+import UIKit
 import WidgetKit
 
 struct SiteStatusView: View {
@@ -50,10 +51,17 @@ struct SiteStatusView: View {
                 Text(line.label)
                     .opacity(Opacities.subtle)
             }
-            Text(line.badge)
+            if let image = line.leadingImage.flatMap(UIImage.init(data:)) {
+                pixelImage(image, size: size)
+            } else {
+                Text(line.badge)
+            }
             Text(line.text)
                 .foregroundStyle(line.tint ?? .primary)
                 .lineLimit(1)
+            if let image = line.trailingImage.flatMap(UIImage.init(data:)) {
+                pixelImage(image, size: size)
+            }
             if let detail = line.detail {
                 Text(detail)
                     .opacity(Opacities.muted)
@@ -64,5 +72,13 @@ struct SiteStatusView: View {
         }
         .font(Typography.mono(size))
         .accessibilityElement(children: .combine)
+    }
+
+    private func pixelImage(_ image: UIImage, size: CGFloat) -> some View {
+        Image(uiImage: image)
+            .resizable()
+            .interpolation(.none)
+            .widgetFullColor()
+            .frame(width: size, height: size)
     }
 }

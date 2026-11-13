@@ -692,6 +692,7 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isPsnTrophyEnabled)
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
+        XCTAssertFalse(config.widgets.isSchalkeEnabled)
         XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
@@ -699,14 +700,52 @@ final class StoryblokDecodingTests: XCTestCase {
         let config = try decode(SiteConfig.self, """
         {"discord_enabled":false,"letterboxd_enabled":"false",
          "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true",
-         "ask_enabled":"true"}
+         "schalke_enabled":"true","ask_enabled":"true"}
         """)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
         XCTAssertTrue(config.widgets.isPsnTrophyEnabled)
         XCTAssertTrue(config.widgets.isDiscogsEnabled)
         XCTAssertTrue(config.widgets.isXEnabled)
+        XCTAssertTrue(config.widgets.isSchalkeEnabled)
         XCTAssertTrue(config.widgets.isAskEnabled)
+    }
+
+    func testSchalkeStatusReadsTheResultAndTheStanding() throws {
+        let status = try decode(SchalkeStatus.self, """
+        {"fixture":{"home":"Hoffenheim","away":"S04","homeGoals":2,"awayGoals":"1","outcome":"loss"},
+         "standing":{"position":17,"previousPosition":16,"trend":"down","points":6},
+         "url":"https://schalke04.de"}
+        """)
+        XCTAssertEqual(status.fixture?.score, "Hoffenheim 2:1 S04")
+        XCTAssertEqual(status.fixture?.outcome, .loss)
+        XCTAssertEqual(status.standing?.position, 17)
+        XCTAssertEqual(status.standing?.previousPosition, 16)
+        XCTAssertEqual(status.standing?.trend, .down)
+        XCTAssertFalse(status.isEmpty)
+    }
+
+    func testSchalkeCrestsDecodeFromDataURIsAndIgnoreAnythingElse() throws {
+        let fixture = try decode(SchalkeFixture.self, """
+        {"home":"Hoffenheim","away":"S04",
+         "homeCrest":"data:image/png;base64,aG9tZQ==","awayCrest":"https://crests.test/s04.png"}
+        """)
+        XCTAssertEqual(fixture.homeCrest, Data("home".utf8))
+        XCTAssertNil(fixture.awayCrest)
+    }
+
+    func testSchalkeStatusToleratesAnOffSeasonPayload() throws {
+        let status = try decode(SchalkeStatus.self, #"{"fixture":null,"standing":null}"#)
+        XCTAssertTrue(status.isEmpty)
+    }
+
+    func testSchalkeStatusDropsAHalfWithoutItsKeyFields() throws {
+        let status = try decode(SchalkeStatus.self, """
+        {"fixture":{"home":"","away":"S04"},"standing":{"position":3,"trend":"sideways"}}
+        """)
+        XCTAssertNil(status.fixture)
+        XCTAssertEqual(status.standing?.trend, .same, "an unknown trend reads as no movement")
+        XCTAssertNil(status.standing?.previousPosition)
     }
 
     func testClearedWidgetFlagsFallBackToTheirDefaults() throws {

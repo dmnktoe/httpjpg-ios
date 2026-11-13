@@ -6,6 +6,9 @@ struct SiteStatusLine: Identifiable {
     let id: String
     let label: String
     let badge: String
+
+    let leadingImage: Data?
+    let trailingImage: Data?
     let text: String
 
     let detail: String?
@@ -16,6 +19,8 @@ struct SiteStatusLine: Identifiable {
         id: String,
         label: String,
         badge: String,
+        leadingImage: Data? = nil,
+        trailingImage: Data? = nil,
         text: String,
         detail: String? = nil,
         tint: Color? = nil
@@ -23,6 +28,8 @@ struct SiteStatusLine: Identifiable {
         self.id = id
         self.label = label
         self.badge = badge
+        self.leadingImage = leadingImage
+        self.trailingImage = trailingImage
         self.text = text
         self.detail = detail
         self.tint = tint
@@ -91,6 +98,33 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
+    init?(schalke status: SchalkeStatus) {
+        let place = status.standing.map { standing -> String in
+            switch standing.trend {
+            case .up: return "↑ \(standing.position)."
+            case .down: return "↓ \(standing.position)."
+            case .same: return "\(standing.position)."
+            }
+        }
+
+        if let fixture = status.fixture {
+            self.init(
+                id: "schalke",
+                label: "s04:",
+                badge: "⚽",
+                leadingImage: fixture.homeCrest,
+                trailingImage: fixture.awayCrest,
+                text: fixture.score,
+                detail: place,
+                tint: Self.tint(for: fixture.outcome)
+            )
+        } else if let place {
+            self.init(id: "schalke", label: "s04:", badge: "⚽", text: place)
+        } else {
+            return nil
+        }
+    }
+
     init?(weather: WeatherNow) {
         guard let temperature = weather.temperature else { return nil }
         self.init(
@@ -108,6 +142,14 @@ struct SiteStatusLine: Identifiable {
         case .idle: return "🟡"
         case .dnd: return "🔴"
         case .offline: return "⚫"
+        }
+    }
+
+    private static func tint(for outcome: SchalkeFixture.Outcome) -> Color {
+        switch outcome {
+        case .win: return Palette.success.s500
+        case .draw: return Palette.neutral.s500
+        case .loss: return Palette.danger.s500
         }
     }
 

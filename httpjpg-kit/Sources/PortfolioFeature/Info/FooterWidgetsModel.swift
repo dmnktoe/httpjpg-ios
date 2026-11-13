@@ -14,6 +14,7 @@ final class FooterWidgetsModel {
     private(set) var record: DiscogsRelease?
     private(set) var timeline: XTimeline?
     private(set) var trophy: PsnTrophy?
+    private(set) var schalke: SchalkeStatus?
     private(set) var weather: WeatherNow?
 
     private(set) var isLoaded = false
@@ -29,15 +30,18 @@ final class FooterWidgetsModel {
         async let latestRecord = loadRecord()
         async let latestTimeline = loadTimeline()
         async let latestTrophy = loadTrophy()
+        async let latestSchalke = loadSchalke()
         async let now = api.weather()
         let (loadedPresence, loadedFilm, loadedRecord, loadedTimeline, loadedTrophy, loadedWeather) =
             await (presence, latestFilm, latestRecord, latestTimeline, latestTrophy, now)
+        let loadedSchalke = await latestSchalke
 
         discord = loadedPresence
         film = loadedFilm
         record = loadedRecord
         timeline = loadedTimeline
         trophy = loadedTrophy
+        schalke = loadedSchalke
         weather = loadedWeather
         isLoaded = true
     }
@@ -65,5 +69,10 @@ final class FooterWidgetsModel {
     private func loadTrophy() async -> PsnTrophy? {
         guard flags.isPsnTrophyEnabled else { return nil }
         return await api.latestTrophy()
+    }
+
+    private func loadSchalke() async -> SchalkeStatus? {
+        guard flags.isSchalkeEnabled else { return nil }
+        return await api.schalkeStatus()
     }
 }
