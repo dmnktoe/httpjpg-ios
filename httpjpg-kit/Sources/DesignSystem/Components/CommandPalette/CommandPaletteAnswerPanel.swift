@@ -1,7 +1,7 @@
 import SwiftUI
 import Tokens
 
-/// The ask answer: streams in under a sweep, then settles into a quiet glass card.
+/// The ask answer: streams in under a border beam, then settles into a quiet glass card.
 struct CommandPaletteAnswerPanel: View {
     let answer: String
     let sources: [CommandPaletteSource]
@@ -15,8 +15,7 @@ struct CommandPaletteAnswerPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isGlowing = true
 
-    private static let shape = RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
-    // The sweep keeps running this long after the last token, so a finished answer still reads as fresh.
+    // The beam keeps running this long after the last token, so a finished answer still reads as fresh.
     private static let glowLinger: Duration = .milliseconds(1600)
     private static let cursorBlink: TimeInterval = 0.5
     // The site assistant cites its sources inline as `[n]` or `[n, m]`; those get the mono treatment of the chips below.
@@ -83,7 +82,7 @@ struct CommandPaletteAnswerPanel: View {
         }
         .padding(Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .modifier(CommandPaletteGlass(shape: Self.shape, isGlowing: isGlowing))
+        .modifier(CommandPaletteGlass(cornerRadius: Radii.xxl, isGlowing: isGlowing))
         .task(id: glowKey) {
             if errorMessage != nil {
                 isGlowing = false
