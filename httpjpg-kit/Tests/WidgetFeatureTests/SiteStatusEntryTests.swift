@@ -39,6 +39,38 @@ final class SiteStatusEntryTests: XCTestCase {
         XCTAssertEqual(entry.lines.map(\.id), ["discord"])
     }
 
+    func testLinesRunNewestFirstWithLivePresenceOnTopAndUndatedLast() throws {
+        let entry = SiteStatusEntry(
+            date: .now,
+            discord: try decode(#"{"status": "online", "activity": "Xcode"}"#),
+            film: try decode(#"{"title": "Babystar", "watchedDate": "2026-11-05"}"#),
+            record: try decode(
+                #"{"title": "All I Want", "artist": "2 The Bone", "addedAt": "2020-07-08T21:36:57-07:00"}"#
+            ),
+            trophy: try decode(#"{"name": "Pathfinder", "game": "TSW7", "earnedAt": "2026-11-14T22:42:29Z"}"#),
+            schalke: try decode(
+                #"{"fixture": {"home": "Hoffenheim", "away": "S04", "playedAt": "2026-11-08T18:30:00Z"}}"#
+            ),
+            weather: try decode(#"{"temperature": 0.9, "emoji": "☁️"}"#)
+        )
+
+        XCTAssertEqual(
+            entry.lines.map(\.id),
+            ["discord", "psn", "schalke", "letterboxd", "discogs", "weather"]
+        )
+    }
+
+    func testAnOfflinePresenceSinksBelowTheDatedLines() throws {
+        let entry = SiteStatusEntry(
+            date: .now,
+            discord: try decode(#"{"status": "offline"}"#),
+            film: try decode(#"{"title": "Babystar", "watchedDate": "2026-11-05"}"#),
+            weather: try decode(#"{"temperature": 0.9}"#)
+        )
+
+        XCTAssertEqual(entry.lines.map(\.id), ["letterboxd", "discord", "weather"])
+    }
+
     func testAFilmCarriesItsYearRatingAndHeart() throws {
         let film: LetterboxdFilm = try decode(
             #"{"title": "Chungking Express", "year": "1994", "rating": 4.5, "liked": true}"#

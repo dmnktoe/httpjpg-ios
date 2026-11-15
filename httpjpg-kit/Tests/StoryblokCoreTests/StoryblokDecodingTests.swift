@@ -725,6 +725,25 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(status.isEmpty)
     }
 
+    func testFooterSourcesCarryWhenTheyHappened() throws {
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","watchedDate":"2026-11-05"}"#)
+        let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","earnedAt":"2026-11-14T22:42:29Z"}"#)
+        let record = try decode(DiscogsRelease.self, #"{"title":"All I Want","addedAt":"2020-07-08T21:36:57-07:00"}"#)
+        let fixture = try decode(SchalkeFixture.self, #"{"home":"Hoffenheim","away":"S04","playedAt":"2026-11-08T18:30:00Z"}"#)
+
+        XCTAssertEqual(film.watchedDate, StoryblokDate.parse("2026-11-05"))
+        XCTAssertEqual(trophy.earnedAt, Date(timeIntervalSince1970: 1_794_696_149))
+        XCTAssertEqual(record.addedAt, Date(timeIntervalSince1970: 1_594_269_417))
+        XCTAssertEqual(fixture.playedAt, Date(timeIntervalSince1970: 1_794_162_600))
+    }
+
+    func testAClearedOrMissingFooterDateIsNil() throws {
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","watchedDate":""}"#)
+        let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder"}"#)
+        XCTAssertNil(film.watchedDate)
+        XCTAssertNil(trophy.earnedAt)
+    }
+
     func testSchalkeCrestsDecodeFromDataURIsAndIgnoreAnythingElse() throws {
         let fixture = try decode(SchalkeFixture.self, """
         {"home":"Hoffenheim","away":"S04",

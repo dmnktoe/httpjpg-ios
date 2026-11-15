@@ -37,8 +37,12 @@ struct SiteStatusEntry: TimelineEntry {
         self.message = message
     }
 
+    /// Newest first, because the lock-screen and small layouts only have room
+    /// for the top few: a presence that isn't offline is happening right now,
+    /// then the dated events by when they happened, then whatever carries no
+    /// date (offline presence, the weather) in footer order.
     var lines: [SiteStatusLine] {
-        [
+        let footerOrder = [
             discord.map(SiteStatusLine.init(discord:)),
             film.flatMap(SiteStatusLine.init(film:)),
             record.flatMap(SiteStatusLine.init(record:)),
@@ -47,6 +51,23 @@ struct SiteStatusEntry: TimelineEntry {
             schalke.flatMap(SiteStatusLine.init(schalke:)),
             weather.flatMap(SiteStatusLine.init(weather:)),
         ].compactMap { $0 }
+
+        // `sorted` makes no stability promise, so the footer index breaks ties.
+        return footerOrder.enumerated()
+            .sorted { lhs, rhs in
+                let (left, right) = (rank(lhs.element), rank(rhs.element))
+                if left != right { return left < right }
+                if let leftDate = lhs.element.date, let rightDate = rhs.element.date, leftDate != rightDate {
+                    return leftDate > rightDate
+                }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
+    }
+
+    private func rank(_ line: SiteStatusLine) -> Int {
+        if line.id == "discord", let discord, discord.status != .offline { return 0 }
+        return line.date == nil ? 2 : 1
     }
 
     private var post: (profile: XProfile, post: XPost)? {

@@ -15,6 +15,8 @@ struct SiteStatusLine: Identifiable {
 
     let tint: Color?
 
+    let date: Date?
+
     init(
         id: String,
         label: String,
@@ -23,7 +25,8 @@ struct SiteStatusLine: Identifiable {
         trailingImage: Data? = nil,
         text: String,
         detail: String? = nil,
-        tint: Color? = nil
+        tint: Color? = nil,
+        date: Date? = nil
     ) {
         self.id = id
         self.label = label
@@ -33,6 +36,7 @@ struct SiteStatusLine: Identifiable {
         self.text = text
         self.detail = detail
         self.tint = tint
+        self.date = date
     }
 
     init(discord presence: DiscordPresence) {
@@ -57,7 +61,8 @@ struct SiteStatusLine: Identifiable {
             label: "letterboxd:",
             badge: "🎞",
             text: film.title,
-            detail: detail.isEmpty ? nil : detail
+            detail: detail.isEmpty ? nil : detail,
+            date: film.watchedDate
         )
     }
 
@@ -72,7 +77,8 @@ struct SiteStatusLine: Identifiable {
             label: "discogs:",
             badge: "💿",
             text: record.credit,
-            detail: detail.isEmpty ? nil : detail
+            detail: detail.isEmpty ? nil : detail,
+            date: record.addedAt
         )
     }
 
@@ -94,7 +100,8 @@ struct SiteStatusLine: Identifiable {
             label: "psn:",
             badge: trophy.badge,
             text: trophy.name,
-            detail: trophy.game.isEmpty ? nil : trophy.game
+            detail: trophy.game.isEmpty ? nil : trophy.game,
+            date: trophy.earnedAt
         )
     }
 
@@ -116,7 +123,8 @@ struct SiteStatusLine: Identifiable {
                 trailingImage: fixture.awayCrest,
                 text: fixture.score,
                 detail: place,
-                tint: Self.tint(for: fixture.outcome)
+                tint: Self.tint(for: fixture.outcome),
+                date: fixture.playedAt
             )
         } else if let place {
             self.init(id: "schalke", label: "s04:", badge: "⚽", text: place)
