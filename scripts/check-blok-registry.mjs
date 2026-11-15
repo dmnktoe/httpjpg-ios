@@ -55,6 +55,10 @@ const CONSCIOUSLY_UNRENDERED = new Map([
     "download_item",
     "nested under work.downloads as XP desktop icons on the web (#420); iOS has no desktop-download surface yet",
   ],
+  [
+    "desktop_media_item",
+    "part of the web's XP desktop, like download_item; iOS has no desktop surface yet",
+  ],
 ]);
 
 const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
