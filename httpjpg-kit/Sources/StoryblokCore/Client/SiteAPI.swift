@@ -157,9 +157,10 @@ public struct LetterboxdFilm: Decodable, Sendable {
     public let rating: Double?
     public let liked: Bool
     public let url: String?
+    public let watchedDate: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case title, year, rating, liked, url
+        case title, year, rating, liked, url, watchedDate
     }
 
     public init(from decoder: any Decoder) throws {
@@ -169,6 +170,7 @@ public struct LetterboxdFilm: Decodable, Sendable {
         rating = container.cmsValue(Double.self, forKey: .rating)
         liked = container.cmsBool(forKey: .liked)
         url = container.cmsString(forKey: .url)
+        watchedDate = StoryblokDate.parse(container.cmsString(forKey: .watchedDate))
     }
 
     public var stars: String? {
@@ -188,9 +190,10 @@ public struct PsnTrophy: Decodable, Sendable {
     public let game: String
     public let type: String?
     public let url: String?
+    public let earnedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case name, game, type, url
+        case name, game, type, url, earnedAt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -199,6 +202,7 @@ public struct PsnTrophy: Decodable, Sendable {
         game = container.cmsString(forKey: .game) ?? ""
         type = container.cmsString(forKey: .type)
         url = container.cmsString(forKey: .url)
+        earnedAt = StoryblokDate.parse(container.cmsString(forKey: .earnedAt))
     }
 
     public var badge: String {
@@ -223,9 +227,10 @@ public struct DiscogsRelease: Decodable, Sendable {
     public let format: String?
     public let url: String?
     public let thumb: String?
+    public let addedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case title, artist, year, format, url, thumb
+        case title, artist, year, format, url, thumb, addedAt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -236,6 +241,7 @@ public struct DiscogsRelease: Decodable, Sendable {
         format = container.cmsString(forKey: .format)
         url = container.cmsString(forKey: .url)
         thumb = container.cmsString(forKey: .thumb)
+        addedAt = StoryblokDate.parse(container.cmsString(forKey: .addedAt))
     }
 
     public var credit: String {
@@ -324,9 +330,10 @@ public struct SchalkeFixture: Decodable, Sendable {
     public let homeCrest: Data?
     public let awayCrest: Data?
     public let outcome: Outcome
+    public let playedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case home, away, homeGoals, awayGoals, homeCrest, awayCrest, outcome
+        case home, away, homeGoals, awayGoals, homeCrest, awayCrest, outcome, playedAt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -338,6 +345,7 @@ public struct SchalkeFixture: Decodable, Sendable {
         homeCrest = container.cmsString(forKey: .homeCrest).flatMap(Self.imageData(fromDataURI:))
         awayCrest = container.cmsString(forKey: .awayCrest).flatMap(Self.imageData(fromDataURI:))
         outcome = container.cmsString(forKey: .outcome).flatMap(Outcome.init(rawValue:)) ?? .draw
+        playedAt = StoryblokDate.parse(container.cmsString(forKey: .playedAt))
     }
 
     public var score: String {
