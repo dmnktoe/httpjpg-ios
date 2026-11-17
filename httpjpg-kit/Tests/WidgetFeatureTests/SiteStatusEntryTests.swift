@@ -143,6 +143,24 @@ final class SiteStatusEntryTests: XCTestCase {
         XCTAssertNotNil(line.tint)
     }
 
+    func testTheNextMatchCarriesItsKickoffAndThePlace() throws {
+        let status: SchalkeStatus = try decode(
+            #"""
+            {"upcoming": {"home": "S04", "away": "Stuttgart", "homeCrest": "data:image/png;base64,aG9tZQ==",
+                          "kickoff": "2026-11-21T17:30:00Z"},
+             "standing": {"position": 17, "trend": "same"}}
+            """#
+        )
+        let now = try XCTUnwrap(StoryblokDate.parse("2026-11-17T10:00:00Z"))
+
+        let line = try XCTUnwrap(SiteStatusLine(schalke: status, now: now))
+
+        XCTAssertEqual(line.text, "S04 – Stuttgart")
+        XCTAssertEqual(line.detail, "Sat 18:30 · 17.")
+        XCTAssertEqual(line.leadingImage, Data("home".utf8))
+        XCTAssertNil(line.date, "a match still to come does not sort as the newest line")
+    }
+
     func testThePlaceStandsAloneWithoutARecentFixture() throws {
         let status: SchalkeStatus = try decode(#"{"standing": {"position": 4, "trend": "up"}}"#)
 

@@ -44,7 +44,7 @@ struct SiteStatusEntry: TimelineEntry {
             record.flatMap(SiteStatusLine.init(record:)),
             post.flatMap { SiteStatusLine(profile: $0.profile, post: $0.post) },
             trophy.flatMap(SiteStatusLine.init(trophy:)),
-            schalke.flatMap(SiteStatusLine.init(schalke:)),
+            schalke.flatMap { SiteStatusLine(schalke: $0, now: date) },
             weather.flatMap(SiteStatusLine.init(weather:)),
         ].compactMap { $0 }
 
