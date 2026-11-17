@@ -36,33 +36,44 @@ private struct ScrollEdges: ViewModifier {
 private struct ShortTopScrollEdge: ViewModifier {
     let isActive: Bool
 
+    @State private var edge = TopEdge()
+
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *), isActive {
             content
                 .scrollEdgeEffectHidden(true, for: .top)
-                .overlay {
-                    GeometryReader { proxy in
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .mask {
-                                LinearGradient(
-                                    stops: [
-                                        .init(color: .black, location: 0),
-                                        .init(color: .black, location: 0.5),
-                                        .init(color: .clear, location: 1),
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            }
-                            .frame(width: proxy.size.width, height: proxy.safeAreaInsets.top)
-                    }
-                    .ignoresSafeArea(.container, edges: .top)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
+                .onGeometryChange(for: TopEdge.self) { proxy in
+                    TopEdge(
+                        offset: max(proxy.frame(in: .global).minY, 0),
+                        inset: proxy.safeAreaInsets.top
+                    )
+                } action: { edge = $0 }
+                .overlay(alignment: .top) {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .black, location: 0),
+                                    .init(color: .black, location: 0.5),
+                                    .init(color: .clear, location: 1),
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
+                        .frame(height: edge.offset + edge.inset)
+                        .offset(y: -edge.offset)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
                 }
         } else {
             content
         }
     }
+}
+
+private struct TopEdge: Equatable {
+    var offset: CGFloat = 0
+    var inset: CGFloat = 0
 }
