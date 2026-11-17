@@ -9,6 +9,7 @@ struct InfoFooter: View {
 
     @Environment(\.openURL) private var openURL
     @Environment(\.storyblokConfiguration) private var configuration
+    @Environment(\.pageTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,6 +62,7 @@ struct InfoFooter: View {
                 Color.clear
             }
             .clipped()
+            .opacity(theme.isDark ? Opacities.subtle : 1)
             .accessibilityHidden(true)
         }
     }
