@@ -105,7 +105,7 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
-    init?(schalke status: SchalkeStatus) {
+    init?(schalke status: SchalkeStatus, now: Date = .now) {
         let place = status.standing.map { standing -> String in
             switch standing.trend {
             case .up: return "↑ \(standing.position)."
@@ -125,6 +125,19 @@ struct SiteStatusLine: Identifiable {
                 detail: place,
                 tint: Self.tint(for: fixture.outcome),
                 date: fixture.playedAt
+            )
+        } else if let upcoming = status.upcoming {
+            let detail = [upcoming.kickoffLabel(now: now), place]
+                .compactMap { $0 }
+                .joined(separator: " · ")
+            self.init(
+                id: "schalke",
+                label: "s04:",
+                badge: "⚽",
+                leadingImage: upcoming.homeCrest,
+                trailingImage: upcoming.awayCrest,
+                text: upcoming.pairing,
+                detail: detail.isEmpty ? nil : detail
             )
         } else if let place {
             self.init(id: "schalke", label: "s04:", badge: "⚽", text: place)

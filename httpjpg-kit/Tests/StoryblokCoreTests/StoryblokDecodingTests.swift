@@ -725,6 +725,37 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(status.isEmpty)
     }
 
+    func testSchalkeStatusReadsTheNextMatchInPlaceOfAResult() throws {
+        let status = try decode(SchalkeStatus.self, """
+        {"fixture":null,
+         "upcoming":{"home":"S04","away":"Stuttgart","homeCrest":"data:image/png;base64,aG9tZQ==","awayCrest":null,
+                     "competition":"bl1","kickoff":"2026-11-21T17:30:00Z"},
+         "standing":{"position":17,"previousPosition":17,"trend":"same","points":6,"teams":18,"league":"bl1"}}
+        """)
+        let upcoming = try XCTUnwrap(status.upcoming)
+        XCTAssertNil(status.fixture)
+        XCTAssertEqual(upcoming.pairing, "S04 – Stuttgart")
+        XCTAssertEqual(upcoming.homeCrest, Data("home".utf8))
+        XCTAssertNil(upcoming.awayCrest)
+        XCTAssertEqual(upcoming.kickoff, Date(timeIntervalSince1970: 1_795_282_200))
+        XCTAssertFalse(status.isEmpty)
+    }
+
+    func testSchalkeKickoffReadsOnTheBerlinClock() throws {
+        let upcoming = try decode(SchalkeUpcoming.self, #"{"home":"S04","away":"Stuttgart","kickoff":"2026-11-21T17:30:00Z"}"#)
+        let kickoff = try XCTUnwrap(upcoming.kickoff)
+
+        XCTAssertEqual(upcoming.kickoffLabel(now: kickoff.addingTimeInterval(-4 * 86_400)), "Sat 18:30")
+        XCTAssertEqual(upcoming.kickoffLabel(now: kickoff.addingTimeInterval(-10 * 86_400)), "21 Nov 18:30")
+        XCTAssertEqual(upcoming.kickoffLabel(now: kickoff.addingTimeInterval(60)), "live")
+    }
+
+    func testSchalkeStatusDropsANextMatchWithoutItsPairing() throws {
+        let status = try decode(SchalkeStatus.self, #"{"upcoming":{"home":"S04","away":""}}"#)
+        XCTAssertNil(status.upcoming)
+        XCTAssertTrue(status.isEmpty)
+    }
+
     func testFooterSourcesCarryWhenTheyHappened() throws {
         let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","watchedDate":"2026-11-05"}"#)
         let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","earnedAt":"2026-11-14T22:42:29Z"}"#)

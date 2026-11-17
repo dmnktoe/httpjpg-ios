@@ -12,7 +12,7 @@ public struct SiteStatusWidget: Widget {
             SiteStatusWidgetView(entry: entry)
         }
         .configurationDisplayName("Status")
-        .description("The footer lines: presence, the last film, the last trophy, the last Schalke result, the weather.")
+        .description("The footer lines: presence, the last film, the last trophy, the last or next Schalke match, the weather.")
 
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline])
     }
