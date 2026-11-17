@@ -302,18 +302,9 @@ private struct SchalkeLine: View {
                 .frame(width: Typography.Size.md, height: Typography.Size.md)
                 .accessibilityHidden(true)
         } else if let url {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .interpolation(.none)
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Color.clear
-                }
-            }
-            .frame(width: Typography.Size.md, height: Typography.Size.md)
-            .accessibilityHidden(true)
+            PixelCrest(url: url)
+                .frame(width: Typography.Size.md, height: Typography.Size.md)
+                .accessibilityHidden(true)
         }
     }
 
@@ -322,6 +313,44 @@ private struct SchalkeLine: View {
             return "unchanged"
         }
         return "\(standing.trend.rawValue) from \(previous)."
+    }
+}
+
+private struct PixelCrest: View {
+    let url: URL
+
+    @State private var image: UIImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .interpolation(.none)
+            } else {
+                Color.clear
+            }
+        }
+        .task(id: url) {
+            guard let (data, _) = try? await URLSession.shared.data(from: url),
+                  let source = UIImage(data: data)
+            else { return }
+            image = Self.pixelate(source)
+        }
+    }
+
+    private static let side: CGFloat = 16
+
+    private static func pixelate(_ source: UIImage) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let scale = min(side / source.size.width, side / source.size.height)
+        let size = CGSize(width: (source.size.width * scale).rounded(), height: (source.size.height * scale).rounded())
+        let origin = CGPoint(x: ((side - size.width) / 2).rounded(.down), y: ((side - size.height) / 2).rounded(.down))
+        return UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
+            source.draw(in: CGRect(origin: origin, size: size))
+        }
     }
 }
 
