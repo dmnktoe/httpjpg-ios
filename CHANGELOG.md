@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.6.0...v1.7.0) (2026-11-17)
+
+
+### Added
+
+* **info:** use the web's images in the footer status lines ([#133](https://github.com/dmnktoe/httpjpg-ios/issues/133)) ([28d7bc3](https://github.com/dmnktoe/httpjpg-ios/commit/28d7bc38a877ea6e90eb524f40051a9d286459bd))
+* **status:** draw a Schalke crest the site hands over as an address ([#134](https://github.com/dmnktoe/httpjpg-ios/issues/134)) ([725b668](https://github.com/dmnktoe/httpjpg-ios/commit/725b668560e9cdfa8a743e23d1d242c948bc1ed3))
+* **status:** show the next Schalke match in the s04 line ([#130](https://github.com/dmnktoe/httpjpg-ios/issues/130)) ([28e8939](https://github.com/dmnktoe/httpjpg-ios/commit/28e89391370016e64266b11a44079cb3981c61d5))
+
+
+### Fixed
+
+* **design-system:** pin the status bar to the page theme ([#135](https://github.com/dmnktoe/httpjpg-ios/issues/135)) ([0086071](https://github.com/dmnktoe/httpjpg-ios/commit/0086071aeef632e39f71b81269d03269d755250a))
+
+
+### Changed
+
+* **design-system:** drop the top scroll edge blur ([#132](https://github.com/dmnktoe/httpjpg-ios/issues/132)) ([19103bd](https://github.com/dmnktoe/httpjpg-ios/commit/19103bd59602cfea67b54d74802bf305b1eea15d))
+* **info:** fade the footer graffiti in dark mode ([#131](https://github.com/dmnktoe/httpjpg-ios/issues/131)) ([f6fe4ae](https://github.com/dmnktoe/httpjpg-ios/commit/f6fe4ae4d09a82d8b4c60abf2893cc2cbc22b2ac))
+
 ## [1.6.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.5.0...v1.6.0) (2026-11-15)
 
 
