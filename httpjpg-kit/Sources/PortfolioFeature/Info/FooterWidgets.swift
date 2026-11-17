@@ -219,8 +219,19 @@ private struct SchalkeLine: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                 crest(fixture.awayCrest)
+            } else if let upcoming = status.upcoming {
+                crest(upcoming.homeCrest)
+                Text(upcoming.pairing)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                crest(upcoming.awayCrest)
+                if let kickoff = upcoming.kickoffLabel() {
+                    Text(kickoff)
+                        .fixedSize()
+                        .opacity(Opacities.subtle)
+                }
             }
-            if status.fixture != nil, status.standing != nil {
+            if status.fixture != nil || status.upcoming != nil, status.standing != nil {
                 Text("·").opacity(Opacities.subtle)
             }
             if let standing = status.standing {
