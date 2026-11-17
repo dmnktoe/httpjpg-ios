@@ -214,17 +214,17 @@ private struct SchalkeLine: View {
     var body: some View {
         FooterStatusLine(label: "s04:") {
             if let fixture = status.fixture {
-                crest(fixture.homeCrest)
+                crest(fixture.homeCrest, url: fixture.homeCrestURL)
                 Text(fixture.score)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                crest(fixture.awayCrest)
+                crest(fixture.awayCrest, url: fixture.awayCrestURL)
             } else if let upcoming = status.upcoming {
-                crest(upcoming.homeCrest)
+                crest(upcoming.homeCrest, url: upcoming.homeCrestURL)
                 Text(upcoming.pairing)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                crest(upcoming.awayCrest)
+                crest(upcoming.awayCrest, url: upcoming.awayCrestURL)
                 if let kickoff = upcoming.kickoffLabel() {
                     Text(kickoff)
                         .fixedSize()
@@ -252,13 +252,26 @@ private struct SchalkeLine: View {
     }
 
     @ViewBuilder
-    private func crest(_ data: Data?) -> some View {
+    private func crest(_ data: Data?, url: URL?) -> some View {
         if let image = data.flatMap(UIImage.init(data:)) {
             Image(uiImage: image)
                 .resizable()
                 .interpolation(.none)
                 .frame(width: Typography.Size.md, height: Typography.Size.md)
                 .accessibilityHidden(true)
+        } else if let url {
+            AsyncImage(url: url) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Color.clear
+                }
+            }
+            .frame(width: Typography.Size.md, height: Typography.Size.md)
+            .accessibilityHidden(true)
         }
     }
 
