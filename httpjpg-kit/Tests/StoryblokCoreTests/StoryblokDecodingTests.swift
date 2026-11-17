@@ -797,13 +797,30 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(trophy.earnedAt)
     }
 
-    func testSchalkeCrestsDecodeFromDataURIsAndIgnoreAnythingElse() throws {
+    func testSchalkeCrestImageDataComesOnlyFromDataURIs() throws {
         let fixture = try decode(SchalkeFixture.self, """
         {"home":"Hoffenheim","away":"S04",
          "homeCrest":"data:image/png;base64,aG9tZQ==","awayCrest":"https://crests.test/s04.png"}
         """)
         XCTAssertEqual(fixture.homeCrest, Data("home".utf8))
         XCTAssertNil(fixture.awayCrest)
+    }
+
+    func testSchalkeCrestsFallBackToAnHTTPSAddress() throws {
+        let fixture = try decode(SchalkeFixture.self, """
+        {"home":"Hoffenheim","away":"S04",
+         "homeCrest":"https://i.imgur.com/gF0PfEl.png","awayCrest":"data:image/png;base64,YXdheQ=="}
+        """)
+        let upcoming = try decode(SchalkeUpcoming.self, """
+        {"home":"S04","away":"Stuttgart","homeCrest":"http://crests.test/s04.png","awayCrest":"https://i.imgur.com/v0tkpNx.png"}
+        """)
+
+        XCTAssertNil(fixture.homeCrest)
+        XCTAssertEqual(fixture.homeCrestURL, URL(string: "https://i.imgur.com/gF0PfEl.png"))
+        XCTAssertEqual(fixture.awayCrest, Data("away".utf8))
+        XCTAssertNil(fixture.awayCrestURL)
+        XCTAssertNil(upcoming.homeCrestURL, "plain http is not loaded")
+        XCTAssertEqual(upcoming.awayCrestURL, URL(string: "https://i.imgur.com/v0tkpNx.png"))
     }
 
     func testSchalkeStatusToleratesAnOffSeasonPayload() throws {
