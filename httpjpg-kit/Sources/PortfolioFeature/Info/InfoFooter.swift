@@ -61,6 +61,7 @@ struct InfoFooter: View {
                 Color.clear
             }
             .clipped()
+            .opacity(Opacities.subtle)
             .accessibilityHidden(true)
         }
     }
