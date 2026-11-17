@@ -62,7 +62,7 @@ private struct ShortTopScrollEdge: ViewModifier {
                                 endPoint: .bottom
                             )
                         }
-                        .frame(height: edge.offset + edge.inset)
+                        .frame(height: max(edge.offset, edge.inset))
                         .offset(y: -edge.offset)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
