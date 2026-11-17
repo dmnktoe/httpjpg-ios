@@ -2,7 +2,8 @@ import SwiftUI
 
 public extension View {
     func softScrollEdges(_ edges: Edge.Set = .all) -> some View {
-        modifier(ScrollEdges(style: .soft, edges: edges))
+        modifier(ScrollEdges(style: .hidden, edges: edges.intersection(.top)))
+            .modifier(ScrollEdges(style: .soft, edges: edges.subtracting(.top)))
     }
 
     func navigationScrollEdges() -> some View {
@@ -15,6 +16,7 @@ private struct ScrollEdges: ViewModifier {
     enum Style {
         case soft
         case hard
+        case hidden
     }
 
     let style: Style
@@ -25,6 +27,7 @@ private struct ScrollEdges: ViewModifier {
             switch style {
             case .soft: content.scrollEdgeEffectStyle(.soft, for: edges)
             case .hard: content.scrollEdgeEffectStyle(.hard, for: edges)
+            case .hidden: content.scrollEdgeEffectHidden(true, for: edges)
             }
         } else {
             content
