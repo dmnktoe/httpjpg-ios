@@ -370,9 +370,57 @@ public struct SchalkeFixture: Decodable, Sendable {
         "\(home) \(homeGoals):\(awayGoals) \(away)"
     }
 
-    private static func imageData(fromDataURI uri: String) -> Data? {
+    static func imageData(fromDataURI uri: String) -> Data? {
         guard uri.hasPrefix("data:image/"), let marker = uri.range(of: ";base64,") else { return nil }
         return Data(base64Encoded: String(uri[marker.upperBound...]))
+    }
+}
+
+public struct SchalkeUpcoming: Decodable, Sendable {
+    public let home: String
+    public let away: String
+    public let homeCrest: Data?
+    public let awayCrest: Data?
+    public let kickoff: Date?
+
+    private enum CodingKeys: String, CodingKey {
+        case home, away, homeCrest, awayCrest, kickoff
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        home = container.cmsString(forKey: .home) ?? ""
+        away = container.cmsString(forKey: .away) ?? ""
+        homeCrest = container.cmsString(forKey: .homeCrest).flatMap(SchalkeFixture.imageData(fromDataURI:))
+        awayCrest = container.cmsString(forKey: .awayCrest).flatMap(SchalkeFixture.imageData(fromDataURI:))
+        kickoff = StoryblokDate.parse(container.cmsString(forKey: .kickoff))
+    }
+
+    public var pairing: String {
+        "\(home) – \(away)"
+    }
+
+    public func kickoffLabel(now: Date = .now) -> String? {
+        guard let kickoff else { return nil }
+        if kickoff <= now { return "live" }
+        let day = kickoff.timeIntervalSince(now) < Self.weekdayWindow
+            ? Self.weekday.string(from: kickoff)
+            : Self.date.string(from: kickoff)
+        return "\(day) \(Self.time.string(from: kickoff))"
+    }
+
+    private static let weekdayWindow: TimeInterval = 6 * 24 * 60 * 60
+
+    private static let time = berlin("HH:mm")
+    private static let weekday = berlin("EEE")
+    private static let date = berlin("d MMM")
+
+    private static func berlin(_ format: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_GB")
+        formatter.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
+        formatter.dateFormat = format
+        return formatter
     }
 }
 
@@ -401,24 +449,27 @@ public struct SchalkeStanding: Decodable, Sendable {
 
 public struct SchalkeStatus: Decodable, Sendable {
     public let fixture: SchalkeFixture?
+    public let upcoming: SchalkeUpcoming?
     public let standing: SchalkeStanding?
     public let url: String?
 
     private enum CodingKeys: String, CodingKey {
-        case fixture, standing, url
+        case fixture, upcoming, standing, url
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let fixture = container.cmsValue(SchalkeFixture.self, forKey: .fixture)
+        let upcoming = container.cmsValue(SchalkeUpcoming.self, forKey: .upcoming)
         let standing = container.cmsValue(SchalkeStanding.self, forKey: .standing)
         self.fixture = fixture.flatMap { $0.home.isEmpty || $0.away.isEmpty ? nil : $0 }
+        self.upcoming = upcoming.flatMap { $0.home.isEmpty || $0.away.isEmpty ? nil : $0 }
         self.standing = standing.flatMap { $0.position > 0 ? $0 : nil }
         url = container.cmsString(forKey: .url)
     }
 
     public var isEmpty: Bool {
-        fixture == nil && standing == nil
+        fixture == nil && upcoming == nil && standing == nil
     }
 }
 
