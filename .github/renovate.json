@@ -9,7 +9,9 @@
   "assignees": ["dmnktoe"],
   "reviewers": ["dmnktoe"],
   "labels": ["dependencies"],
-  "dependencyDashboard": false,
+  "dependencyDashboard": {
+    "enabled": false
+  },
   "vulnerabilityAlerts": { "labels": ["security"] },
   "enabledManagers": ["swift", "github-actions"],
   "packageRules": [
