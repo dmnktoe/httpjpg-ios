@@ -725,6 +725,28 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(status.isEmpty)
     }
 
+    func testFooterSourcesCarryTheWebsImages() throws {
+        let presence = try decode(DiscordPresence.self, """
+        {"status":"online","activity":"Xcode","activityDetails":{"icon":"https://cdn.discordapp.com/app-assets/1/icon.png"}}
+        """)
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","poster":"https://a.ltrbxd.com/poster.jpg"}"#)
+        let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","type":"bronze","image":"https://psnobj.test/t.png"}"#)
+
+        XCTAssertEqual(presence.activityIcon, "https://cdn.discordapp.com/app-assets/1/icon.png")
+        XCTAssertEqual(film.poster, "https://a.ltrbxd.com/poster.jpg")
+        XCTAssertEqual(trophy.image, "https://psnobj.test/t.png")
+    }
+
+    func testFooterImagesToleratePresenceWithoutDetailsAndClearedFields() throws {
+        let idle = try decode(DiscordPresence.self, #"{"status":"offline","activity":null,"activityDetails":null}"#)
+        let clearedIcon = try decode(DiscordPresence.self, #"{"status":"online","activityDetails":{"icon":""}}"#)
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","poster":""}"#)
+
+        XCTAssertNil(idle.activityIcon)
+        XCTAssertNil(clearedIcon.activityIcon)
+        XCTAssertNil(film.poster)
+    }
+
     func testFooterSourcesCarryWhenTheyHappened() throws {
         let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","watchedDate":"2026-11-05"}"#)
         let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","earnedAt":"2026-11-14T22:42:29Z"}"#)

@@ -67,6 +67,9 @@ private struct DiscordLine: View {
                 .foregroundStyle(color)
             if let activity = presence.activity {
                 Text("·").opacity(Opacities.subtle)
+                if let icon = presence.activityIcon.flatMap(URL.init(string:)) {
+                    FooterThumb(url: icon, clip: .rect(cornerRadius: Radii.sm))
+                }
                 Text(activity)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -99,7 +102,16 @@ private struct LetterboxdLine: View {
 
     var body: some View {
         FooterStatusLine(label: "letterboxd:") {
-            Text("🎞")
+            if let poster = film.poster.flatMap(URL.init(string:)) {
+                FooterThumb(
+                    url: poster,
+                    clip: .rect(cornerRadius: Radii.sm),
+                    width: Spacing.s3,
+                    height: Spacing.s3 * 1.5
+                )
+            } else {
+                Text("🎞")
+            }
             Text(film.title)
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -174,18 +186,23 @@ private struct XLine: View {
 private struct FooterThumb<Clip: Shape>: View {
     let url: URL
     let clip: Clip
+    var width: CGFloat = Typography.Size.md
+    var height: CGFloat = Typography.Size.md
+    var contentMode: ContentMode = .fill
+    var isPixelated = false
 
     var body: some View {
         AsyncImage(url: url) { phase in
             if let image = phase.image {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .interpolation(isPixelated ? .none : .high)
+                    .aspectRatio(contentMode: contentMode)
             } else {
                 Color.clear
             }
         }
-        .frame(width: Typography.Size.md, height: Typography.Size.md)
+        .frame(width: width, height: height)
         .clipShape(clip)
     }
 }
@@ -193,9 +210,31 @@ private struct FooterThumb<Clip: Shape>: View {
 private struct TrophyLine: View {
     let trophy: PsnTrophy
 
+    @Environment(\.storyblokConfiguration) private var configuration
+
     var body: some View {
         FooterStatusLine(label: "psn:") {
-            Text(trophy.badge)
+            if let image = trophy.image.flatMap(URL.init(string:)) {
+                FooterThumb(
+                    url: image,
+                    clip: Rectangle(),
+                    width: Spacing.s4,
+                    height: Spacing.s4,
+                    contentMode: .fit
+                )
+            }
+            if let type = trophy.type {
+                FooterThumb(
+                    url: configuration.siteOrigin.appending(path: "images/trophies/\(type).png"),
+                    clip: Rectangle(),
+                    width: Spacing.s3,
+                    height: Spacing.s3,
+                    contentMode: .fit,
+                    isPixelated: true
+                )
+            } else {
+                Text(trophy.badge)
+            }
             Text(trophy.name)
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -211,6 +250,8 @@ private struct TrophyLine: View {
 private struct SchalkeLine: View {
     let status: SchalkeStatus
 
+    @Environment(\.storyblokConfiguration) private var configuration
+
     var body: some View {
         FooterStatusLine(label: "s04:") {
             if let fixture = status.fixture {
@@ -224,20 +265,21 @@ private struct SchalkeLine: View {
                 Text("·").opacity(Opacities.subtle)
             }
             if let standing = status.standing {
-                glyph(kind(for: standing.trend), color: color(for: standing.trend))
-                    .accessibilityLabel(trendLabel(for: standing))
+                FooterThumb(
+                    url: configuration.siteOrigin.appending(path: "images/football/\(standing.trend.rawValue).png"),
+                    clip: Rectangle(),
+                    width: Spacing.s2,
+                    height: Spacing.s2,
+                    contentMode: .fit,
+                    isPixelated: true
+                )
+                .accessibilityLabel(trendLabel(for: standing))
                 Text("\(standing.position).")
                 if let points = standing.points {
                     Text("\(points) pts").opacity(Opacities.subtle)
                 }
             }
         }
-    }
-
-    private func glyph(_ kind: PixelGlyph.Kind, color: Color) -> some View {
-        PixelGlyph(kind)
-            .fill(color)
-            .frame(width: Spacing.s2, height: Spacing.s2)
     }
 
     @ViewBuilder
@@ -248,22 +290,6 @@ private struct SchalkeLine: View {
                 .interpolation(.none)
                 .frame(width: Typography.Size.md, height: Typography.Size.md)
                 .accessibilityHidden(true)
-        }
-    }
-
-    private func kind(for trend: SchalkeStanding.Trend) -> PixelGlyph.Kind {
-        switch trend {
-        case .up: return .arrowUp
-        case .down: return .arrowDown
-        case .same: return .dash
-        }
-    }
-
-    private func color(for trend: SchalkeStanding.Trend) -> Color {
-        switch trend {
-        case .up: return Palette.success.s500
-        case .down: return Palette.danger.s500
-        case .same: return Palette.neutral.s500
         }
     }
 

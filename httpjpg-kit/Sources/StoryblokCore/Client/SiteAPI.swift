@@ -138,15 +138,29 @@ public struct DiscordPresence: Decodable, Sendable {
 
     public let status: Status
     public let activity: String?
+    public let activityIcon: String?
 
     private enum CodingKeys: String, CodingKey {
-        case status, activity
+        case status, activity, activityDetails
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         status = container.cmsString(forKey: .status).flatMap(Status.init(rawValue:)) ?? .offline
         activity = container.cmsString(forKey: .activity)
+        activityIcon = container.cmsValue(ActivityDetails.self, forKey: .activityDetails)?.icon
+    }
+
+    private struct ActivityDetails: Decodable {
+        let icon: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case icon
+        }
+
+        init(from decoder: any Decoder) throws {
+            icon = try decoder.container(keyedBy: CodingKeys.self).cmsString(forKey: .icon)
+        }
     }
 }
 
@@ -157,10 +171,11 @@ public struct LetterboxdFilm: Decodable, Sendable {
     public let rating: Double?
     public let liked: Bool
     public let url: String?
+    public let poster: String?
     public let watchedDate: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case title, year, rating, liked, url, watchedDate
+        case title, year, rating, liked, url, poster, watchedDate
     }
 
     public init(from decoder: any Decoder) throws {
@@ -170,6 +185,7 @@ public struct LetterboxdFilm: Decodable, Sendable {
         rating = container.cmsValue(Double.self, forKey: .rating)
         liked = container.cmsBool(forKey: .liked)
         url = container.cmsString(forKey: .url)
+        poster = container.cmsString(forKey: .poster)
         watchedDate = StoryblokDate.parse(container.cmsString(forKey: .watchedDate))
     }
 
@@ -190,10 +206,11 @@ public struct PsnTrophy: Decodable, Sendable {
     public let game: String
     public let type: String?
     public let url: String?
+    public let image: String?
     public let earnedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case name, game, type, url, earnedAt
+        case name, game, type, url, image, earnedAt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -202,6 +219,7 @@ public struct PsnTrophy: Decodable, Sendable {
         game = container.cmsString(forKey: .game) ?? ""
         type = container.cmsString(forKey: .type)
         url = container.cmsString(forKey: .url)
+        image = container.cmsString(forKey: .image)
         earnedAt = StoryblokDate.parse(container.cmsString(forKey: .earnedAt))
     }
 
