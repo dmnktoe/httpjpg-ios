@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.2](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.1...v1.7.2) (2026-11-18)
+
+
+### Fixed
+
+* **design-system:** bring back the soft top scroll edge ([#140](https://github.com/dmnktoe/httpjpg-ios/issues/140)) ([168fba9](https://github.com/dmnktoe/httpjpg-ios/commit/168fba96529f6315b0d87ef5a5aa37b0b92f1a0f))
+
 ## [1.7.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.0...v1.7.1) (2026-11-18)
 
 
