@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.0...v1.7.1) (2026-11-18)
+
+
+### Changed
+
+* **status:** drop the crest address the site no longer sends ([#138](https://github.com/dmnktoe/httpjpg-ios/issues/138)) ([43b2ac1](https://github.com/dmnktoe/httpjpg-ios/commit/43b2ac15a56313e6e45f58cc5b72e976278e22f2))
+
 ## [1.7.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.6.0...v1.7.0) (2026-11-17)
 
 
