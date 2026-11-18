@@ -347,8 +347,6 @@ public struct SchalkeFixture: Decodable, Sendable {
     public let awayGoals: Int
     public let homeCrest: Data?
     public let awayCrest: Data?
-    public let homeCrestURL: URL?
-    public let awayCrestURL: URL?
     public let outcome: Outcome
     public let playedAt: Date?
 
@@ -364,19 +362,12 @@ public struct SchalkeFixture: Decodable, Sendable {
         awayGoals = container.cmsInt(forKey: .awayGoals) ?? 0
         homeCrest = container.cmsString(forKey: .homeCrest).flatMap(Self.imageData(fromDataURI:))
         awayCrest = container.cmsString(forKey: .awayCrest).flatMap(Self.imageData(fromDataURI:))
-        homeCrestURL = container.cmsString(forKey: .homeCrest).flatMap(Self.crestURL(from:))
-        awayCrestURL = container.cmsString(forKey: .awayCrest).flatMap(Self.crestURL(from:))
         outcome = container.cmsString(forKey: .outcome).flatMap(Outcome.init(rawValue:)) ?? .draw
         playedAt = StoryblokDate.parse(container.cmsString(forKey: .playedAt))
     }
 
     public var score: String {
         "\(home) \(homeGoals):\(awayGoals) \(away)"
-    }
-
-    static func crestURL(from value: String) -> URL? {
-        guard let url = URL(string: value), url.scheme == "https", url.host != nil else { return nil }
-        return url
     }
 
     static func imageData(fromDataURI uri: String) -> Data? {
@@ -390,8 +381,6 @@ public struct SchalkeUpcoming: Decodable, Sendable {
     public let away: String
     public let homeCrest: Data?
     public let awayCrest: Data?
-    public let homeCrestURL: URL?
-    public let awayCrestURL: URL?
     public let kickoff: Date?
 
     private enum CodingKeys: String, CodingKey {
@@ -404,8 +393,6 @@ public struct SchalkeUpcoming: Decodable, Sendable {
         away = container.cmsString(forKey: .away) ?? ""
         homeCrest = container.cmsString(forKey: .homeCrest).flatMap(SchalkeFixture.imageData(fromDataURI:))
         awayCrest = container.cmsString(forKey: .awayCrest).flatMap(SchalkeFixture.imageData(fromDataURI:))
-        homeCrestURL = container.cmsString(forKey: .homeCrest).flatMap(SchalkeFixture.crestURL(from:))
-        awayCrestURL = container.cmsString(forKey: .awayCrest).flatMap(SchalkeFixture.crestURL(from:))
         kickoff = StoryblokDate.parse(container.cmsString(forKey: .kickoff))
     }
 
