@@ -17,7 +17,10 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
     // with partial alpha offscreen as a group, so cross-fading both tabs costs
     // two full-screen passes per frame and drops frames. Fading only the
     // incoming tab over an opaque outgoing one looks the same and costs one.
+    // Only the fallback for when TabDissolve finds nothing to snapshot.
     @State private var outgoing: Tab?
+
+    @State private var dissolve = TabDissolve()
 
     public init(
         tabs: [Tab],
@@ -45,7 +48,20 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
                 }
             }
         }
+        .overlay {
+            TabDissolveCurtain(dissolve: dissolve)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
         .onChange(of: selection) { previous, next in
+            // The snapshot is taken before this update reaches the screen, so
+            // it still shows the old tab, and the swap underneath is instant.
+            if dissolve.dissolve() {
+                outgoing = nil
+                settled = next
+                return
+            }
             outgoing = previous
             withAnimation(Motion.navigate, completionCriteria: .removed) {
                 settled = next
