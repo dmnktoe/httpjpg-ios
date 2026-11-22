@@ -8,7 +8,19 @@ struct InfoScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
 
+    @State private var answeredStatusFocus = 0
+    @State private var isStatusHighlighted = false
+
     private static let title = "˚₊‧ readme ‧₊˚"
+
+    // Lets the tab switch settle first; a scroll started mid-switch lands short of the footer.
+    private static let statusScrollDelay: Duration = .milliseconds(350)
+    private static let statusHighlight: Duration = .seconds(3)
+
+    private struct StatusFocus: Hashable {
+        let request: Int
+        let isReady: Bool
+    }
 
     var body: some View {
         @Bindable var app = app
@@ -29,6 +41,34 @@ struct InfoScreen: View {
     }
 
     private var infoList: some View {
+        ScrollViewReader { proxy in
+            scrollView
+                .task(id: statusFocus) { await focusStatus(proxy) }
+        }
+    }
+
+    private var statusFocus: StatusFocus {
+        StatusFocus(request: app.statusFocusRequest, isReady: app.footerWidgets?.isLoaded == true)
+    }
+
+    // Answers a status widget tap: scroll the footer's status lines into view and run the beam
+    // around them for a moment. Waits for the lines to load, since placeholders change the height.
+    private func focusStatus(_ proxy: ScrollViewProxy) async {
+        let focus = statusFocus
+        guard focus.isReady, focus.request != answeredStatusFocus else { return }
+        answeredStatusFocus = focus.request
+
+        try? await Task.sleep(for: Self.statusScrollDelay)
+        guard !Task.isCancelled else { return }
+        withAnimation(Motion.navigate) {
+            proxy.scrollTo(InfoFooter.statusAnchor, anchor: .center)
+        }
+        isStatusHighlighted = true
+        try? await Task.sleep(for: Self.statusHighlight)
+        isStatusHighlighted = false
+    }
+
+    private var scrollView: some View {
         ScrollView {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: Spacing.s8) {
@@ -42,8 +82,12 @@ struct InfoScreen: View {
 
                 Group {
                     if let widgets = app.footerWidgets {
-                        InfoFooter(config: app.config, widgets: widgets)
-                            .transition(.opacity)
+                        InfoFooter(
+                            config: app.config,
+                            widgets: widgets,
+                            isStatusHighlighted: isStatusHighlighted
+                        )
+                        .transition(.opacity)
                     }
                 }
                 .animation(Motion.stateChange, value: app.footerWidgets == nil)

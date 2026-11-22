@@ -58,6 +58,10 @@ public final class AppModel {
 
     private(set) var pendingPlayback: AudioTrack?
 
+    // Bumped by every status widget tap. The info screen remembers the last one it answered,
+    // so a tap on a cold launch is still answered once the footer lines have loaded.
+    private(set) var statusFocusRequest = 0
+
     let workIndex: WorkIndexModel
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
@@ -139,6 +143,12 @@ public final class AppModel {
             select(tab: .info)
             infoPath.removeAll()
             isSidebarOpen = false
+        case .status:
+            // Not select(tab:): on the info root that scrolls to the top, racing the scroll down to the footer.
+            selectedTab = .info
+            infoPath.removeAll()
+            isSidebarOpen = false
+            statusFocusRequest &+= 1
         case .search(let query):
             openAskSearch(prefill: query)
         case .play(let track):

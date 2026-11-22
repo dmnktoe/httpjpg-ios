@@ -104,6 +104,27 @@ final class QuickActionRoutingTests: XCTestCase {
         XCTAssertTrue(app.infoPath.isEmpty)
     }
 
+    func testTheStatusLinkLandsOnTheInfoRootAndAsksForTheStatusLines() throws {
+        let app = makeApp()
+        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html")))
+        let request = app.statusFocusRequest
+
+        app.open(try XCTUnwrap(WidgetDeepLink.status))
+
+        XCTAssertEqual(app.selectedTab, .info)
+        XCTAssertTrue(app.infoPath.isEmpty)
+        XCTAssertEqual(app.statusFocusRequest, request + 1)
+    }
+
+    func testTheStatusLinkOnTheInfoRootDoesNotAlsoScrollToTheTop() throws {
+        let app = makeApp()
+        app.selectedTab = .info
+
+        app.open(try XCTUnwrap(WidgetDeepLink.status))
+
+        XCTAssertEqual(app.scrollToTopTick(for: .info), 0)
+    }
+
     func testTheWorkIndexLinkPopsBackToTheList() throws {
         let app = makeApp()
         app.perform(.work(slug: "atlas", title: "ATLAS"))

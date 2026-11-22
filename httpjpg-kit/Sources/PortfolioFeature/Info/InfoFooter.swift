@@ -6,6 +6,9 @@ import Tokens
 struct InfoFooter: View {
     let config: SiteConfig
     let widgets: FooterWidgetsModel
+    var isStatusHighlighted = false
+
+    static let statusAnchor = "info.footer.status"
 
     @Environment(\.openURL) private var openURL
     @Environment(\.storyblokConfiguration) private var configuration
@@ -28,6 +31,8 @@ struct InfoFooter: View {
                 .padding(.vertical, Spacing.s6)
 
             FooterWidgets(model: widgets)
+                .background { statusBeam }
+                .id(Self.statusAnchor)
 
             AsciiArt(
                 Ascii.dividerWave,
@@ -49,6 +54,14 @@ struct InfoFooter: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.s12)
         .background(alignment: .center) { backgroundImage }
+    }
+
+    // A background, so framing the lines never shifts the footer's layout.
+    private var statusBeam: some View {
+        Color.clear
+            .beamOutline(cornerRadius: Radii.xl, isActive: isStatusHighlighted)
+            .padding(.horizontal, Spacing.s2)
+            .padding(.vertical, -Spacing.s3)
     }
 
     @ViewBuilder

@@ -27,7 +27,7 @@ struct SiteStatusWidgetView: View {
     var body: some View {
         SiteStatusView(entry: entry)
             .pageTheme(theme)
-            .widgetURL(WidgetDeepLink.info)
+            .widgetURL(WidgetDeepLink.status)
             .containerBackground(for: .widget) {
                 if !isAccessory {
                     theme.background
