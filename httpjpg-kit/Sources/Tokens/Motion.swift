@@ -7,6 +7,10 @@ public enum Motion {
 
     public static let navigate: Animation = .smooth(duration: 0.35)
 
+    public static let tabSwitch: Animation = .smooth(duration: tabSwitchDuration)
+
+    public static let tabSwitchDuration: TimeInterval = 0.25
+
     public static let mediaIn: Animation = .easeOut(duration: 0.35)
 
     public static let drawer: Animation = .interactiveSpring(response: 0.3, dampingFraction: 0.9)
