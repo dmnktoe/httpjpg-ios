@@ -54,7 +54,7 @@ public struct TabSwitcher<Tab: Hashable & Identifiable, Content: View>: View {
                 return
             }
             outgoing = previous
-            withAnimation(Motion.navigate, completionCriteria: .removed) {
+            withAnimation(Motion.tabSwitch, completionCriteria: .removed) {
                 settled = next
             } completion: {
                 if outgoing == previous { outgoing = nil }

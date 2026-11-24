@@ -5,9 +5,11 @@ public enum Motion {
 
     public static let stateChange: Animation = .smooth(duration: 0.2)
 
-    public static let navigate: Animation = .smooth(duration: navigateDuration)
+    public static let navigate: Animation = .smooth(duration: 0.35)
 
-    public static let navigateDuration: TimeInterval = 0.35
+    public static let tabSwitch: Animation = .smooth(duration: tabSwitchDuration)
+
+    public static let tabSwitchDuration: TimeInterval = 0.25
 
     public static let mediaIn: Animation = .easeOut(duration: 0.35)
 

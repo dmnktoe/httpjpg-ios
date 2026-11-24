@@ -29,7 +29,7 @@ final class TabDissolve {
             Self.pin(control, in: curtain)
         }
 
-        UIView.animate(springDuration: Motion.navigateDuration, bounce: 0) {
+        UIView.animate(springDuration: Motion.tabSwitchDuration, bounce: 0) {
             snapshot.alpha = 0
         } completion: { _ in
             snapshot.removeFromSuperview()
