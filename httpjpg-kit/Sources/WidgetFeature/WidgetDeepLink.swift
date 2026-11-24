@@ -39,7 +39,6 @@ public enum WidgetDeepLink {
         url(host: infoHost, slug: nil)
     }
 
-    /// The footer's status lines, at the bottom of the info tab.
     public static var status: URL? {
         url(host: statusHost, slug: nil)
     }

@@ -71,7 +71,6 @@ public struct RootView: View {
             }
             model.open(url)
             if model.isStatusPresented {
-                // Only one sheet shows at a time; an expanded player would hold the status sheet back.
                 player.isExpanded = false
             }
             if let track = model.takePendingPlayback() {

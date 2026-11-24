@@ -9,12 +9,10 @@ struct CommandPaletteGlass: ViewModifier {
     @Environment(\.pageTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    // Circular, not continuous: the beam traces circular arcs and would cut the squircle's corners.
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: cornerRadius, style: .circular)
     }
 
-    // The beam sits on top of the glass; underneath, the glass blurred its crisp edge into a smudge.
     func body(content: Content) -> some View {
         glass(content)
             .overlay {

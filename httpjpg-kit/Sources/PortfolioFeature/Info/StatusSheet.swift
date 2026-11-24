@@ -2,14 +2,12 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// The footer's status lines as a glance, opened by a tap on the status widget.
 struct StatusSheet: View {
     @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
 
     @State private var isSettled = false
 
-    // The beam keeps circling this long after the lines arrive, so a fresh readout gets its moment.
     private static let beamLinger: Duration = .seconds(3)
 
     var body: some View {

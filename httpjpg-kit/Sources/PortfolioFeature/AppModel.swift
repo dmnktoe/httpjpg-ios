@@ -106,8 +106,6 @@ public final class AppModel {
         await widgets.load()
     }
 
-    // The status sheet can open before the info tab was ever visited, so it cannot count on
-    // that screen having created the model; when it has, the sheet still wants fresh lines.
     func refreshFooterWidgets() async {
         if let footerWidgets {
             await footerWidgets.load()
@@ -152,7 +150,6 @@ public final class AppModel {
             infoPath.removeAll()
             isSidebarOpen = false
         case .status:
-            // Only one sheet shows at a time, so an open search has to make way.
             askSearch?.close()
             isSidebarOpen = false
             isStatusPresented = true
