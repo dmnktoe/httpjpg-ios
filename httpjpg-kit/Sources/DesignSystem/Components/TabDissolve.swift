@@ -7,6 +7,8 @@ final class TabDissolve {
 
     private static let frameTolerance: CGFloat = 0.5
 
+    private static let hiddenOpacity: Float = 0.01
+
     func dissolve() -> Bool {
         guard let curtain,
               let window = curtain.window
@@ -108,7 +110,7 @@ final class TabDissolve {
     private static func isVisible(_ view: UIView) -> Bool {
         var layer: CALayer? = view.layer
         while let current = layer {
-            if current.isHidden || current.opacity < 0.01 { return false }
+            if current.isHidden || current.opacity < hiddenOpacity { return false }
             layer = current.superlayer
         }
         return true
