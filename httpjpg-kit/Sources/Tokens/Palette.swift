@@ -102,6 +102,12 @@ public enum Palette {
         0xDC2626, 0xB91C1C, 0x991B1B, 0x7F1D1D, 0x450A0A
     )
 
+    // Off the ramps on purpose: the web's loading gradient, which is hard-coded there too.
+    public static let rainbow: [Color] = [
+        Color(hex: 0xF72585), Color(hex: 0xFF006E), Color(hex: 0xFEE440),
+        Color(hex: 0x00F5D4), Color(hex: 0x00BBF9), Color(hex: 0x9B5DE5),
+    ]
+
     public static func named(_ value: String?) -> Color? {
         guard let value, !value.isEmpty else { return nil }
         switch value {

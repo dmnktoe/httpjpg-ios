@@ -43,6 +43,9 @@ public struct RootView: View {
         .sheet(isPresented: $player.isExpanded) {
             PlayerScreen(player: player)
         }
+        .sheet(isPresented: $model.isStatusPresented) {
+            StatusSheet()
+        }
         .background {
             if let askSearch = model.askSearch {
                 AskSearchHost(model: askSearch) { destination in
@@ -67,6 +70,10 @@ public struct RootView: View {
                 return
             }
             model.open(url)
+            if model.isStatusPresented {
+                // Only one sheet shows at a time; an expanded player would hold the status sheet back.
+                player.isExpanded = false
+            }
             if let track = model.takePendingPlayback() {
                 Telemetry.signal("player.played")
                 player.play(track)

@@ -58,9 +58,7 @@ public final class AppModel {
 
     private(set) var pendingPlayback: AudioTrack?
 
-    // Bumped by every status widget tap. The info screen remembers the last one it answered,
-    // so a tap on a cold launch is still answered once the footer lines have loaded.
-    private(set) var statusFocusRequest = 0
+    public var isStatusPresented = false
 
     let workIndex: WorkIndexModel
     let info: InfoModel
@@ -108,6 +106,16 @@ public final class AppModel {
         await widgets.load()
     }
 
+    // The status sheet can open before the info tab was ever visited, so it cannot count on
+    // that screen having created the model; when it has, the sheet still wants fresh lines.
+    func refreshFooterWidgets() async {
+        if let footerWidgets {
+            await footerWidgets.load()
+        } else {
+            await loadFooterWidgets()
+        }
+    }
+
     func resetCacheAndReload() async {
         client.clearCache()
         ImageCache.clear()
@@ -144,11 +152,10 @@ public final class AppModel {
             infoPath.removeAll()
             isSidebarOpen = false
         case .status:
-            // Not select(tab:): on the info root that scrolls to the top, racing the scroll down to the footer.
-            selectedTab = .info
-            infoPath.removeAll()
+            // Only one sheet shows at a time, so an open search has to make way.
+            askSearch?.close()
             isSidebarOpen = false
-            statusFocusRequest &+= 1
+            isStatusPresented = true
         case .search(let query):
             openAskSearch(prefill: query)
         case .play(let track):
