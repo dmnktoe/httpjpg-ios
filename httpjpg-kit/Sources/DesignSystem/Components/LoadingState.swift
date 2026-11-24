@@ -2,8 +2,15 @@ import SwiftUI
 import Tokens
 
 public struct LoadingState: View {
-    // Closed with its first color again, so the sliding gradient loops without a seam.
-    private static let rainbow = Palette.rainbow + Palette.rainbow.prefix(1)
+    static let rainbow: [Color] = [
+        Color(red: 0xF7 / 255, green: 0x25 / 255, blue: 0x85 / 255),
+        Color(red: 0xFF / 255, green: 0x00 / 255, blue: 0x6E / 255),
+        Color(red: 0xFE / 255, green: 0xE4 / 255, blue: 0x40 / 255),
+        Color(red: 0x00 / 255, green: 0xF5 / 255, blue: 0xD4 / 255),
+        Color(red: 0x00 / 255, green: 0xBB / 255, blue: 0xF9 / 255),
+        Color(red: 0x9B / 255, green: 0x5D / 255, blue: 0xE5 / 255),
+        Color(red: 0xF7 / 255, green: 0x25 / 255, blue: 0x85 / 255),
+    ]
 
     private static let doubledRainbow: [Color] = rainbow + rainbow.dropFirst()
 

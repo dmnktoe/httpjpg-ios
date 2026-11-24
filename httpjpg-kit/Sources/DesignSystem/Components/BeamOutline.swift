@@ -58,7 +58,7 @@ public struct BeamOutline: ViewModifier {
         switch style {
         // The light lime step washes out on a white page, so light pages take the deeper one.
         case .glint: return BeamPalette.single(theme.isDark ? Palette.accent.s400 : Palette.accent.s500)
-        case .rainbow: return Palette.rainbow
+        case .rainbow: return LoadingState.rainbow
         }
     }
     #endif
