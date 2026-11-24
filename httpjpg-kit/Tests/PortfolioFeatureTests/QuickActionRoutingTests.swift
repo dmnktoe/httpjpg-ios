@@ -104,6 +104,17 @@ final class QuickActionRoutingTests: XCTestCase {
         XCTAssertTrue(app.infoPath.isEmpty)
     }
 
+    func testTheStatusLinkPresentsTheStatusSheetWhereverTheAppIs() throws {
+        let app = makeApp()
+        app.perform(.work(slug: "atlas", title: "ATLAS"))
+
+        app.open(try XCTUnwrap(WidgetDeepLink.status))
+
+        XCTAssertTrue(app.isStatusPresented)
+        XCTAssertEqual(app.selectedTab, .work)
+        XCTAssertEqual(app.workPath.map(\.slug), ["atlas"])
+    }
+
     func testTheWorkIndexLinkPopsBackToTheList() throws {
         let app = makeApp()
         app.perform(.work(slug: "atlas", title: "ATLAS"))

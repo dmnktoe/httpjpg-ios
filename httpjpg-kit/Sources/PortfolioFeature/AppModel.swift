@@ -58,6 +58,8 @@ public final class AppModel {
 
     private(set) var pendingPlayback: AudioTrack?
 
+    public var isStatusPresented = false
+
     let workIndex: WorkIndexModel
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
@@ -104,6 +106,14 @@ public final class AppModel {
         await widgets.load()
     }
 
+    func refreshFooterWidgets() async {
+        if let footerWidgets {
+            await footerWidgets.load()
+        } else {
+            await loadFooterWidgets()
+        }
+    }
+
     func resetCacheAndReload() async {
         client.clearCache()
         ImageCache.clear()
@@ -139,6 +149,10 @@ public final class AppModel {
             select(tab: .info)
             infoPath.removeAll()
             isSidebarOpen = false
+        case .status:
+            askSearch?.close()
+            isSidebarOpen = false
+            isStatusPresented = true
         case .search(let query):
             openAskSearch(prefill: query)
         case .play(let track):

@@ -1,8 +1,5 @@
 import SwiftUI
 import Tokens
-#if os(iOS)
-import BorderBeam
-#endif
 
 /// Glass panel with a border beam that can be switched off; it fades instead of vanishing.
 struct CommandPaletteGlass: ViewModifier {
@@ -13,18 +10,18 @@ struct CommandPaletteGlass: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        RoundedRectangle(cornerRadius: cornerRadius, style: .circular)
     }
 
     func body(content: Content) -> some View {
         glass(content)
-            .background { beam }
             .overlay {
                 shape
                     .strokeBorder(theme.border.opacity(Opacities.subtle), lineWidth: 1)
                     .opacity(isGlowing ? 0 : 1)
                     .animation(reduceMotion ? nil : Motion.glowFade, value: isGlowing)
             }
+            .beamOutline(cornerRadius: cornerRadius, isActive: isGlowing)
     }
 
     @ViewBuilder
@@ -34,20 +31,5 @@ struct CommandPaletteGlass: ViewModifier {
         } else {
             content.liquidGlass(in: shape)
         }
-    }
-
-    @ViewBuilder
-    private var beam: some View {
-        #if os(iOS)
-        Color.clear
-            .borderBeam(
-                shape: .rounded(cornerRadius),
-                active: isGlowing,
-                colors: BeamPalette.single(Palette.primary.s500),
-                timing: BeamTiming(fade: reduceMotion ? 0 : Motion.glowFadeDuration)
-            )
-        #else
-        EmptyView()
-        #endif
     }
 }

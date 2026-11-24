@@ -31,6 +31,13 @@ final class WidgetDeepLinkTests: XCTestCase {
         )
     }
 
+    func testTheStatusLinkRoundTrips() throws {
+        let url = try XCTUnwrap(WidgetDeepLink.status)
+
+        XCTAssertEqual(url.absoluteString, "httpjpg://status")
+        XCTAssertEqual(WidgetDeepLink.destination(from: url), .status)
+    }
+
     func testASearchLinkRoundTripsWithAnOptionalPrefill() throws {
         XCTAssertEqual(
             WidgetDeepLink.destination(from: try XCTUnwrap(WidgetDeepLink.search())),

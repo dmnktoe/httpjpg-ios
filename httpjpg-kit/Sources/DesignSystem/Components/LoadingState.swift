@@ -2,7 +2,7 @@ import SwiftUI
 import Tokens
 
 public struct LoadingState: View {
-    private static let rainbow: [Color] = [
+    static let rainbow: [Color] = [
         Color(red: 0xF7 / 255, green: 0x25 / 255, blue: 0x85 / 255),
         Color(red: 0xFF / 255, green: 0x00 / 255, blue: 0x6E / 255),
         Color(red: 0xFE / 255, green: 0xE4 / 255, blue: 0x40 / 255),
