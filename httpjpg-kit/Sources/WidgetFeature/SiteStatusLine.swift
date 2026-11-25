@@ -119,7 +119,6 @@ struct SiteStatusLine: Identifiable {
             leadingImage: track.image,
             text: track.title,
             detail: ([track.artist] + marks).joined(separator: " "),
-            // A track still playing has no scrobble time yet; it is the freshest line there is.
             date: track.scrobbledAt ?? (track.isNowPlaying ? now : nil)
         )
     }

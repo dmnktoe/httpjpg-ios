@@ -3,7 +3,6 @@ import SwiftUI
 import Tokens
 import UIKit
 
-/// The web footer's live lines, one row each, on the wrist.
 struct WatchStatusScreen: View {
     @Environment(WatchAppModel.self) private var model
 
@@ -48,7 +47,6 @@ private struct WatchStatusRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.s2) {
             if let image = line.image.flatMap(UIImage.init(data:)) {
-                // Server pixel art: scaled up whole, never smoothed.
                 Image(uiImage: image)
                     .resizable()
                     .interpolation(.none)

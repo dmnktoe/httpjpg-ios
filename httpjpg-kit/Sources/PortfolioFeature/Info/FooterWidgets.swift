@@ -353,7 +353,6 @@ private struct FooterThumb<Clip: Shape>: View {
     }
 }
 
-/// The server-pixelated footer media: decoded inline, drawn without smoothing.
 private struct PixelThumb<Clip: Shape>: View {
     let data: Data
     let clip: Clip

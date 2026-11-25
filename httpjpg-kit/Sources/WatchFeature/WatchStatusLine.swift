@@ -1,8 +1,6 @@
 import Foundation
 import StoryblokCore
 
-/// One footer source as the watch shows it: the web's line, stacked to fit the
-/// narrow screen, with the server's pixel art in front.
 struct WatchStatusLine: Identifiable {
     let id: String
     let label: String
@@ -25,7 +23,6 @@ struct WatchStatusLine: Identifiable {
         var weather: WeatherNow?
     }
 
-    /// In the web footer's order; a source that is off or silent is left out.
     static func lines(from sources: Sources) -> [WatchStatusLine] {
         var lines: [WatchStatusLine] = []
 

@@ -5,7 +5,6 @@ public struct YoutubeStatus: Decodable, Sendable {
         public let title: String
         public let avatar: Data?
         public let url: String?
-        /// Nil when the channel hides it; YouTube rounds it to three significant figures.
         public let subscriberCount: Int?
 
         private enum CodingKeys: String, CodingKey {

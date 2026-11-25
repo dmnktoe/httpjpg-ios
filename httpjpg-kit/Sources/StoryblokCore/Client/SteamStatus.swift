@@ -4,7 +4,6 @@ public struct SteamStatus: Decodable, Sendable {
     public struct Game: Decodable, Sendable {
         public let appId: Int
         public let name: String
-        /// Minutes played in the last two weeks.
         public let minutesTwoWeeks: Int
         public let icon: Data?
         public let url: String?
@@ -30,7 +29,6 @@ public struct SteamStatus: Decodable, Sendable {
             url = container.cmsString(forKey: .url)
         }
 
-        /// `14h / 2w`, or `45m / 2w` for a short fortnight; nil when nothing was played.
         public var recentPlaytime: String? {
             guard minutesTwoWeeks > 0 else { return nil }
             let amount = minutesTwoWeeks < 60
@@ -73,7 +71,6 @@ public struct SteamStatus: Decodable, Sendable {
         games = container.cmsArray(Game.self, forKey: .games).filter { $0.appId > 0 && !$0.name.isEmpty }
     }
 
-    /// Mirrors the web's `featuredSteamGame`: the game running now, else the most played lately.
     public var featured: Game? {
         guard let inGame else { return games.first }
         return games.first { $0.appId == inGame.appId } ?? Game(appId: inGame.appId, name: inGame.name)

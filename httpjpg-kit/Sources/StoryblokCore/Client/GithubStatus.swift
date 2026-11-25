@@ -2,12 +2,9 @@ import Foundation
 
 public struct GithubStatus: Decodable, Sendable {
     public struct Activity: Decodable, Sendable {
-        /// `push`, `pull_request`, `release`, `create` or `star`; unknown kinds still render.
         public let kind: String
-        /// Printed before the repo, e.g. "pushed to", "merged".
         public let verb: String
         public let repo: String
-        /// Branch, PR number or tag, when the event has one.
         public let detail: String?
         public let url: String?
         public let createdAt: Date?
