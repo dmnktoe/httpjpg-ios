@@ -35,7 +35,18 @@ public actor FeedPublishAPI {
 
     /// Throws unless the site accepts the token.
     public func checkSession() async throws {
-        _ = try await send(request(path: "/api/feed/session", method: "GET", body: nil))
+        let data = try await send(request(path: "/api/feed/session", method: "GET", body: nil))
+        guard Self.confirmsSession(data) else { throw FeedPublishError.notConfigured }
+    }
+
+    /// A site without the publishing routes answers this path with its not-found
+    /// page and HTTP 200, so only the route's own `{"ok": true}` counts.
+    static func confirmsSession(_ data: Data) -> Bool {
+        (try? JSONDecoder().decode(SessionBody.self, from: data))?.ok == true
+    }
+
+    private struct SessionBody: Decodable {
+        let ok: Bool
     }
 
     public func signUpload(filename: String, pixelSize: CGSize?) async throws -> SignedUpload {

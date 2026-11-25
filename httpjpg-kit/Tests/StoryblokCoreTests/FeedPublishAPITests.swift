@@ -100,6 +100,14 @@ final class FeedPublishAPITests: XCTestCase {
         XCTAssertEqual(FeedPublishRequest.timestamp(Date(timeIntervalSince1970: 0)), "1970-01-01T00:00:00Z")
     }
 
+    func testOnlyTheRoutesOwnAnswerConfirmsASession() {
+        XCTAssertTrue(FeedPublishAPI.confirmsSession(Data(#"{"ok":true}"#.utf8)))
+        XCTAssertFalse(FeedPublishAPI.confirmsSession(Data(#"{"ok":false}"#.utf8)))
+        // A site that does not have the route yet serves its not-found page with HTTP 200.
+        XCTAssertFalse(FeedPublishAPI.confirmsSession(Data("<!DOCTYPE html><html>".utf8)))
+        XCTAssertFalse(FeedPublishAPI.confirmsSession(Data()))
+    }
+
     func testASignedUploadDecodesFromTheSitesAnswer() throws {
         let upload = try JSONDecoder().decode(
             FeedPublishAPI.SignedUpload.self,
