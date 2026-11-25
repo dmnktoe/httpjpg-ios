@@ -78,8 +78,8 @@ struct SiteStatusView: View {
         Image(uiImage: image)
             .resizable()
             .interpolation(.none)
-            .aspectRatio(contentMode: .fit)
             .widgetFullColor()
+            .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
     }
 }
