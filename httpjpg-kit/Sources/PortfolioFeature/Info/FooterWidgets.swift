@@ -21,12 +21,12 @@ struct FooterWidgets: View {
                 ForEach(folded(sortedLines)) { line in
                     row(line)
                 }
-                moreButton(hiding: sortedLines.count)
+                moreButton(lineCount: sortedLines.count)
             } else {
                 // Placeholders fold the same way, so the footer holds its
                 // collapsed height while the request is in flight.
                 ForEach(folded(pendingLabels), id: \.self) { placeholderLine(label: $0) }
-                moreButton(hiding: pendingLabels.count)
+                moreButton(lineCount: pendingLabels.count)
             }
             ClockLine(weather: model.weather)
         }
@@ -43,7 +43,7 @@ struct FooterWidgets: View {
     }
 
     @ViewBuilder
-    private func moreButton(hiding total: Int) -> some View {
+    private func moreButton(lineCount total: Int) -> some View {
         let hidden = total - Self.collapsedLineCount
         if let onShowMore, hidden > 0 {
             Button(action: onShowMore) {
