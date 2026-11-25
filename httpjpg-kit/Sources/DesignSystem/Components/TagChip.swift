@@ -47,7 +47,6 @@ public struct TagChip: View {
         .padding(.horizontal, Spacing.s3)
         .padding(.vertical, Spacing.s1)
         .foregroundStyle(isSelected ? theme.background : theme.foreground)
-        // Filled, not outlined — same as the web's `tagRecipe`.
         .background(isSelected ? theme.foreground : theme.border)
         .clipShape(Capsule())
         .animation(Motion.stateChange, value: isSelected)
