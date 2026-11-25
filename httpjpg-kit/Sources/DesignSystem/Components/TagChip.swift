@@ -47,11 +47,9 @@ public struct TagChip: View {
         .padding(.horizontal, Spacing.s3)
         .padding(.vertical, Spacing.s1)
         .foregroundStyle(isSelected ? theme.background : theme.foreground)
-        .background(isSelected ? theme.foreground : Color.clear)
+        // Filled, not outlined — same as the web's `tagRecipe`.
+        .background(isSelected ? theme.foreground : theme.border)
         .clipShape(Capsule())
-        .overlay(
-            Capsule().stroke(isSelected ? theme.foreground : theme.border, lineWidth: 1)
-        )
         .animation(Motion.stateChange, value: isSelected)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityName)
