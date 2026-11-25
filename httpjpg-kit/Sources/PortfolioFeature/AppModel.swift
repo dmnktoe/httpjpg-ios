@@ -10,6 +10,7 @@ import WidgetKit
 public final class AppModel {
     public enum Tab: String, CaseIterable, Identifiable, Sendable {
         case work
+        case feed
         case info
 
         public var id: String { rawValue }
@@ -17,6 +18,7 @@ public final class AppModel {
         public var label: String {
             switch self {
             case .work: return "🎀 ୧ꔛꗃ˖ աօʀӄ"
+            case .feed: return "📷 ⋆.˚ ƒєє∂"
             case .info: return "👊🐯  ᶤⓝƒ𝓸"
             }
         }
@@ -24,6 +26,7 @@ public final class AppModel {
         public var accessibilityLabel: String {
             switch self {
             case .work: return "Work"
+            case .feed: return "Feed"
             case .info: return "Info"
             }
         }
@@ -61,6 +64,8 @@ public final class AppModel {
     public var isStatusPresented = false
 
     let workIndex: WorkIndexModel
+    let feed: FeedModel
+    let feedSession: FeedSession
     let info: InfoModel
     private(set) var footerWidgets: FooterWidgetsModel?
     private(set) var askSearch: AskSearchModel?
@@ -74,6 +79,8 @@ public final class AppModel {
         let client = ContentClient(configuration: configuration)
         self.client = client
         self.workIndex = WorkIndexModel(client: client)
+        self.feed = FeedModel(client: client)
+        self.feedSession = FeedSession(origin: configuration.siteOrigin)
         self.info = InfoModel(client: client)
         let cached = client.cachedSiteConfig()
         self.config = cached ?? .fallback
@@ -129,6 +136,7 @@ public final class AppModel {
         footerWidgets = widgets
 
         await workIndex.load(force: true)
+        await feed.load(force: true)
         await info.load(force: true)
         await widgets.load()
 
@@ -246,6 +254,7 @@ public final class AppModel {
     var isAtNavigationRoot: Bool {
         switch selectedTab {
         case .work: return workPath.isEmpty
+        case .feed: return true
         case .info: return infoPath.isEmpty
         }
     }
@@ -275,6 +284,8 @@ public final class AppModel {
             } else {
                 workPath.removeAll()
             }
+        case .feed:
+            scrollToTopTicks[.feed, default: 0] += 1
         case .info:
             if infoPath.isEmpty {
                 scrollToTopTicks[.info, default: 0] += 1

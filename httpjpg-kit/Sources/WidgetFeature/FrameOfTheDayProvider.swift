@@ -87,10 +87,8 @@ struct FrameOfTheDayProvider: TimelineProvider {
     }
 
     private static func pool(from client: ContentClient) async -> [FeedPool.Item] {
-        if let page = try? await client.page(slug: StorySlug.feed) {
-            let items = FeedPool.items(in: page.body)
-            if !items.isEmpty { return items }
-        }
+        let feed = await client.feedPool()
+        if !feed.isEmpty { return feed }
 
         guard let collection = try? await client.workIndex(perPage: 40) else { return [] }
         return (collection.projects + collection.websites)

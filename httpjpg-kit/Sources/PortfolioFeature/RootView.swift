@@ -120,6 +120,8 @@ public struct RootView: View {
             switch tab {
             case .work:
                 WorkIndexScreen()
+            case .feed:
+                FeedScreen()
             case .info:
                 InfoScreen()
             }

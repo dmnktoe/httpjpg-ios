@@ -17,6 +17,12 @@ enum MockContentFixtures {
 
     private static let domains = ["storyblok.com", "storyblokchina.cn"]
 
+    private static let emptyList = Response(
+        data: Data("{\"stories\":[]}".utf8),
+        statusCode: 200,
+        contentType: "application/json"
+    )
+
     static func handles(_ url: URL?) -> Bool {
         guard let host = url?.host?.lowercased() else { return false }
         return domains.contains { host == $0 || host.hasSuffix("." + $0) }
@@ -48,9 +54,12 @@ enum MockContentFixtures {
             return works(orderedBy: uuids.split(separator: ",").map(String.init))
         }
 
-        let name = value("starts_with")?.hasPrefix(StorySlug.workPrefix) == true
-            ? "stories-work"
-            : "stories-pages"
+        let prefix = value("starts_with") ?? ""
+        if prefix.hasPrefix(StorySlug.feedPrefix) {
+            guard (value("page").flatMap(Int.init) ?? 1) <= 1 else { return emptyList }
+            return json(named: "stories-feed", firstStories: value("per_page").flatMap(Int.init))
+        }
+        let name = prefix.hasPrefix(StorySlug.workPrefix) ? "stories-work" : "stories-pages"
         return json(named: name, firstStories: value("per_page").flatMap(Int.init))
     }
 

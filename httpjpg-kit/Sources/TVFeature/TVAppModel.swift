@@ -97,11 +97,10 @@ final class TVAppModel {
 
     func loadFeed(force: Bool = false) async {
         guard force || !isFeedLoaded else { return }
-        guard let page = try? await client.page(slug: StorySlug.feed, refresh: force) else {
-            isFeedLoaded = true
-            return
+        let pool = await client.feedPool(refresh: force)
+        if !pool.isEmpty || feed.isEmpty {
+            feed = pool
         }
-        feed = FeedPool.items(in: page.body)
         isFeedLoaded = true
     }
 

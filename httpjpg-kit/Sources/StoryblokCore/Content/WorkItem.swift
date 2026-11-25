@@ -144,6 +144,7 @@ public enum StorySlug {
     public static let home = "home"
 
     public static let feed = "feed-xml_html"
+    public static let feedPrefix = "feed/"
     public static let workPrefix = "work/"
 
     public static func isDirectWork(_ fullSlug: String) -> Bool {

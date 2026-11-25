@@ -35,6 +35,8 @@ if (!existsSync(blocksDir)) {
 
 const CONSCIOUSLY_UNRENDERED = new Map([
   ["config", "decoded as SiteConfig via ContentClient.siteConfig, not a body blok"],
+  ["post", "decoded as PostBlok via ContentClient.feedPosts and drawn by FeedPostView, not a body blok"],
+  ["post_image", "decoded as PostImageBlok inside PostBlok"],
   ["footer_config", "decoded inside SiteConfig for the info footer"],
   ["menu_link", "decoded as MenuLink inside SiteConfig"],
   ["social_profile", "nested in the site config alongside the header menu; the app has no surface for social links"],

@@ -65,10 +65,39 @@ public final class ContentClient: @unchecked Sendable {
         return PageDocument(story: story)
     }
 
+    public func feedPosts(page: Int = 1, perPage: Int = 24, refresh: Bool = false) async throws -> [FeedPost] {
+        let stories: [Story<PostBlok>] = try await stories(
+            startingWith: StorySlug.feedPrefix,
+            perPage: perPage,
+            page: page,
+            sortBy: "content.date:desc",
+            refresh: refresh
+        )
+        return stories.map(FeedPost.init(story:))
+    }
+
+    public func feedPool(refresh: Bool = false) async -> [FeedPool.Item] {
+        var posts = try? await feedPosts(perPage: 50, refresh: refresh)
+        if posts == nil, refresh {
+            posts = try? await feedPosts(perPage: 50)
+        }
+        var feedPage = try? await self.page(slug: StorySlug.feed, refresh: refresh)
+        if feedPage == nil, refresh {
+            feedPage = try? await self.page(slug: StorySlug.feed)
+        }
+
+        var items = FeedPool.items(in: posts ?? [])
+        if let feedPage {
+            let seen = items.map(\.kind)
+            items += FeedPool.items(in: feedPage.body).filter { !seen.contains($0.kind) }
+        }
+        return items
+    }
+
     public func pageIndex(perPage: Int = 100, refresh: Bool = false) async throws -> [PageSummary] {
         let stories: [Story<StoryOverview>] = try await stories(
             startingWith: nil,
-            excludingSlugs: StorySlug.workPrefix + "*",
+            excludingSlugs: [StorySlug.workPrefix, StorySlug.feedPrefix].map { $0 + "*" }.joined(separator: ","),
             perPage: perPage,
             sortBy: "name:asc",
             refresh: refresh
@@ -158,12 +187,13 @@ public final class ContentClient: @unchecked Sendable {
         startingWith prefix: String?,
         excludingSlugs: String? = nil,
         perPage: Int,
+        page: Int = 1,
         sortBy: String?,
         refresh: Bool
     ) async throws -> [Story<Content>] {
         var queryItems = [
             URLQueryItem(name: "per_page", value: String(perPage)),
-            URLQueryItem(name: "page", value: "1"),
+            URLQueryItem(name: "page", value: String(max(page, 1))),
         ]
         if let prefix {
             queryItems.append(URLQueryItem(name: "starts_with", value: prefix))
