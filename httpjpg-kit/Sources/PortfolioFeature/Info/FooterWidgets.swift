@@ -7,12 +7,8 @@ import UIKit
 
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
-    /// Set, the stack shows only the freshest few lines and folds the rest
-    /// behind a `[ + N more ]` button that calls this. Nil shows every line.
     var onShowMore: (() -> Void)?
 
-    /// Same cut as the website footer. The stack is ordered live → newest →
-    /// undated, so the first few are what is happening now.
     private static let collapsedLineCount = 3
 
     var body: some View {
@@ -23,8 +19,6 @@ struct FooterWidgets: View {
                 }
                 moreButton(lineCount: sortedLines.count)
             } else {
-                // Placeholders fold the same way, so the footer holds its
-                // collapsed height while the request is in flight.
                 ForEach(folded(pendingLabels), id: \.self) { placeholderLine(label: $0) }
                 moreButton(lineCount: pendingLabels.count)
             }

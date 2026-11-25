@@ -6,7 +6,6 @@ import Tokens
 struct InfoFooter: View {
     let config: SiteConfig
     let widgets: FooterWidgetsModel
-    /// Opens the status sheet, which lists every line the footer folds away.
     let onShowStatus: () -> Void
 
     @Environment(\.openURL) private var openURL
