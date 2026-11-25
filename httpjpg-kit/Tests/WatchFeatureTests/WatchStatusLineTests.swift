@@ -24,14 +24,15 @@ final class WatchStatusLineTests: XCTestCase {
             "discord", "lastfm", "letterboxd", "discogs", "steam", "youtube", "github", "reddit", "x", "psn", "schalke",
             "weather",
         ])
-        XCTAssertEqual(lines[1].image, Data("poster".utf8))
-        XCTAssertEqual(lines[1].detail, "Massive Attack ▶")
-        XCTAssertEqual(lines[4].detail, "45m / 2w")
-        XCTAssertEqual(lines[5].detail, "(1.2K)")
-        XCTAssertEqual(lines[6].text, "dmnktoe/httpjpg")
-        XCTAssertEqual(lines[6].detail, "pushed to main")
-        XCTAssertEqual(lines[7].detail, "12.3K karma")
-        XCTAssertEqual(lines[11].text, "☁️ 1°")
+        let line = Dictionary(uniqueKeysWithValues: lines.map { ($0.id, $0) })
+        XCTAssertEqual(line["letterboxd"]?.image, Data("poster".utf8))
+        XCTAssertEqual(line["lastfm"]?.detail, "Massive Attack ▶")
+        XCTAssertEqual(line["steam"]?.detail, "45m / 2w")
+        XCTAssertEqual(line["youtube"]?.detail, "(1.2K)")
+        XCTAssertEqual(line["github"]?.text, "dmnktoe/httpjpg")
+        XCTAssertEqual(line["github"]?.detail, "pushed to main")
+        XCTAssertEqual(line["reddit"]?.detail, "12.3K karma")
+        XCTAssertEqual(line["weather"]?.text, "☁️ 1°")
     }
 
     func testLinesFollowTheFooterOrderByTime() throws {
