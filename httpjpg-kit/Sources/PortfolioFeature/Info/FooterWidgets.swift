@@ -20,6 +20,18 @@ struct FooterWidgets: View {
                 if let record = model.record {
                     DiscogsLine(record: record)
                 }
+                if let scrobbles = model.scrobbles, let track = scrobbles.latest {
+                    LastfmLine(track: track, total: scrobbles.compactTotal)
+                }
+                if let steam = model.steam, let game = steam.featured {
+                    SteamLine(game: game, isPlaying: steam.isPlaying)
+                }
+                if let youtube = model.youtube, let video = youtube.latestVideo {
+                    YoutubeLine(channel: youtube.channel, video: video)
+                }
+                if let github = model.github, let activity = github.latest {
+                    GithubLine(avatar: github.avatar, activity: activity)
+                }
                 if let timeline = model.timeline, let post = timeline.latestPost {
                     XLine(profile: timeline.profile, post: post)
                 }
@@ -44,6 +56,10 @@ struct FooterWidgets: View {
             flags.isDiscordEnabled ? "discord:" : nil,
             flags.isLetterboxdEnabled ? "letterboxd:" : nil,
             flags.isDiscogsEnabled ? "discogs:" : nil,
+            flags.isLastfmEnabled ? "last.fm:" : nil,
+            flags.isSteamEnabled ? "steam:" : nil,
+            flags.isYoutubeEnabled ? "youtube:" : nil,
+            flags.isGithubEnabled ? "github:" : nil,
             flags.isXEnabled ? "x:" : nil,
             flags.isPsnTrophyEnabled ? "psn:" : nil,
             flags.isSchalkeEnabled ? "s04:" : nil,
@@ -67,8 +83,8 @@ private struct DiscordLine: View {
                 .foregroundStyle(color)
             if let activity = presence.activity {
                 Text("·").opacity(Opacities.subtle)
-                if let icon = presence.activityIcon.flatMap(URL.init(string:)) {
-                    FooterThumb(url: icon, clip: .rect(cornerRadius: Radii.sm))
+                if let icon = presence.activityIcon {
+                    PixelThumb(data: icon, clip: .rect(cornerRadius: Radii.sm))
                 }
                 Text(activity)
                     .lineLimit(1)
@@ -102,9 +118,9 @@ private struct LetterboxdLine: View {
 
     var body: some View {
         FooterStatusLine(label: "letterboxd:") {
-            if let poster = film.poster.flatMap(URL.init(string:)) {
-                FooterThumb(
-                    url: poster,
+            if let poster = film.poster {
+                PixelThumb(
+                    data: poster,
                     clip: .rect(cornerRadius: Radii.sm),
                     width: Spacing.s3,
                     height: Spacing.s3 * 1.5
@@ -133,8 +149,8 @@ private struct DiscogsLine: View {
 
     var body: some View {
         FooterStatusLine(label: "discogs:") {
-            if let thumb = record.thumb.flatMap(URL.init(string:)) {
-                FooterThumb(url: thumb, clip: .rect(cornerRadius: 2))
+            if let thumb = record.thumb {
+                PixelThumb(data: thumb, clip: .rect(cornerRadius: 2))
             } else {
                 Text("💿")
             }
@@ -154,14 +170,124 @@ private struct DiscogsLine: View {
     }
 }
 
+private struct LastfmLine: View {
+    let track: LastfmScrobbles.Track
+    let total: String?
+
+    var body: some View {
+        FooterStatusLine(label: "last.fm:") {
+            if let image = track.image {
+                PixelThumb(data: image, clip: .rect(cornerRadius: 2))
+            } else {
+                Text("♫")
+            }
+            Text(track.title)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text(track.artist)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .opacity(Opacities.muted)
+            if track.isNowPlaying {
+                Text("▶")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("now playing")
+            }
+            if track.isLoved {
+                Text("♥")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("loved")
+            }
+            if let total {
+                Text("·").opacity(Opacities.subtle)
+                Text(total)
+                    .opacity(Opacities.subtle)
+                    .accessibilityLabel("\(total) scrobbles")
+            }
+        }
+    }
+}
+
+private struct SteamLine: View {
+    let game: SteamStatus.Game
+    let isPlaying: Bool
+
+    var body: some View {
+        FooterStatusLine(label: "steam:") {
+            if let icon = game.icon {
+                PixelThumb(data: icon, clip: .rect(cornerRadius: 2))
+            } else {
+                Text("🎮")
+            }
+            Text(game.name)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if isPlaying {
+                Text("▶")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("playing now")
+            }
+            if let playtime = game.recentPlaytime {
+                Text("·").opacity(Opacities.subtle)
+                Text(playtime).opacity(Opacities.subtle)
+            }
+        }
+    }
+}
+
+private struct YoutubeLine: View {
+    let channel: YoutubeStatus.Channel
+    let video: YoutubeStatus.Video
+
+    var body: some View {
+        FooterStatusLine(label: "youtube:") {
+            if let avatar = channel.avatar {
+                PixelThumb(data: avatar, clip: .circle)
+                    .accessibilityLabel(channel.title)
+            } else {
+                Text("▶︎").accessibilityLabel(channel.title)
+            }
+            if let subscribers = channel.compactSubscriberCount {
+                Text("(\(subscribers))")
+                    .opacity(Opacities.subtle)
+                    .accessibilityLabel("\(subscribers) subscribers")
+            }
+            Text("·").opacity(Opacities.subtle)
+            Text(video.title)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+    }
+}
+
+private struct GithubLine: View {
+    let avatar: Data?
+    let activity: GithubStatus.Activity
+
+    var body: some View {
+        FooterStatusLine(label: "github:") {
+            if let avatar {
+                PixelThumb(data: avatar, clip: .circle)
+            }
+            Text(activity.verb).opacity(Opacities.muted)
+            Text(activity.repo)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if let detail = activity.detail {
+                Text(detail).opacity(Opacities.subtle)
+            }
+        }
+    }
+}
+
 private struct XLine: View {
     let profile: XProfile
     let post: XPost
 
     var body: some View {
         FooterStatusLine(label: "x:") {
-            if let avatar = profile.avatar.flatMap(URL.init(string:)) {
-                FooterThumb(url: avatar, clip: .circle)
+            if let avatar = profile.avatar {
+                PixelThumb(data: avatar, clip: .circle)
                     .accessibilityLabel(profile.handle)
             } else {
                 Text("𝕏").accessibilityLabel(profile.handle)
@@ -207,6 +333,27 @@ private struct FooterThumb<Clip: Shape>: View {
     }
 }
 
+/// The server-pixelated footer media: decoded inline, drawn without smoothing.
+private struct PixelThumb<Clip: Shape>: View {
+    let data: Data
+    let clip: Clip
+    var width: CGFloat = Typography.Size.md
+    var height: CGFloat = Typography.Size.md
+    var contentMode: ContentMode = .fill
+
+    var body: some View {
+        if let image = UIImage(data: data) {
+            Image(uiImage: image)
+                .resizable()
+                .interpolation(.none)
+                .aspectRatio(contentMode: contentMode)
+                .frame(width: width, height: height)
+                .clipShape(clip)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
 private struct TrophyLine: View {
     let trophy: PsnTrophy
 
@@ -214,9 +361,9 @@ private struct TrophyLine: View {
 
     var body: some View {
         FooterStatusLine(label: "psn:") {
-            if let image = trophy.image.flatMap(URL.init(string:)) {
-                FooterThumb(
-                    url: image,
+            if let image = trophy.image {
+                PixelThumb(
+                    data: image,
                     clip: Rectangle(),
                     width: Spacing.s4,
                     height: Spacing.s4,

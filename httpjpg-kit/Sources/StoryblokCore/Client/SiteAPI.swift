@@ -29,6 +29,22 @@ public actor SiteAPI {
         await get(XTimeline.self, path: "/api/x")
     }
 
+    public func lastfmScrobbles() async -> LastfmScrobbles? {
+        await get(LastfmScrobbles.self, path: "/api/lastfm")
+    }
+
+    public func steamStatus() async -> SteamStatus? {
+        await get(SteamStatus.self, path: "/api/steam")
+    }
+
+    public func youtubeStatus() async -> YoutubeStatus? {
+        await get(YoutubeStatus.self, path: "/api/youtube")
+    }
+
+    public func githubStatus() async -> GithubStatus? {
+        await get(GithubStatus.self, path: "/api/github")
+    }
+
     public func schalkeStatus() async -> SchalkeStatus? {
         await get(SchalkeStatus.self, path: "/api/schalke")
     }
@@ -138,7 +154,7 @@ public struct DiscordPresence: Decodable, Sendable {
 
     public let status: Status
     public let activity: String?
-    public let activityIcon: String?
+    public let activityIcon: Data?
 
     private enum CodingKeys: String, CodingKey {
         case status, activity, activityDetails
@@ -148,7 +164,7 @@ public struct DiscordPresence: Decodable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         status = container.cmsString(forKey: .status).flatMap(Status.init(rawValue:)) ?? .offline
         activity = container.cmsString(forKey: .activity)
-        activityIcon = container.cmsValue(ActivityDetails.self, forKey: .activityDetails)?.icon
+        activityIcon = PixelImage.data(fromDataURI: container.cmsValue(ActivityDetails.self, forKey: .activityDetails)?.icon)
     }
 
     private struct ActivityDetails: Decodable {
@@ -171,7 +187,7 @@ public struct LetterboxdFilm: Decodable, Sendable {
     public let rating: Double?
     public let liked: Bool
     public let url: String?
-    public let poster: String?
+    public let poster: Data?
     public let watchedDate: Date?
 
     private enum CodingKeys: String, CodingKey {
@@ -185,7 +201,7 @@ public struct LetterboxdFilm: Decodable, Sendable {
         rating = container.cmsValue(Double.self, forKey: .rating)
         liked = container.cmsBool(forKey: .liked)
         url = container.cmsString(forKey: .url)
-        poster = container.cmsString(forKey: .poster)
+        poster = PixelImage.data(fromDataURI: container.cmsString(forKey: .poster))
         watchedDate = StoryblokDate.parse(container.cmsString(forKey: .watchedDate))
     }
 
@@ -206,7 +222,7 @@ public struct PsnTrophy: Decodable, Sendable {
     public let game: String
     public let type: String?
     public let url: String?
-    public let image: String?
+    public let image: Data?
     public let earnedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
@@ -219,7 +235,7 @@ public struct PsnTrophy: Decodable, Sendable {
         game = container.cmsString(forKey: .game) ?? ""
         type = container.cmsString(forKey: .type)
         url = container.cmsString(forKey: .url)
-        image = container.cmsString(forKey: .image)
+        image = PixelImage.data(fromDataURI: container.cmsString(forKey: .image))
         earnedAt = StoryblokDate.parse(container.cmsString(forKey: .earnedAt))
     }
 
@@ -244,7 +260,7 @@ public struct DiscogsRelease: Decodable, Sendable {
     public let year: String?
     public let format: String?
     public let url: String?
-    public let thumb: String?
+    public let thumb: Data?
     public let addedAt: Date?
 
     private enum CodingKeys: String, CodingKey {
@@ -258,7 +274,7 @@ public struct DiscogsRelease: Decodable, Sendable {
         year = container.cmsString(forKey: .year)
         format = container.cmsString(forKey: .format)
         url = container.cmsString(forKey: .url)
-        thumb = container.cmsString(forKey: .thumb)
+        thumb = PixelImage.data(fromDataURI: container.cmsString(forKey: .thumb))
         addedAt = StoryblokDate.parse(container.cmsString(forKey: .addedAt))
     }
 
@@ -273,7 +289,7 @@ private struct DiscogsReleasesResponse: Decodable {
 
 public struct XProfile: Decodable, Sendable {
     public let username: String
-    public let avatar: String?
+    public let avatar: Data?
     public let followerCount: Int?
 
     private enum CodingKeys: String, CodingKey {
@@ -283,7 +299,7 @@ public struct XProfile: Decodable, Sendable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         username = container.cmsString(forKey: .username) ?? ""
-        avatar = container.cmsString(forKey: .avatar)
+        avatar = PixelImage.data(fromDataURI: container.cmsString(forKey: .avatar))
         followerCount = container.cmsInt(forKey: .followerCount)
     }
 
@@ -371,8 +387,7 @@ public struct SchalkeFixture: Decodable, Sendable {
     }
 
     static func imageData(fromDataURI uri: String) -> Data? {
-        guard uri.hasPrefix("data:image/"), let marker = uri.range(of: ";base64,") else { return nil }
-        return Data(base64Encoded: String(uri[marker.upperBound...]))
+        PixelImage.data(fromDataURI: uri)
     }
 }
 

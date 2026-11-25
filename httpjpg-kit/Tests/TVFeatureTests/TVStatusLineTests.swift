@@ -23,6 +23,27 @@ final class TVStatusLineTests: XCTestCase {
         XCTAssertEqual(Set(lines.map(\.id)).count, lines.count)
     }
 
+    func testTheNewSourcesReadAsOneLineEach() throws {
+        let lines = TVStatusLine.lines(
+            discord: nil,
+            film: nil,
+            record: nil,
+            scrobbles: try decode(#"{"tracks": [{"title": "angel", "artist": "massive attack", "nowPlaying": true}]}"#),
+            steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "counter-strike", "minutesTwoWeeks": 120}]}"#),
+            youtube: try decode(#"{"channel": {"title": "httpjpg", "subscriberCount": 812}, "videos": [{"title": "studio tour"}]}"#),
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "merged", "repo": "dmnktoe/httpjpg", "detail": "#42"}]}"#),
+            trophy: nil,
+            weather: nil
+        )
+
+        XCTAssertEqual(lines.map(\.text), [
+            "last.fm: angel · massive attack · ▶",
+            "steam: counter-strike · 2h / 2w",
+            "youtube: (812) · studio tour",
+            "github: merged dmnktoe/httpjpg #42",
+        ])
+    }
+
     func testSilentAndEmptySourcesAreLeftOut() throws {
         let lines = TVStatusLine.lines(
             discord: nil,

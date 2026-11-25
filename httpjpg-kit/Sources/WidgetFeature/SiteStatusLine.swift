@@ -60,6 +60,7 @@ struct SiteStatusLine: Identifiable {
             id: "letterboxd",
             label: "letterboxd:",
             badge: "🎞",
+            leadingImage: film.poster,
             text: film.title,
             detail: detail.isEmpty ? nil : detail,
             date: film.watchedDate
@@ -76,6 +77,7 @@ struct SiteStatusLine: Identifiable {
             id: "discogs",
             label: "discogs:",
             badge: "💿",
+            leadingImage: record.thumb,
             text: record.credit,
             detail: detail.isEmpty ? nil : detail,
             date: record.addedAt
@@ -88,6 +90,7 @@ struct SiteStatusLine: Identifiable {
             id: "x",
             label: "x:",
             badge: "𝕏",
+            leadingImage: profile.avatar,
             text: profile.compactFollowerCount.map { "(\($0))" } ?? profile.handle,
             detail: post.text
         )
@@ -99,9 +102,64 @@ struct SiteStatusLine: Identifiable {
             id: "psn",
             label: "psn:",
             badge: trophy.badge,
+            leadingImage: trophy.image,
             text: trophy.name,
             detail: trophy.game.isEmpty ? nil : trophy.game,
             date: trophy.earnedAt
+        )
+    }
+
+    init?(scrobbles: LastfmScrobbles, now: Date = .now) {
+        guard let track = scrobbles.latest else { return nil }
+        let marks = [track.isNowPlaying ? "▶" : nil, track.isLoved ? "♥" : nil].compactMap { $0 }
+        self.init(
+            id: "lastfm",
+            label: "last.fm:",
+            badge: "♫",
+            leadingImage: track.image,
+            text: track.title,
+            detail: ([track.artist] + marks).joined(separator: " "),
+            // A track still playing has no scrobble time yet; it is the freshest line there is.
+            date: track.scrobbledAt ?? (track.isNowPlaying ? now : nil)
+        )
+    }
+
+    init?(steam: SteamStatus, now: Date = .now) {
+        guard let game = steam.featured else { return nil }
+        self.init(
+            id: "steam",
+            label: "steam:",
+            badge: "🎮",
+            leadingImage: game.icon,
+            text: steam.isPlaying ? "\(game.name) ▶" : game.name,
+            detail: game.recentPlaytime,
+            date: steam.isPlaying ? now : nil
+        )
+    }
+
+    init?(youtube: YoutubeStatus) {
+        guard let video = youtube.latestVideo else { return nil }
+        self.init(
+            id: "youtube",
+            label: "youtube:",
+            badge: "▶︎",
+            leadingImage: youtube.channel.avatar,
+            text: video.title,
+            detail: youtube.channel.compactSubscriberCount.map { "(\($0))" },
+            date: video.publishedAt
+        )
+    }
+
+    init?(github: GithubStatus) {
+        guard let activity = github.latest else { return nil }
+        self.init(
+            id: "github",
+            label: "github:",
+            badge: "⌥",
+            leadingImage: github.avatar,
+            text: "\(activity.verb) \(activity.repo)",
+            detail: activity.detail,
+            date: activity.createdAt
         )
     }
 

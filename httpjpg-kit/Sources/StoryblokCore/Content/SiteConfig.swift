@@ -136,6 +136,10 @@ public struct WidgetFlags: Decodable, Sendable {
     public let isDiscogsEnabled: Bool
     public let isXEnabled: Bool
     public let isSchalkeEnabled: Bool
+    public let isLastfmEnabled: Bool
+    public let isSteamEnabled: Bool
+    public let isYoutubeEnabled: Bool
+    public let isGithubEnabled: Bool
     public let isAskEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
@@ -145,6 +149,10 @@ public struct WidgetFlags: Decodable, Sendable {
         case discogsEnabled = "discogs_enabled"
         case xEnabled = "x_enabled"
         case schalkeEnabled = "schalke_enabled"
+        case lastfmEnabled = "lastfm_enabled"
+        case steamEnabled = "steam_enabled"
+        case youtubeEnabled = "youtube_enabled"
+        case githubEnabled = "github_enabled"
         case askEnabled = "ask_enabled"
     }
 
@@ -156,6 +164,10 @@ public struct WidgetFlags: Decodable, Sendable {
         isDiscogsEnabled = container.cmsBool(forKey: .discogsEnabled)
         isXEnabled = container.cmsBool(forKey: .xEnabled)
         isSchalkeEnabled = container.cmsBool(forKey: .schalkeEnabled)
+        isLastfmEnabled = container.cmsBool(forKey: .lastfmEnabled)
+        isSteamEnabled = container.cmsBool(forKey: .steamEnabled)
+        isYoutubeEnabled = container.cmsBool(forKey: .youtubeEnabled)
+        isGithubEnabled = container.cmsBool(forKey: .githubEnabled)
         isAskEnabled = container.cmsBool(forKey: .askEnabled)
     }
 
@@ -166,6 +178,10 @@ public struct WidgetFlags: Decodable, Sendable {
         isDiscogsEnabled: Bool = false,
         isXEnabled: Bool = false,
         isSchalkeEnabled: Bool = false,
+        isLastfmEnabled: Bool = false,
+        isSteamEnabled: Bool = false,
+        isYoutubeEnabled: Bool = false,
+        isGithubEnabled: Bool = false,
         isAskEnabled: Bool = false
     ) {
         self.isDiscordEnabled = isDiscordEnabled
@@ -174,6 +190,10 @@ public struct WidgetFlags: Decodable, Sendable {
         self.isDiscogsEnabled = isDiscogsEnabled
         self.isXEnabled = isXEnabled
         self.isSchalkeEnabled = isSchalkeEnabled
+        self.isLastfmEnabled = isLastfmEnabled
+        self.isSteamEnabled = isSteamEnabled
+        self.isYoutubeEnabled = isYoutubeEnabled
+        self.isGithubEnabled = isGithubEnabled
         self.isAskEnabled = isAskEnabled
     }
 

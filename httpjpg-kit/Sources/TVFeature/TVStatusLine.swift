@@ -9,6 +9,10 @@ struct TVStatusLine: Identifiable, Hashable {
         discord: DiscordPresence?,
         film: LetterboxdFilm?,
         record: DiscogsRelease?,
+        scrobbles: LastfmScrobbles? = nil,
+        steam: SteamStatus? = nil,
+        youtube: YoutubeStatus? = nil,
+        github: GithubStatus? = nil,
         trophy: PsnTrophy?,
         weather: WeatherNow?
     ) -> [TVStatusLine] {
@@ -24,6 +28,23 @@ struct TVStatusLine: Identifiable, Hashable {
         }
         if let record, !record.title.isEmpty {
             lines.append(TVStatusLine(id: "discogs", text: "discogs: " + record.credit))
+        }
+        if let track = scrobbles?.latest {
+            let detail = [track.title, track.artist, track.isNowPlaying ? "▶" : nil].compactMap { $0 }
+            lines.append(TVStatusLine(id: "lastfm", text: "last.fm: " + detail.joined(separator: " · ")))
+        }
+        if let steam, let game = steam.featured {
+            let name = steam.isPlaying ? "\(game.name) ▶" : game.name
+            let detail = [name, game.recentPlaytime].compactMap { $0 }
+            lines.append(TVStatusLine(id: "steam", text: "steam: " + detail.joined(separator: " · ")))
+        }
+        if let youtube, let video = youtube.latestVideo {
+            let detail = [youtube.channel.compactSubscriberCount.map { "(\($0))" }, video.title].compactMap { $0 }
+            lines.append(TVStatusLine(id: "youtube", text: "youtube: " + detail.joined(separator: " · ")))
+        }
+        if let activity = github?.latest {
+            let detail = [activity.verb, activity.repo, activity.detail].compactMap { $0 }
+            lines.append(TVStatusLine(id: "github", text: "github: " + detail.joined(separator: " ")))
         }
         if let trophy, !trophy.name.isEmpty {
             let detail = [trophy.name, trophy.game.isEmpty ? nil : trophy.game].compactMap { $0 }
@@ -44,9 +65,23 @@ struct TVStatusLine: Identifiable, Hashable {
         async let discord = flags.isDiscordEnabled ? await api.discordPresence() : nil
         async let film = flags.isLetterboxdEnabled ? await api.latestFilm() : nil
         async let record = flags.isDiscogsEnabled ? await api.latestRecord() : nil
+        async let scrobbles = flags.isLastfmEnabled ? await api.lastfmScrobbles() : nil
+        async let steam = flags.isSteamEnabled ? await api.steamStatus() : nil
+        async let youtube = flags.isYoutubeEnabled ? await api.youtubeStatus() : nil
+        async let github = flags.isGithubEnabled ? await api.githubStatus() : nil
         async let trophy = flags.isPsnTrophyEnabled ? await api.latestTrophy() : nil
         async let weather = api.weather()
 
-        return await lines(discord: discord, film: film, record: record, trophy: trophy, weather: weather)
+        return await lines(
+            discord: discord,
+            film: film,
+            record: record,
+            scrobbles: scrobbles,
+            steam: steam,
+            youtube: youtube,
+            github: github,
+            trophy: trophy,
+            weather: weather
+        )
     }
 }

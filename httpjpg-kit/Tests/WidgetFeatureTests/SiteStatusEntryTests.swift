@@ -170,6 +170,77 @@ final class SiteStatusEntryTests: XCTestCase {
         XCTAssertNil(line.leadingImage)
     }
 
+    func testTheNewSourcesFollowTheWebFooterOrder() throws {
+        let entry = SiteStatusEntry(
+            date: .now,
+            record: try decode(#"{"title": "Endtroducing.....", "artist": "DJ Shadow"}"#),
+            scrobbles: try decode(#"{"tracks": [{"title": "Teardrop", "artist": "Massive Attack"}]}"#),
+            steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "Counter-Strike"}]}"#),
+            youtube: try decode(#"{"channel": {"title": "httpjpg"}, "videos": [{"title": "Studio tour"}]}"#),
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "starred", "repo": "x/y"}]}"#)
+        )
+
+        XCTAssertEqual(entry.lines.map(\.id), ["discogs", "lastfm", "steam", "youtube", "github"])
+    }
+
+    func testATrackPlayingNowSortsAsTheNewestLine() throws {
+        let now = try XCTUnwrap(StoryblokDate.parse("2026-11-25T10:00:00Z"))
+        let entry = SiteStatusEntry(
+            date: now,
+            film: try decode(#"{"title": "Babystar", "watchedDate": "2026-11-24"}"#),
+            scrobbles: try decode(
+                #"{"tracks": [{"title": "Angel", "artist": "Massive Attack", "nowPlaying": true, "loved": true}]}"#
+            )
+        )
+
+        let line = try XCTUnwrap(entry.lines.first)
+        XCTAssertEqual(line.id, "lastfm")
+        XCTAssertEqual(line.text, "Angel")
+        XCTAssertEqual(line.detail, "Massive Attack ▶ ♥")
+        XCTAssertEqual(line.date, now)
+    }
+
+    func testTheRunningSteamGameIsMarkedAndCarriesItsPlaytime() throws {
+        let steam: SteamStatus = try decode(
+            #"""
+            {"profile": {"inGame": {"appId": 1245620, "name": "ELDEN RING"}},
+             "games": [{"appId": 1245620, "name": "ELDEN RING", "minutesTwoWeeks": 845,
+                        "icon": "data:image/png;base64,aWNvbg=="}]}
+            """#
+        )
+
+        let line = try XCTUnwrap(SiteStatusLine(steam: steam))
+
+        XCTAssertEqual(line.text, "ELDEN RING ▶")
+        XCTAssertEqual(line.detail, "14h / 2w")
+        XCTAssertEqual(line.leadingImage, Data("icon".utf8))
+    }
+
+    func testAnUploadCarriesTheSubscriberCountAndAGithubEventReadsAsASentence() throws {
+        let youtube: YoutubeStatus = try decode(
+            #"{"channel": {"title": "httpjpg", "subscriberCount": 1230}, "videos": [{"title": "Studio tour"}]}"#
+        )
+        let github: GithubStatus = try decode(
+            #"{"profile": {}, "activity": [{"verb": "pushed to", "repo": "dmnktoe/httpjpg", "detail": "main"}]}"#
+        )
+
+        let upload = try XCTUnwrap(SiteStatusLine(youtube: youtube))
+        let push = try XCTUnwrap(SiteStatusLine(github: github))
+
+        XCTAssertEqual(upload.text, "Studio tour")
+        XCTAssertEqual(upload.detail, "(1.2K)")
+        XCTAssertEqual(push.text, "pushed to dmnktoe/httpjpg")
+        XCTAssertEqual(push.detail, "main")
+    }
+
+    func testFooterLinesShowTheSitesPixelArt() throws {
+        let film: LetterboxdFilm = try decode(#"{"title": "Babystar", "poster": "data:image/png;base64,cG9zdGVy"}"#)
+        let trophy: PsnTrophy = try decode(#"{"name": "Pathfinder", "image": "data:image/png;base64,dA=="}"#)
+
+        XCTAssertEqual(SiteStatusLine(film: film)?.leadingImage, Data("poster".utf8))
+        XCTAssertEqual(SiteStatusLine(trophy: trophy)?.leadingImage, Data("t".utf8))
+    }
+
     func testAnUnknownTrophyTypeStillGetsABadge() throws {
         let trophy: PsnTrophy = try decode(#"{"name": "Nachtfahrt", "game": "Death Stranding"}"#)
 
