@@ -55,7 +55,9 @@ final class FeedPublishAPITests: XCTestCase {
             images: [
                 FeedPublishRequest.Image(assetId: 7, fit: .cover),
                 FeedPublishRequest.Image(assetId: 8, fit: .contain, alt: "Ferry"),
-            ]
+            ],
+            clientId: "0F5C1A2B-9D3E-4F60-8A7B-112233445566",
+            date: Date(timeIntervalSince1970: 1_795_620_612)
         )
 
         let json = try XCTUnwrap(
@@ -64,6 +66,8 @@ final class FeedPublishAPITests: XCTestCase {
         XCTAssertEqual(json["caption"] as? String, "harbour")
         XCTAssertEqual(json["format"] as? String, "4/5")
         XCTAssertNil(json["music"])
+        XCTAssertEqual(json["clientId"] as? String, "0F5C1A2B-9D3E-4F60-8A7B-112233445566")
+        XCTAssertEqual(json["date"] as? String, FeedPublishRequest.timestamp(Date(timeIntervalSince1970: 1_795_620_612)))
         let images = try XCTUnwrap(json["images"] as? [[String: Any]])
         XCTAssertEqual(images.map { $0["assetId"] as? Int }, [7, 8])
         XCTAssertEqual(images.map { $0["fit"] as? String }, ["cover", "contain"])
@@ -76,7 +80,9 @@ final class FeedPublishAPITests: XCTestCase {
             caption: "",
             format: .square,
             images: [],
-            music: FeedPublishRequest.Music(source: .mp3, assetId: 11, title: "mega mashup")
+            music: FeedPublishRequest.Music(source: .mp3, assetId: 11, title: "mega mashup"),
+            clientId: "draft-0001",
+            date: Date(timeIntervalSince1970: 0)
         )
 
         let json = try XCTUnwrap(
@@ -88,6 +94,10 @@ final class FeedPublishAPITests: XCTestCase {
         XCTAssertEqual(music["title"] as? String, "mega mashup")
         XCTAssertNil(music["src"])
         XCTAssertNil(music["artist"])
+    }
+
+    func testTheDateIsSentInUTCToTheSecond() {
+        XCTAssertEqual(FeedPublishRequest.timestamp(Date(timeIntervalSince1970: 0)), "1970-01-01T00:00:00Z")
     }
 
     func testASignedUploadDecodesFromTheSitesAnswer() throws {

@@ -60,21 +60,29 @@ public struct FeedPublishRequest: Encodable, Equatable, Sendable {
     public var format: PostBlok.Format
     public var images: [Image]
     public var music: Music?
+    /// The draft's own id and the moment it was first shared. Together they name
+    /// the post on the site, so sharing the same draft again cannot post it twice.
+    public var clientId: String
+    public var date: Date
 
     public init(
         caption: String,
         format: PostBlok.Format,
         images: [Image],
-        music: Music? = nil
+        music: Music? = nil,
+        clientId: String,
+        date: Date
     ) {
         self.caption = caption
         self.format = format
         self.images = images
         self.music = music
+        self.clientId = clientId
+        self.date = date
     }
 
     private enum CodingKeys: String, CodingKey {
-        case caption, format, images, music
+        case caption, format, images, music, clientId, date
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -83,5 +91,15 @@ public struct FeedPublishRequest: Encodable, Equatable, Sendable {
         try container.encode(format.rawValue, forKey: .format)
         try container.encode(images, forKey: .images)
         try container.encodeIfPresent(music, forKey: .music)
+        try container.encode(clientId, forKey: .clientId)
+        try container.encode(Self.timestamp(date), forKey: .date)
+    }
+
+    /// ISO 8601 in UTC, to the second: the same draft always sends the same string.
+    static func timestamp(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter.string(from: date)
     }
 }

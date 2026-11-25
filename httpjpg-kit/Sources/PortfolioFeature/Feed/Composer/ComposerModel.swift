@@ -44,6 +44,11 @@ final class ComposerModel {
 
     private(set) var phase: Phase = .editing
 
+    /// Names this draft on the site. Kept across retries, so a share whose answer
+    /// was lost finds its post again instead of making a second one.
+    let draftID = UUID().uuidString
+    private var sharedAt: Date?
+
     var selected: ComposerImage? {
         images.first { $0.id == selectedID } ?? images.first
     }
@@ -182,7 +187,13 @@ final class ComposerModel {
             phase = .uploading(done: offset + 1, total: images.count)
         }
 
-        return FeedPublishRequest(caption: trimmedCaption, format: format, images: uploaded)
+        return FeedPublishRequest(
+            caption: trimmedCaption,
+            format: format,
+            images: uploaded,
+            clientId: draftID,
+            date: shareDate()
+        )
     }
 
     private func musicRequest(using api: FeedPublishAPI) async throws -> FeedPublishRequest {
@@ -212,7 +223,22 @@ final class ComposerModel {
         }
         phase = .uploading(done: 1, total: 1)
 
-        return FeedPublishRequest(caption: trimmedCaption, format: .square, images: [], music: music)
+        return FeedPublishRequest(
+            caption: trimmedCaption,
+            format: .square,
+            images: [],
+            music: music,
+            clientId: draftID,
+            date: shareDate()
+        )
+    }
+
+    /// The moment of the first share, reused by every retry.
+    private func shareDate() -> Date {
+        if let sharedAt { return sharedAt }
+        let now = Date()
+        sharedAt = now
+        return now
     }
 
     private var trimmedCaption: String {
