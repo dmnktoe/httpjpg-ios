@@ -7,20 +7,56 @@ import UIKit
 
 struct FooterWidgets: View {
     let model: FooterWidgetsModel
+    /// Set, the stack shows only the freshest few lines and folds the rest
+    /// behind a `[ + N more ]` button that calls this. Nil shows every line.
+    var onShowMore: (() -> Void)?
+
+    /// Same cut as the website footer. The stack is ordered live → newest →
+    /// undated, so the first few are what is happening now.
+    private static let collapsedLineCount = 3
 
     var body: some View {
         VStack(spacing: Spacing.s1) {
             if model.isLoaded {
-                ForEach(StatusOrder.sorted(lines, isLive: \.isLive, date: \.date)) { line in
+                ForEach(folded(sortedLines)) { line in
                     row(line)
                 }
+                moreButton(hiding: sortedLines.count)
             } else {
-                ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
+                // Placeholders fold the same way, so the footer holds its
+                // collapsed height while the request is in flight.
+                ForEach(folded(pendingLabels), id: \.self) { placeholderLine(label: $0) }
+                moreButton(hiding: pendingLabels.count)
             }
             ClockLine(weather: model.weather)
         }
         .frame(maxWidth: .infinity)
         .animation(Motion.stateChange, value: model.isLoaded)
+    }
+
+    private var sortedLines: [FooterLine] {
+        StatusOrder.sorted(lines, isLive: \.isLive, date: \.date)
+    }
+
+    private func folded<Item>(_ items: [Item]) -> [Item] {
+        onShowMore == nil ? items : Array(items.prefix(Self.collapsedLineCount))
+    }
+
+    @ViewBuilder
+    private func moreButton(hiding total: Int) -> some View {
+        let hidden = total - Self.collapsedLineCount
+        if let onShowMore, hidden > 0 {
+            Button(action: onShowMore) {
+                Text("[ + \(hidden) more ]")
+                    .font(Typography.mono(Typography.Size.xs))
+                    .opacity(Opacities.subtle)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, PageLayout.gutter)
+            .accessibilityLabel("Show all \(total) status lines")
+        }
     }
 
     private var lines: [FooterLine] {
