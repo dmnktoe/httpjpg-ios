@@ -318,9 +318,10 @@ public struct XPost: Decodable, Sendable {
     public let url: String?
     public let hasMedia: Bool
     public let isQuote: Bool
+    public let createdAt: Date?
 
     private enum CodingKeys: String, CodingKey {
-        case text, url, hasMedia, isQuote
+        case text, url, hasMedia, isQuote, createdAt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -329,6 +330,7 @@ public struct XPost: Decodable, Sendable {
         url = container.cmsString(forKey: .url)
         hasMedia = container.cmsBool(forKey: .hasMedia)
         isQuote = container.cmsBool(forKey: .isQuote)
+        createdAt = StoryblokDate.parse(container.cmsString(forKey: .createdAt))
     }
 }
 

@@ -92,7 +92,8 @@ struct SiteStatusLine: Identifiable {
             badge: "𝕏",
             leadingImage: profile.avatar,
             text: profile.compactFollowerCount.map { "(\($0))" } ?? profile.handle,
-            detail: post.text
+            detail: post.text,
+            date: post.createdAt
         )
     }
 
@@ -132,7 +133,7 @@ struct SiteStatusLine: Identifiable {
             leadingImage: game.icon,
             text: steam.isPlaying ? "\(game.name) ▶" : game.name,
             detail: game.recentPlaytime,
-            date: steam.isPlaying ? now : nil
+            date: steam.isPlaying ? now : game.lastPlayedAt
         )
     }
 

@@ -68,21 +68,11 @@ struct SiteStatusEntry: TimelineEntry {
             weather.flatMap(SiteStatusLine.init(weather:)),
         ].compactMap { $0 }
 
-        return footerOrder.enumerated()
-            .sorted { lhs, rhs in
-                let (left, right) = (rank(lhs.element), rank(rhs.element))
-                if left != right { return left < right }
-                if let leftDate = lhs.element.date, let rightDate = rhs.element.date, leftDate != rightDate {
-                    return leftDate > rightDate
-                }
-                return lhs.offset < rhs.offset
-            }
-            .map(\.element)
+        return StatusOrder.sorted(footerOrder, isLive: isLive, date: \.date)
     }
 
-    private func rank(_ line: SiteStatusLine) -> Int {
-        if line.id == "discord", let discord, discord.status != .offline { return 0 }
-        return line.date == nil ? 2 : 1
+    private func isLive(_ line: SiteStatusLine) -> Bool {
+        line.id == "discord" && discord.map { $0.status != .offline } == true
     }
 
     private var post: (profile: XProfile, post: XPost)? {

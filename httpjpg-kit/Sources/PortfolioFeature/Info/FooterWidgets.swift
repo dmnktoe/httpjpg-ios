@@ -11,38 +11,8 @@ struct FooterWidgets: View {
     var body: some View {
         VStack(spacing: Spacing.s1) {
             if model.isLoaded {
-                if let discord = model.discord {
-                    DiscordLine(presence: discord)
-                }
-                if let film = model.film {
-                    LetterboxdLine(film: film)
-                }
-                if let record = model.record {
-                    DiscogsLine(record: record)
-                }
-                if let scrobbles = model.scrobbles, let track = scrobbles.latest {
-                    LastfmLine(track: track, total: scrobbles.compactTotal)
-                }
-                if let steam = model.steam, let game = steam.featured {
-                    SteamLine(game: game, isPlaying: steam.isPlaying)
-                }
-                if let youtube = model.youtube, let video = youtube.latestVideo {
-                    YoutubeLine(channel: youtube.channel, video: video)
-                }
-                if let github = model.github, let activity = github.latest {
-                    GithubLine(avatar: github.avatar, activity: activity)
-                }
-                if let reddit = model.flags.reddit {
-                    RedditLine(reddit: reddit)
-                }
-                if let timeline = model.timeline, let post = timeline.latestPost {
-                    XLine(profile: timeline.profile, post: post)
-                }
-                if let trophy = model.trophy {
-                    TrophyLine(trophy: trophy)
-                }
-                if let schalke = model.schalke, !schalke.isEmpty {
-                    SchalkeLine(status: schalke)
+                ForEach(StatusOrder.sorted(lines, isLive: \.isLive, date: \.date)) { line in
+                    row(line)
                 }
             } else {
                 ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
@@ -51,6 +21,49 @@ struct FooterWidgets: View {
         }
         .frame(maxWidth: .infinity)
         .animation(Motion.stateChange, value: model.isLoaded)
+    }
+
+    private var lines: [FooterLine] {
+        var lines: [FooterLine] = []
+        if let discord = model.discord { lines.append(.discord(discord)) }
+        if let film = model.film { lines.append(.film(film)) }
+        if let record = model.record { lines.append(.record(record)) }
+        if let scrobbles = model.scrobbles, let track = scrobbles.latest {
+            lines.append(.scrobble(track, total: scrobbles.compactTotal))
+        }
+        if let steam = model.steam, let game = steam.featured {
+            lines.append(.steam(game, isPlaying: steam.isPlaying))
+        }
+        if let youtube = model.youtube, let video = youtube.latestVideo {
+            lines.append(.youtube(youtube.channel, video))
+        }
+        if let github = model.github, let activity = github.latest {
+            lines.append(.github(github.avatar, activity))
+        }
+        if let reddit = model.flags.reddit { lines.append(.reddit(reddit)) }
+        if let timeline = model.timeline, let post = timeline.latestPost {
+            lines.append(.x(timeline.profile, post))
+        }
+        if let trophy = model.trophy { lines.append(.trophy(trophy)) }
+        if let schalke = model.schalke, !schalke.isEmpty { lines.append(.schalke(schalke)) }
+        return lines
+    }
+
+    @ViewBuilder
+    private func row(_ line: FooterLine) -> some View {
+        switch line {
+        case .discord(let presence): DiscordLine(presence: presence)
+        case .film(let film): LetterboxdLine(film: film)
+        case .record(let record): DiscogsLine(record: record)
+        case .scrobble(let track, let total): LastfmLine(track: track, total: total)
+        case .steam(let game, let isPlaying): SteamLine(game: game, isPlaying: isPlaying)
+        case .youtube(let channel, let video): YoutubeLine(channel: channel, video: video)
+        case .github(let avatar, let activity): GithubLine(avatar: avatar, activity: activity)
+        case .reddit(let reddit): RedditLine(reddit: reddit)
+        case .x(let profile, let post): XLine(profile: profile, post: post)
+        case .trophy(let trophy): TrophyLine(trophy: trophy)
+        case .schalke(let status): SchalkeLine(status: status)
+        }
     }
 
     private var pendingLabels: [String] {

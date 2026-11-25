@@ -833,6 +833,16 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(empty.featured)
     }
 
+    func testSteamGamesAndPostsCarryWhenTheyHappened() throws {
+        let steam = try decode(SteamStatus.self, """
+        {"profile":{},"games":[{"appId":400,"name":"Portal","lastPlayedAt":"2020-09-13T12:26:40.000Z"}]}
+        """)
+        let post = try decode(XPost.self, #"{"text":"shipping","createdAt":"2026-11-20T10:00:00Z"}"#)
+
+        XCTAssertEqual(steam.featured?.lastPlayedAt, Date(timeIntervalSince1970: 1_600_000_000))
+        XCTAssertEqual(post.createdAt, StoryblokDate.parse("2026-11-20T10:00:00Z"))
+    }
+
     func testYoutubeReadsTheChannelAndTheLatestUpload() throws {
         let status = try decode(YoutubeStatus.self, """
         {"channel":{"id":"UC","title":"httpjpg","avatar":"data:image/png;base64,YXZhdGFy","url":"https://www.youtube.com/@httpjpg",

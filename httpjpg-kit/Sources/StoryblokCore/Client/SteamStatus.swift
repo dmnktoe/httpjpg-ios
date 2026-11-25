@@ -5,17 +5,19 @@ public struct SteamStatus: Decodable, Sendable {
         public let appId: Int
         public let name: String
         public let minutesTwoWeeks: Int
+        public let lastPlayedAt: Date?
         public let icon: Data?
         public let url: String?
 
         private enum CodingKeys: String, CodingKey {
-            case appId, name, minutesTwoWeeks, icon, url
+            case appId, name, minutesTwoWeeks, lastPlayedAt, icon, url
         }
 
         init(appId: Int, name: String) {
             self.appId = appId
             self.name = name
             minutesTwoWeeks = 0
+            lastPlayedAt = nil
             icon = nil
             url = "https://store.steampowered.com/app/\(appId)/"
         }
@@ -25,6 +27,7 @@ public struct SteamStatus: Decodable, Sendable {
             appId = container.cmsInt(forKey: .appId) ?? 0
             name = container.cmsString(forKey: .name) ?? ""
             minutesTwoWeeks = container.cmsInt(forKey: .minutesTwoWeeks) ?? 0
+            lastPlayedAt = StoryblokDate.parse(container.cmsString(forKey: .lastPlayedAt))
             icon = PixelImage.data(fromDataURI: container.cmsString(forKey: .icon))
             url = container.cmsString(forKey: .url)
         }
