@@ -31,7 +31,7 @@ final class TVStatusLineTests: XCTestCase {
             scrobbles: try decode(#"{"tracks": [{"title": "angel", "artist": "massive attack", "nowPlaying": true}]}"#),
             steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "counter-strike", "minutesTwoWeeks": 120}]}"#),
             youtube: try decode(#"{"channel": {"title": "httpjpg", "subscriberCount": 812}, "videos": [{"title": "studio tour"}]}"#),
-            github: try decode(#"{"profile": {}, "activity": [{"verb": "merged", "repo": "dmnktoe/httpjpg", "detail": "#42"}]}"#),
+            github: try decode(##"{"profile": {}, "activity": [{"verb": "merged", "repo": "dmnktoe/httpjpg", "detail": "#42"}]}"##),
             reddit: RedditKarma(username: "dmnktoe", karma: 812),
             trophy: nil,
             weather: nil
