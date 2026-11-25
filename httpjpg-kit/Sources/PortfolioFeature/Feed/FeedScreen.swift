@@ -9,9 +9,8 @@ struct FeedScreen: View {
     @Environment(\.pageTheme) private var theme
 
     @State private var isSigningIn = false
-    @State private var isComposing = false
     @State private var composesAfterSignIn = false
-    @State private var composerAPI: FeedPublishAPI?
+    @State private var composer: ComposerLaunch?
 
     var body: some View {
         NavigationStack {
@@ -35,18 +34,16 @@ struct FeedScreen: View {
                 composesAfterSignIn = true
             }
         }
-        .fullScreenCover(isPresented: $isComposing) {
-            if let composerAPI {
-                ComposerScreen(
-                    api: composerAPI,
-                    onPublished: {
-                        Task { await app.feed.load(force: true) }
-                    },
-                    onTokenRefused: {
-                        app.feedSession.signOut()
-                    }
-                )
-            }
+        .fullScreenCover(item: $composer) { launch in
+            ComposerScreen(
+                api: launch.api,
+                onPublished: {
+                    Task { await app.feed.load(force: true) }
+                },
+                onTokenRefused: {
+                    app.feedSession.signOut()
+                }
+            )
         }
         .task {
             Telemetry.signal("feed.viewed")
@@ -109,8 +106,7 @@ struct FeedScreen: View {
 
     private func compose() {
         if let api = app.feedSession.api {
-            composerAPI = api
-            isComposing = true
+            composer = ComposerLaunch(api: api)
         } else {
             isSigningIn = true
         }
@@ -121,4 +117,9 @@ struct FeedScreen: View {
         composesAfterSignIn = false
         compose()
     }
+}
+
+private struct ComposerLaunch: Identifiable {
+    let id = UUID()
+    let api: FeedPublishAPI
 }
