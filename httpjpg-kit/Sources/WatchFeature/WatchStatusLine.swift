@@ -52,11 +52,11 @@ struct WatchStatusLine: Identifiable {
                 text: track.title, detail: ([track.artist] + marks).joined(separator: " ")
             ))
         }
-        if let steam = sources.steam, let game = steam.featured {
-            let detail = [steam.isPlaying ? "▶" : nil, game.recentPlaytime].compactMap { $0 }
+        if let steam = sources.steam, let line = steam.line {
+            let detail = [line.kind == .playing ? "▶" : nil, line.detail].compactMap { $0 }
             lines.append(WatchStatusLine(
-                id: "steam", label: "steam", image: game.icon,
-                text: game.name, detail: detail.isEmpty ? nil : detail.joined(separator: " ")
+                id: "steam", label: "steam", image: line.game?.icon ?? steam.avatar,
+                text: line.game?.name ?? steam.name, detail: detail.isEmpty ? nil : detail.joined(separator: " ")
             ))
         }
         if let youtube = sources.youtube, let video = youtube.latestVideo {

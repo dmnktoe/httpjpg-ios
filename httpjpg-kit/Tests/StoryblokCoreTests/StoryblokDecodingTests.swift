@@ -833,6 +833,30 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertNil(empty.featured)
     }
 
+    func testSteamLineShowsWhateverIsMostCurrent() throws {
+        let playing = try decode(SteamStatus.self, """
+        {"profile":{"name":"yl33lyxx","inGame":{"appId":10,"name":"Counter-Strike"}},
+         "games":[{"appId":10,"name":"Counter-Strike","minutesTwoWeeks":845}]}
+        """)
+        let recent = try decode(SteamStatus.self, #"{"profile":{},"games":[{"appId":10,"name":"CS","minutesTwoWeeks":45}]}"#)
+        let lifetime = try decode(SteamStatus.self, #"{"profile":{},"games":[{"appId":10,"name":"CS","minutesTotal":"18720"}]}"#)
+        let profile = try decode(SteamStatus.self, """
+        {"profile":{"name":"yl33lyxx","isOnline":true,"avatar":"data:image/png;base64,YXZhdGFy"},"games":[]}
+        """)
+        let nothing = try decode(SteamStatus.self, #"{"profile":{},"games":[]}"#)
+
+        XCTAssertEqual(playing.line?.kind, .playing)
+        XCTAssertEqual(playing.line?.detail, "14h / 2w")
+        XCTAssertEqual(recent.line?.kind, .recent)
+        XCTAssertEqual(recent.line?.detail, "45m / 2w")
+        XCTAssertEqual(lifetime.line?.kind, .lifetime)
+        XCTAssertEqual(lifetime.line?.detail, "312h total")
+        XCTAssertEqual(profile.line?.kind, .profile)
+        XCTAssertEqual(profile.line?.detail, "online")
+        XCTAssertEqual(profile.avatar, Data("avatar".utf8))
+        XCTAssertNil(nothing.line)
+    }
+
     func testSteamGamesAndPostsCarryWhenTheyHappened() throws {
         let steam = try decode(SteamStatus.self, """
         {"profile":{},"games":[{"appId":400,"name":"Portal","lastPlayedAt":"2020-09-13T12:26:40.000Z"}]}

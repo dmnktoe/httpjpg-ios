@@ -34,9 +34,10 @@ struct TVStatusLine: Identifiable, Hashable {
             let detail = [track.title, track.artist, track.isNowPlaying ? "▶" : nil].compactMap { $0 }
             lines.append(TVStatusLine(id: "lastfm", text: "last.fm: " + detail.joined(separator: " · ")))
         }
-        if let steam, let game = steam.featured {
-            let name = steam.isPlaying ? "\(game.name) ▶" : game.name
-            let detail = [name, game.recentPlaytime].compactMap { $0 }
+        if let steam, let line = steam.line {
+            let title = line.game?.name ?? steam.name
+            let name = line.kind == .playing ? "\(title) ▶" : title
+            let detail = [name, line.detail].compactMap { $0 }
             lines.append(TVStatusLine(id: "steam", text: "steam: " + detail.joined(separator: " · ")))
         }
         if let youtube, let video = youtube.latestVideo {

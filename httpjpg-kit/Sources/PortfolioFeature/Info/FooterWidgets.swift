@@ -31,8 +31,8 @@ struct FooterWidgets: View {
         if let scrobbles = model.scrobbles, let track = scrobbles.latest {
             lines.append(.scrobble(track, total: scrobbles.compactTotal))
         }
-        if let steam = model.steam, let game = steam.featured {
-            lines.append(.steam(game, isPlaying: steam.isPlaying))
+        if let steam = model.steam, let line = steam.line {
+            lines.append(.steam(steam, line))
         }
         if let youtube = model.youtube, let video = youtube.latestVideo {
             lines.append(.youtube(youtube.channel, video))
@@ -56,7 +56,7 @@ struct FooterWidgets: View {
         case .film(let film): LetterboxdLine(film: film)
         case .record(let record): DiscogsLine(record: record)
         case .scrobble(let track, let total): LastfmLine(track: track, total: total)
-        case .steam(let game, let isPlaying): SteamLine(game: game, isPlaying: isPlaying)
+        case .steam(let steam, let line): SteamLine(steam: steam, line: line)
         case .youtube(let channel, let video): YoutubeLine(channel: channel, video: video)
         case .github(let avatar, let activity): GithubLine(avatar: avatar, activity: activity)
         case .reddit(let reddit): RedditLine(reddit: reddit)
@@ -226,27 +226,35 @@ private struct LastfmLine: View {
 }
 
 private struct SteamLine: View {
-    let game: SteamStatus.Game
-    let isPlaying: Bool
+    let steam: SteamStatus
+    let line: SteamStatus.Line
 
     var body: some View {
         FooterStatusLine(label: "steam:") {
-            if let icon = game.icon.flatMap(UIImage.init(data:)) {
-                PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
-            } else {
-                Text("🎮")
+            if let game = line.game {
+                if let icon = game.icon.flatMap(UIImage.init(data:)) {
+                    PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
+                } else {
+                    Text("🎮")
+                }
+            } else if let avatar = steam.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle)
             }
-            Text(game.name)
+            Text(line.game?.name ?? steam.name)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            if isPlaying {
+            if line.kind == .playing {
                 Text("▶")
                     .foregroundStyle(Palette.accent.s500)
                     .accessibilityLabel("playing now")
             }
-            if let playtime = game.recentPlaytime {
+            if let detail = line.detail {
                 Text("·").opacity(Opacities.subtle)
-                Text(playtime).opacity(Opacities.subtle)
+                if line.kind == .profile {
+                    Text(detail).foregroundStyle(Palette.accent.s500)
+                } else {
+                    Text(detail).opacity(Opacities.subtle)
+                }
             }
         }
     }

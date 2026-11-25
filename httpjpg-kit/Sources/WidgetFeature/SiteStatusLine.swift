@@ -125,15 +125,16 @@ struct SiteStatusLine: Identifiable {
     }
 
     init?(steam: SteamStatus, now: Date = .now) {
-        guard let game = steam.featured else { return nil }
+        guard let line = steam.line else { return nil }
+        let name = line.game?.name ?? steam.name
         self.init(
             id: "steam",
             label: "steam:",
             badge: "🎮",
-            leadingImage: game.icon,
-            text: steam.isPlaying ? "\(game.name) ▶" : game.name,
-            detail: game.recentPlaytime,
-            date: steam.isPlaying ? now : game.lastPlayedAt
+            leadingImage: line.game?.icon ?? steam.avatar,
+            text: line.kind == .playing ? "\(name) ▶" : name,
+            detail: line.detail,
+            date: line.kind == .playing ? now : line.game?.lastPlayedAt
         )
     }
 

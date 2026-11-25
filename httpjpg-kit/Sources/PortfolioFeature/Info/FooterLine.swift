@@ -6,7 +6,7 @@ enum FooterLine: Identifiable {
     case film(LetterboxdFilm)
     case record(DiscogsRelease)
     case scrobble(LastfmScrobbles.Track, total: String?)
-    case steam(SteamStatus.Game, isPlaying: Bool)
+    case steam(SteamStatus, SteamStatus.Line)
     case youtube(YoutubeStatus.Channel, YoutubeStatus.Video)
     case github(Data?, GithubStatus.Activity)
     case reddit(RedditKarma)
@@ -34,7 +34,7 @@ enum FooterLine: Identifiable {
         switch self {
         case .discord(let presence): return presence.status != .offline
         case .scrobble(let track, _): return track.isNowPlaying
-        case .steam(_, let isPlaying): return isPlaying
+        case .steam(_, let line): return line.kind == .playing
         default: return false
         }
     }
@@ -44,7 +44,7 @@ enum FooterLine: Identifiable {
         case .film(let film): return film.watchedDate
         case .record(let record): return record.addedAt
         case .scrobble(let track, _): return track.scrobbledAt
-        case .steam(let game, _): return game.lastPlayedAt
+        case .steam(_, let line): return line.game?.lastPlayedAt
         case .youtube(_, let video): return video.publishedAt
         case .github(_, let activity): return activity.createdAt
         case .x(_, let post): return post.createdAt
