@@ -7,6 +7,8 @@ struct WatchStatusLine: Identifiable {
     let image: Data?
     let text: String
     let detail: String?
+    var isLive = false
+    var date: Date?
 
     struct Sources {
         var discord: DiscordPresence?
@@ -29,47 +31,54 @@ struct WatchStatusLine: Identifiable {
         if let discord = sources.discord {
             lines.append(WatchStatusLine(
                 id: "discord", label: "discord", image: nil,
-                text: discord.status.rawValue, detail: discord.activity
+                text: discord.status.rawValue, detail: discord.activity,
+                isLive: discord.status != .offline
             ))
         }
         if let film = sources.film, !film.title.isEmpty {
             let detail = [film.year, film.stars, film.liked ? "♥" : nil].compactMap { $0 }
             lines.append(WatchStatusLine(
                 id: "letterboxd", label: "letterboxd", image: film.poster,
-                text: film.title, detail: detail.isEmpty ? nil : detail.joined(separator: " ")
+                text: film.title, detail: detail.isEmpty ? nil : detail.joined(separator: " "),
+                date: film.watchedDate
             ))
         }
         if let record = sources.record, !record.title.isEmpty {
             lines.append(WatchStatusLine(
                 id: "discogs", label: "discogs", image: record.thumb,
-                text: record.credit, detail: record.year
+                text: record.credit, detail: record.year,
+                date: record.addedAt
             ))
         }
         if let track = sources.scrobbles?.latest {
             let marks = [track.isNowPlaying ? "▶" : nil, track.isLoved ? "♥" : nil].compactMap { $0 }
             lines.append(WatchStatusLine(
                 id: "lastfm", label: "last.fm", image: track.image,
-                text: track.title, detail: ([track.artist] + marks).joined(separator: " ")
+                text: track.title, detail: ([track.artist] + marks).joined(separator: " "),
+                isLive: track.isNowPlaying, date: track.scrobbledAt
             ))
         }
         if let steam = sources.steam, let line = steam.line {
             let detail = [line.kind == .playing ? "▶" : nil, line.detail].compactMap { $0 }
             lines.append(WatchStatusLine(
                 id: "steam", label: "steam", image: line.game?.icon ?? steam.avatar,
-                text: line.game?.name ?? steam.name, detail: detail.isEmpty ? nil : detail.joined(separator: " ")
+                text: line.game?.name ?? steam.name, detail: detail.isEmpty ? nil : detail.joined(separator: " "),
+                isLive: line.kind == .playing, date: line.game?.lastPlayedAt
             ))
         }
         if let youtube = sources.youtube, let video = youtube.latestVideo {
             lines.append(WatchStatusLine(
                 id: "youtube", label: "youtube", image: youtube.channel.avatar,
-                text: video.title, detail: youtube.channel.compactSubscriberCount.map { "(\($0))" }
+                text: video.title, detail: youtube.channel.compactSubscriberCount.map { "(\($0))" },
+                date: video.publishedAt
             ))
         }
         if let github = sources.github, let activity = github.latest {
             let detail = [activity.verb, activity.detail].compactMap { $0 }
             lines.append(WatchStatusLine(
                 id: "github", label: "github", image: github.avatar,
-                text: activity.repo, detail: detail.joined(separator: " ")
+                text: activity.repo, detail: detail.joined(separator: " "),
+                date: activity.createdAt
             ))
         }
         if let reddit = sources.reddit {
@@ -81,13 +90,15 @@ struct WatchStatusLine: Identifiable {
         if let timeline = sources.timeline, let post = timeline.latestPost, !post.text.isEmpty {
             lines.append(WatchStatusLine(
                 id: "x", label: "x", image: timeline.profile.avatar,
-                text: post.text, detail: timeline.profile.compactFollowerCount.map { "(\($0))" }
+                text: post.text, detail: timeline.profile.compactFollowerCount.map { "(\($0))" },
+                date: post.createdAt
             ))
         }
         if let trophy = sources.trophy, !trophy.name.isEmpty {
             lines.append(WatchStatusLine(
                 id: "psn", label: "psn", image: trophy.image,
-                text: trophy.name, detail: trophy.game.isEmpty ? nil : trophy.game
+                text: trophy.name, detail: trophy.game.isEmpty ? nil : trophy.game,
+                date: trophy.earnedAt
             ))
         }
         if let schalke = sources.schalke {
@@ -95,13 +106,15 @@ struct WatchStatusLine: Identifiable {
             if let fixture = schalke.fixture {
                 lines.append(WatchStatusLine(
                     id: "schalke", label: "s04", image: fixture.homeCrest,
-                    text: fixture.score, detail: place
+                    text: fixture.score, detail: place,
+                    date: fixture.playedAt
                 ))
             } else if let upcoming = schalke.upcoming {
                 let detail = [upcoming.kickoffLabel(), place].compactMap { $0 }
                 lines.append(WatchStatusLine(
                     id: "schalke", label: "s04", image: upcoming.homeCrest,
-                    text: upcoming.pairing, detail: detail.isEmpty ? nil : detail.joined(separator: " · ")
+                    text: upcoming.pairing, detail: detail.isEmpty ? nil : detail.joined(separator: " · "),
+                    date: upcoming.kickoff
                 ))
             } else if let place {
                 lines.append(WatchStatusLine(id: "schalke", label: "s04", image: nil, text: place, detail: nil))
@@ -115,7 +128,7 @@ struct WatchStatusLine: Identifiable {
             ))
         }
 
-        return lines
+        return StatusOrder.sorted(lines, isLive: \.isLive, date: \.date)
     }
 
     static func load(client: ContentClient) async -> [WatchStatusLine] {

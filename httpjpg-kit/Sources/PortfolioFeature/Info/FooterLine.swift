@@ -49,7 +49,7 @@ enum FooterLine: Identifiable {
         case .github(_, let activity): return activity.createdAt
         case .x(_, let post): return post.createdAt
         case .trophy(let trophy): return trophy.earnedAt
-        case .schalke(let status): return status.fixture?.playedAt
+        case .schalke(let status): return status.fixture?.playedAt ?? status.upcoming?.kickoff
         case .discord, .reddit: return nil
         }
     }

@@ -206,7 +206,8 @@ struct SiteStatusLine: Identifiable {
                 leadingImage: upcoming.homeCrest,
                 trailingImage: upcoming.awayCrest,
                 text: upcoming.pairing,
-                detail: detail.isEmpty ? nil : detail
+                detail: detail.isEmpty ? nil : detail,
+                date: upcoming.kickoff
             )
         } else if let place {
             self.init(id: "schalke", label: "s04:", badge: "⚽", text: place)

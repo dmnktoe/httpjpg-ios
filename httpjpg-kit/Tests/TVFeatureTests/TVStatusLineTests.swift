@@ -46,6 +46,19 @@ final class TVStatusLineTests: XCTestCase {
         ])
     }
 
+    func testLinesRunLiveFirstThenNewest() throws {
+        let lines = TVStatusLine.lines(
+            discord: try decode(#"{"status": "offline"}"#),
+            film: try decode(#"{"title": "stalker", "watchedDate": "2026-11-05"}"#),
+            record: try decode(#"{"title": "saw", "artist": "aphex twin", "addedAt": "2026-11-20T10:00:00Z"}"#),
+            scrobbles: try decode(#"{"tracks": [{"title": "angel", "artist": "massive attack", "nowPlaying": true}]}"#),
+            trophy: nil,
+            weather: nil
+        )
+
+        XCTAssertEqual(lines.map(\.id), ["lastfm", "discogs", "letterboxd", "discord"])
+    }
+
     func testSilentAndEmptySourcesAreLeftOut() throws {
         let lines = TVStatusLine.lines(
             discord: nil,

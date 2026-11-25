@@ -158,7 +158,7 @@ final class SiteStatusEntryTests: XCTestCase {
         XCTAssertEqual(line.text, "S04 – Stuttgart")
         XCTAssertEqual(line.detail, "Sat 18:30 · 17.")
         XCTAssertEqual(line.leadingImage, Data("home".utf8))
-        XCTAssertNil(line.date, "a match still to come does not sort as the newest line")
+        XCTAssertEqual(line.date, status.upcoming?.kickoff, "the next match sorts by its kickoff")
     }
 
     func testThePlaceStandsAloneWithoutARecentFixture() throws {

@@ -21,17 +21,28 @@ final class WatchStatusLineTests: XCTestCase {
         ))
 
         XCTAssertEqual(lines.map(\.id), [
-            "discord", "letterboxd", "discogs", "lastfm", "steam", "youtube", "github", "reddit", "x", "psn", "schalke",
+            "discord", "lastfm", "letterboxd", "discogs", "steam", "youtube", "github", "reddit", "x", "psn", "schalke",
             "weather",
         ])
         XCTAssertEqual(lines[1].image, Data("poster".utf8))
-        XCTAssertEqual(lines[3].detail, "Massive Attack ▶")
+        XCTAssertEqual(lines[1].detail, "Massive Attack ▶")
         XCTAssertEqual(lines[4].detail, "45m / 2w")
         XCTAssertEqual(lines[5].detail, "(1.2K)")
         XCTAssertEqual(lines[6].text, "dmnktoe/httpjpg")
         XCTAssertEqual(lines[6].detail, "pushed to main")
         XCTAssertEqual(lines[7].detail, "12.3K karma")
         XCTAssertEqual(lines[11].text, "☁️ 1°")
+    }
+
+    func testLinesFollowTheFooterOrderByTime() throws {
+        let lines = WatchStatusLine.lines(from: WatchStatusLine.Sources(
+            film: try decode(#"{"title": "Babystar", "watchedDate": "2026-11-05"}"#),
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "pushed to", "repo": "a/b", "createdAt": "2026-11-24T12:00:00Z"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 1),
+            schalke: try decode(#"{"upcoming": {"home": "S04", "away": "Stuttgart", "kickoff": "2026-11-28T17:30:00Z"}}"#)
+        ))
+
+        XCTAssertEqual(lines.map(\.id), ["schalke", "github", "letterboxd", "reddit"])
     }
 
     func testSilentSourcesAreLeftOut() throws {
