@@ -42,8 +42,10 @@ struct InfoScreen: View {
 
                 Group {
                     if let widgets = app.footerWidgets {
-                        InfoFooter(config: app.config, widgets: widgets)
-                            .transition(.opacity)
+                        InfoFooter(config: app.config, widgets: widgets) {
+                            app.isStatusPresented = true
+                        }
+                        .transition(.opacity)
                     }
                 }
                 .animation(Motion.stateChange, value: app.footerWidgets == nil)

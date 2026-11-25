@@ -6,6 +6,7 @@ import Tokens
 struct InfoFooter: View {
     let config: SiteConfig
     let widgets: FooterWidgetsModel
+    let onShowStatus: () -> Void
 
     @Environment(\.openURL) private var openURL
     @Environment(\.storyblokConfiguration) private var configuration
@@ -27,7 +28,7 @@ struct InfoFooter: View {
             MonoText(Ascii.dividerStars, size: Typography.Size.sm, opacity: Opacities.subtle)
                 .padding(.vertical, Spacing.s6)
 
-            FooterWidgets(model: widgets)
+            FooterWidgets(model: widgets, onShowMore: onShowStatus)
 
             AsciiArt(
                 Ascii.dividerWave,
