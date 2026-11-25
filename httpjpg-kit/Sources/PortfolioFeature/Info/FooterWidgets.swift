@@ -11,23 +11,8 @@ struct FooterWidgets: View {
     var body: some View {
         VStack(spacing: Spacing.s1) {
             if model.isLoaded {
-                if let discord = model.discord {
-                    DiscordLine(presence: discord)
-                }
-                if let film = model.film {
-                    LetterboxdLine(film: film)
-                }
-                if let record = model.record {
-                    DiscogsLine(record: record)
-                }
-                if let timeline = model.timeline, let post = timeline.latestPost {
-                    XLine(profile: timeline.profile, post: post)
-                }
-                if let trophy = model.trophy {
-                    TrophyLine(trophy: trophy)
-                }
-                if let schalke = model.schalke, !schalke.isEmpty {
-                    SchalkeLine(status: schalke)
+                ForEach(StatusOrder.sorted(lines, isLive: \.isLive, date: \.date)) { line in
+                    row(line)
                 }
             } else {
                 ForEach(pendingLabels, id: \.self) { placeholderLine(label: $0) }
@@ -38,12 +23,60 @@ struct FooterWidgets: View {
         .animation(Motion.stateChange, value: model.isLoaded)
     }
 
+    private var lines: [FooterLine] {
+        var lines: [FooterLine] = []
+        if let discord = model.discord { lines.append(.discord(discord)) }
+        if let film = model.film { lines.append(.film(film)) }
+        if let record = model.record { lines.append(.record(record)) }
+        if let scrobbles = model.scrobbles, let track = scrobbles.latest {
+            lines.append(.scrobble(track, total: scrobbles.compactTotal))
+        }
+        if let steam = model.steam, let line = steam.line {
+            lines.append(.steam(steam, line))
+        }
+        if let youtube = model.youtube, let video = youtube.latestVideo {
+            lines.append(.youtube(youtube.channel, video))
+        }
+        if let github = model.github, let activity = github.latest {
+            lines.append(.github(github.avatar, activity))
+        }
+        if let reddit = model.flags.reddit { lines.append(.reddit(reddit)) }
+        if let timeline = model.timeline, let post = timeline.latestPost {
+            lines.append(.x(timeline.profile, post))
+        }
+        if let trophy = model.trophy { lines.append(.trophy(trophy)) }
+        if let schalke = model.schalke, !schalke.isEmpty { lines.append(.schalke(schalke)) }
+        return lines
+    }
+
+    @ViewBuilder
+    private func row(_ line: FooterLine) -> some View {
+        switch line {
+        case .discord(let presence): DiscordLine(presence: presence)
+        case .film(let film): LetterboxdLine(film: film)
+        case .record(let record): DiscogsLine(record: record)
+        case .scrobble(let track, let total): LastfmLine(track: track, total: total)
+        case .steam(let steam, let line): SteamLine(steam: steam, line: line)
+        case .youtube(let channel, let video): YoutubeLine(channel: channel, video: video)
+        case .github(let avatar, let activity): GithubLine(avatar: avatar, activity: activity)
+        case .reddit(let reddit): RedditLine(reddit: reddit)
+        case .x(let profile, let post): XLine(profile: profile, post: post)
+        case .trophy(let trophy): TrophyLine(trophy: trophy)
+        case .schalke(let status): SchalkeLine(status: status)
+        }
+    }
+
     private var pendingLabels: [String] {
         let flags = model.flags
         return [
             flags.isDiscordEnabled ? "discord:" : nil,
             flags.isLetterboxdEnabled ? "letterboxd:" : nil,
             flags.isDiscogsEnabled ? "discogs:" : nil,
+            flags.isLastfmEnabled ? "last.fm:" : nil,
+            flags.isSteamEnabled ? "steam:" : nil,
+            flags.isYoutubeEnabled ? "youtube:" : nil,
+            flags.isGithubEnabled ? "github:" : nil,
+            flags.reddit != nil ? "reddit:" : nil,
             flags.isXEnabled ? "x:" : nil,
             flags.isPsnTrophyEnabled ? "psn:" : nil,
             flags.isSchalkeEnabled ? "s04:" : nil,
@@ -67,8 +100,8 @@ private struct DiscordLine: View {
                 .foregroundStyle(color)
             if let activity = presence.activity {
                 Text("·").opacity(Opacities.subtle)
-                if let icon = presence.activityIcon.flatMap(URL.init(string:)) {
-                    FooterThumb(url: icon, clip: .rect(cornerRadius: Radii.sm))
+                if let icon = presence.activityIcon.flatMap(UIImage.init(data:)) {
+                    PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
                 }
                 Text(activity)
                     .lineLimit(1)
@@ -102,9 +135,9 @@ private struct LetterboxdLine: View {
 
     var body: some View {
         FooterStatusLine(label: "letterboxd:") {
-            if let poster = film.poster.flatMap(URL.init(string:)) {
-                FooterThumb(
-                    url: poster,
+            if let poster = film.poster.flatMap(UIImage.init(data:)) {
+                PixelThumb(
+                    image: poster,
                     clip: .rect(cornerRadius: Radii.sm),
                     width: Spacing.s3,
                     height: Spacing.s3 * 1.5
@@ -133,8 +166,8 @@ private struct DiscogsLine: View {
 
     var body: some View {
         FooterStatusLine(label: "discogs:") {
-            if let thumb = record.thumb.flatMap(URL.init(string:)) {
-                FooterThumb(url: thumb, clip: .rect(cornerRadius: 2))
+            if let thumb = record.thumb.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: thumb, clip: .rect(cornerRadius: Radii.sm))
             } else {
                 Text("💿")
             }
@@ -154,15 +187,147 @@ private struct DiscogsLine: View {
     }
 }
 
+private struct LastfmLine: View {
+    let track: LastfmScrobbles.Track
+    let total: String?
+
+    var body: some View {
+        FooterStatusLine(label: "last.fm:") {
+            if let image = track.image.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: image, clip: .rect(cornerRadius: Radii.sm))
+            } else {
+                Text("♫")
+            }
+            Text(track.title)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text(track.artist)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .opacity(Opacities.muted)
+            if track.isNowPlaying {
+                Text("▶")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("now playing")
+            }
+            if track.isLoved {
+                Text("♥")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("loved")
+            }
+            if let total {
+                Text("·").opacity(Opacities.subtle)
+                Text(total)
+                    .opacity(Opacities.subtle)
+                    .accessibilityLabel("\(total) scrobbles")
+            }
+        }
+    }
+}
+
+private struct SteamLine: View {
+    let steam: SteamStatus
+    let line: SteamStatus.Line
+
+    var body: some View {
+        FooterStatusLine(label: "steam:") {
+            if let game = line.game {
+                if let icon = game.icon.flatMap(UIImage.init(data:)) {
+                    PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
+                } else {
+                    Text("🎮")
+                }
+            } else if let avatar = steam.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle)
+            }
+            Text(line.game?.name ?? steam.name)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if line.kind == .playing {
+                Text("▶")
+                    .foregroundStyle(Palette.accent.s500)
+                    .accessibilityLabel("playing now")
+            }
+            if let detail = line.detail {
+                Text("·").opacity(Opacities.subtle)
+                if line.kind == .profile {
+                    Text(detail).foregroundStyle(Palette.accent.s500)
+                } else {
+                    Text(detail).opacity(Opacities.subtle)
+                }
+            }
+        }
+    }
+}
+
+private struct YoutubeLine: View {
+    let channel: YoutubeStatus.Channel
+    let video: YoutubeStatus.Video
+
+    var body: some View {
+        FooterStatusLine(label: "youtube:") {
+            if let avatar = channel.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle, label: channel.title)
+            } else {
+                Text("▶︎").accessibilityLabel(channel.title)
+            }
+            if let subscribers = channel.compactSubscriberCount {
+                Text("(\(subscribers))")
+                    .opacity(Opacities.subtle)
+                    .accessibilityLabel("\(subscribers) subscribers")
+            }
+            Text("·").opacity(Opacities.subtle)
+            Text(video.title)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+    }
+}
+
+private struct GithubLine: View {
+    let avatar: Data?
+    let activity: GithubStatus.Activity
+
+    var body: some View {
+        FooterStatusLine(label: "github:") {
+            if let avatar = avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle)
+            }
+            Text(activity.verb).opacity(Opacities.muted)
+            Text(activity.repo)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if let detail = activity.detail {
+                Text(detail).opacity(Opacities.subtle)
+            }
+        }
+    }
+}
+
+private struct RedditLine: View {
+    let reddit: RedditKarma
+
+    var body: some View {
+        FooterStatusLine(label: "reddit:") {
+            Text(reddit.handle)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text("·").opacity(Opacities.subtle)
+            Text(reddit.compactKarma)
+                .opacity(Opacities.subtle)
+                .accessibilityLabel("\(reddit.karma) karma")
+        }
+    }
+}
+
 private struct XLine: View {
     let profile: XProfile
     let post: XPost
 
     var body: some View {
         FooterStatusLine(label: "x:") {
-            if let avatar = profile.avatar.flatMap(URL.init(string:)) {
-                FooterThumb(url: avatar, clip: .circle)
-                    .accessibilityLabel(profile.handle)
+            if let avatar = profile.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle, label: profile.handle)
             } else {
                 Text("𝕏").accessibilityLabel(profile.handle)
             }
@@ -207,6 +372,26 @@ private struct FooterThumb<Clip: Shape>: View {
     }
 }
 
+private struct PixelThumb<Clip: Shape>: View {
+    let image: UIImage
+    let clip: Clip
+    var width: CGFloat = Typography.Size.md
+    var height: CGFloat = Typography.Size.md
+    var contentMode: ContentMode = .fill
+    var label: String?
+
+    var body: some View {
+        Image(uiImage: image)
+            .resizable()
+            .interpolation(.none)
+            .aspectRatio(contentMode: contentMode)
+            .frame(width: width, height: height)
+            .clipShape(clip)
+            .accessibilityLabel(label ?? "")
+            .accessibilityHidden(label == nil)
+    }
+}
+
 private struct TrophyLine: View {
     let trophy: PsnTrophy
 
@@ -214,9 +399,9 @@ private struct TrophyLine: View {
 
     var body: some View {
         FooterStatusLine(label: "psn:") {
-            if let image = trophy.image.flatMap(URL.init(string:)) {
-                FooterThumb(
-                    url: image,
+            if let image = trophy.image.flatMap(UIImage.init(data:)) {
+                PixelThumb(
+                    image: image,
                     clip: Rectangle(),
                     width: Spacing.s4,
                     height: Spacing.s4,

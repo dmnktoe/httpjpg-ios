@@ -8,6 +8,16 @@ struct WatchWorkListScreen: View {
     var body: some View {
         content
             .navigationTitle("httpjpg")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        WatchStatusScreen()
+                    } label: {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                            .accessibilityLabel("status")
+                    }
+                }
+            }
             .task { await model.load() }
     }
 

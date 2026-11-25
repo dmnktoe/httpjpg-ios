@@ -693,6 +693,11 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isDiscogsEnabled)
         XCTAssertFalse(config.widgets.isXEnabled)
         XCTAssertFalse(config.widgets.isSchalkeEnabled)
+        XCTAssertFalse(config.widgets.isLastfmEnabled)
+        XCTAssertFalse(config.widgets.isSteamEnabled)
+        XCTAssertFalse(config.widgets.isYoutubeEnabled)
+        XCTAssertFalse(config.widgets.isGithubEnabled)
+        XCTAssertNil(config.widgets.reddit)
         XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
@@ -700,8 +705,13 @@ final class StoryblokDecodingTests: XCTestCase {
         let config = try decode(SiteConfig.self, """
         {"discord_enabled":false,"letterboxd_enabled":"false",
          "psn_trophy_enabled":true,"discogs_enabled":"1","x_enabled":"true",
-         "schalke_enabled":"true","ask_enabled":"true"}
+         "schalke_enabled":"true","ask_enabled":"true",
+         "lastfm_enabled":true,"steam_enabled":"true","youtube_enabled":"1","github_enabled":"false"}
         """)
+        XCTAssertTrue(config.widgets.isLastfmEnabled)
+        XCTAssertTrue(config.widgets.isSteamEnabled)
+        XCTAssertTrue(config.widgets.isYoutubeEnabled)
+        XCTAssertFalse(config.widgets.isGithubEnabled)
         XCTAssertFalse(config.widgets.isDiscordEnabled)
         XCTAssertFalse(config.widgets.isLetterboxdEnabled)
         XCTAssertTrue(config.widgets.isPsnTrophyEnabled)
@@ -709,6 +719,25 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(config.widgets.isXEnabled)
         XCTAssertTrue(config.widgets.isSchalkeEnabled)
         XCTAssertTrue(config.widgets.isAskEnabled)
+    }
+
+    func testRedditKarmaIsTypedIntoTheConfigStory() throws {
+        let config = try decode(SiteConfig.self, #"{"reddit_enabled":true,"reddit_username":"dmnktoe","reddit_karma":"12345"}"#)
+        let reddit = try XCTUnwrap(config.widgets.reddit)
+
+        XCTAssertEqual(reddit.handle, "u/dmnktoe")
+        XCTAssertEqual(reddit.compactKarma, "12.3K karma")
+        XCTAssertEqual(reddit.url, "https://www.reddit.com/user/dmnktoe/")
+    }
+
+    func testRedditIsLeftOutWhenOffOrIncomplete() throws {
+        let off = try decode(SiteConfig.self, #"{"reddit_enabled":false,"reddit_username":"dmnktoe","reddit_karma":1}"#)
+        let noKarma = try decode(SiteConfig.self, #"{"reddit_enabled":"true","reddit_username":"dmnktoe","reddit_karma":""}"#)
+        let badName = try decode(SiteConfig.self, #"{"reddit_enabled":true,"reddit_username":"u/dmnktoe","reddit_karma":1}"#)
+
+        XCTAssertNil(off.widgets.reddit)
+        XCTAssertNil(noKarma.widgets.reddit)
+        XCTAssertNil(badName.widgets.reddit)
     }
 
     func testSchalkeStatusReadsTheResultAndTheStanding() throws {
@@ -725,16 +754,152 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(status.isEmpty)
     }
 
-    func testFooterSourcesCarryTheWebsImages() throws {
+    func testFooterSourcesCarryTheSitesPixelArt() throws {
         let presence = try decode(DiscordPresence.self, """
-        {"status":"online","activity":"Xcode","activityDetails":{"icon":"https://cdn.discordapp.com/app-assets/1/icon.png"}}
+        {"status":"online","activity":"Xcode","activityDetails":{"icon":"data:image/png;base64,aWNvbg=="}}
         """)
-        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","poster":"https://a.ltrbxd.com/poster.jpg"}"#)
-        let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","type":"bronze","image":"https://psnobj.test/t.png"}"#)
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","poster":"data:image/png;base64,cG9zdGVy"}"#)
+        let trophy = try decode(PsnTrophy.self, #"{"name":"Pathfinder","type":"bronze","image":"data:image/png;base64,dA=="}"#)
+        let record = try decode(DiscogsRelease.self, #"{"title":"All I Want","thumb":"data:image/png;base64,dGh1bWI="}"#)
+        let profile = try decode(XProfile.self, #"{"username":"dmnktoe","avatar":"data:image/png;base64,YXZhdGFy"}"#)
 
-        XCTAssertEqual(presence.activityIcon, "https://cdn.discordapp.com/app-assets/1/icon.png")
-        XCTAssertEqual(film.poster, "https://a.ltrbxd.com/poster.jpg")
-        XCTAssertEqual(trophy.image, "https://psnobj.test/t.png")
+        XCTAssertEqual(presence.activityIcon, Data("icon".utf8))
+        XCTAssertEqual(film.poster, Data("poster".utf8))
+        XCTAssertEqual(trophy.image, Data("t".utf8))
+        XCTAssertEqual(record.thumb, Data("thumb".utf8))
+        XCTAssertEqual(profile.avatar, Data("avatar".utf8))
+    }
+
+    func testAnImageAddressFromAnOlderDeployIsLeftOutRatherThanFetched() throws {
+        let film = try decode(LetterboxdFilm.self, #"{"title":"Babystar","poster":"https://a.ltrbxd.com/poster.jpg"}"#)
+        let profile = try decode(XProfile.self, #"{"username":"dmnktoe","avatar":"https://pbs.twimg.test/a.jpg"}"#)
+
+        XCTAssertNil(film.poster)
+        XCTAssertNil(profile.avatar)
+        XCTAssertNil(PixelImage.data(fromDataURI: "data:text/plain;base64,aGk="))
+        XCTAssertNil(PixelImage.data(fromDataURI: nil))
+    }
+
+    func testLastfmScrobblesReadTheLatestTrackAndTheTotal() throws {
+        let scrobbles = try decode(LastfmScrobbles.self, """
+        {"tracks":[{"title":"Angel","artist":"Massive Attack","url":"https://www.last.fm/x","image":"data:image/png;base64,Y292ZXI=",
+                    "nowPlaying":true,"loved":"1","scrobbledAt":null},
+                   {"title":"Teardrop","artist":"Massive Attack","scrobbledAt":"2026-11-24T16:00:00.000Z"}],
+         "total":"48213"}
+        """)
+        let latest = try XCTUnwrap(scrobbles.latest)
+
+        XCTAssertEqual(latest.title, "Angel")
+        XCTAssertTrue(latest.isNowPlaying)
+        XCTAssertTrue(latest.isLoved)
+        XCTAssertEqual(latest.image, Data("cover".utf8))
+        XCTAssertNil(latest.scrobbledAt)
+        XCTAssertEqual(scrobbles.tracks[1].scrobbledAt, Date(timeIntervalSince1970: 1_795_536_000))
+        XCTAssertEqual(scrobbles.compactTotal, "48.2K")
+    }
+
+    func testLastfmDropsTracksWithoutTitleOrArtistAndToleratesNoTotal() throws {
+        let scrobbles = try decode(LastfmScrobbles.self, #"{"tracks":[{"title":"","artist":"x"},{"title":"y"}],"total":null}"#)
+        XCTAssertNil(scrobbles.latest)
+        XCTAssertNil(scrobbles.compactTotal)
+    }
+
+    func testSteamLeadsWithTheGameRunningNow() throws {
+        let status = try decode(SteamStatus.self, """
+        {"profile":{"name":"dmnktoe","inGame":{"appId":1245620,"name":"ELDEN RING"}},
+         "games":[{"appId":10,"name":"Counter-Strike","minutesTwoWeeks":45},
+                  {"appId":"1245620","name":"ELDEN RING","minutesTwoWeeks":845,"icon":"data:image/png;base64,aWNvbg=="}]}
+        """)
+        let game = try XCTUnwrap(status.featured)
+
+        XCTAssertEqual(game.name, "ELDEN RING")
+        XCTAssertTrue(status.isPlaying)
+        XCTAssertEqual(game.recentPlaytime, "14h / 2w")
+        XCTAssertEqual(game.icon, Data("icon".utf8))
+        XCTAssertEqual(status.games[0].recentPlaytime, "45m / 2w")
+    }
+
+    func testSteamFallsBackToTheMostPlayedGameAndBuildsOneForAnUnlistedRun() throws {
+        let idle = try decode(SteamStatus.self, #"{"profile":{"inGame":null},"games":[{"appId":10,"name":"Counter-Strike"}]}"#)
+        let unlisted = try decode(SteamStatus.self, #"{"profile":{"inGame":{"appId":400,"name":"Portal"}},"games":[]}"#)
+        let empty = try decode(SteamStatus.self, #"{"profile":{},"games":[]}"#)
+
+        XCTAssertEqual(idle.featured?.name, "Counter-Strike")
+        XCTAssertFalse(idle.isPlaying)
+        XCTAssertNil(idle.featured?.recentPlaytime)
+        XCTAssertEqual(unlisted.featured?.name, "Portal")
+        XCTAssertEqual(unlisted.featured?.url, "https://store.steampowered.com/app/400/")
+        XCTAssertTrue(unlisted.isPlaying)
+        XCTAssertNil(empty.featured)
+    }
+
+    func testSteamLineShowsWhateverIsMostCurrent() throws {
+        let playing = try decode(SteamStatus.self, """
+        {"profile":{"name":"yl33lyxx","inGame":{"appId":10,"name":"Counter-Strike"}},
+         "games":[{"appId":10,"name":"Counter-Strike","minutesTwoWeeks":845}]}
+        """)
+        let recent = try decode(SteamStatus.self, #"{"profile":{},"games":[{"appId":10,"name":"CS","minutesTwoWeeks":45}]}"#)
+        let lifetime = try decode(SteamStatus.self, #"{"profile":{},"games":[{"appId":10,"name":"CS","minutesTotal":"18720"}]}"#)
+        let profile = try decode(SteamStatus.self, """
+        {"profile":{"name":"yl33lyxx","isOnline":true,"avatar":"data:image/png;base64,YXZhdGFy"},"games":[]}
+        """)
+        let nothing = try decode(SteamStatus.self, #"{"profile":{},"games":[]}"#)
+
+        XCTAssertEqual(playing.line?.kind, .playing)
+        XCTAssertEqual(playing.line?.detail, "14h / 2w")
+        XCTAssertEqual(recent.line?.kind, .recent)
+        XCTAssertEqual(recent.line?.detail, "45m / 2w")
+        XCTAssertEqual(lifetime.line?.kind, .lifetime)
+        XCTAssertEqual(lifetime.line?.detail, "312h total")
+        XCTAssertEqual(profile.line?.kind, .profile)
+        XCTAssertEqual(profile.line?.detail, "online")
+        XCTAssertEqual(profile.avatar, Data("avatar".utf8))
+        XCTAssertNil(nothing.line)
+    }
+
+    func testSteamGamesAndPostsCarryWhenTheyHappened() throws {
+        let steam = try decode(SteamStatus.self, """
+        {"profile":{},"games":[{"appId":400,"name":"Portal","lastPlayedAt":"2020-09-13T12:26:40.000Z"}]}
+        """)
+        let post = try decode(XPost.self, #"{"text":"shipping","createdAt":"2026-11-20T10:00:00Z"}"#)
+
+        XCTAssertEqual(steam.featured?.lastPlayedAt, Date(timeIntervalSince1970: 1_600_000_000))
+        XCTAssertEqual(post.createdAt, StoryblokDate.parse("2026-11-20T10:00:00Z"))
+    }
+
+    func testYoutubeReadsTheChannelAndTheLatestUpload() throws {
+        let status = try decode(YoutubeStatus.self, """
+        {"channel":{"id":"UC","title":"httpjpg","avatar":"data:image/png;base64,YXZhdGFy","url":"https://www.youtube.com/@httpjpg",
+                    "subscriberCount":1230},
+         "videos":[{"id":"v","title":"Studio tour","url":"https://www.youtube.com/watch?v=v","publishedAt":"2026-11-20T10:00:00Z"}]}
+        """)
+
+        XCTAssertEqual(status.channel.compactSubscriberCount, "1.2K")
+        XCTAssertEqual(status.channel.avatar, Data("avatar".utf8))
+        XCTAssertEqual(status.latestVideo?.title, "Studio tour")
+        XCTAssertEqual(status.latestVideo?.publishedAt, StoryblokDate.parse("2026-11-20T10:00:00Z"))
+    }
+
+    func testYoutubeToleratesAHiddenCountAndNoUploads() throws {
+        let status = try decode(YoutubeStatus.self, #"{"channel":{"title":"httpjpg","subscriberCount":null},"videos":[]}"#)
+        XCTAssertNil(status.channel.compactSubscriberCount)
+        XCTAssertNil(status.latestVideo)
+    }
+
+    func testGithubReadsTheLatestActivityAndTheAvatar() throws {
+        let status = try decode(GithubStatus.self, """
+        {"profile":{"login":"dmnktoe","avatar":"data:image/png;base64,YXZhdGFy"},
+         "activity":[{"kind":"push","verb":"pushed to","repo":"dmnktoe/httpjpg","detail":"main",
+                      "url":"https://github.com/dmnktoe/httpjpg/commit/abc","createdAt":"2026-11-24T12:00:00Z"},
+                     {"kind":"star","verb":"","repo":"x/y"}]}
+        """)
+        let latest = try XCTUnwrap(status.latest)
+
+        XCTAssertEqual(status.avatar, Data("avatar".utf8))
+        XCTAssertEqual(latest.verb, "pushed to")
+        XCTAssertEqual(latest.repo, "dmnktoe/httpjpg")
+        XCTAssertEqual(latest.detail, "main")
+        XCTAssertEqual(status.activity.count, 1, "an entry without a verb is dropped")
     }
 
     func testFooterImagesToleratePresenceWithoutDetailsAndClearedFields() throws {

@@ -60,6 +60,7 @@ struct SiteStatusLine: Identifiable {
             id: "letterboxd",
             label: "letterboxd:",
             badge: "🎞",
+            leadingImage: film.poster,
             text: film.title,
             detail: detail.isEmpty ? nil : detail,
             date: film.watchedDate
@@ -76,6 +77,7 @@ struct SiteStatusLine: Identifiable {
             id: "discogs",
             label: "discogs:",
             badge: "💿",
+            leadingImage: record.thumb,
             text: record.credit,
             detail: detail.isEmpty ? nil : detail,
             date: record.addedAt
@@ -88,8 +90,10 @@ struct SiteStatusLine: Identifiable {
             id: "x",
             label: "x:",
             badge: "𝕏",
+            leadingImage: profile.avatar,
             text: profile.compactFollowerCount.map { "(\($0))" } ?? profile.handle,
-            detail: post.text
+            detail: post.text,
+            date: post.createdAt
         )
     }
 
@@ -99,9 +103,74 @@ struct SiteStatusLine: Identifiable {
             id: "psn",
             label: "psn:",
             badge: trophy.badge,
+            leadingImage: trophy.image,
             text: trophy.name,
             detail: trophy.game.isEmpty ? nil : trophy.game,
             date: trophy.earnedAt
+        )
+    }
+
+    init?(scrobbles: LastfmScrobbles, now: Date = .now) {
+        guard let track = scrobbles.latest else { return nil }
+        let marks = [track.isNowPlaying ? "▶" : nil, track.isLoved ? "♥" : nil].compactMap { $0 }
+        self.init(
+            id: "lastfm",
+            label: "last.fm:",
+            badge: "♫",
+            leadingImage: track.image,
+            text: track.title,
+            detail: ([track.artist] + marks).joined(separator: " "),
+            date: track.scrobbledAt ?? (track.isNowPlaying ? now : nil)
+        )
+    }
+
+    init?(steam: SteamStatus, now: Date = .now) {
+        guard let line = steam.line else { return nil }
+        let name = line.game?.name ?? steam.name
+        self.init(
+            id: "steam",
+            label: "steam:",
+            badge: "🎮",
+            leadingImage: line.game?.icon ?? steam.avatar,
+            text: line.kind == .playing ? "\(name) ▶" : name,
+            detail: line.detail,
+            date: line.kind == .playing ? now : line.game?.lastPlayedAt
+        )
+    }
+
+    init?(youtube: YoutubeStatus) {
+        guard let video = youtube.latestVideo else { return nil }
+        self.init(
+            id: "youtube",
+            label: "youtube:",
+            badge: "▶︎",
+            leadingImage: youtube.channel.avatar,
+            text: video.title,
+            detail: youtube.channel.compactSubscriberCount.map { "(\($0))" },
+            date: video.publishedAt
+        )
+    }
+
+    init?(github: GithubStatus) {
+        guard let activity = github.latest else { return nil }
+        self.init(
+            id: "github",
+            label: "github:",
+            badge: "⌥",
+            leadingImage: github.avatar,
+            text: "\(activity.verb) \(activity.repo)",
+            detail: activity.detail,
+            date: activity.createdAt
+        )
+    }
+
+    init(reddit: RedditKarma) {
+        self.init(
+            id: "reddit",
+            label: "reddit:",
+            badge: "👽",
+            text: reddit.handle,
+            detail: reddit.compactKarma
         )
     }
 
@@ -137,7 +206,8 @@ struct SiteStatusLine: Identifiable {
                 leadingImage: upcoming.homeCrest,
                 trailingImage: upcoming.awayCrest,
                 text: upcoming.pairing,
-                detail: detail.isEmpty ? nil : detail
+                detail: detail.isEmpty ? nil : detail,
+                date: upcoming.kickoff
             )
         } else if let place {
             self.init(id: "schalke", label: "s04:", badge: "⚽", text: place)

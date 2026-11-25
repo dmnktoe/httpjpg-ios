@@ -1,0 +1,66 @@
+import StoryblokCore
+import XCTest
+
+@testable import WatchFeature
+
+final class WatchStatusLineTests: XCTestCase {
+    func testEverySourceBecomesOneLineInTheWebFooterOrder() throws {
+        let lines = WatchStatusLine.lines(from: WatchStatusLine.Sources(
+            discord: try decode(#"{"status": "online", "activity": "Xcode"}"#),
+            film: try decode(#"{"title": "Babystar", "year": "2025", "poster": "data:image/png;base64,cG9zdGVy"}"#),
+            record: try decode(#"{"title": "Endtroducing.....", "artist": "DJ Shadow", "year": "1996"}"#),
+            scrobbles: try decode(#"{"tracks": [{"title": "Angel", "artist": "Massive Attack", "nowPlaying": true}]}"#),
+            steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "Counter-Strike", "minutesTwoWeeks": 45}]}"#),
+            youtube: try decode(#"{"channel": {"title": "httpjpg", "subscriberCount": 1230}, "videos": [{"title": "Studio tour"}]}"#),
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "pushed to", "repo": "dmnktoe/httpjpg", "detail": "main"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 12345),
+            timeline: try decode(#"{"profile": {"username": "dmnktoe", "followerCount": 812}, "posts": [{"text": "shipping"}]}"#),
+            trophy: try decode(#"{"name": "Pathfinder", "game": "TSW7"}"#),
+            schalke: try decode(#"{"standing": {"position": 17, "trend": "same"}}"#),
+            weather: try decode(#"{"temperature": 0.9, "emoji": "☁️", "condition": "overcast"}"#)
+        ))
+
+        XCTAssertEqual(lines.map(\.id), [
+            "discord", "lastfm", "letterboxd", "discogs", "steam", "youtube", "github", "reddit", "x", "psn", "schalke",
+            "weather",
+        ])
+        let line = Dictionary(uniqueKeysWithValues: lines.map { ($0.id, $0) })
+        XCTAssertEqual(line["letterboxd"]?.image, Data("poster".utf8))
+        XCTAssertEqual(line["lastfm"]?.detail, "Massive Attack ▶")
+        XCTAssertEqual(line["steam"]?.detail, "45m / 2w")
+        XCTAssertEqual(line["youtube"]?.detail, "(1.2K)")
+        XCTAssertEqual(line["github"]?.text, "dmnktoe/httpjpg")
+        XCTAssertEqual(line["github"]?.detail, "pushed to main")
+        XCTAssertEqual(line["reddit"]?.detail, "12.3K karma")
+        XCTAssertEqual(line["weather"]?.text, "☁️ 1°")
+    }
+
+    func testLinesFollowTheFooterOrderByTime() throws {
+        let lines = WatchStatusLine.lines(from: WatchStatusLine.Sources(
+            film: try decode(#"{"title": "Babystar", "watchedDate": "2026-11-05"}"#),
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "pushed to", "repo": "a/b", "createdAt": "2026-11-24T12:00:00Z"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 1),
+            schalke: try decode(#"{"upcoming": {"home": "S04", "away": "Stuttgart", "kickoff": "2026-11-28T17:30:00Z"}}"#)
+        ))
+
+        XCTAssertEqual(lines.map(\.id), ["schalke", "github", "letterboxd", "reddit"])
+    }
+
+    func testSilentSourcesAreLeftOut() throws {
+        let lines = WatchStatusLine.lines(from: WatchStatusLine.Sources(
+            film: try decode(#"{"title": ""}"#),
+            scrobbles: try decode(#"{"tracks": []}"#),
+            steam: try decode(#"{"profile": {}, "games": []}"#),
+            youtube: try decode(#"{"channel": {"title": "httpjpg"}, "videos": []}"#),
+            github: try decode(#"{"profile": {}, "activity": []}"#),
+            schalke: try decode(#"{"fixture": null, "standing": null}"#),
+            weather: try decode(#"{"condition": "fog"}"#)
+        ))
+
+        XCTAssertTrue(lines.isEmpty)
+    }
+
+    private func decode<T: Decodable>(_ json: String) throws -> T {
+        try JSONDecoder().decode(T.self, from: Data(json.utf8))
+    }
+}

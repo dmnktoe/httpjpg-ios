@@ -40,6 +40,10 @@ struct SiteStatusProvider: TimelineProvider {
         async let presence = discord(api, enabled: flags.isDiscordEnabled)
         async let latestFilm = film(api, enabled: flags.isLetterboxdEnabled)
         async let latestRecord = record(api, enabled: flags.isDiscogsEnabled)
+        async let latestScrobbles = flags.isLastfmEnabled ? await api.lastfmScrobbles() : nil
+        async let latestSteam = flags.isSteamEnabled ? await api.steamStatus() : nil
+        async let latestYoutube = flags.isYoutubeEnabled ? await api.youtubeStatus() : nil
+        async let latestGithub = flags.isGithubEnabled ? await api.githubStatus() : nil
         async let latestTimeline = timeline(api, enabled: flags.isXEnabled)
         async let latestTrophy = trophy(api, enabled: flags.isPsnTrophyEnabled)
         async let latestSchalke = schalke(api, enabled: flags.isSchalkeEnabled)
@@ -50,6 +54,11 @@ struct SiteStatusProvider: TimelineProvider {
             discord: presence,
             film: latestFilm,
             record: latestRecord,
+            scrobbles: latestScrobbles,
+            steam: latestSteam,
+            youtube: latestYoutube,
+            github: latestGithub,
+            reddit: flags.reddit,
             timeline: latestTimeline,
             trophy: latestTrophy,
             schalke: latestSchalke,

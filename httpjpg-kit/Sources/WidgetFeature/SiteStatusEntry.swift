@@ -8,6 +8,11 @@ struct SiteStatusEntry: TimelineEntry {
     let discord: DiscordPresence?
     let film: LetterboxdFilm?
     let record: DiscogsRelease?
+    let scrobbles: LastfmScrobbles?
+    let steam: SteamStatus?
+    let youtube: YoutubeStatus?
+    let github: GithubStatus?
+    let reddit: RedditKarma?
     let timeline: XTimeline?
     let trophy: PsnTrophy?
     let schalke: SchalkeStatus?
@@ -20,6 +25,11 @@ struct SiteStatusEntry: TimelineEntry {
         discord: DiscordPresence? = nil,
         film: LetterboxdFilm? = nil,
         record: DiscogsRelease? = nil,
+        scrobbles: LastfmScrobbles? = nil,
+        steam: SteamStatus? = nil,
+        youtube: YoutubeStatus? = nil,
+        github: GithubStatus? = nil,
+        reddit: RedditKarma? = nil,
         timeline: XTimeline? = nil,
         trophy: PsnTrophy? = nil,
         schalke: SchalkeStatus? = nil,
@@ -30,6 +40,11 @@ struct SiteStatusEntry: TimelineEntry {
         self.discord = discord
         self.film = film
         self.record = record
+        self.scrobbles = scrobbles
+        self.steam = steam
+        self.youtube = youtube
+        self.github = github
+        self.reddit = reddit
         self.timeline = timeline
         self.trophy = trophy
         self.schalke = schalke
@@ -42,27 +57,22 @@ struct SiteStatusEntry: TimelineEntry {
             discord.map(SiteStatusLine.init(discord:)),
             film.flatMap(SiteStatusLine.init(film:)),
             record.flatMap(SiteStatusLine.init(record:)),
+            scrobbles.flatMap { SiteStatusLine(scrobbles: $0, now: date) },
+            steam.flatMap { SiteStatusLine(steam: $0, now: date) },
+            youtube.flatMap(SiteStatusLine.init(youtube:)),
+            github.flatMap(SiteStatusLine.init(github:)),
+            reddit.map(SiteStatusLine.init(reddit:)),
             post.flatMap { SiteStatusLine(profile: $0.profile, post: $0.post) },
             trophy.flatMap(SiteStatusLine.init(trophy:)),
             schalke.flatMap { SiteStatusLine(schalke: $0, now: date) },
             weather.flatMap(SiteStatusLine.init(weather:)),
         ].compactMap { $0 }
 
-        return footerOrder.enumerated()
-            .sorted { lhs, rhs in
-                let (left, right) = (rank(lhs.element), rank(rhs.element))
-                if left != right { return left < right }
-                if let leftDate = lhs.element.date, let rightDate = rhs.element.date, leftDate != rightDate {
-                    return leftDate > rightDate
-                }
-                return lhs.offset < rhs.offset
-            }
-            .map(\.element)
+        return StatusOrder.sorted(footerOrder, isLive: isLive, date: \.date)
     }
 
-    private func rank(_ line: SiteStatusLine) -> Int {
-        if line.id == "discord", let discord, discord.status != .offline { return 0 }
-        return line.date == nil ? 2 : 1
+    private func isLive(_ line: SiteStatusLine) -> Bool {
+        line.id == "discord" && discord.map { $0.status != .offline } == true
     }
 
     private var post: (profile: XProfile, post: XPost)? {

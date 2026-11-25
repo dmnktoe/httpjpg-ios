@@ -79,6 +79,7 @@ struct SiteStatusView: View {
             .resizable()
             .interpolation(.none)
             .widgetFullColor()
+            .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
     }
 }
