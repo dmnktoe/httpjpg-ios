@@ -1,4 +1,6 @@
+import ImageIO
 import UIKit
+import UniformTypeIdentifiers
 import XCTest
 
 @testable import PortfolioFeature
@@ -13,6 +15,31 @@ final class ComposerModelTests: XCTestCase {
                 UIColor.blue.setFill()
                 context.fill(CGRect(x: 0, y: 0, width: width, height: height))
             }
+    }
+
+    private func jpegWithLocation(width: Int, height: Int) throws -> Data {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let image = UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: format)
+            .image { context in
+                UIColor.red.setFill()
+                context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+            }
+        let cgImage = try XCTUnwrap(image.cgImage)
+        let output = NSMutableData()
+        let destination = try XCTUnwrap(
+            CGImageDestinationCreateWithData(output as CFMutableData, UTType.jpeg.identifier as CFString, 1, nil)
+        )
+        let location: [CFString: Any] = [
+            kCGImagePropertyGPSLatitude: 52.52,
+            kCGImagePropertyGPSLatitudeRef: "N",
+            kCGImagePropertyGPSLongitude: 13.405,
+            kCGImagePropertyGPSLongitudeRef: "E",
+        ]
+        let properties: [CFString: Any] = [kCGImagePropertyGPSDictionary: location]
+        CGImageDestinationAddImage(destination, cgImage, properties as CFDictionary)
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+        return output as Data
     }
 
     private func model(with sizes: [(Int, Int)]) -> ComposerModel {
@@ -60,6 +87,23 @@ final class ComposerModelTests: XCTestCase {
         XCTAssertNil(model.images[0].cropRect)
     }
 
+    func testRemovingAPhotoKeepsTheCropsUnlessTheFrameChanges() {
+        let model = model(with: [(400, 300), (300, 400), (200, 200)])
+        model.select(format: .original)
+        let ids = model.images.map(\.id)
+        let crop = CGRect(x: 0.1, y: 0.1, width: 0.5, height: 0.5)
+        model.setCrop(crop, for: ids[1])
+        let generation = model.cropGeneration
+
+        model.remove(ids[2])
+        XCTAssertEqual(model.images[1].cropRect, crop)
+        XCTAssertEqual(model.cropGeneration, generation)
+
+        model.remove(ids[0])
+        XCTAssertNil(model.images[0].cropRect)
+        XCTAssertEqual(model.cropGeneration, generation + 1)
+    }
+
     func testMovingAPhotoShiftsTheOnesInBetween() {
         let model = model(with: [(100, 100), (200, 100), (100, 200)])
         let ids = model.images.map(\.id)
@@ -105,6 +149,18 @@ final class ComposerModelTests: XCTestCase {
         XCTAssertEqual(whole.contentType, "image/png")
     }
 
+    func testAFittedPhotoLosesItsLocationAndKeepsItsFormat() throws {
+        let original = try jpegWithLocation(width: 40, height: 30)
+        XCTAssertTrue(ImageExport.hasLocation(original))
+        let preview = try XCTUnwrap(ImageExport.preview(from: original))
+
+        let file = try XCTUnwrap(ImageExport.whole(original: original, preview: preview))
+
+        XCTAssertFalse(ImageExport.hasLocation(file.data))
+        XCTAssertEqual(file.contentType, "image/jpeg")
+        XCTAssertEqual(file.pixelSize, CGSize(width: 40, height: 30))
+    }
+
     func testALinkIsRoutedByWhereItPlays() {
         XCTAssertEqual(ComposerModel.musicSource(for: " https://open.spotify.com/track/abc "), .spotify)
         XCTAssertEqual(ComposerModel.musicSource(for: "https://soundcloud.com/te3shay/sets/x"), .soundcloud)
@@ -132,7 +188,9 @@ final class ComposerModelTests: XCTestCase {
         let model = model(with: [(100, 100)])
 
         model.caption = String(repeating: "x", count: ComposerModel.maxCaptionLength + 1)
+        XCTAssertFalse(model.canPublish)
 
+        model.caption = String(repeating: "👍", count: ComposerModel.maxCaptionLength / 2 + 1)
         XCTAssertFalse(model.canPublish)
     }
 
@@ -149,5 +207,11 @@ final class ComposerModelTests: XCTestCase {
         XCTAssertEqual(ComposerModel.audioContentType(for: "mix.mp3"), "audio/mpeg")
         XCTAssertEqual(ComposerModel.audioContentType(for: "mix.M4A"), "audio/mp4")
         XCTAssertEqual(ComposerModel.audioContentType(for: "mix.wav"), "audio/wav")
+    }
+
+    func testAudioFilesAreUploadedUnderANameTheSiteAccepts() {
+        XCTAssertEqual(ComposerModel.audioUploadName(for: "Песня.MP3"), "track.mp3")
+        XCTAssertEqual(ComposerModel.audioUploadName(for: "mix.m4a"), "track.m4a")
+        XCTAssertEqual(ComposerModel.audioUploadName(for: "mix"), "track.mp3")
     }
 }

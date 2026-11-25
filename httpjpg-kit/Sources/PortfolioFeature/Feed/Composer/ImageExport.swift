@@ -87,15 +87,43 @@ enum ImageExport {
         let fileKind = Self.kind(of: original)
         if let fileExtension = fileKind.fileExtension,
            let contentType = fileKind.contentType,
-           let pixelSize = displayPixelSize(of: original) {
+           let pixelSize = displayPixelSize(of: original),
+           let data = withoutLocation(original) {
             return File(
-                data: original,
+                data: data,
                 pixelSize: pixelSize,
                 fileExtension: fileExtension,
                 contentType: contentType
             )
         }
         return jpeg(preview)
+    }
+
+    static func hasLocation(_ data: Data) -> Bool {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        else { return false }
+        return properties[kCGImagePropertyGPSDictionary] != nil
+    }
+
+    static func withoutLocation(_ data: Data) -> Data? {
+        guard hasLocation(data) else { return data }
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let type = CGImageSourceGetType(source)
+        else { return nil }
+        let output = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            output as CFMutableData,
+            type,
+            CGImageSourceGetCount(source),
+            nil
+        ) else { return nil }
+        let options: [CFString: Any] = [kCGImageMetadataShouldExcludeGPS: true]
+        guard CGImageDestinationCopyImageSource(destination, source, options as CFDictionary, nil) else {
+            return nil
+        }
+        let stripped = output as Data
+        return hasLocation(stripped) ? nil : stripped
     }
 
     static func jpeg(_ image: UIImage) -> File? {

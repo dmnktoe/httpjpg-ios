@@ -41,6 +41,8 @@ final class ComposerModel {
     var audioFile: AudioFile?
 
     private(set) var phase: Phase = .editing
+    private(set) var cropGeneration = 0
+    private(set) var tokenWasRefused = false
 
     let draftID = UUID().uuidString
     private var sharedAt: Date?
@@ -66,8 +68,12 @@ final class ComposerModel {
         max(Self.maxImages - images.count, 0)
     }
 
+    var captionLength: Int {
+        caption.utf16.count
+    }
+
     var canPublish: Bool {
-        guard !isUploading, caption.count <= Self.maxCaptionLength else { return false }
+        guard !isUploading, captionLength <= Self.maxCaptionLength else { return false }
         switch kind {
         case .photos:
             return !images.isEmpty
@@ -85,9 +91,10 @@ final class ComposerModel {
     }
 
     func remove(_ id: UUID) {
+        let ratio = frameAspectRatio
         images.removeAll { $0.id == id }
         if selectedID == id { selectedID = images.first?.id }
-        if format == .original { resetCrops() }
+        if frameAspectRatio != ratio { resetCrops() }
     }
 
     func move(_ id: UUID, onto target: UUID) {
@@ -95,9 +102,10 @@ final class ComposerModel {
               let from = images.firstIndex(where: { $0.id == id }),
               let to = images.firstIndex(where: { $0.id == target })
         else { return }
+        let ratio = frameAspectRatio
         let moved = images.remove(at: from)
         images.insert(moved, at: to)
-        if format == .original, from == 0 || to == 0 { resetCrops() }
+        if frameAspectRatio != ratio { resetCrops() }
     }
 
     func moveSelected(by offset: Int) {
@@ -132,6 +140,7 @@ final class ComposerModel {
     }
 
     private func resetCrops() {
+        cropGeneration += 1
         for index in images.indices {
             images[index].cropRect = nil
         }
@@ -150,6 +159,10 @@ final class ComposerModel {
             _ = try await api.publish(request)
             phase = .editing
             return true
+        } catch FeedPublishError.unauthorized {
+            tokenWasRefused = true
+            phase = .failed("The site did not accept this token. Close this post and sign in again.")
+            return false
         } catch {
             phase = .failed(error.localizedDescription)
             return false
@@ -158,6 +171,8 @@ final class ComposerModel {
 
     private func photoRequest(using api: FeedPublishAPI) async throws -> FeedPublishRequest {
         let aspectRatio = frameAspectRatio
+        let format = self.format
+        let images = self.images
         var uploaded: [FeedPublishRequest.Image] = []
         phase = .uploading(done: 0, total: images.count)
 
@@ -190,10 +205,11 @@ final class ComposerModel {
 
         let music: FeedPublishRequest.Music
         if let audioFile {
-            let signed = try await api.signUpload(filename: audioFile.filename, pixelSize: nil)
+            let filename = Self.audioUploadName(for: audioFile.filename)
+            let signed = try await api.signUpload(filename: filename, pixelSize: nil)
             try await api.upload(
                 audioFile.data,
-                filename: audioFile.filename,
+                filename: filename,
                 contentType: Self.audioContentType(for: audioFile.filename),
                 to: signed
             )
@@ -254,6 +270,11 @@ final class ComposerModel {
         let path = url.path.lowercased()
         if path.hasSuffix(".mp3") || path.hasSuffix(".m4a") || path.hasSuffix(".wav") { return .mp3 }
         return nil
+    }
+
+    static func audioUploadName(for filename: String) -> String {
+        let fileExtension = (filename as NSString).pathExtension.lowercased()
+        return "track.\(fileExtension.isEmpty ? "mp3" : fileExtension)"
     }
 
     static func audioContentType(for filename: String) -> String {

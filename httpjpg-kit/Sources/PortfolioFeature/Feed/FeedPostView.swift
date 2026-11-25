@@ -57,7 +57,8 @@ struct FeedPostView: View {
         .fullScreenCover(isPresented: $isZoomed) {
             ImageZoomViewer(
                 url: fullURL(images[min(index, images.count - 1)]),
-                accessibilityText: images[min(index, images.count - 1)].accessibilityText
+                accessibilityText: images[min(index, images.count - 1)].accessibilityText,
+                animated: images[min(index, images.count - 1)].image?.isGIF ?? false
             )
         }
     }
@@ -67,7 +68,8 @@ struct FeedPostView: View {
             url: frameURL(image),
             aspectRatio: post.blok.aspectRatio,
             contentMode: image.fit == .contain ? .fit : .fill,
-            accessibilityText: image.accessibilityText
+            accessibilityText: image.accessibilityText,
+            animated: image.image?.isGIF ?? false
         )
     }
 

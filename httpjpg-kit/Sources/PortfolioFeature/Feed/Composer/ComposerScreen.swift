@@ -8,6 +8,7 @@ import UniformTypeIdentifiers
 struct ComposerScreen: View {
     let api: FeedPublishAPI
     let onPublished: () -> Void
+    let onTokenRefused: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.pageTheme) private var theme
@@ -38,6 +39,7 @@ struct ComposerScreen: View {
                     captionField(model)
                     status(model)
                 }
+                .disabled(model.isUploading)
                 .padding(PageLayout.gutter)
             }
             .scrollDismissesKeyboard(.interactively)
@@ -129,7 +131,7 @@ struct ComposerScreen: View {
                         unitRect: image.cropRect,
                         onChange: { model.setCrop($0, for: image.id) }
                     )
-                    .id("\(image.id.uuidString)-\(model.format.rawValue)")
+                    .id("\(image.id.uuidString)-\(model.cropGeneration)")
                 case .fit:
                     Image(uiImage: image.preview)
                         .resizable()
@@ -207,9 +209,9 @@ struct ComposerScreen: View {
                 .font(Typography.sans(Typography.Size.md))
                 .padding(Spacing.s3)
                 .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
-            if model.caption.count > ComposerModel.maxCaptionLength {
+            if model.captionLength > ComposerModel.maxCaptionLength {
                 MonoText(
-                    "\(model.caption.count) / \(ComposerModel.maxCaptionLength)",
+                    "\(model.captionLength) / \(ComposerModel.maxCaptionLength)",
                     size: Typography.Size.xs
                 )
                 .foregroundStyle(Palette.named("danger.500") ?? theme.foreground)
@@ -254,6 +256,8 @@ struct ComposerScreen: View {
                 Telemetry.signal("feed.post.published", parameters: ["kind": model.kind.rawValue])
                 onPublished()
                 dismiss()
+            } else if model.tokenWasRefused {
+                onTokenRefused()
             }
         }
     }

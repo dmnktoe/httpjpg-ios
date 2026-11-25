@@ -11,6 +11,7 @@ struct FeedScreen: View {
     @State private var isSigningIn = false
     @State private var isComposing = false
     @State private var composesAfterSignIn = false
+    @State private var composerAPI: FeedPublishAPI?
 
     var body: some View {
         NavigationStack {
@@ -35,10 +36,16 @@ struct FeedScreen: View {
             }
         }
         .fullScreenCover(isPresented: $isComposing) {
-            if let api = app.feedSession.api {
-                ComposerScreen(api: api) {
-                    Task { await app.feed.load(force: true) }
-                }
+            if let composerAPI {
+                ComposerScreen(
+                    api: composerAPI,
+                    onPublished: {
+                        Task { await app.feed.load(force: true) }
+                    },
+                    onTokenRefused: {
+                        app.feedSession.signOut()
+                    }
+                )
             }
         }
         .task {
@@ -101,7 +108,8 @@ struct FeedScreen: View {
     }
 
     private func compose() {
-        if app.feedSession.isSignedIn {
+        if let api = app.feedSession.api {
+            composerAPI = api
             isComposing = true
         } else {
             isSigningIn = true
@@ -111,6 +119,6 @@ struct FeedScreen: View {
     private func openComposerAfterSignIn() {
         guard composesAfterSignIn else { return }
         composesAfterSignIn = false
-        isComposing = true
+        compose()
     }
 }

@@ -33,7 +33,7 @@ final class FeedModel {
         if !hadPosts { state = .loading }
         do {
             let first = try await client.feedPosts(page: 1, perPage: Self.pageSize, refresh: force)
-            posts = first
+            posts = first.filter { !$0.blok.isEmpty }
             page = 1
             hasMore = first.count >= Self.pageSize
             state = .loaded
@@ -49,7 +49,7 @@ final class FeedModel {
         guard let next = try? await client.feedPosts(page: page + 1, perPage: Self.pageSize) else { return }
         page += 1
         hasMore = next.count >= Self.pageSize
-        posts = Self.appending(next, to: posts)
+        posts = Self.appending(next.filter { !$0.blok.isEmpty }, to: posts)
     }
 
     static func appending(_ next: [FeedPost], to current: [FeedPost]) -> [FeedPost] {

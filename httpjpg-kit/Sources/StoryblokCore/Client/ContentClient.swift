@@ -73,17 +73,23 @@ public final class ContentClient: @unchecked Sendable {
             sortBy: "content.date:desc",
             refresh: refresh
         )
-        return stories.map(FeedPost.init(story:)).filter { !$0.blok.isEmpty }
+        return stories.map(FeedPost.init(story:))
     }
 
     public func feedPool(refresh: Bool = false) async -> [FeedPool.Item] {
-        var items: [FeedPool.Item] = []
-        if let posts = try? await feedPosts(perPage: 50, refresh: refresh) {
-            items = FeedPool.items(in: posts)
+        var posts = try? await feedPosts(perPage: 50, refresh: refresh)
+        if posts == nil, refresh {
+            posts = try? await feedPosts(perPage: 50)
         }
-        if let page = try? await page(slug: StorySlug.feed, refresh: refresh) {
-            let seen = Set(items.map(\.id))
-            items += FeedPool.items(in: page.body).filter { !seen.contains($0.id) }
+        var feedPage = try? await self.page(slug: StorySlug.feed, refresh: refresh)
+        if feedPage == nil, refresh {
+            feedPage = try? await self.page(slug: StorySlug.feed)
+        }
+
+        var items = FeedPool.items(in: posts ?? [])
+        if let feedPage {
+            let seen = items.map(\.kind)
+            items += FeedPool.items(in: feedPage.body).filter { !seen.contains($0.kind) }
         }
         return items
     }
