@@ -13,6 +13,7 @@ final class WatchStatusLineTests: XCTestCase {
             steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "Counter-Strike", "minutesTwoWeeks": 45}]}"#),
             youtube: try decode(#"{"channel": {"title": "httpjpg", "subscriberCount": 1230}, "videos": [{"title": "Studio tour"}]}"#),
             github: try decode(#"{"profile": {}, "activity": [{"verb": "pushed to", "repo": "dmnktoe/httpjpg", "detail": "main"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 12345),
             timeline: try decode(#"{"profile": {"username": "dmnktoe", "followerCount": 812}, "posts": [{"text": "shipping"}]}"#),
             trophy: try decode(#"{"name": "Pathfinder", "game": "TSW7"}"#),
             schalke: try decode(#"{"standing": {"position": 17, "trend": "same"}}"#),
@@ -20,7 +21,8 @@ final class WatchStatusLineTests: XCTestCase {
         ))
 
         XCTAssertEqual(lines.map(\.id), [
-            "discord", "letterboxd", "discogs", "lastfm", "steam", "youtube", "github", "x", "psn", "schalke", "weather",
+            "discord", "letterboxd", "discogs", "lastfm", "steam", "youtube", "github", "reddit", "x", "psn", "schalke",
+            "weather",
         ])
         XCTAssertEqual(lines[1].image, Data("poster".utf8))
         XCTAssertEqual(lines[3].detail, "Massive Attack ▶")
@@ -28,7 +30,8 @@ final class WatchStatusLineTests: XCTestCase {
         XCTAssertEqual(lines[5].detail, "(1.2K)")
         XCTAssertEqual(lines[6].text, "dmnktoe/httpjpg")
         XCTAssertEqual(lines[6].detail, "pushed to main")
-        XCTAssertEqual(lines[10].text, "☁️ 1°")
+        XCTAssertEqual(lines[7].detail, "12.3K karma")
+        XCTAssertEqual(lines[11].text, "☁️ 1°")
     }
 
     func testSilentSourcesAreLeftOut() throws {

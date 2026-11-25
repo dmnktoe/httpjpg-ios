@@ -12,6 +12,7 @@ struct SiteStatusEntry: TimelineEntry {
     let steam: SteamStatus?
     let youtube: YoutubeStatus?
     let github: GithubStatus?
+    let reddit: RedditKarma?
     let timeline: XTimeline?
     let trophy: PsnTrophy?
     let schalke: SchalkeStatus?
@@ -28,6 +29,7 @@ struct SiteStatusEntry: TimelineEntry {
         steam: SteamStatus? = nil,
         youtube: YoutubeStatus? = nil,
         github: GithubStatus? = nil,
+        reddit: RedditKarma? = nil,
         timeline: XTimeline? = nil,
         trophy: PsnTrophy? = nil,
         schalke: SchalkeStatus? = nil,
@@ -42,6 +44,7 @@ struct SiteStatusEntry: TimelineEntry {
         self.steam = steam
         self.youtube = youtube
         self.github = github
+        self.reddit = reddit
         self.timeline = timeline
         self.trophy = trophy
         self.schalke = schalke
@@ -58,6 +61,7 @@ struct SiteStatusEntry: TimelineEntry {
             steam.flatMap { SiteStatusLine(steam: $0, now: date) },
             youtube.flatMap(SiteStatusLine.init(youtube:)),
             github.flatMap(SiteStatusLine.init(github:)),
+            reddit.map(SiteStatusLine.init(reddit:)),
             post.flatMap { SiteStatusLine(profile: $0.profile, post: $0.post) },
             trophy.flatMap(SiteStatusLine.init(trophy:)),
             schalke.flatMap { SiteStatusLine(schalke: $0, now: date) },

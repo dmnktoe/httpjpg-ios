@@ -697,6 +697,7 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.widgets.isSteamEnabled)
         XCTAssertFalse(config.widgets.isYoutubeEnabled)
         XCTAssertFalse(config.widgets.isGithubEnabled)
+        XCTAssertNil(config.widgets.reddit)
         XCTAssertFalse(config.widgets.isAskEnabled)
     }
 
@@ -718,6 +719,25 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertTrue(config.widgets.isXEnabled)
         XCTAssertTrue(config.widgets.isSchalkeEnabled)
         XCTAssertTrue(config.widgets.isAskEnabled)
+    }
+
+    func testRedditKarmaIsTypedIntoTheConfigStory() throws {
+        let config = try decode(SiteConfig.self, #"{"reddit_enabled":true,"reddit_username":"dmnktoe","reddit_karma":"12345"}"#)
+        let reddit = try XCTUnwrap(config.widgets.reddit)
+
+        XCTAssertEqual(reddit.handle, "u/dmnktoe")
+        XCTAssertEqual(reddit.compactKarma, "12.3K karma")
+        XCTAssertEqual(reddit.url, "https://www.reddit.com/user/dmnktoe/")
+    }
+
+    func testRedditIsLeftOutWhenOffOrIncomplete() throws {
+        let off = try decode(SiteConfig.self, #"{"reddit_enabled":false,"reddit_username":"dmnktoe","reddit_karma":1}"#)
+        let noKarma = try decode(SiteConfig.self, #"{"reddit_enabled":"true","reddit_username":"dmnktoe","reddit_karma":""}"#)
+        let badName = try decode(SiteConfig.self, #"{"reddit_enabled":true,"reddit_username":"u/dmnktoe","reddit_karma":1}"#)
+
+        XCTAssertNil(off.widgets.reddit)
+        XCTAssertNil(noKarma.widgets.reddit)
+        XCTAssertNil(badName.widgets.reddit)
     }
 
     func testSchalkeStatusReadsTheResultAndTheStanding() throws {

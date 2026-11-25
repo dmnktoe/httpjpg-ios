@@ -32,6 +32,7 @@ final class TVStatusLineTests: XCTestCase {
             steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "counter-strike", "minutesTwoWeeks": 120}]}"#),
             youtube: try decode(#"{"channel": {"title": "httpjpg", "subscriberCount": 812}, "videos": [{"title": "studio tour"}]}"#),
             github: try decode(#"{"profile": {}, "activity": [{"verb": "merged", "repo": "dmnktoe/httpjpg", "detail": "#42"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 812),
             trophy: nil,
             weather: nil
         )
@@ -41,6 +42,7 @@ final class TVStatusLineTests: XCTestCase {
             "steam: counter-strike · 2h / 2w",
             "youtube: (812) · studio tour",
             "github: merged dmnktoe/httpjpg #42",
+            "reddit: u/dmnktoe · 812 karma",
         ])
     }
 

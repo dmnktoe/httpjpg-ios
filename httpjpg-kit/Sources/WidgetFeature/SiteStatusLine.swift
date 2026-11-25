@@ -163,6 +163,16 @@ struct SiteStatusLine: Identifiable {
         )
     }
 
+    init(reddit: RedditKarma) {
+        self.init(
+            id: "reddit",
+            label: "reddit:",
+            badge: "👽",
+            text: reddit.handle,
+            detail: reddit.compactKarma
+        )
+    }
+
     init?(schalke status: SchalkeStatus, now: Date = .now) {
         let place = status.standing.map { standing -> String in
             switch standing.trend {

@@ -13,6 +13,7 @@ struct TVStatusLine: Identifiable, Hashable {
         steam: SteamStatus? = nil,
         youtube: YoutubeStatus? = nil,
         github: GithubStatus? = nil,
+        reddit: RedditKarma? = nil,
         trophy: PsnTrophy?,
         weather: WeatherNow?
     ) -> [TVStatusLine] {
@@ -45,6 +46,9 @@ struct TVStatusLine: Identifiable, Hashable {
         if let activity = github?.latest {
             let detail = [activity.verb, activity.repo, activity.detail].compactMap { $0 }
             lines.append(TVStatusLine(id: "github", text: "github: " + detail.joined(separator: " ")))
+        }
+        if let reddit {
+            lines.append(TVStatusLine(id: "reddit", text: "reddit: \(reddit.handle) · \(reddit.compactKarma)"))
         }
         if let trophy, !trophy.name.isEmpty {
             let detail = [trophy.name, trophy.game.isEmpty ? nil : trophy.game].compactMap { $0 }
@@ -80,6 +84,7 @@ struct TVStatusLine: Identifiable, Hashable {
             steam: steam,
             youtube: youtube,
             github: github,
+            reddit: flags.reddit,
             trophy: trophy,
             weather: weather
         )

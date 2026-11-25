@@ -58,6 +58,7 @@ struct SiteStatusProvider: TimelineProvider {
             steam: latestSteam,
             youtube: latestYoutube,
             github: latestGithub,
+            reddit: flags.reddit,
             timeline: latestTimeline,
             trophy: latestTrophy,
             schalke: latestSchalke,

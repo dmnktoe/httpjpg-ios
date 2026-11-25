@@ -177,10 +177,12 @@ final class SiteStatusEntryTests: XCTestCase {
             scrobbles: try decode(#"{"tracks": [{"title": "Teardrop", "artist": "Massive Attack"}]}"#),
             steam: try decode(#"{"profile": {}, "games": [{"appId": 10, "name": "Counter-Strike"}]}"#),
             youtube: try decode(#"{"channel": {"title": "httpjpg"}, "videos": [{"title": "Studio tour"}]}"#),
-            github: try decode(#"{"profile": {}, "activity": [{"verb": "starred", "repo": "x/y"}]}"#)
+            github: try decode(#"{"profile": {}, "activity": [{"verb": "starred", "repo": "x/y"}]}"#),
+            reddit: RedditKarma(username: "dmnktoe", karma: 12345)
         )
 
-        XCTAssertEqual(entry.lines.map(\.id), ["discogs", "lastfm", "steam", "youtube", "github"])
+        XCTAssertEqual(entry.lines.map(\.id), ["discogs", "lastfm", "steam", "youtube", "github", "reddit"])
+        XCTAssertEqual(entry.lines.last?.detail, "12.3K karma")
     }
 
     func testATrackPlayingNowSortsAsTheNewestLine() throws {

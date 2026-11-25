@@ -18,6 +18,7 @@ struct WatchStatusLine: Identifiable {
         var steam: SteamStatus?
         var youtube: YoutubeStatus?
         var github: GithubStatus?
+        var reddit: RedditKarma?
         var timeline: XTimeline?
         var trophy: PsnTrophy?
         var schalke: SchalkeStatus?
@@ -72,6 +73,12 @@ struct WatchStatusLine: Identifiable {
             lines.append(WatchStatusLine(
                 id: "github", label: "github", image: github.avatar,
                 text: activity.repo, detail: detail.joined(separator: " ")
+            ))
+        }
+        if let reddit = sources.reddit {
+            lines.append(WatchStatusLine(
+                id: "reddit", label: "reddit", image: nil,
+                text: reddit.handle, detail: reddit.compactKarma
             ))
         }
         if let timeline = sources.timeline, let post = timeline.latestPost, !post.text.isEmpty {
@@ -138,6 +145,7 @@ struct WatchStatusLine: Identifiable {
             steam: steam,
             youtube: youtube,
             github: github,
+            reddit: flags.reddit,
             timeline: timeline,
             trophy: trophy,
             schalke: schalke,

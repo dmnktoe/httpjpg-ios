@@ -32,6 +32,9 @@ struct FooterWidgets: View {
                 if let github = model.github, let activity = github.latest {
                     GithubLine(avatar: github.avatar, activity: activity)
                 }
+                if let reddit = model.flags.reddit {
+                    RedditLine(reddit: reddit)
+                }
                 if let timeline = model.timeline, let post = timeline.latestPost {
                     XLine(profile: timeline.profile, post: post)
                 }
@@ -60,6 +63,7 @@ struct FooterWidgets: View {
             flags.isSteamEnabled ? "steam:" : nil,
             flags.isYoutubeEnabled ? "youtube:" : nil,
             flags.isGithubEnabled ? "github:" : nil,
+            flags.reddit != nil ? "reddit:" : nil,
             flags.isXEnabled ? "x:" : nil,
             flags.isPsnTrophyEnabled ? "psn:" : nil,
             flags.isSchalkeEnabled ? "s04:" : nil,
@@ -276,6 +280,22 @@ private struct GithubLine: View {
             if let detail = activity.detail {
                 Text(detail).opacity(Opacities.subtle)
             }
+        }
+    }
+}
+
+private struct RedditLine: View {
+    let reddit: RedditKarma
+
+    var body: some View {
+        FooterStatusLine(label: "reddit:") {
+            Text(reddit.handle)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text("·").opacity(Opacities.subtle)
+            Text(reddit.compactKarma)
+                .opacity(Opacities.subtle)
+                .accessibilityLabel("\(reddit.karma) karma")
         }
     }
 }
