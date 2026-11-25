@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.1...v1.8.0) (2026-11-24)
+
+
+### Added
+
+* **status:** open the status widget in a sheet under a rainbow beam ([#143](https://github.com/dmnktoe/httpjpg-ios/issues/143)) ([3a57889](https://github.com/dmnktoe/httpjpg-ios/commit/3a57889195945d57df288e0beafff19d227f2822))
+
+
+### Fixed
+
+* **design-system:** bring back the soft top scroll edge ([#140](https://github.com/dmnktoe/httpjpg-ios/issues/140)) ([168fba9](https://github.com/dmnktoe/httpjpg-ios/commit/168fba96529f6315b0d87ef5a5aa37b0b92f1a0f))
+* **nav:** cross-dissolve tab switches from a snapshot ([#142](https://github.com/dmnktoe/httpjpg-ios/issues/142)) ([f4fd8da](https://github.com/dmnktoe/httpjpg-ios/commit/f4fd8da9e1164cfa8917edda10312fb5b876e6c0))
+
 ## [1.7.1](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.0...v1.7.1) (2026-11-18)
 
 
