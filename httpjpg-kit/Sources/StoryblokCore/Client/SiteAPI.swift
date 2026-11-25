@@ -309,10 +309,7 @@ public struct XProfile: Decodable, Sendable {
 
     public var compactFollowerCount: String? {
         guard let followerCount, followerCount >= 0 else { return nil }
-        return Double(followerCount).formatted(
-            .number.notation(.compactName).precision(.fractionLength(0 ... 1))
-                .locale(Locale(identifier: "en_US"))
-        )
+        return CompactCount.format(followerCount)
     }
 }
 

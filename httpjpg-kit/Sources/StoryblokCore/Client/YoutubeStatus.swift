@@ -28,18 +28,16 @@ public struct YoutubeStatus: Decodable, Sendable {
     public struct Video: Decodable, Sendable {
         public let title: String
         public let url: String?
-        public let thumbnail: Data?
         public let publishedAt: Date?
 
         private enum CodingKeys: String, CodingKey {
-            case title, url, thumbnail, publishedAt
+            case title, url, publishedAt
         }
 
         public init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             title = container.cmsString(forKey: .title) ?? ""
             url = container.cmsString(forKey: .url)
-            thumbnail = PixelImage.data(fromDataURI: container.cmsString(forKey: .thumbnail))
             publishedAt = StoryblokDate.parse(container.cmsString(forKey: .publishedAt))
         }
     }

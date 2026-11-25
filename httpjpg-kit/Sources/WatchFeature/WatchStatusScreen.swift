@@ -1,4 +1,3 @@
-import StoryblokCore
 import SwiftUI
 import Tokens
 import UIKit
@@ -42,7 +41,7 @@ struct WatchStatusScreen: View {
 private struct WatchStatusRow: View {
     let line: WatchStatusLine
 
-    private static let imageSide: CGFloat = 16
+    private static let imageSide = Spacing.s4
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.s2) {

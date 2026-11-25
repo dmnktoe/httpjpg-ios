@@ -87,8 +87,8 @@ private struct DiscordLine: View {
                 .foregroundStyle(color)
             if let activity = presence.activity {
                 Text("·").opacity(Opacities.subtle)
-                if let icon = presence.activityIcon {
-                    PixelThumb(data: icon, clip: .rect(cornerRadius: Radii.sm))
+                if let icon = presence.activityIcon.flatMap(UIImage.init(data:)) {
+                    PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
                 }
                 Text(activity)
                     .lineLimit(1)
@@ -122,9 +122,9 @@ private struct LetterboxdLine: View {
 
     var body: some View {
         FooterStatusLine(label: "letterboxd:") {
-            if let poster = film.poster {
+            if let poster = film.poster.flatMap(UIImage.init(data:)) {
                 PixelThumb(
-                    data: poster,
+                    image: poster,
                     clip: .rect(cornerRadius: Radii.sm),
                     width: Spacing.s3,
                     height: Spacing.s3 * 1.5
@@ -153,8 +153,8 @@ private struct DiscogsLine: View {
 
     var body: some View {
         FooterStatusLine(label: "discogs:") {
-            if let thumb = record.thumb {
-                PixelThumb(data: thumb, clip: .rect(cornerRadius: 2))
+            if let thumb = record.thumb.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: thumb, clip: .rect(cornerRadius: Radii.sm))
             } else {
                 Text("💿")
             }
@@ -180,8 +180,8 @@ private struct LastfmLine: View {
 
     var body: some View {
         FooterStatusLine(label: "last.fm:") {
-            if let image = track.image {
-                PixelThumb(data: image, clip: .rect(cornerRadius: 2))
+            if let image = track.image.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: image, clip: .rect(cornerRadius: Radii.sm))
             } else {
                 Text("♫")
             }
@@ -218,8 +218,8 @@ private struct SteamLine: View {
 
     var body: some View {
         FooterStatusLine(label: "steam:") {
-            if let icon = game.icon {
-                PixelThumb(data: icon, clip: .rect(cornerRadius: 2))
+            if let icon = game.icon.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: icon, clip: .rect(cornerRadius: Radii.sm))
             } else {
                 Text("🎮")
             }
@@ -245,9 +245,8 @@ private struct YoutubeLine: View {
 
     var body: some View {
         FooterStatusLine(label: "youtube:") {
-            if let avatar = channel.avatar {
-                PixelThumb(data: avatar, clip: .circle)
-                    .accessibilityLabel(channel.title)
+            if let avatar = channel.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle, label: channel.title)
             } else {
                 Text("▶︎").accessibilityLabel(channel.title)
             }
@@ -270,8 +269,8 @@ private struct GithubLine: View {
 
     var body: some View {
         FooterStatusLine(label: "github:") {
-            if let avatar {
-                PixelThumb(data: avatar, clip: .circle)
+            if let avatar = avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle)
             }
             Text(activity.verb).opacity(Opacities.muted)
             Text(activity.repo)
@@ -306,9 +305,8 @@ private struct XLine: View {
 
     var body: some View {
         FooterStatusLine(label: "x:") {
-            if let avatar = profile.avatar {
-                PixelThumb(data: avatar, clip: .circle)
-                    .accessibilityLabel(profile.handle)
+            if let avatar = profile.avatar.flatMap(UIImage.init(data:)) {
+                PixelThumb(image: avatar, clip: .circle, label: profile.handle)
             } else {
                 Text("𝕏").accessibilityLabel(profile.handle)
             }
@@ -354,22 +352,22 @@ private struct FooterThumb<Clip: Shape>: View {
 }
 
 private struct PixelThumb<Clip: Shape>: View {
-    let data: Data
+    let image: UIImage
     let clip: Clip
     var width: CGFloat = Typography.Size.md
     var height: CGFloat = Typography.Size.md
     var contentMode: ContentMode = .fill
+    var label: String?
 
     var body: some View {
-        if let image = UIImage(data: data) {
-            Image(uiImage: image)
-                .resizable()
-                .interpolation(.none)
-                .aspectRatio(contentMode: contentMode)
-                .frame(width: width, height: height)
-                .clipShape(clip)
-                .accessibilityHidden(true)
-        }
+        Image(uiImage: image)
+            .resizable()
+            .interpolation(.none)
+            .aspectRatio(contentMode: contentMode)
+            .frame(width: width, height: height)
+            .clipShape(clip)
+            .accessibilityLabel(label ?? "")
+            .accessibilityHidden(label == nil)
     }
 }
 
@@ -380,9 +378,9 @@ private struct TrophyLine: View {
 
     var body: some View {
         FooterStatusLine(label: "psn:") {
-            if let image = trophy.image {
+            if let image = trophy.image.flatMap(UIImage.init(data:)) {
                 PixelThumb(
-                    data: image,
+                    image: image,
                     clip: Rectangle(),
                     width: Spacing.s4,
                     height: Spacing.s4,
