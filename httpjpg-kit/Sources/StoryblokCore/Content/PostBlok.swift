@@ -1,13 +1,10 @@
 import CoreGraphics
 import Foundation
 
-/// A feed post: images and/or one track, a caption and a date. Root content type
-/// of the `feed/` stories, read through `ContentClient.feedPosts`.
 public struct PostBlok: Decodable, Identifiable {
     public enum Format: String, Sendable, CaseIterable {
         case square = "1/1"
         case portrait = "4/5"
-        /// The frame takes the first image's own ratio.
         case original
     }
 
@@ -37,7 +34,6 @@ public struct PostBlok: Decodable, Identifiable {
             .first { $0.sourceURL != nil }
     }
 
-    /// Width over height of the frame every image of the post shares.
     public var aspectRatio: CGFloat {
         switch format {
         case .square:
@@ -49,7 +45,6 @@ public struct PostBlok: Decodable, Identifiable {
         }
     }
 
-    /// `YYYY-MM-DD`, cut from the stored value so it reads the same in every locale.
     public var dateLabel: String? {
         guard let date, date.count >= 10 else { return nil }
         let day = String(date.prefix(10))

@@ -3,8 +3,6 @@ import SwiftUI
 import Tokens
 import UniformTypeIdentifiers
 
-/// The post's photos in order. Tap selects one for the editor, drag reorders;
-/// the first is the cover.
 struct ComposerThumbnailStrip: View {
     let model: ComposerModel
 
@@ -57,7 +55,6 @@ struct ComposerThumbnailStrip: View {
             isTargeted: Binding(
                 get: { false },
                 set: { isOver in
-                    // Reorder as the drag passes over, so the strip shows the result live.
                     guard isOver, let dragging = model.draggingID, dragging != image.id else { return }
                     withAnimation(Motion.stateChange) {
                         model.move(dragging, onto: image.id)

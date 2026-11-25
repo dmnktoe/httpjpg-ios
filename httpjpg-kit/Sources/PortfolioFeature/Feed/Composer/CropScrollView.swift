@@ -1,12 +1,9 @@
 import SwiftUI
 import UIKit
 
-/// The crop editor: the frame stands still and the photo pans and zooms under it.
 struct CropScrollView: UIViewRepresentable {
     let image: UIImage
-    /// Identity of the photo; the editor keeps its position while it stays the same.
     let imageID: UUID
-    /// Where to start, in unit coordinates of the photo; `nil` centres it.
     let unitRect: CGRect?
     let onChange: (CGRect) -> Void
 
@@ -49,7 +46,6 @@ final class CropScrollUIView: UIScrollView, UIScrollViewDelegate {
     }
 
     func show(_ image: UIImage, id: UUID, unitRect: CGRect?) {
-        // Same photo: SwiftUI is only re-rendering, the position is the user's.
         guard id != imageID else { return }
         imageID = id
         imageView.image = image
@@ -64,7 +60,6 @@ final class CropScrollUIView: UIScrollView, UIScrollViewDelegate {
               let image = imageView.image
         else { return }
 
-        // A frame of the same shape at another size keeps the crop; a new shape re-centres.
         let previous = laidOutSize
         let keepsShape = previous.width > 0 && previous.height > 0
             && abs(previous.width / previous.height - bounds.width / bounds.height) < 0.001
@@ -108,7 +103,6 @@ final class CropScrollUIView: UIScrollView, UIScrollViewDelegate {
         let wanted = CropGeometry.zoomScale(for: rect, boundsSize: bounds.size, imageSize: imageSize)
         zoomScale = min(max(wanted, minimumZoomScale), maximumZoomScale)
         contentOffset = CropGeometry.contentOffset(for: rect, zoomScale: zoomScale, imageSize: imageSize)
-        // After this layout pass: the callback writes model state.
         DispatchQueue.main.async { [weak self] in
             self?.report()
         }

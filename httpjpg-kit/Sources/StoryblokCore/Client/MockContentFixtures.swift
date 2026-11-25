@@ -56,7 +56,6 @@ enum MockContentFixtures {
 
         let prefix = value("starts_with") ?? ""
         if prefix.hasPrefix(StorySlug.feedPrefix) {
-            // One page of posts: a later page is empty, so paging ends.
             guard (value("page").flatMap(Int.init) ?? 1) <= 1 else { return emptyList }
             return json(named: "stories-feed", firstStories: value("per_page").flatMap(Int.init))
         }

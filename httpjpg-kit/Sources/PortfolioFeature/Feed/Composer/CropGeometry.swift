@@ -1,17 +1,12 @@
 import CoreGraphics
 
-/// The arithmetic of the crop editor: a frame of fixed shape, and the image
-/// panning and zooming underneath it. A crop is a rect in unit coordinates
-/// (0…1 on both axes of the image), so it survives a change of preview size.
 enum CropGeometry {
-    /// The largest centred part of the image that has the frame's shape.
     static func centredUnitRect(imageSize: CGSize, aspectRatio: CGFloat) -> CGRect {
         guard imageSize.width > 0, imageSize.height > 0, aspectRatio > 0 else {
             return CGRect(x: 0, y: 0, width: 1, height: 1)
         }
         let imageAspect = imageSize.width / imageSize.height
         if imageAspect > aspectRatio {
-            // Wider than the frame: full height, the sides are cut.
             let width = aspectRatio / imageAspect
             return CGRect(x: (1 - width) / 2, y: 0, width: width, height: 1)
         }
@@ -19,7 +14,6 @@ enum CropGeometry {
         return CGRect(x: 0, y: (1 - height) / 2, width: 1, height: height)
     }
 
-    /// The zoom at which the image just covers the frame; the editor never goes below it.
     static func minimumZoom(boundsSize: CGSize, imageSize: CGSize) -> CGFloat {
         guard imageSize.width > 0, imageSize.height > 0 else { return 1 }
         return max(boundsSize.width / imageSize.width, boundsSize.height / imageSize.height)
@@ -38,7 +32,6 @@ enum CropGeometry {
         )
     }
 
-    /// The part of the image the frame shows, clamped to the image.
     static func visibleUnitRect(
         contentOffset: CGPoint,
         zoomScale: CGFloat,
@@ -57,7 +50,6 @@ enum CropGeometry {
         return CGRect(x: x, y: y, width: width, height: height)
     }
 
-    /// The crop in whole pixels, inside the image.
     static func pixelRect(unitRect: CGRect, imageSize: CGSize) -> CGRect {
         let x = (unitRect.minX * imageSize.width).rounded()
         let y = (unitRect.minY * imageSize.height).rounded()

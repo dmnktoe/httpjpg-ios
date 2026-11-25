@@ -1,7 +1,6 @@
 import Foundation
 import Security
 
-/// The publish token in the keychain: this device only, never in a backup.
 struct FeedTokenStore {
     private let service: String
     private let account = "publish-token"
@@ -24,7 +23,6 @@ struct FeedTokenStore {
         return token
     }
 
-    /// False when the keychain refuses, e.g. in an unsigned simulator build.
     @discardableResult
     func save(_ token: String) -> Bool {
         delete()

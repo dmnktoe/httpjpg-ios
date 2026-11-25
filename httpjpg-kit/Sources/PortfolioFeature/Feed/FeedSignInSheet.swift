@@ -3,7 +3,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// Asks for the publish token once; the site confirms it before it is stored.
 struct FeedSignInSheet: View {
     let session: FeedSession
     let onSignedIn: () -> Void

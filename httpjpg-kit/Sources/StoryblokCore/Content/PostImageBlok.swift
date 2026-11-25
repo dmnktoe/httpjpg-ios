@@ -1,11 +1,8 @@
 import Foundation
 
-/// One image of a feed post. Nested under `post.images`, never a body blok.
 public struct PostImageBlok: Decodable, Identifiable {
     public enum Fit: String, Sendable {
-        /// Fills the post's frame; the file was cropped on the device before upload.
         case cover
-        /// Shows the whole file, letterboxed in the page colour.
         case contain
     }
 

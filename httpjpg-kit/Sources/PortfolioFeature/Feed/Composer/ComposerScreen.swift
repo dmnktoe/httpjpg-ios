@@ -5,7 +5,6 @@ import SwiftUI
 import Tokens
 import UniformTypeIdentifiers
 
-/// The new-post flow: pick, order, frame, caption, share.
 struct ComposerScreen: View {
     let api: FeedPublishAPI
     let onPublished: () -> Void
@@ -69,8 +68,6 @@ struct ComposerScreen: View {
         }
     }
 
-    // MARK: Photos
-
     @ViewBuilder
     private func photos(_ model: ComposerModel) -> some View {
         if let selected = model.selected {
@@ -132,7 +129,6 @@ struct ComposerScreen: View {
                         unitRect: image.cropRect,
                         onChange: { model.setCrop($0, for: image.id) }
                     )
-                    // A new photo or a new frame shape starts a fresh editor.
                     .id("\(image.id.uuidString)-\(model.format.rawValue)")
                 case .fit:
                     Image(uiImage: image.preview)
@@ -140,7 +136,6 @@ struct ComposerScreen: View {
                         .scaledToFit()
                 }
             }
-            // The bars of a fitted photo take the page colour, here as in the feed.
             .background(theme.background)
             .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
             .clipped()
@@ -161,8 +156,6 @@ struct ComposerScreen: View {
             isLoadingPhotos = false
         }
     }
-
-    // MARK: Music
 
     @ViewBuilder
     private func music(_ model: ComposerModel) -> some View {
@@ -205,8 +198,6 @@ struct ComposerScreen: View {
             model.musicTitle = url.deletingPathExtension().lastPathComponent
         }
     }
-
-    // MARK: Caption and status
 
     private func captionField(_ model: ComposerModel) -> some View {
         @Bindable var model = model

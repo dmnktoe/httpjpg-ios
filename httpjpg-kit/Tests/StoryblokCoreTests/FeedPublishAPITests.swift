@@ -103,7 +103,6 @@ final class FeedPublishAPITests: XCTestCase {
     func testOnlyTheRoutesOwnAnswerConfirmsASession() {
         XCTAssertTrue(FeedPublishAPI.confirmsSession(Data(#"{"ok":true}"#.utf8)))
         XCTAssertFalse(FeedPublishAPI.confirmsSession(Data(#"{"ok":false}"#.utf8)))
-        // A site that does not have the route yet serves its not-found page with HTTP 200.
         XCTAssertFalse(FeedPublishAPI.confirmsSession(Data("<!DOCTYPE html><html>".utf8)))
         XCTAssertFalse(FeedPublishAPI.confirmsSession(Data()))
     }

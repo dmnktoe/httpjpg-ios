@@ -1,10 +1,7 @@
 import CoreGraphics
 import Foundation
 
-/// The site's publishing routes. The app only ever talks to these: the token it
-/// sends is the publish token, and Storyblok's management token stays on the site.
 public actor FeedPublishAPI {
-    /// A signed upload: the file goes straight to `uploadURL`, then the post names it by `id`.
     public struct SignedUpload: Decodable, Equatable, Sendable {
         public let id: Int
         public let uploadURL: URL
@@ -33,14 +30,11 @@ public actor FeedPublishAPI {
         self.session = session
     }
 
-    /// Throws unless the site accepts the token.
     public func checkSession() async throws {
         let data = try await send(request(path: "/api/feed/session", method: "GET", body: nil))
         guard Self.confirmsSession(data) else { throw FeedPublishError.notConfigured }
     }
 
-    /// A site without the publishing routes answers this path with its not-found
-    /// page and HTTP 200, so only the route's own `{"ok": true}` counts.
     static func confirmsSession(_ data: Data) -> Bool {
         (try? JSONDecoder().decode(SessionBody.self, from: data))?.ok == true
     }
@@ -65,7 +59,6 @@ public actor FeedPublishAPI {
         return try decode(SignedUpload.self, from: data)
     }
 
-    /// Posts the file to the storage the site signed for. Not a site route: no token is sent.
     public func upload(_ file: Data, filename: String, contentType: String, to signed: SignedUpload) async throws {
         let boundary = "httpjpg-\(UUID().uuidString)"
         var request = URLRequest(url: signed.uploadURL)
@@ -101,7 +94,6 @@ public actor FeedPublishAPI {
         return try decode(PublishedPost.self, from: data)
     }
 
-    /// The signed fields first, the file last: the storage ignores anything after the file.
     static func multipartBody(
         fields: [String: String],
         file: Data,
@@ -126,7 +118,6 @@ public actor FeedPublishAPI {
         return body
     }
 
-    /// Maps a refusal to the error the composer shows.
     static func error(status: Int, body: Data) -> FeedPublishError {
         switch status {
         case 401, 403:

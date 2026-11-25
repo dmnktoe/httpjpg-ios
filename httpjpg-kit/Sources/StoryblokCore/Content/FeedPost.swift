@@ -1,7 +1,6 @@
 import Foundation
 import StoryblokClient
 
-/// A published `feed/` story.
 public struct FeedPost: Identifiable {
     public let id: String
     public let slug: String

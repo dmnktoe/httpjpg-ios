@@ -34,7 +34,6 @@ final class TVAppModelTests: XCTestCase {
         await model.loadFeed()
 
         XCTAssertTrue(model.isFeedLoaded)
-        // The posts come first, then what the hand-built feed page still holds.
         XCTAssertEqual(model.tracks.map(\.title), ["fixture mix", "mega mashup (mock)"])
         XCTAssertEqual(model.clips.count, 1)
         XCTAssertEqual(model.clips.first?.url.pathExtension, "mp4")

@@ -5,7 +5,6 @@ import XCTest
 
 @MainActor
 final class ComposerModelTests: XCTestCase {
-    /// A flat PNG of the given pixel size.
     private func png(width: Int, height: Int) -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -102,7 +101,6 @@ final class ComposerModelTests: XCTestCase {
         image.mode = .fit
         let whole = try XCTUnwrap(ComposerModel.file(for: image, aspectRatio: 1))
         XCTAssertEqual(whole.pixelSize, CGSize(width: 400, height: 300))
-        // A PNG is something a browser shows: the picked bytes go up untouched.
         XCTAssertEqual(whole.data, image.original)
         XCTAssertEqual(whole.contentType, "image/png")
     }

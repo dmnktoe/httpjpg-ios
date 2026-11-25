@@ -65,7 +65,6 @@ public final class ContentClient: @unchecked Sendable {
         return PageDocument(story: story)
     }
 
-    /// One page of the feed, newest first.
     public func feedPosts(page: Int = 1, perPage: Int = 24, refresh: Bool = false) async throws -> [FeedPost] {
         let stories: [Story<PostBlok>] = try await stories(
             startingWith: StorySlug.feedPrefix,
@@ -77,9 +76,6 @@ public final class ContentClient: @unchecked Sendable {
         return stories.map(FeedPost.init(story:)).filter { !$0.blok.isEmpty }
     }
 
-    /// Images, tracks and clips for the TV app and the widgets: the posts first,
-    /// then whatever the hand-built feed page still holds. Posts carry no video
-    /// yet, so the page is where clips come from for as long as it exists.
     public func feedPool(refresh: Bool = false) async -> [FeedPool.Item] {
         var items: [FeedPool.Item] = []
         if let posts = try? await feedPosts(perPage: 50, refresh: refresh) {

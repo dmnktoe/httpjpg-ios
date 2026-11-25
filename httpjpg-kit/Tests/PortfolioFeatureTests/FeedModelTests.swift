@@ -21,7 +21,6 @@ final class FeedModelTests: XCTestCase {
 
         XCTAssertEqual(model.state, .loaded)
         XCTAssertEqual(model.posts.count, 4)
-        // Fewer than a page came back: there is nothing more to load.
         XCTAssertFalse(model.hasMore)
     }
 

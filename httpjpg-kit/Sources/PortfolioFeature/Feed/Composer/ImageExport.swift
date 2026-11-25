@@ -3,9 +3,7 @@ import Foundation
 import ImageIO
 import UIKit
 
-/// Turns picked photos into what gets uploaded.
 enum ImageExport {
-    /// File kinds a browser shows as they are; anything else (HEIC, RAW) is re-encoded.
     enum Kind: Equatable {
         case jpeg, png, gif, webp, other
 
@@ -37,11 +35,9 @@ enum ImageExport {
         let contentType: String
     }
 
-    /// The feed never shows more than this many pixels along an edge.
     static let maxPixelLength = 2560
     static let jpegQuality: CGFloat = 0.9
 
-    /// Read from the file's first bytes: a photo's name and type say little after an export.
     static func kind(of data: Data) -> Kind {
         let bytes = [UInt8](data.prefix(12))
         if bytes.starts(with: [0xFF, 0xD8, 0xFF]) { return .jpeg }
@@ -55,7 +51,6 @@ enum ImageExport {
         return .other
     }
 
-    /// Pixel size as displayed: a photo stored sideways reports its upright shape.
     static func displayPixelSize(of data: Data) -> CGSize? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
@@ -64,11 +59,9 @@ enum ImageExport {
               width > 0, height > 0
         else { return nil }
         let orientation = (properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
-        // 5…8 are the orientations that swap the axes.
         return orientation >= 5 ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
     }
 
-    /// An upright copy at most `maxPixelLength` along its longer edge, one point per pixel.
     static func preview(from data: Data) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         let options: [CFString: Any] = [
@@ -82,7 +75,6 @@ enum ImageExport {
         return UIImage(cgImage: image, scale: 1, orientation: .up)
     }
 
-    /// The chosen part of the preview as a JPEG.
     static func cropped(_ preview: UIImage, to unitRect: CGRect) -> File? {
         guard let source = preview.cgImage else { return nil }
         let imageSize = CGSize(width: source.width, height: source.height)
@@ -91,8 +83,6 @@ enum ImageExport {
         return jpeg(UIImage(cgImage: cut, scale: 1, orientation: .up))
     }
 
-    /// The whole photo for a fitted image: the picked bytes when a browser can show
-    /// them, so the file stays exactly as it left the camera; a JPEG otherwise.
     static func whole(original: Data, preview: UIImage) -> File? {
         let fileKind = Self.kind(of: original)
         if let fileExtension = fileKind.fileExtension,

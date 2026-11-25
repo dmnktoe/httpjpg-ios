@@ -2,8 +2,6 @@ import Foundation
 import Observation
 import StoryblokCore
 
-/// Whether this device may publish. Signing in checks the token against the
-/// site once and keeps it in the keychain.
 @MainActor
 @Observable
 final class FeedSession {
@@ -28,7 +26,6 @@ final class FeedSession {
         let candidate = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !candidate.isEmpty else { throw FeedPublishError.unauthorized }
         try await FeedPublishAPI(origin: origin, token: candidate).checkSession()
-        // Kept in memory even if the keychain refuses, so this launch can still post.
         store.save(candidate)
         token = candidate
     }

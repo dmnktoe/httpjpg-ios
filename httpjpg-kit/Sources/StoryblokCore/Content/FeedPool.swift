@@ -38,7 +38,6 @@ public enum FeedPool {
         bloks.flatMap(items(of:))
     }
 
-    /// Every image of every post, then its track: the pool the TV app and the widgets draw from.
     public static func items(in posts: [FeedPost]) -> [Item] {
         posts.flatMap { post -> [Item] in
             let frames = post.blok.images.enumerated().compactMap { offset, image in

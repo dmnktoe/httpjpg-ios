@@ -2,7 +2,6 @@ import DesignSystem
 import SwiftUI
 import Tokens
 
-/// A row of bracketed choices, the selected one filled.
 struct ComposerOptionRow<Option: Hashable>: View {
     let options: [Option]
     let selection: Option

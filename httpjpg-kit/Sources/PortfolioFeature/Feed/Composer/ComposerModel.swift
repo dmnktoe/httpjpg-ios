@@ -4,7 +4,6 @@ import Observation
 import StoryblokCore
 import UIKit
 
-/// The post being written: its photos or track, how they are framed, and the upload.
 @MainActor
 @Observable
 final class ComposerModel {
@@ -33,7 +32,6 @@ final class ComposerModel {
     var caption = ""
     private(set) var images: [ComposerImage] = []
     var selectedID: UUID?
-    /// Set while a thumbnail is being dragged to a new place.
     var draggingID: UUID?
     private(set) var format: PostBlok.Format = .square
 
@@ -44,8 +42,6 @@ final class ComposerModel {
 
     private(set) var phase: Phase = .editing
 
-    /// Names this draft on the site. Kept across retries, so a share whose answer
-    /// was lost finds its post again instead of making a second one.
     let draftID = UUID().uuidString
     private var sharedAt: Date?
 
@@ -58,7 +54,6 @@ final class ComposerModel {
         return false
     }
 
-    /// Width over height of the frame every photo of the post shares.
     var frameAspectRatio: CGFloat {
         switch format {
         case .square: return 1
@@ -81,8 +76,6 @@ final class ComposerModel {
         }
     }
 
-    // MARK: Editing
-
     func add(_ picked: [Data]) {
         for data in picked.prefix(remainingImages) {
             guard let preview = ImageExport.preview(from: data) else { continue }
@@ -97,7 +90,6 @@ final class ComposerModel {
         if format == .original { resetCrops() }
     }
 
-    /// Puts `id` where `target` is; the photos in between shift by one.
     func move(_ id: UUID, onto target: UUID) {
         guard id != target,
               let from = images.firstIndex(where: { $0.id == id }),
@@ -105,7 +97,6 @@ final class ComposerModel {
         else { return }
         let moved = images.remove(at: from)
         images.insert(moved, at: to)
-        // The first photo sets the frame of an original-format post.
         if format == .original, from == 0 || to == 0 { resetCrops() }
     }
 
@@ -121,7 +112,6 @@ final class ComposerModel {
     func select(format next: PostBlok.Format) {
         guard next != format else { return }
         format = next
-        // A crop belongs to a frame shape: a new shape starts every photo centred.
         resetCrops()
     }
 
@@ -147,9 +137,6 @@ final class ComposerModel {
         }
     }
 
-    // MARK: Publishing
-
-    /// Uploads every file, then publishes. True when the post is live.
     func publish(using api: FeedPublishAPI) async -> Bool {
         guard canPublish else { return false }
         do {
@@ -233,7 +220,6 @@ final class ComposerModel {
         )
     }
 
-    /// The moment of the first share, reused by every retry.
     private func shareDate() -> Date {
         if let sharedAt { return sharedAt }
         let now = Date()
@@ -245,9 +231,6 @@ final class ComposerModel {
         caption.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // MARK: Pure helpers
-
-    /// What gets uploaded for one photo: the visible part when cropped, the whole file when fitted.
     static func file(for image: ComposerImage, aspectRatio: CGFloat) -> ImageExport.File? {
         switch image.mode {
         case .fit:
@@ -261,7 +244,6 @@ final class ComposerModel {
         }
     }
 
-    /// Where a pasted link plays: a streaming embed, or a file the site's own player takes.
     static func musicSource(for link: String) -> FeedPublishRequest.Music.Source? {
         let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed), url.scheme == "https", let host = url.host?.lowercased() else {

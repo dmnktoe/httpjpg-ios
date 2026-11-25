@@ -1,11 +1,8 @@
 import Foundation
 
 public enum FeedPublishError: LocalizedError, Equatable {
-    /// The site refused the token.
     case unauthorized
-    /// The deployment has no publish token or no Storyblok management access.
     case notConfigured
-    /// The site rejected the request; the message is the site's own.
     case rejected(String)
     case http(status: Int)
     case transport(String)

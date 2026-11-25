@@ -4,7 +4,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// One post in the feed: its images as a swipeable frame, its track, caption and date.
 struct FeedPostView: View {
     let post: FeedPost
 
@@ -48,7 +47,6 @@ struct FeedPostView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .aspectRatio(post.blok.aspectRatio, contentMode: .fit)
-        // The bars of a fitted image take the page colour.
         .background(theme.background)
         .overlay(alignment: .bottomTrailing) {
             if images.count > 1 {

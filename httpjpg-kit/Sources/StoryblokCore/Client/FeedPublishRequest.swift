@@ -1,7 +1,5 @@
 import Foundation
 
-/// The body of `POST /api/feed/posts`: uploads are named by the asset id the
-/// site handed out when it signed them.
 public struct FeedPublishRequest: Encodable, Equatable, Sendable {
     public struct Image: Encodable, Equatable, Sendable {
         public var assetId: Int
@@ -32,7 +30,6 @@ public struct FeedPublishRequest: Encodable, Equatable, Sendable {
         }
 
         public var source: Source
-        /// Share or file URL. An uploaded file sends `assetId` instead.
         public var src: String?
         public var assetId: Int?
         public var title: String?
@@ -60,8 +57,6 @@ public struct FeedPublishRequest: Encodable, Equatable, Sendable {
     public var format: PostBlok.Format
     public var images: [Image]
     public var music: Music?
-    /// The draft's own id and the moment it was first shared. Together they name
-    /// the post on the site, so sharing the same draft again cannot post it twice.
     public var clientId: String
     public var date: Date
 
@@ -95,7 +90,6 @@ public struct FeedPublishRequest: Encodable, Equatable, Sendable {
         try container.encode(Self.timestamp(date), forKey: .date)
     }
 
-    /// ISO 8601 in UTC, to the second: the same draft always sends the same string.
     static func timestamp(_ date: Date) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]

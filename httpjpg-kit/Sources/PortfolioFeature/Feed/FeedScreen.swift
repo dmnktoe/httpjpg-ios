@@ -3,7 +3,6 @@ import StoryblokCore
 import SwiftUI
 import Tokens
 
-/// The feed tab: every post, newest first, and the way into the composer.
 struct FeedScreen: View {
     @Environment(AppModel.self) private var app
     @Environment(\.bottomBarClearance) private var bottomBarClearance
@@ -11,7 +10,6 @@ struct FeedScreen: View {
 
     @State private var isSigningIn = false
     @State private var isComposing = false
-    // Set by the sign-in sheet: the composer opens once that sheet is gone.
     @State private var composesAfterSignIn = false
 
     var body: some View {

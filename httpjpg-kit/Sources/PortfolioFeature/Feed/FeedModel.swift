@@ -38,7 +38,6 @@ final class FeedModel {
             hasMore = first.count >= Self.pageSize
             state = .loaded
         } catch {
-            // A failed refresh keeps what is already on screen.
             state = hadPosts ? .loaded : .failed(error.localizedDescription)
         }
     }
@@ -53,7 +52,6 @@ final class FeedModel {
         posts = Self.appending(next, to: posts)
     }
 
-    /// A post published between two loads shifts the pages: skip what is already shown.
     static func appending(_ next: [FeedPost], to current: [FeedPost]) -> [FeedPost] {
         let seen = Set(current.map(\.id))
         return current + next.filter { !seen.contains($0.id) }
