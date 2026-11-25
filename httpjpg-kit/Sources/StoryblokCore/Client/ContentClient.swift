@@ -65,10 +65,37 @@ public final class ContentClient: @unchecked Sendable {
         return PageDocument(story: story)
     }
 
+    /// One page of the feed, newest first.
+    public func feedPosts(page: Int = 1, perPage: Int = 24, refresh: Bool = false) async throws -> [FeedPost] {
+        let stories: [Story<PostBlok>] = try await stories(
+            startingWith: StorySlug.feedPrefix,
+            perPage: perPage,
+            page: page,
+            sortBy: "content.date:desc",
+            refresh: refresh
+        )
+        return stories.map(FeedPost.init(story:)).filter { !$0.blok.isEmpty }
+    }
+
+    /// Images, tracks and clips for the TV app and the widgets: the posts first,
+    /// then whatever the hand-built feed page still holds. Posts carry no video
+    /// yet, so the page is where clips come from for as long as it exists.
+    public func feedPool(refresh: Bool = false) async -> [FeedPool.Item] {
+        var items: [FeedPool.Item] = []
+        if let posts = try? await feedPosts(perPage: 50, refresh: refresh) {
+            items = FeedPool.items(in: posts)
+        }
+        if let page = try? await page(slug: StorySlug.feed, refresh: refresh) {
+            let seen = Set(items.map(\.id))
+            items += FeedPool.items(in: page.body).filter { !seen.contains($0.id) }
+        }
+        return items
+    }
+
     public func pageIndex(perPage: Int = 100, refresh: Bool = false) async throws -> [PageSummary] {
         let stories: [Story<StoryOverview>] = try await stories(
             startingWith: nil,
-            excludingSlugs: StorySlug.workPrefix + "*",
+            excludingSlugs: [StorySlug.workPrefix, StorySlug.feedPrefix].map { $0 + "*" }.joined(separator: ","),
             perPage: perPage,
             sortBy: "name:asc",
             refresh: refresh
@@ -158,12 +185,13 @@ public final class ContentClient: @unchecked Sendable {
         startingWith prefix: String?,
         excludingSlugs: String? = nil,
         perPage: Int,
+        page: Int = 1,
         sortBy: String?,
         refresh: Bool
     ) async throws -> [Story<Content>] {
         var queryItems = [
             URLQueryItem(name: "per_page", value: String(perPage)),
-            URLQueryItem(name: "page", value: "1"),
+            URLQueryItem(name: "page", value: String(max(page, 1))),
         ]
         if let prefix {
             queryItems.append(URLQueryItem(name: "starts_with", value: prefix))

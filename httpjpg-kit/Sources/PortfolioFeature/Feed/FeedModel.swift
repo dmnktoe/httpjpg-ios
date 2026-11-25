@@ -1,0 +1,61 @@
+import Observation
+import StoryblokCore
+
+@MainActor
+@Observable
+final class FeedModel {
+    enum LoadState: Equatable {
+        case idle
+        case loading
+        case loaded
+        case failed(String)
+    }
+
+    static let pageSize = 12
+
+    private let client: ContentClient
+
+    private(set) var posts: [FeedPost] = []
+    private(set) var state: LoadState = .idle
+    private(set) var isLoadingMore = false
+    private(set) var hasMore = false
+    private var page = 1
+
+    init(client: ContentClient) {
+        self.client = client
+    }
+
+    var isLoaded: Bool { state == .loaded }
+
+    func load(force: Bool = false) async {
+        guard state != .loading, force || !isLoaded else { return }
+        let hadPosts = !posts.isEmpty
+        if !hadPosts { state = .loading }
+        do {
+            let first = try await client.feedPosts(page: 1, perPage: Self.pageSize, refresh: force)
+            posts = first
+            page = 1
+            hasMore = first.count >= Self.pageSize
+            state = .loaded
+        } catch {
+            // A failed refresh keeps what is already on screen.
+            state = hadPosts ? .loaded : .failed(error.localizedDescription)
+        }
+    }
+
+    func loadMore() async {
+        guard isLoaded, hasMore, !isLoadingMore else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        guard let next = try? await client.feedPosts(page: page + 1, perPage: Self.pageSize) else { return }
+        page += 1
+        hasMore = next.count >= Self.pageSize
+        posts = Self.appending(next, to: posts)
+    }
+
+    /// A post published between two loads shifts the pages: skip what is already shown.
+    static func appending(_ next: [FeedPost], to current: [FeedPost]) -> [FeedPost] {
+        let seen = Set(current.map(\.id))
+        return current + next.filter { !seen.contains($0.id) }
+    }
+}

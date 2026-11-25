@@ -143,7 +143,10 @@ public enum StorySlug {
     public static let config = "config"
     public static let home = "home"
 
+    /// The hand-built feed page; read only until the first post exists.
     public static let feed = "feed-xml_html"
+    /// Folder of the feed posts.
+    public static let feedPrefix = "feed/"
     public static let workPrefix = "work/"
 
     public static func isDirectWork(_ fullSlug: String) -> Bool {

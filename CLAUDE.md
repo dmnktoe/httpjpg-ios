@@ -86,6 +86,17 @@ Steps 1–4 happen in the **web repo**; only step 5 is here:
 Then run `npm run check:bloks` (needs a checkout of the web repo — see the
 script header). CI runs it against the real schemas on every push.
 
+## Feed
+
+The feed is the `post` stories in Storyblok's `feed/` folder — photo dumps and tracks, published from this app's composer. The web repo owns the schema and the publishing routes; see its `AGENTS.md` ("Feed").
+
+- **Reading.** `ContentClient.feedPosts(page:)` → `[FeedPost]` (`PostBlok` with `PostImageBlok`s and at most one `MusicPlayerBlok`). `post` / `post_image` are not `PortfolioBlok` cases: they never sit in a page body, so `check:bloks` lists them as consciously unrendered.
+- **One pool for TV and widgets.** `ContentClient.feedPool()` is the only source: posts first, then what the hand-built `feed-xml_html` page still holds. Posts carry no video, so that page is where TV clips come from until posts learn video.
+- **Fit, not crop coordinates.** A post has one frame shape (`PostBlok.Format`) and each image a `fit`: `cover` fills, `contain` letterboxes in the page colour. A crop is applied here, on the device, before upload — readers never crop.
+- **Publishing.** `FeedPublishAPI` talks to the site only: `signUpload` → `upload` (straight to the signed storage URL) → `publish`. The publish token is the one secret; `FeedSession` checks it against `/api/feed/session` and keeps it in the keychain (`FeedTokenStore`). Nothing secret ships in the binary.
+- **Composer.** `ComposerModel` owns the draft; `CropGeometry` is the pure arithmetic (unit rects, so a crop survives a change of preview size); `CropScrollView` is the fixed frame with the photo panning underneath; `ImageExport` decides what bytes go up — the picked file untouched for a fitted JPEG/PNG/GIF/WebP, a JPEG otherwise.
+- A new field on `post` / `post_image` starts in the web repo's schema, then lands in `PostBlok` and the composer's `FeedPublishRequest`.
+
 ## Testing
 
 Tests live next to the code they cover, in `httpjpg-kit/Tests/`. The package

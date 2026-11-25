@@ -1,0 +1,60 @@
+import StoryblokCore
+import XCTest
+
+@testable import PortfolioFeature
+
+@MainActor
+final class FeedModelTests: XCTestCase {
+    private func makeModel() -> FeedModel {
+        FeedModel(
+            client: ContentClient(
+                configuration: StoryblokConfiguration(accessToken: "mock", source: .mock)
+            )
+        )
+    }
+
+    func testLoadingFetchesTheFirstPage() async {
+        let model = makeModel()
+        XCTAssertEqual(model.state, .idle)
+
+        await model.load()
+
+        XCTAssertEqual(model.state, .loaded)
+        XCTAssertEqual(model.posts.count, 4)
+        // Fewer than a page came back: there is nothing more to load.
+        XCTAssertFalse(model.hasMore)
+    }
+
+    func testALoadedFeedIsNotFetchedAgainUnlessForced() async {
+        let model = makeModel()
+        await model.load()
+        let ids = model.posts.map(\.id)
+
+        await model.load()
+        await model.load(force: true)
+
+        XCTAssertEqual(model.posts.map(\.id), ids)
+    }
+
+    func testAppendingSkipsPostsAlreadyShown() async throws {
+        let model = makeModel()
+        await model.load()
+        let posts = model.posts
+
+        let merged = FeedModel.appending(Array(posts.suffix(2)), to: Array(posts.prefix(3)))
+
+        XCTAssertEqual(merged.map(\.id), posts.map(\.id))
+    }
+
+    func testTheFeedTabIsARootAndReselectingItScrollsToTheTop() {
+        let app = AppModel(configuration: StoryblokConfiguration(accessToken: "test-token"))
+
+        app.select(tab: .feed)
+        XCTAssertEqual(app.selectedTab, .feed)
+        XCTAssertTrue(app.isAtNavigationRoot)
+        XCTAssertEqual(app.scrollToTopTick(for: .feed), 0)
+
+        app.select(tab: .feed)
+        XCTAssertEqual(app.scrollToTopTick(for: .feed), 1)
+    }
+}
