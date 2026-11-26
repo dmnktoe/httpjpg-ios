@@ -104,6 +104,9 @@ struct ComposerScreen: View {
             }
             .font(Typography.mono(Typography.Size.sm))
             .tint(theme.foreground)
+
+            MonoText(Self.hint(for: selected.mode), size: Typography.Size.xs, opacity: Opacities.muted)
+                .fixedSize(horizontal: false, vertical: true)
         }
 
         PhotosPicker(
@@ -120,6 +123,12 @@ struct ComposerScreen: View {
     }
 
     private func editor(_ image: ComposerImage, model: ComposerModel) -> some View {
+        Color.clear
+            .aspectRatio(Self.stageAspectRatio, contentMode: .fit)
+            .overlay { frame(image, model: model) }
+    }
+
+    private func frame(_ image: ComposerImage, model: ComposerModel) -> some View {
         Color.clear
             .aspectRatio(model.frameAspectRatio, contentMode: .fit)
             .overlay {
@@ -259,6 +268,17 @@ struct ComposerScreen: View {
             } else if model.tokenWasRefused {
                 onTokenRefused()
             }
+        }
+    }
+
+    private static let stageAspectRatio: CGFloat = 4.0 / 5.0
+
+    private static func hint(for mode: ComposerImage.Mode) -> String {
+        switch mode {
+        case .crop:
+            return "crop — the photo fills the frame. drag and pinch to choose the part that stays."
+        case .fit:
+            return "fit — the whole photo, nothing cut off. the bars take the page colour."
         }
     }
 

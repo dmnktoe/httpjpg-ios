@@ -56,4 +56,16 @@ final class FeedModelTests: XCTestCase {
         app.select(tab: .feed)
         XCTAssertEqual(app.scrollToTopTick(for: .feed), 1)
     }
+
+    func testReselectingTheFeedTabFromAPostReturnsToTheFeed() {
+        let app = AppModel(configuration: StoryblokConfiguration(accessToken: "test-token"))
+        app.select(tab: .feed)
+        app.feedPath = [FeedRoute(id: "post-1")]
+        XCTAssertFalse(app.isAtNavigationRoot)
+
+        app.select(tab: .feed)
+
+        XCTAssertTrue(app.feedPath.isEmpty)
+        XCTAssertEqual(app.scrollToTopTick(for: .feed), 0)
+    }
 }

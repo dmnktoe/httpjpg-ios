@@ -53,7 +53,37 @@ public struct PostBlok: Decodable, Identifiable {
         return day
     }
 
+    public var postedAt: Date? {
+        guard let date, date.count >= 10 else { return nil }
+        let day = String(date.prefix(10))
+        let time = date.count >= 16 ? String(date.dropFirst(11).prefix(5)) : "00:00"
+        return Self.dateParser.date(from: "\(day) \(time)")
+    }
+
+    public func relativeDateLabel(now: Date = Date()) -> String? {
+        guard let postedAt else { return nil }
+        let elapsed = now.timeIntervalSince(postedAt)
+        guard elapsed >= 0, elapsed < Self.relativeWindow else { return nil }
+        let minutes = Int(elapsed / 60)
+        if minutes < 1 { return "just now" }
+        if minutes < 60 { return "\(minutes) min ago" }
+        let hours = minutes / 60
+        if hours < 24 { return "\(hours) h ago" }
+        let days = hours / 24
+        return days == 1 ? "yesterday" : "\(days) days ago"
+    }
+
     public var isEmpty: Bool {
         images.isEmpty && music == nil
     }
+
+    private static let relativeWindow: TimeInterval = 5 * 24 * 60 * 60
+
+    private static let dateParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter
+    }()
 }

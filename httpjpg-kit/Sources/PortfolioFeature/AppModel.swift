@@ -45,6 +45,8 @@ public final class AppModel {
 
     public var infoPath: [PageRoute] = []
 
+    public var feedPath: [FeedRoute] = []
+
     public var isSidebarOpen = false {
         didSet {
             guard isSidebarOpen, !oldValue else { return }
@@ -254,7 +256,7 @@ public final class AppModel {
     var isAtNavigationRoot: Bool {
         switch selectedTab {
         case .work: return workPath.isEmpty
-        case .feed: return true
+        case .feed: return feedPath.isEmpty
         case .info: return infoPath.isEmpty
         }
     }
@@ -285,7 +287,11 @@ public final class AppModel {
                 workPath.removeAll()
             }
         case .feed:
-            scrollToTopTicks[.feed, default: 0] += 1
+            if feedPath.isEmpty {
+                scrollToTopTicks[.feed, default: 0] += 1
+            } else {
+                feedPath.removeAll()
+            }
         case .info:
             if infoPath.isEmpty {
                 scrollToTopTicks[.info, default: 0] += 1

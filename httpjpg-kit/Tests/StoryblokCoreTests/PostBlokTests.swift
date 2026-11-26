@@ -94,6 +94,27 @@ final class PostBlokTests: XCTestCase {
         XCTAssertNil(post.dateLabel)
     }
 
+    func testARecentPostTellsItsAgeAndAnOlderOneItsDate() throws {
+        let post = try decode(#"{"component": "post", "date": "2026-11-25 10:00"}"#)
+        let posted = try XCTUnwrap(post.postedAt)
+        XCTAssertEqual(posted.timeIntervalSince1970, 1_795_600_800, accuracy: 0.5)
+
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(30)), "just now")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(5 * 60)), "5 min ago")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(3 * 3600)), "3 h ago")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(25 * 3600)), "yesterday")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(4 * 86400 + 3600)), "4 days ago")
+        XCTAssertNil(post.relativeDateLabel(now: posted.addingTimeInterval(5 * 86400)))
+        XCTAssertNil(post.relativeDateLabel(now: posted.addingTimeInterval(-60)))
+    }
+
+    func testAPostWithoutAReadableDateHasNoAge() throws {
+        let post = try decode(#"{"component": "post", "date": "soon, maybe"}"#)
+
+        XCTAssertNil(post.postedAt)
+        XCTAssertNil(post.relativeDateLabel())
+    }
+
     func testTheFeedComesFromTheFixturesNewestFirst() async throws {
         let posts = try await client.feedPosts()
 

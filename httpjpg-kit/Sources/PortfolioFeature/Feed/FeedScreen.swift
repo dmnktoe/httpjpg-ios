@@ -11,15 +11,35 @@ struct FeedScreen: View {
     @State private var isSigningIn = false
     @State private var composesAfterSignIn = false
     @State private var composer: ComposerLaunch?
+    @AppStorage("feed.layout") private var layoutName = FeedLayout.list.rawValue
+    @Namespace private var zoom
+
+    private static let gridSpacing: CGFloat = 2
+
+    private var layout: FeedLayout {
+        FeedLayout(rawValue: layoutName) ?? .list
+    }
+
+    private var gridColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: Self.gridSpacing), count: 3)
+    }
 
     var body: some View {
-        NavigationStack {
+        @Bindable var app = app
+        return NavigationStack(path: $app.feedPath) {
             content(app.feed)
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .sidebarMenuToolbar()
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button(action: toggleLayout) {
+                            Image(systemName: layout == .list ? "square.grid.3x3" : "rectangle.grid.1x2")
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .toolbarGlassButton(nil, fallback: .control(theme))
+                        .accessibilityLabel(layout == .list ? "Show as grid" : "Show as list")
+
                         Button(action: compose) {
                             Image(systemName: "plus")
                         }
@@ -27,6 +47,10 @@ struct FeedScreen: View {
                         .accessibilityLabel("New post")
                         .accessibilityHint(app.feedSession.isSignedIn ? "" : "Asks for the publish token first")
                     }
+                }
+                .navigationDestination(for: FeedRoute.self) { route in
+                    FeedPostScreen(route: route)
+                        .feedZoomDestination(id: route.id, in: zoom)
                 }
         }
         .sheet(isPresented: $isSigningIn, onDismiss: openComposerAfterSignIn) {
@@ -68,13 +92,20 @@ struct FeedScreen: View {
     private func list(_ model: FeedModel) -> some View {
         ScrollToTopReader(tick: app.scrollToTopTick(for: .feed)) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.s10) {
+                VStack(alignment: .leading, spacing: Spacing.s6) {
                     if model.posts.isEmpty {
                         AsciiState(art: Ascii.empty, label: "Nothing here yet")
                             .frame(minHeight: 240)
                     } else {
-                        ForEach(model.posts) { post in
-                            FeedPostView(post: post)
+                        switch layout {
+                        case .list:
+                            LazyVStack(alignment: .leading, spacing: Spacing.s10) {
+                                ForEach(model.posts) { post in
+                                    FeedPostView(post: post)
+                                }
+                            }
+                        case .grid:
+                            grid(model)
                         }
                         if model.hasMore {
                             loadMore(model)
@@ -85,9 +116,28 @@ struct FeedScreen: View {
                 .padding(.bottom, bottomBarClearance)
                 .scrollToTopAnchor()
             }
-            .softScrollEdges()
+            .hiddenScrollEdges(.top)
             .refreshable { await model.load(force: true) }
         }
+    }
+
+    private func grid(_ model: FeedModel) -> some View {
+        LazyVGrid(columns: gridColumns, spacing: Self.gridSpacing) {
+            ForEach(model.posts) { post in
+                NavigationLink(value: FeedRoute(id: post.id)) {
+                    FeedGridCell(post: post)
+                }
+                .buttonStyle(.plain)
+                .feedZoomSource(id: post.id, in: zoom)
+            }
+        }
+    }
+
+    private func toggleLayout() {
+        withAnimation(Motion.stateChange) {
+            layoutName = (layout == .list ? FeedLayout.grid : FeedLayout.list).rawValue
+        }
+        Telemetry.signal("feed.layout.changed", parameters: ["layout": layoutName])
     }
 
     private func loadMore(_ model: FeedModel) -> some View {
@@ -117,6 +167,11 @@ struct FeedScreen: View {
         composesAfterSignIn = false
         compose()
     }
+}
+
+private enum FeedLayout: String {
+    case list
+    case grid
 }
 
 private struct ComposerLaunch: Identifiable {

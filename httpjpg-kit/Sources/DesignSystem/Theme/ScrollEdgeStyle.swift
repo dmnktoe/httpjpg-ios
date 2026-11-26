@@ -9,6 +9,22 @@ public extension View {
         modifier(ScrollEdges(style: .hard, edges: .top))
             .modifier(ScrollEdges(style: .soft, edges: .bottom))
     }
+
+    func hiddenScrollEdges(_ edges: Edge.Set = .all) -> some View {
+        modifier(HiddenScrollEdges(edges: edges))
+    }
+}
+
+private struct HiddenScrollEdges: ViewModifier {
+    let edges: Edge.Set
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.scrollEdgeEffectHidden(true, for: edges)
+        } else {
+            content
+        }
+    }
 }
 
 private struct ScrollEdges: ViewModifier {

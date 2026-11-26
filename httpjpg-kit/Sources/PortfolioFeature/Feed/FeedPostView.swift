@@ -14,12 +14,17 @@ struct FeedPostView: View {
     @State private var index = 0
     @State private var isZoomed = false
 
+    private static let dotSize: CGFloat = 6
+
     private var images: [PostImageBlok] { post.blok.images }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
             if !images.isEmpty {
                 frame
+            }
+            if images.count > 1 {
+                dots
             }
             if let music = post.blok.music {
                 SbMusicPlayerView(blok: music)
@@ -30,7 +35,7 @@ struct FeedPostView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, PageLayout.gutter)
             }
-            if let date = post.blok.dateLabel {
+            if let date = post.blok.relativeDateLabel() ?? post.blok.dateLabel {
                 MonoText(date, size: Typography.Size.xs, opacity: Opacities.muted)
                     .padding(.horizontal, PageLayout.gutter)
             }
@@ -48,7 +53,7 @@ struct FeedPostView: View {
         .tabViewStyle(.page(indexDisplayMode: .never))
         .aspectRatio(post.blok.aspectRatio, contentMode: .fit)
         .background(theme.background)
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             if images.count > 1 {
                 counter
             }
@@ -71,6 +76,19 @@ struct FeedPostView: View {
             accessibilityText: image.accessibilityText,
             animated: image.image?.isGIF ?? false
         )
+    }
+
+    private var dots: some View {
+        HStack(spacing: Spacing.s1) {
+            ForEach(images.indices, id: \.self) { offset in
+                Circle()
+                    .fill(theme.foreground.opacity(offset == index ? 1 : 0.25))
+                    .frame(width: Self.dotSize, height: Self.dotSize)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(Motion.stateChange, value: index)
+        .accessibilityHidden(true)
     }
 
     private var counter: some View {
