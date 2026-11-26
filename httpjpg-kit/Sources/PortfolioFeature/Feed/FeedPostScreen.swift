@@ -12,6 +12,7 @@ struct FeedPostScreen: View {
 
     @State private var isEditing = false
     @State private var isConfirmingDelete = false
+    @State private var isDeleting = false
     @State private var failure: String?
 
     private var post: FeedPost? {
@@ -38,15 +39,19 @@ struct FeedPostScreen: View {
                     } label: {
                         Image(systemName: "ellipsis")
                     }
+                    .disabled(isDeleting)
                     .accessibilityLabel("Post options")
                 }
             }
         }
         .sheet(isPresented: $isEditing) {
             if let post, let api = app.feedSession.api {
-                FeedPostEditSheet(post: post, api: api) {
-                    await app.feed.load(force: true)
-                }
+                FeedPostEditSheet(
+                    post: post,
+                    api: api,
+                    onSaved: { caption in app.feed.replace(post.with(blok: post.blok.with(caption: caption))) },
+                    onTokenRefused: { app.feedSession.signOut() }
+                )
             }
         }
         .confirmationDialog("delete this post?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
@@ -67,12 +72,17 @@ struct FeedPostScreen: View {
     }
 
     private func delete() {
-        guard let post, let api = app.feedSession.api else { return }
+        guard !isDeleting, let post, let api = app.feedSession.api else { return }
+        isDeleting = true
         Task {
+            defer { isDeleting = false }
             do {
                 try await api.delete(slug: post.slug)
-                await app.feed.load(force: true)
+                app.feed.remove(id: post.id)
                 dismiss()
+            } catch FeedPublishError.unauthorized {
+                app.feedSession.signOut()
+                failure = "This device's token no longer opens the feed. Sign in again."
             } catch {
                 failure = error.localizedDescription
             }

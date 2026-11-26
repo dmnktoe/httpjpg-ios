@@ -152,6 +152,10 @@ final class ComposerModel {
         images[index].cropRect = rect
     }
 
+    func reportPickFailure(_ message: String) {
+        phase = .failed(message)
+    }
+
     func dismissFailure() {
         if case .failed = phase { phase = .editing }
     }
@@ -195,12 +199,12 @@ final class ComposerModel {
 
         for (offset, image) in images.enumerated() {
             guard let file = Self.file(for: image, aspectRatio: aspectRatio) else {
-                throw FeedPublishError.rejected("Photo \(offset + 1) could not be prepared.")
+                throw FeedPublishError.rejected("File \(offset + 1) could not be prepared.")
             }
             let filename = "post-\(offset + 1).\(file.fileExtension)"
             let signed = try await api.signUpload(
                 filename: filename,
-                pixelSize: image.isVideo ? nil : file.pixelSize
+                pixelSize: image.isVideo ? image.preview.size : file.pixelSize
             )
             try await api.upload(file.data, filename: filename, contentType: file.contentType, to: signed)
             uploaded.append(

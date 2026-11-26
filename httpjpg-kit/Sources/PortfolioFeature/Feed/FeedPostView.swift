@@ -51,7 +51,7 @@ struct FeedPostView: View {
     private var frame: some View {
         TabView(selection: $index) {
             ForEach(Array(images.enumerated()), id: \.element.id) { offset, image in
-                slide(image)
+                slide(image, isShown: offset == index)
                     .tag(offset)
             }
         }
@@ -78,9 +78,15 @@ struct FeedPostView: View {
     }
 
     @ViewBuilder
-    private func slide(_ image: PostImageBlok) -> some View {
+    private func slide(_ image: PostImageBlok, isShown: Bool) -> some View {
         if let videoURL = image.videoURL {
-            LoopingVideoPlayer(url: videoURL, aspectRatio: post.blok.aspectRatio)
+            LoopingVideoPlayer(
+                url: videoURL,
+                aspectRatio: post.blok.aspectRatio,
+                isActive: isShown,
+                fills: image.fit == .cover,
+                background: theme.background
+            )
         } else {
             RemoteImage(
                 url: frameURL(image),

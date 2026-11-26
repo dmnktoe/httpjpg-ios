@@ -14,6 +14,10 @@ public struct FeedPost: Identifiable {
         self.blok = blok
     }
 
+    public func with(blok next: PostBlok) -> FeedPost {
+        FeedPost(id: id, slug: slug, fullSlug: fullSlug, blok: next)
+    }
+
     init(story: Story<PostBlok>) {
         self.init(
             id: story.uuid.uuidString,

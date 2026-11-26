@@ -6,7 +6,8 @@ import Tokens
 struct FeedPostEditSheet: View {
     let post: FeedPost
     let api: FeedPublishAPI
-    let onSaved: () async -> Void
+    let onSaved: (String) -> Void
+    let onTokenRefused: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.pageTheme) private var theme
@@ -17,10 +18,16 @@ struct FeedPostEditSheet: View {
 
     private static let editorHeight: CGFloat = 160
 
-    init(post: FeedPost, api: FeedPublishAPI, onSaved: @escaping () async -> Void) {
+    init(
+        post: FeedPost,
+        api: FeedPublishAPI,
+        onSaved: @escaping (String) -> Void,
+        onTokenRefused: @escaping () -> Void
+    ) {
         self.post = post
         self.api = api
         self.onSaved = onSaved
+        self.onTokenRefused = onTokenRefused
         _caption = State(initialValue: post.blok.caption ?? "")
     }
 
@@ -69,8 +76,11 @@ struct FeedPostEditSheet: View {
         message = nil
         Task {
             do {
-                _ = try await api.update(slug: post.slug, FeedEditRequest(post: post.blok, caption: caption))
-                await onSaved()
+                _ = try await api.update(slug: post.slug, FeedEditRequest(caption: caption))
+                onSaved(caption)
+                dismiss()
+            } catch FeedPublishError.unauthorized {
+                onTokenRefused()
                 dismiss()
             } catch {
                 message = error.localizedDescription

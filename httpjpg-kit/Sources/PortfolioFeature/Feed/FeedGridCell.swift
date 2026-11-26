@@ -34,9 +34,7 @@ struct FeedGridCell: View {
     }
 
     private var badge: String? {
-        if post.blok.images.count > 1 { return "square.on.square.fill" }
-        if post.blok.images.first?.videoURL != nil { return "play.fill" }
-        return nil
+        post.blok.images.count > 1 ? "square.on.square.fill" : nil
     }
 
     @ViewBuilder

@@ -59,7 +59,7 @@ final class PostBlokTests: XCTestCase {
         XCTAssertEqual(post.aspectRatio, 2592.0 / 1944.0, accuracy: 0.0001)
     }
 
-    func testImagesWithoutAFileAndVideosAreDropped() throws {
+    func testImagesWithoutAFileAreDroppedAndVideosKept() throws {
         let post = try decode(
             """
             {"component": "post",
@@ -71,8 +71,39 @@ final class PostBlokTests: XCTestCase {
             """
         )
 
-        XCTAssertTrue(post.images.isEmpty)
-        XCTAssertTrue(post.isEmpty)
+        XCTAssertEqual(post.images.count, 1)
+        XCTAssertNotNil(post.images.first?.videoURL)
+        XCTAssertFalse(post.isEmpty)
+    }
+
+    func testAnOriginalPostTakesItsShapeFromAVideoToo() throws {
+        let post = try decode(
+            """
+            {"component": "post", "format": "original",
+             "images": [{"component": "post_image", "image": {"filename": "https://a.storyblok.com/f/1/1080x1920/abc/clip.mp4"}}]}
+            """
+        )
+
+        XCTAssertEqual(post.aspectRatio, 1080.0 / 1920.0, accuracy: 0.0001)
+    }
+
+    func testANewCaptionKeepsEverythingElse() throws {
+        let post = try decode(
+            """
+            {"_uid": "p1", "component": "post", "caption": "old", "date": "2026-11-25 10:00", "format": "4/5",
+             "images": [{"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}]}
+            """
+        )
+
+        let renamed = post.with(caption: "  new words  ")
+        let cleared = post.with(caption: "   ")
+
+        XCTAssertEqual(renamed.caption, "new words")
+        XCTAssertNil(cleared.caption)
+        XCTAssertEqual(renamed.id, "p1")
+        XCTAssertEqual(renamed.date, "2026-11-25 10:00")
+        XCTAssertEqual(renamed.format, .portrait)
+        XCTAssertEqual(renamed.images.map(\.id), ["i1"])
     }
 
     func testAMusicPostCarriesItsTrack() throws {

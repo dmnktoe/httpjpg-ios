@@ -29,9 +29,37 @@ public struct PostBlok: Decodable, Identifiable {
         date = container.cmsString(forKey: .date)
         format = container.cmsString(forKey: .format).flatMap(Format.init(rawValue:)) ?? .square
         images = container.cmsArray(PostImageBlok.self, forKey: .images)
-            .filter { $0.filename != nil }
+            .filter { $0.filename != nil || $0.videoURL != nil }
         music = container.cmsArray(MusicPlayerBlok.self, forKey: .music)
             .first { $0.sourceURL != nil }
+    }
+
+    init(
+        id: String,
+        caption: String?,
+        date: String?,
+        format: Format,
+        images: [PostImageBlok],
+        music: MusicPlayerBlok?
+    ) {
+        self.id = id
+        self.caption = caption
+        self.date = date
+        self.format = format
+        self.images = images
+        self.music = music
+    }
+
+    public func with(caption next: String) -> PostBlok {
+        let trimmed = next.trimmingCharacters(in: .whitespacesAndNewlines)
+        return PostBlok(
+            id: id,
+            caption: trimmed.isEmpty ? nil : trimmed,
+            date: date,
+            format: format,
+            images: images,
+            music: music
+        )
     }
 
     public var aspectRatio: CGFloat {
@@ -41,7 +69,8 @@ public struct PostBlok: Decodable, Identifiable {
         case .portrait:
             return 4.0 / 5.0
         case .original:
-            return ImageService.aspectRatio(of: images.first?.filename) ?? 1
+            let first = images.first?.filename ?? images.first?.videoURL?.absoluteString
+            return ImageService.aspectRatio(of: first) ?? 1
         }
     }
 

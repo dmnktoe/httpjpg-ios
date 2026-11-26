@@ -24,6 +24,23 @@ final class FeedModelTests: XCTestCase {
         XCTAssertFalse(model.hasMore)
     }
 
+    func testAPostIsChangedAndDroppedInPlace() async throws {
+        let model = makeModel()
+        await model.load()
+        let first = try XCTUnwrap(model.posts.first)
+
+        model.replace(first.with(blok: first.blok.with(caption: "edited")))
+        XCTAssertEqual(model.posts.first?.blok.caption, "edited")
+        XCTAssertEqual(model.posts.count, 4)
+
+        model.remove(id: first.id)
+        XCTAssertEqual(model.posts.count, 3)
+        XCTAssertFalse(model.posts.contains { $0.id == first.id })
+
+        model.replace(first)
+        XCTAssertEqual(model.posts.count, 3)
+    }
+
     func testALoadedFeedIsNotFetchedAgainUnlessForced() async {
         let model = makeModel()
         await model.load()

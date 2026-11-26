@@ -96,11 +96,11 @@ struct ComposerScreen: View {
                 )
                 Spacer(minLength: 0)
                 Button("[ ← ]") { model.moveSelected(by: -1) }
-                    .accessibilityLabel("Move photo earlier")
+                    .accessibilityLabel("Move file earlier")
                 Button("[ → ]") { model.moveSelected(by: 1) }
-                    .accessibilityLabel("Move photo later")
+                    .accessibilityLabel("Move file later")
                 Button("[ × ]") { model.remove(selected.id) }
-                    .accessibilityLabel("Remove photo")
+                    .accessibilityLabel("Remove file")
             }
             .font(Typography.mono(Typography.Size.sm))
             .tint(theme.foreground)
@@ -173,21 +173,40 @@ struct ComposerScreen: View {
         isLoadingPhotos = true
         Task {
             var picked: [ComposerModel.Picked] = []
+            var unreadableVideos = 0
             for item in items {
                 if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
-                    if let movie = try? await item.loadTransferable(type: PickedMovie.self),
-                       let clip = try? await VideoExport.shareable(from: movie.url),
-                       let preview = await VideoExport.thumbnail(for: clip) {
-                        picked.append(.video(clip, preview: preview))
+                    if let clip = await Self.loadClip(item) {
+                        picked.append(clip)
+                    } else {
+                        unreadableVideos += 1
                     }
                 } else if let data = try? await item.loadTransferable(type: Data.self) {
                     picked.append(.photo(data))
                 }
             }
             model.add(media: picked)
+            if unreadableVideos > 0 {
+                model.reportPickFailure(
+                    unreadableVideos == 1
+                        ? "A video could not be prepared, so it was left out."
+                        : "\(unreadableVideos) videos could not be prepared, so they were left out."
+                )
+            }
             pickerItems = []
             isLoadingPhotos = false
         }
+    }
+
+    private static func loadClip(_ item: PhotosPickerItem) async -> ComposerModel.Picked? {
+        guard let movie = try? await item.loadTransferable(type: PickedMovie.self),
+              let clip = try? await VideoExport.shareable(from: movie.url)
+        else { return nil }
+        guard let preview = await VideoExport.thumbnail(for: clip) else {
+            try? FileManager.default.removeItem(at: clip)
+            return nil
+        }
+        return .video(clip, preview: preview)
     }
 
     @ViewBuilder
