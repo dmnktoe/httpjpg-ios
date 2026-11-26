@@ -155,6 +155,70 @@ final class PostBlokTests: XCTestCase {
         XCTAssertTrue(pool.contains { if case .video = $0.kind { return true }; return false })
     }
 
+    func testAVideoInAPostIsAVideoAndNoImage() throws {
+        let post = try decode(
+            """
+            {"component": "post", "format": "1/1",
+             "images": [
+               {"_uid": "v1", "component": "post_image", "image": {"filename": "https://a.storyblok.com/f/281211/x/abc123/clip.mp4"}},
+               {"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}
+             ]}
+            """
+        )
+
+        XCTAssertEqual(post.images[0].videoURL?.lastPathComponent, "clip.mp4")
+        XCTAssertNil(post.images[0].filename)
+        XCTAssertNil(post.images[1].videoURL)
+        XCTAssertEqual(post.images[1].filename, asset)
+    }
+
+    func testAPostVideoJoinsThePoolAsAClip() throws {
+        let post = try decode(
+            """
+            {"_uid": "p1", "component": "post", "caption": "harbour, moving",
+             "images": [
+               {"_uid": "v1", "component": "post_image", "image": {"filename": "https://a.storyblok.com/f/281211/x/abc123/clip.mp4"}},
+               {"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}
+             ]}
+            """
+        )
+        let items = FeedPool.items(in: [FeedPost(id: "p1", slug: "a", fullSlug: "feed/a", blok: post)])
+
+        XCTAssertEqual(items.count, 2)
+        guard case .video(let poster, let caption, let url) = items[0].kind else {
+            return XCTFail("the video should be a clip")
+        }
+        XCTAssertNil(poster)
+        XCTAssertEqual(caption, "harbour, moving")
+        XCTAssertEqual(url?.lastPathComponent, "clip.mp4")
+        XCTAssertEqual(items[1].kind, .image(filename: asset))
+    }
+
+    func testThePoolKnowsAnItemByWhatItShows() {
+        let stream = URL(string: "https://cdn.test/mix.wav")!
+        let track = AudioTrack(id: "a", title: "mix", artist: nil, streamURL: stream, artworkURL: nil)
+        let sameTrack = AudioTrack(id: "b", title: "mix", artist: "me", streamURL: stream, artworkURL: nil)
+        let listen = URL(string: "https://soundcloud.com/x")!
+
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .image(filename: asset)).source, asset)
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: track, listenURL: nil)).source,
+            FeedPool.Item(id: "2", kind: .music(title: "mix", artist: "me", artworkURL: "x", track: sameTrack, listenURL: nil)).source
+        )
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: nil, listenURL: listen)).source,
+            listen.absoluteString
+        )
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: nil, listenURL: nil)).source,
+            "mix"
+        )
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: nil, caption: nil, url: stream)).source, stream.absoluteString)
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: "p.jpg", caption: "c", url: nil)).source, "p.jpg")
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: nil, caption: "c", url: nil)).source, "c")
+        XCTAssertEqual(FeedPool.Item(id: "7", kind: .video(poster: nil, caption: nil, url: nil)).source, "7")
+    }
+
     private func decode(_ json: String) throws -> PostBlok {
         try JSONDecoder().decode(PostBlok.self, from: Data(json.utf8))
     }

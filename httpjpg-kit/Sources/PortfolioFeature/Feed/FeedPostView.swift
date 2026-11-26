@@ -7,6 +7,7 @@ import Tokens
 struct FeedPostView: View {
     let post: FeedPost
 
+    @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
@@ -20,6 +21,9 @@ struct FeedPostView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
+            if let author = app.config.authorName {
+                FeedPostHeader(name: author, avatarURL: app.config.authorAvatarURL)
+            }
             if !images.isEmpty {
                 frame
             }
@@ -29,6 +33,7 @@ struct FeedPostView: View {
             if let music = post.blok.music {
                 SbMusicPlayerView(blok: music)
             }
+            FeedPostActions()
             if let caption = post.blok.caption, !caption.isEmpty {
                 Text(caption)
                     .font(Typography.sans(Typography.Size.md))
@@ -58,7 +63,11 @@ struct FeedPostView: View {
                 counter
             }
         }
-        .onTapGesture { isZoomed = true }
+        .onTapGesture {
+            if images[min(index, images.count - 1)].videoURL == nil {
+                isZoomed = true
+            }
+        }
         .fullScreenCover(isPresented: $isZoomed) {
             ImageZoomViewer(
                 url: fullURL(images[min(index, images.count - 1)]),
@@ -68,14 +77,19 @@ struct FeedPostView: View {
         }
     }
 
+    @ViewBuilder
     private func slide(_ image: PostImageBlok) -> some View {
-        RemoteImage(
-            url: frameURL(image),
-            aspectRatio: post.blok.aspectRatio,
-            contentMode: image.fit == .contain ? .fit : .fill,
-            accessibilityText: image.accessibilityText,
-            animated: image.image?.isGIF ?? false
-        )
+        if let videoURL = image.videoURL {
+            LoopingVideoPlayer(url: videoURL, aspectRatio: post.blok.aspectRatio)
+        } else {
+            RemoteImage(
+                url: frameURL(image),
+                aspectRatio: post.blok.aspectRatio,
+                contentMode: image.fit == .contain ? .fit : .fill,
+                accessibilityText: image.accessibilityText,
+                animated: image.image?.isGIF ?? false
+            )
+        }
     }
 
     private var dots: some View {

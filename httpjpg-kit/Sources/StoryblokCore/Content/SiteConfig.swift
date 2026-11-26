@@ -8,6 +8,7 @@ public struct SiteConfig: Decodable, Sendable {
     public let seoDescription: String?
     public let authorName: String?
     public let authorURL: String?
+    public let authorAvatar: StoryblokAsset?
     public let widgets: WidgetFlags
     public let features: FeatureFlags
 
@@ -19,6 +20,7 @@ public struct SiteConfig: Decodable, Sendable {
         case seoDescription = "seo_description"
         case authorName = "author_name"
         case authorURL = "author_url"
+        case authorAvatar = "author_avatar"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -30,6 +32,7 @@ public struct SiteConfig: Decodable, Sendable {
         seoDescription = container.cmsString(forKey: .seoDescription)
         authorName = container.cmsString(forKey: .authorName)
         authorURL = container.cmsString(forKey: .authorURL)
+        authorAvatar = container.cmsValue(StoryblokAsset.self, forKey: .authorAvatar)
 
         widgets = try WidgetFlags(from: decoder)
         features = try FeatureFlags(from: decoder)
@@ -58,6 +61,7 @@ public struct SiteConfig: Decodable, Sendable {
         seoDescription: String?,
         authorName: String?,
         authorURL: String?,
+        authorAvatar: StoryblokAsset? = nil,
         widgets: WidgetFlags = .allOff,
         features: FeatureFlags = .defaults
     ) {
@@ -68,6 +72,7 @@ public struct SiteConfig: Decodable, Sendable {
         self.seoDescription = seoDescription
         self.authorName = authorName
         self.authorURL = authorURL
+        self.authorAvatar = authorAvatar
         self.widgets = widgets
         self.features = features
     }
@@ -76,6 +81,11 @@ public struct SiteConfig: Decodable, Sendable {
 
     public var displayName: String {
         siteName ?? seoTitle ?? Self.fallbackName
+    }
+
+    public var authorAvatarURL: URL? {
+        guard let authorAvatar, !authorAvatar.isEmpty, !authorAvatar.isVideo else { return nil }
+        return URL(string: ImageService.processed(authorAvatar.filename, crop: "192x192/smart"))
     }
 
     public var defaultPageTitle: String {

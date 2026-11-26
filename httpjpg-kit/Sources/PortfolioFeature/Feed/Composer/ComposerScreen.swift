@@ -105,7 +105,11 @@ struct ComposerScreen: View {
             .font(Typography.mono(Typography.Size.sm))
             .tint(theme.foreground)
 
-            MonoText(Self.hint(for: selected.mode), size: Typography.Size.xs, opacity: Opacities.muted)
+            MonoText(
+                Self.hint(for: selected.mode, isVideo: selected.isVideo),
+                size: Typography.Size.xs,
+                opacity: Opacities.muted
+            )
                 .fixedSize(horizontal: false, vertical: true)
         }
 
@@ -113,9 +117,9 @@ struct ComposerScreen: View {
             selection: $pickerItems,
             maxSelectionCount: max(model.remainingImages, 1),
             selectionBehavior: .ordered,
-            matching: .images
+            matching: .any(of: [.images, .videos])
         ) {
-            Text(isLoadingPhotos ? "loading …" : (model.images.isEmpty ? "choose photos" : "add photos"))
+            Text(isLoadingPhotos ? "loading …" : (model.images.isEmpty ? "choose photos or videos" : "add more"))
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.brutal(variant: model.images.isEmpty ? .primary : .secondary))
@@ -132,37 +136,55 @@ struct ComposerScreen: View {
         Color.clear
             .aspectRatio(model.frameAspectRatio, contentMode: .fit)
             .overlay {
-                switch image.mode {
-                case .crop:
-                    CropScrollView(
+                if image.isVideo {
+                    Image(uiImage: image.preview)
+                        .resizable()
+                        .aspectRatio(contentMode: image.mode == .fit ? .fit : .fill)
+                        .overlay {
+                            Image(systemName: "play.fill")
+                                .font(Typography.sans(Typography.Size.xl))
+                                .foregroundStyle(Palette.white)
+                                .shadow(color: Palette.black.opacity(0.4), radius: 2)
+                        }
+                } else {
+                    switch image.mode {
+                    case .crop:
+                        CropScrollView(
                         image: image.preview,
                         imageID: image.id,
                         unitRect: image.cropRect,
                         onChange: { model.setCrop($0, for: image.id) }
                     )
                     .id("\(image.id.uuidString)-\(model.cropGeneration)")
-                case .fit:
-                    Image(uiImage: image.preview)
-                        .resizable()
-                        .scaledToFit()
+                    case .fit:
+                        Image(uiImage: image.preview)
+                            .resizable()
+                            .scaledToFit()
+                    }
                 }
             }
             .background(theme.background)
             .overlay(Rectangle().stroke(theme.border, lineWidth: 1))
             .clipped()
-            .accessibilityLabel(image.mode == .crop ? "Crop editor" : "Fitted photo")
+            .accessibilityLabel(image.isVideo ? "Video" : (image.mode == .crop ? "Crop editor" : "Fitted photo"))
     }
 
     private func loadPhotos(_ items: [PhotosPickerItem]) {
         isLoadingPhotos = true
         Task {
-            var picked: [Data] = []
+            var picked: [ComposerModel.Picked] = []
             for item in items {
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    picked.append(data)
+                if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+                    if let movie = try? await item.loadTransferable(type: PickedMovie.self),
+                       let clip = try? await VideoExport.shareable(from: movie.url),
+                       let preview = await VideoExport.thumbnail(for: clip) {
+                        picked.append(.video(clip, preview: preview))
+                    }
+                } else if let data = try? await item.loadTransferable(type: Data.self) {
+                    picked.append(.photo(data))
                 }
             }
-            model.add(picked)
+            model.add(media: picked)
             pickerItems = []
             isLoadingPhotos = false
         }
@@ -273,12 +295,16 @@ struct ComposerScreen: View {
 
     private static let stageAspectRatio: CGFloat = 4.0 / 5.0
 
-    private static func hint(for mode: ComposerImage.Mode) -> String {
-        switch mode {
-        case .crop:
+    private static func hint(for mode: ComposerImage.Mode, isVideo: Bool) -> String {
+        switch (mode, isVideo) {
+        case (.crop, false):
             return "crop — the photo fills the frame. drag and pinch to choose the part that stays."
-        case .fit:
+        case (.fit, false):
             return "fit — the whole photo, nothing cut off. the bars take the page colour."
+        case (.crop, true):
+            return "crop — the video fills the frame; its edges are cut. it plays muted and loops."
+        case (.fit, true):
+            return "fit — the whole video, nothing cut off. it plays muted and loops."
         }
     }
 

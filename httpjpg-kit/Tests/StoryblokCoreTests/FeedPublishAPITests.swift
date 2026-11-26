@@ -75,6 +75,41 @@ final class FeedPublishAPITests: XCTestCase {
         XCTAssertEqual(images[1]["alt"] as? String, "Ferry")
     }
 
+    func testAnEditNamesTheImagesTheSiteHasAndLeavesTheMusicAlone() throws {
+        let post = try JSONDecoder().decode(
+            PostBlok.self,
+            from: Data(
+                """
+                {"component": "post", "format": "4/5", "caption": "old",
+                 "images": [
+                   {"_uid": "u1", "component": "post_image", "alt": "Ferry", "image": {"filename": "https://a.storyblok.com/f/1/1x1/abc/a.jpg"}},
+                   {"_uid": "u2", "component": "post_image", "fit": "contain", "image": {"filename": "https://a.storyblok.com/f/1/1x1/abc/b.jpg"}}
+                 ],
+                 "music": [{"_uid": "m", "component": "music_player", "src": "https://sc.test/x", "source": "soundcloud"}]}
+                """.utf8
+            )
+        )
+        let edit = FeedEditRequest(post: post, caption: "new")
+
+        let json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(edit)) as? [String: Any]
+        )
+        XCTAssertEqual(json["caption"] as? String, "new")
+        XCTAssertEqual(json["format"] as? String, "4/5")
+        XCTAssertNil(json["music"])
+        let images = try XCTUnwrap(json["images"] as? [[String: Any]])
+        XCTAssertEqual(images.map { $0["uid"] as? String }, ["u1", "u2"])
+        XCTAssertEqual(images.map { $0["fit"] as? String }, ["cover", "contain"])
+        XCTAssertEqual(images[0]["alt"] as? String, "Ferry")
+        XCTAssertNil(images[1]["alt"])
+        XCTAssertNil(images[0]["assetId"])
+    }
+
+    func testAPostIsAddressedByItsSlugAlone() {
+        XCTAssertEqual(FeedPublishAPI.postPath("20261125-153012-a3f9"), "/api/feed/posts/20261125-153012-a3f9")
+        XCTAssertEqual(FeedPublishAPI.postPath("../config"), "/api/feed/posts/%2E%2E%2Fconfig")
+    }
+
     func testAMusicPostEncodesItsSourceAndOnlyTheFieldsItHas() throws {
         let request = FeedPublishRequest(
             caption: "",

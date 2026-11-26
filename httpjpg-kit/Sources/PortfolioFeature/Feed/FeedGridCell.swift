@@ -18,8 +18,8 @@ struct FeedGridCell: View {
             .overlay { cover }
             .clipped()
             .overlay(alignment: .topTrailing) {
-                if post.blok.images.count > 1 {
-                    Image(systemName: "square.on.square.fill")
+                if let badge {
+                    Image(systemName: badge)
                         .font(Typography.mono(Typography.Size.sm))
                         .foregroundStyle(Palette.white)
                         .shadow(color: Palette.black.opacity(0.4), radius: 2)
@@ -33,9 +33,15 @@ struct FeedGridCell: View {
             .accessibilityAddTraits(.isButton)
     }
 
+    private var badge: String? {
+        if post.blok.images.count > 1 { return "square.on.square.fill" }
+        if post.blok.images.first?.videoURL != nil { return "play.fill" }
+        return nil
+    }
+
     @ViewBuilder
     private var cover: some View {
-        if let image = post.blok.images.first {
+        if let image = post.blok.images.first, image.videoURL == nil {
             RemoteImage(
                 url: URL(string: ImageService.Preset.width(
                     image.filename,
@@ -50,7 +56,7 @@ struct FeedGridCell: View {
         } else {
             theme.border
                 .overlay {
-                    Text("♪")
+                    Text(post.blok.images.isEmpty ? "♪" : "▶")
                         .font(Typography.mono(Typography.Size.xl))
                         .foregroundStyle(theme.foreground)
                 }
