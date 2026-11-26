@@ -93,6 +93,12 @@ struct FeedScreen: View {
         ScrollToTopReader(tick: app.scrollToTopTick(for: .feed)) {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.s6) {
+                    FeedProfileHeader(
+                        name: app.config.authorName,
+                        avatarURL: app.config.authorAvatarURL,
+                        postCount: model.postCountLabel,
+                        ticker: FeedModel.tickerLines(from: model.posts)
+                    )
                     if model.posts.isEmpty {
                         AsciiState(art: Ascii.empty, label: "Nothing here yet")
                             .frame(minHeight: 240)

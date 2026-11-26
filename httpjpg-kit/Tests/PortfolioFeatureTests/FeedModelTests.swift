@@ -41,6 +41,34 @@ final class FeedModelTests: XCTestCase {
         XCTAssertEqual(model.posts.count, 3)
     }
 
+    func testTheCountSaysWhenMorePostsWait() async {
+        let model = makeModel()
+        await model.load()
+
+        XCTAssertEqual(model.postCountLabel, "4")
+    }
+
+    func testTheTickerTakesEachCaptionsFirstLineAndShortensLongOnes() throws {
+        func post(_ id: String, caption: String?) throws -> FeedPost {
+            var json: [String: Any] = ["_uid": id, "component": "post"]
+            json["caption"] = caption
+            let blok = try JSONDecoder().decode(PostBlok.self, from: JSONSerialization.data(withJSONObject: json))
+            return FeedPost(id: id, slug: id, fullSlug: "feed/\(id)", blok: blok)
+        }
+        let long = String(repeating: "a", count: 70)
+
+        let lines = FeedModel.tickerLines(from: [
+            try post("1", caption: "harbour\nsecond line"),
+            try post("2", caption: nil),
+            try post("3", caption: "   "),
+            try post("4", caption: long),
+        ])
+
+        XCTAssertEqual(lines.count, 2)
+        XCTAssertEqual(lines.first, "harbour")
+        XCTAssertEqual(lines.last, String(repeating: "a", count: FeedModel.tickerLineLength - 1) + "…")
+    }
+
     func testALoadedFeedIsNotFetchedAgainUnlessForced() async {
         let model = makeModel()
         await model.load()
