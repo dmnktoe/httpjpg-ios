@@ -27,6 +27,10 @@ final class FeedModel {
 
     var isLoaded: Bool { state == .loaded }
 
+    var postCountLabel: String {
+        hasMore ? "\(posts.count)+" : "\(posts.count)"
+    }
+
     func load(force: Bool = false) async {
         guard state != .loading, force || !isLoaded else { return }
         let hadPosts = !posts.isEmpty
@@ -59,6 +63,21 @@ final class FeedModel {
 
     func remove(id: String) {
         posts.removeAll { $0.id == id }
+    }
+
+    static let tickerLineLength = 60
+
+    static func tickerLines(from posts: [FeedPost]) -> [String] {
+        posts.compactMap { post in
+            guard let line = post.blok.caption?
+                .split(separator: "\n", omittingEmptySubsequences: true)
+                .first?
+                .trimmingCharacters(in: .whitespaces),
+                !line.isEmpty
+            else { return nil }
+            guard line.count > tickerLineLength else { return line }
+            return line.prefix(tickerLineLength - 1).trimmingCharacters(in: .whitespaces) + "…"
+        }
     }
 
     static func appending(_ next: [FeedPost], to current: [FeedPost]) -> [FeedPost] {

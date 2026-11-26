@@ -85,7 +85,8 @@ enum ImageExport {
 
     static func whole(original: Data, preview: UIImage) -> File? {
         let fileKind = Self.kind(of: original)
-        if let fileExtension = fileKind.fileExtension,
+        if isUpright(original),
+           let fileExtension = fileKind.fileExtension,
            let contentType = fileKind.contentType,
            let pixelSize = displayPixelSize(of: original),
            let data = withoutLocation(original) {
@@ -97,6 +98,13 @@ enum ImageExport {
             )
         }
         return jpeg(preview)
+    }
+
+    static func isUpright(_ data: Data) -> Bool {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        else { return true }
+        return ((properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1) == 1
     }
 
     static func hasLocation(_ data: Data) -> Bool {
