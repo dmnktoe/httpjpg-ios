@@ -7,6 +7,7 @@ struct TVFeedScreen: View {
 
     @State private var playing: AudioTrack?
     @State private var clip: TVClip?
+    @State private var photoStart: TVSlideshowStart?
 
     var body: some View {
         content
@@ -21,11 +22,14 @@ struct TVFeedScreen: View {
             .fullScreenCover(item: $clip) { clip in
                 TVVideoScreen(url: clip.url)
             }
+            .fullScreenCover(item: $photoStart) { start in
+                TVPhotoScreen(filenames: model.photos, startIndex: start.index)
+            }
     }
 
     @ViewBuilder
     private var content: some View {
-        if model.tracks.isEmpty, model.clips.isEmpty {
+        if model.tracks.isEmpty, model.clips.isEmpty, model.photos.isEmpty {
             TVStateView(
                 art: Ascii.ghost,
                 message: model.isFeedLoaded ? "nothing to play yet" : "loading…"
@@ -48,6 +52,13 @@ struct TVFeedScreen: View {
                             }
                         }
                     }
+                    if !model.photos.isEmpty {
+                        row("look") {
+                            ForEach(Array(model.photos.enumerated()), id: \.offset) { offset, filename in
+                                photoCard(filename, index: offset)
+                            }
+                        }
+                    }
                 }
                 .padding(.bottom, TVMetrics.sectionGap)
             }
@@ -66,7 +77,7 @@ struct TVFeedScreen: View {
                 .font(Typography.headline(TVMetrics.display))
                 .tracking(Typography.Tracking.tight(TVMetrics.display))
 
-            Text("\(model.tracks.count) tracks, \(model.clips.count) clips")
+            Text("\(model.tracks.count) tracks, \(model.clips.count) clips, \(model.photos.count) photos")
                 .font(Typography.mono(TVMetrics.caption))
                 .opacity(Opacities.muted)
         }
@@ -125,6 +136,21 @@ struct TVFeedScreen: View {
                     .frame(width: TVMetrics.posterWidth, alignment: .leading)
             }
         }
+    }
+
+    private func photoCard(_ filename: String, index: Int) -> some View {
+        Button {
+            photoStart = TVSlideshowStart(index: index)
+        } label: {
+            Color.clear
+                .frame(width: TVMetrics.artworkWidth, height: TVMetrics.artworkWidth)
+                .overlay {
+                    TVImage(filename: filename, targetWidth: TVMetrics.artworkWidth)
+                }
+                .clipped()
+        }
+        .tvCardStyle()
+        .accessibilityLabel("Photo \(index + 1)")
     }
 
     private func caption(_ title: String, detail: String?) -> some View {

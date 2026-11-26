@@ -70,6 +70,13 @@ final class TVAppModel {
         feed.compactMap(TVClip.init(item:))
     }
 
+    var photos: [String] {
+        feed.compactMap { item -> String? in
+            guard case .image(let filename) = item.kind else { return nil }
+            return filename
+        }
+    }
+
     func load(force: Bool = false) async {
         guard !isLoading, force || !isLoaded else { return }
         isLoading = true
