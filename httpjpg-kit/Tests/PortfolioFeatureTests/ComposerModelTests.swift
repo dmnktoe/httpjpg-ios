@@ -18,6 +18,16 @@ final class ComposerModelTests: XCTestCase {
     }
 
     private func jpegWithLocation(width: Int, height: Int) throws -> Data {
+        let location: [CFString: Any] = [
+            kCGImagePropertyGPSLatitude: 52.52,
+            kCGImagePropertyGPSLatitudeRef: "N",
+            kCGImagePropertyGPSLongitude: 13.405,
+            kCGImagePropertyGPSLongitudeRef: "E",
+        ]
+        return try jpeg(width: width, height: height, properties: [kCGImagePropertyGPSDictionary: location])
+    }
+
+    private func jpeg(width: Int, height: Int, properties: [CFString: Any]) throws -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         let image = UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: format)
@@ -30,13 +40,6 @@ final class ComposerModelTests: XCTestCase {
         let destination = try XCTUnwrap(
             CGImageDestinationCreateWithData(output as CFMutableData, UTType.jpeg.identifier as CFString, 1, nil)
         )
-        let location: [CFString: Any] = [
-            kCGImagePropertyGPSLatitude: 52.52,
-            kCGImagePropertyGPSLatitudeRef: "N",
-            kCGImagePropertyGPSLongitude: 13.405,
-            kCGImagePropertyGPSLongitudeRef: "E",
-        ]
-        let properties: [CFString: Any] = [kCGImagePropertyGPSDictionary: location]
         CGImageDestinationAddImage(destination, cgImage, properties as CFDictionary)
         XCTAssertTrue(CGImageDestinationFinalize(destination))
         return output as Data
@@ -159,6 +162,18 @@ final class ComposerModelTests: XCTestCase {
         XCTAssertFalse(ImageExport.hasLocation(file.data))
         XCTAssertEqual(file.contentType, "image/jpeg")
         XCTAssertEqual(file.pixelSize, CGSize(width: 40, height: 30))
+    }
+
+    func testATurnedPhotoGoesUpUprightInsteadOfKeepingItsTag() throws {
+        let original = try jpeg(width: 40, height: 30, properties: [kCGImagePropertyOrientation: 6])
+        XCTAssertFalse(ImageExport.isUpright(original))
+        let preview = try XCTUnwrap(ImageExport.preview(from: original))
+
+        let file = try XCTUnwrap(ImageExport.whole(original: original, preview: preview))
+
+        XCTAssertTrue(ImageExport.isUpright(file.data))
+        XCTAssertEqual(file.pixelSize, CGSize(width: 30, height: 40))
+        XCTAssertEqual(file.contentType, "image/jpeg")
     }
 
     func testALinkIsRoutedByWhereItPlays() {
