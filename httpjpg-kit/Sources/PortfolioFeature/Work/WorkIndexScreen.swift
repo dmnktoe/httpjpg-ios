@@ -79,19 +79,54 @@ struct WorkIndexScreen: View {
 
     @ViewBuilder
     private func rows(_ model: WorkIndexModel) -> some View {
+        if model.visibleItems.isEmpty {
+            AsciiState(art: Ascii.empty, label: "Nothing here yet")
+                .frame(minHeight: 240)
+        } else if columnCount > 1 {
+            grid(model)
+        } else {
+            stack(model)
+        }
+    }
+
+    private func stack(_ model: WorkIndexModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s8) {
-            if model.visibleItems.isEmpty {
-                AsciiState(art: Ascii.empty, label: "Nothing here yet")
-                    .frame(minHeight: 240)
-            } else {
-                ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
-                    row(for: entry.element)
-                    if entry.offset < model.visibleItems.count - 1 {
-                        BrutalDivider(variant: .ascii)
-                    }
+            ForEach(Array(model.visibleItems.enumerated()), id: \.element.id) { entry in
+                row(for: entry.element)
+                if entry.offset < model.visibleItems.count - 1 {
+                    BrutalDivider(variant: .ascii)
                 }
             }
         }
+    }
+
+    // From the web's `md` breakpoint up — iPad, and iPhone Duo unfolded in
+    // landscape — a single column turns every card into a screen-filling
+    // poster. Two tracks keep a few projects in view; an even count also
+    // divides cleanly around the fold.
+    private func grid(_ model: WorkIndexModel) -> some View {
+        LazyVGrid(
+            columns: Array(
+                repeating: GridItem(.flexible(), spacing: Self.gridSpacing, alignment: .topLeading),
+                count: columnCount
+            ),
+            alignment: .leading,
+            spacing: Spacing.s12
+        ) {
+            ForEach(model.visibleItems) { item in
+                row(for: item)
+            }
+        }
+    }
+
+    private static let gridSpacing = Spacing.s6
+
+    private var columnCount: Int {
+        viewportWidth >= ResponsiveWidth.tabletBreakpoint ? 2 : 1
+    }
+
+    private var cardTargetWidth: CGFloat {
+        PageLayout.columnWidth(viewport: viewportWidth, columns: columnCount, spacing: Self.gridSpacing)
     }
 
     private func masthead(_ model: WorkIndexModel) -> some View {
@@ -159,7 +194,7 @@ struct WorkIndexScreen: View {
     private func row(for item: WorkItem) -> some View {
         let card = WorkCardAdapter.model(
             for: item,
-            targetWidth: PageLayout.cardWidth(viewport: viewportWidth),
+            targetWidth: cardTargetWidth,
             scale: displayScale
         )
         if item.isExternal, let url = item.externalURL {

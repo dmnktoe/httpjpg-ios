@@ -63,5 +63,11 @@ public enum PageLayout {
         max(viewport - gutter * 2, 0)
     }
 
+    /// The width of one track when `columns` tracks share the gutter-inset viewport.
+    public static func columnWidth(viewport: CGFloat, columns: Int, spacing: CGFloat) -> CGFloat {
+        let count = max(columns, 1)
+        return max((cardWidth(viewport: viewport) - spacing * CGFloat(count - 1)) / CGFloat(count), 0)
+    }
+
     public static let mediaAspectRatio: CGFloat = 16.0 / 9.0
 }

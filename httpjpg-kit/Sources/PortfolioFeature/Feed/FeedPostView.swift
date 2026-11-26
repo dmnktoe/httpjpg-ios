@@ -7,6 +7,10 @@ import Tokens
 struct FeedPostView: View {
     let post: FeedPost
 
+    /// Set when the post is one tile of the feed grid: the frame turns square,
+    /// the caption clamps to two lines, and images are fetched for the tile.
+    var tileWidth: CGFloat?
+
     @Environment(\.pageTheme) private var theme
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
@@ -27,12 +31,13 @@ struct FeedPostView: View {
             if let caption = post.blok.caption, !caption.isEmpty {
                 Text(caption)
                     .font(Typography.sans(Typography.Size.md))
+                    .lineLimit(isTile ? 2 : nil)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, PageLayout.gutter)
+                    .padding(.horizontal, textInset)
             }
             if let date = post.blok.dateLabel {
                 MonoText(date, size: Typography.Size.xs, opacity: Opacities.muted)
-                    .padding(.horizontal, PageLayout.gutter)
+                    .padding(.horizontal, textInset)
             }
         }
         .accessibilityElement(children: .contain)
@@ -46,7 +51,7 @@ struct FeedPostView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .aspectRatio(post.blok.aspectRatio, contentMode: .fit)
+        .aspectRatio(frameAspectRatio, contentMode: .fit)
         .background(theme.background)
         .overlay(alignment: .bottomTrailing) {
             if images.count > 1 {
@@ -66,7 +71,7 @@ struct FeedPostView: View {
     private func slide(_ image: PostImageBlok) -> some View {
         RemoteImage(
             url: frameURL(image),
-            aspectRatio: post.blok.aspectRatio,
+            aspectRatio: frameAspectRatio,
             contentMode: image.fit == .contain ? .fit : .fill,
             accessibilityText: image.accessibilityText,
             animated: image.image?.isGIF ?? false
@@ -87,7 +92,7 @@ struct FeedPostView: View {
     private func frameURL(_ image: PostImageBlok) -> URL? {
         URL(string: ImageService.Preset.width(
             image.filename,
-            viewportWidth,
+            tileWidth ?? viewportWidth,
             scale: displayScale,
             focus: image.image?.focus ?? ""
         ))
@@ -95,6 +100,18 @@ struct FeedPostView: View {
 
     private func fullURL(_ image: PostImageBlok) -> URL? {
         URL(string: ImageService.processed(image.filename, crop: "2560x0"))
+    }
+
+    private var isTile: Bool { tileWidth != nil }
+
+    private var frameAspectRatio: CGFloat {
+        isTile ? 1 : post.blok.aspectRatio
+    }
+
+    // A tile already sits inside the grid's gutter; the full-bleed stream
+    // insets its text on its own.
+    private var textInset: CGFloat {
+        isTile ? 0 : PageLayout.gutter
     }
 
     private static func pad(_ value: Int) -> String {

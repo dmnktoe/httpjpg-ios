@@ -5,6 +5,7 @@ import Tokens
 
 struct FeedScreen: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.bottomBarClearance) private var bottomBarClearance
     @Environment(\.pageTheme) private var theme
 
@@ -71,17 +72,14 @@ struct FeedScreen: View {
     private func list(_ model: FeedModel) -> some View {
         ScrollToTopReader(tick: app.scrollToTopTick(for: .feed)) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.s10) {
+                Group {
                     if model.posts.isEmpty {
                         AsciiState(art: Ascii.empty, label: "Nothing here yet")
                             .frame(minHeight: 240)
+                    } else if isGrid {
+                        grid(model)
                     } else {
-                        ForEach(model.posts) { post in
-                            FeedPostView(post: post)
-                        }
-                        if model.hasMore {
-                            loadMore(model)
-                        }
+                        stream(model)
                     }
                 }
                 .padding(.top, Spacing.s4)
@@ -91,6 +89,53 @@ struct FeedScreen: View {
             .softScrollEdges()
             .refreshable { await model.load(force: true) }
         }
+    }
+
+    private func stream(_ model: FeedModel) -> some View {
+        LazyVStack(alignment: .leading, spacing: Spacing.s10) {
+            ForEach(model.posts) { post in
+                FeedPostView(post: post)
+            }
+            if model.hasMore {
+                loadMore(model)
+            }
+        }
+    }
+
+    // Mirrors the web's `FeedGrid`: from `md` up — iPad, and iPhone Duo
+    // unfolded in landscape — three square tiles a row, captions clamped to
+    // two lines. A full-width 4:5 post would be taller than the screen there.
+    private func grid(_ model: FeedModel) -> some View {
+        VStack(spacing: Spacing.s10) {
+            LazyVGrid(
+                columns: Array(
+                    repeating: GridItem(.flexible(), spacing: Self.gridSpacing, alignment: .topLeading),
+                    count: Self.gridColumns
+                ),
+                alignment: .leading,
+                spacing: Self.gridSpacing
+            ) {
+                ForEach(model.posts) { post in
+                    FeedPostView(post: post, tileWidth: tileWidth)
+                }
+            }
+            if model.hasMore {
+                loadMore(model)
+            }
+        }
+        .padding(.horizontal, PageLayout.gutter)
+    }
+
+    private static let gridColumns = 3
+
+    private static let gridSpacing = Spacing.s6
+
+    private var isGrid: Bool {
+        viewportWidth >= ResponsiveWidth.tabletBreakpoint
+    }
+
+    private var tileWidth: CGFloat {
+        PageLayout.columnWidth(viewport: viewportWidth, columns: Self.gridColumns, spacing: Self.gridSpacing)
     }
 
     private func loadMore(_ model: FeedModel) -> some View {
