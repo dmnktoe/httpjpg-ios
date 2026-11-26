@@ -88,8 +88,8 @@ public final class ContentClient: @unchecked Sendable {
 
         var items = FeedPool.items(in: posts ?? [])
         if let feedPage {
-            let seen = items.map(\.kind)
-            items += FeedPool.items(in: feedPage.body).filter { !seen.contains($0.kind) }
+            let seen = Set(items.map(\.source))
+            items += FeedPool.items(in: feedPage.body).filter { !seen.contains($0.source) }
         }
         return items
     }

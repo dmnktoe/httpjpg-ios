@@ -27,6 +27,16 @@ final class TVAppModelTests: XCTestCase {
         XCTAssertEqual(Set(model.galleryFrames.map(\.id)).count, model.galleryFrames.count)
     }
 
+    func testTheFeedOffersThePhotosOfPostsAndOfTheOldPage() async {
+        let model = model()
+
+        await model.loadFeed()
+
+        XCTAssertEqual(model.photos.count, 11)
+        XCTAssertEqual(model.photos.first.flatMap { URL(string: $0)?.lastPathComponent }, "hafen-01.jpg")
+        XCTAssertEqual(Set(model.photos).count, model.photos.count)
+    }
+
     func testTheFeedSplitsIntoTracksAndClips() async {
         let model = model()
         XCTAssertFalse(model.isFeedLoaded)

@@ -24,6 +24,23 @@ final class FeedModelTests: XCTestCase {
         XCTAssertFalse(model.hasMore)
     }
 
+    func testAPostIsChangedAndDroppedInPlace() async throws {
+        let model = makeModel()
+        await model.load()
+        let first = try XCTUnwrap(model.posts.first)
+
+        model.replace(first.with(blok: first.blok.with(caption: "edited")))
+        XCTAssertEqual(model.posts.first?.blok.caption, "edited")
+        XCTAssertEqual(model.posts.count, 4)
+
+        model.remove(id: first.id)
+        XCTAssertEqual(model.posts.count, 3)
+        XCTAssertFalse(model.posts.contains { $0.id == first.id })
+
+        model.replace(first)
+        XCTAssertEqual(model.posts.count, 3)
+    }
+
     func testALoadedFeedIsNotFetchedAgainUnlessForced() async {
         let model = makeModel()
         await model.load()
@@ -55,5 +72,17 @@ final class FeedModelTests: XCTestCase {
 
         app.select(tab: .feed)
         XCTAssertEqual(app.scrollToTopTick(for: .feed), 1)
+    }
+
+    func testReselectingTheFeedTabFromAPostReturnsToTheFeed() {
+        let app = AppModel(configuration: StoryblokConfiguration(accessToken: "test-token"))
+        app.select(tab: .feed)
+        app.feedPath = [FeedRoute(id: "post-1")]
+        XCTAssertFalse(app.isAtNavigationRoot)
+
+        app.select(tab: .feed)
+
+        XCTAssertTrue(app.feedPath.isEmpty)
+        XCTAssertEqual(app.scrollToTopTick(for: .feed), 0)
     }
 }

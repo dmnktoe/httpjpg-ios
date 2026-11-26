@@ -75,6 +75,21 @@ final class FeedPublishAPITests: XCTestCase {
         XCTAssertEqual(images[1]["alt"] as? String, "Ferry")
     }
 
+    func testAnEditSendsOnlyTheCaptionSoTheSiteKeepsEverythingElse() throws {
+        let json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(FeedEditRequest(caption: "new")))
+                as? [String: Any]
+        )
+
+        XCTAssertEqual(json.count, 1)
+        XCTAssertEqual(json["caption"] as? String, "new")
+    }
+
+    func testAPostIsAddressedByItsSlugAlone() {
+        XCTAssertEqual(FeedPublishAPI.postPath("20261125-153012-a3f9"), "/api/feed/posts/20261125-153012-a3f9")
+        XCTAssertEqual(FeedPublishAPI.postPath("../config"), "/api/feed/posts/%2E%2E%2Fconfig")
+    }
+
     func testAMusicPostEncodesItsSourceAndOnlyTheFieldsItHas() throws {
         let request = FeedPublishRequest(
             caption: "",

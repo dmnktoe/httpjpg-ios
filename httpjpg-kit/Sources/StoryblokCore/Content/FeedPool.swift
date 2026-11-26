@@ -22,6 +22,17 @@ public enum FeedPool {
             self.kind = kind
         }
 
+        public var source: String {
+            switch kind {
+            case .image(let filename):
+                return filename
+            case .music(let title, _, _, let track, let listenURL):
+                return track?.streamURL.absoluteString ?? listenURL?.absoluteString ?? title
+            case .video(let poster, let caption, let url):
+                return url?.absoluteString ?? poster ?? caption ?? id
+            }
+        }
+
         public var imageFilename: String? {
             switch kind {
             case .image(let filename):
@@ -41,11 +52,18 @@ public enum FeedPool {
     public static func items(in posts: [FeedPost]) -> [Item] {
         posts.flatMap { post -> [Item] in
             let frames = post.blok.images.enumerated().compactMap { offset, image in
-                image.filename.map { Item(id: "\(post.id)-\(offset)", kind: .image(filename: $0)) }
+                postItem(image, id: "\(post.id)-\(offset)", caption: post.blok.caption)
             }
             let track = post.blok.music.flatMap(musicItem).map { [$0] } ?? []
             return frames + track
         }
+    }
+
+    private static func postItem(_ image: PostImageBlok, id: String, caption: String?) -> Item? {
+        if let url = image.videoURL {
+            return Item(id: id, kind: .video(poster: nil, caption: caption, url: url))
+        }
+        return image.filename.map { Item(id: id, kind: .image(filename: $0)) }
     }
 
     private static func items(of blok: PortfolioBlok) -> [Item] {

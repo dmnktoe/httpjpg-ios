@@ -52,6 +52,15 @@ final class FeedModel {
         posts = Self.appending(next.filter { !$0.blok.isEmpty }, to: posts)
     }
 
+    func replace(_ post: FeedPost) {
+        guard let index = posts.firstIndex(where: { $0.id == post.id }) else { return }
+        posts[index] = post
+    }
+
+    func remove(id: String) {
+        posts.removeAll { $0.id == id }
+    }
+
     static func appending(_ next: [FeedPost], to current: [FeedPost]) -> [FeedPost] {
         let seen = Set(current.map(\.id))
         return current + next.filter { !seen.contains($0.id) }

@@ -15,6 +15,9 @@ struct ComposerImage: Identifiable {
     let preview: UIImage
     var mode: Mode = .crop
     var cropRect: CGRect?
+    var videoURL: URL?
+
+    var isVideo: Bool { videoURL != nil }
 
     var aspectRatio: CGFloat {
         guard preview.size.height > 0 else { return 1 }

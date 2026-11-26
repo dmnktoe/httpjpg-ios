@@ -91,7 +91,7 @@ public enum ImageService {
         return size.width / size.height
     }
 
-    private static let videoExtensions: Set<String> = ["mp4", "webm", "ogg", "mov", "avi", "mkv"]
+    private static let videoExtensions: Set<String> = ["mp4", "m4v", "webm", "ogg", "mov", "avi", "mkv"]
 
     private static let gifExtensions: Set<String> = ["gif"]
 

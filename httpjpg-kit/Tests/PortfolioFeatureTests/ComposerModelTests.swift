@@ -203,6 +203,33 @@ final class ComposerModelTests: XCTestCase {
         XCTAssertEqual(ImageExport.kind(of: Data()), .other)
     }
 
+    func testAPickedVideoJoinsThePostWithItsStill() throws {
+        let clip = FileManager.default.temporaryDirectory.appendingPathComponent("clip-\(UUID().uuidString).mov")
+        try Data("MOVIE".utf8).write(to: clip)
+        let still = try XCTUnwrap(UIImage(data: png(width: 160, height: 90)))
+        let model = ComposerModel()
+
+        model.add(media: [.photo(png(width: 400, height: 300)), .video(clip, preview: still)])
+
+        XCTAssertEqual(model.images.map(\.isVideo), [false, true])
+        XCTAssertTrue(model.canPublish)
+
+        let file = try XCTUnwrap(ComposerModel.file(for: model.images[1], aspectRatio: 1))
+        XCTAssertEqual(file.data, Data("MOVIE".utf8))
+        XCTAssertEqual(file.fileExtension, "mov")
+        XCTAssertEqual(file.contentType, "video/quicktime")
+
+        model.remove(model.images[1].id)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: clip.path))
+    }
+
+    func testVideosAreSentWithTheirType() {
+        XCTAssertEqual(VideoExport.contentType(for: "MP4"), "video/mp4")
+        XCTAssertEqual(VideoExport.contentType(for: "m4v"), "video/mp4")
+        XCTAssertEqual(VideoExport.contentType(for: "webm"), "video/webm")
+        XCTAssertEqual(VideoExport.contentType(for: "mov"), "video/quicktime")
+    }
+
     func testAudioFilesAreSentWithTheirType() {
         XCTAssertEqual(ComposerModel.audioContentType(for: "mix.mp3"), "audio/mpeg")
         XCTAssertEqual(ComposerModel.audioContentType(for: "mix.M4A"), "audio/mp4")

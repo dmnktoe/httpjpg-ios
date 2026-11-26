@@ -18,6 +18,8 @@ public struct LoopingVideoPlayer: View {
     private let url: URL
     private let aspectRatio: CGFloat
     private let isActive: Bool
+    private let fills: Bool
+    private let background: Color
     private let onFinished: (() -> Void)?
 
     @State private var player: AVPlayer?
@@ -31,20 +33,27 @@ public struct LoopingVideoPlayer: View {
         url: URL,
         aspectRatio: CGFloat,
         isActive: Bool = true,
+        fills: Bool = false,
+        background: Color = .black,
         onFinished: (() -> Void)? = nil
     ) {
         self.url = url
         self.aspectRatio = aspectRatio
         self.isActive = isActive
+        self.fills = fills
+        self.background = background
         self.onFinished = onFinished
     }
 
     public var body: some View {
-        Color.black
+        background
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
                 if let player {
-                    PlayerLayerView(player: player) { isReady = $0 }
+                    PlayerLayerView(
+                        player: player,
+                        videoGravity: fills ? .resizeAspectFill : .resizeAspect
+                    ) { isReady = $0 }
                         .allowsHitTesting(false)
                 }
             }

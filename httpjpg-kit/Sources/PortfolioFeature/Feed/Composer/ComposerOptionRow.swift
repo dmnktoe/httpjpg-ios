@@ -18,7 +18,7 @@ struct ComposerOptionRow<Option: Hashable>: View {
                     onSelect(option)
                 } label: {
                     Text(label(option))
-                        .font(Typography.mono(Typography.Size.xs, weight: isSelected ? .bold : .regular))
+                        .font(Typography.mono(Typography.Size.xs))
                         .foregroundStyle(isSelected ? theme.background : theme.foreground)
                         .padding(.horizontal, Spacing.s3)
                         .padding(.vertical, Spacing.s2)

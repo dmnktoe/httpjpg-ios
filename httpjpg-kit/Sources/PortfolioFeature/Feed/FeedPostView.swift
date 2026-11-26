@@ -7,6 +7,7 @@ import Tokens
 struct FeedPostView: View {
     let post: FeedPost
 
+    @Environment(AppModel.self) private var app
     @Environment(\.pageTheme) private var theme
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
@@ -14,23 +15,32 @@ struct FeedPostView: View {
     @State private var index = 0
     @State private var isZoomed = false
 
+    private static let dotSize: CGFloat = 6
+
     private var images: [PostImageBlok] { post.blok.images }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
+            if let author = app.config.authorName {
+                FeedPostHeader(name: author, avatarURL: app.config.authorAvatarURL)
+            }
             if !images.isEmpty {
                 frame
+            }
+            if images.count > 1 {
+                dots
             }
             if let music = post.blok.music {
                 SbMusicPlayerView(blok: music)
             }
+            FeedPostActions()
             if let caption = post.blok.caption, !caption.isEmpty {
                 Text(caption)
                     .font(Typography.sans(Typography.Size.md))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, PageLayout.gutter)
             }
-            if let date = post.blok.dateLabel {
+            if let date = post.blok.relativeDateLabel() ?? post.blok.dateLabel {
                 MonoText(date, size: Typography.Size.xs, opacity: Opacities.muted)
                     .padding(.horizontal, PageLayout.gutter)
             }
@@ -41,19 +51,23 @@ struct FeedPostView: View {
     private var frame: some View {
         TabView(selection: $index) {
             ForEach(Array(images.enumerated()), id: \.element.id) { offset, image in
-                slide(image)
+                slide(image, isShown: offset == index)
                     .tag(offset)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .aspectRatio(post.blok.aspectRatio, contentMode: .fit)
         .background(theme.background)
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             if images.count > 1 {
                 counter
             }
         }
-        .onTapGesture { isZoomed = true }
+        .onTapGesture {
+            if images[min(index, images.count - 1)].videoURL == nil {
+                isZoomed = true
+            }
+        }
         .fullScreenCover(isPresented: $isZoomed) {
             ImageZoomViewer(
                 url: fullURL(images[min(index, images.count - 1)]),
@@ -63,14 +77,38 @@ struct FeedPostView: View {
         }
     }
 
-    private func slide(_ image: PostImageBlok) -> some View {
-        RemoteImage(
-            url: frameURL(image),
-            aspectRatio: post.blok.aspectRatio,
-            contentMode: image.fit == .contain ? .fit : .fill,
-            accessibilityText: image.accessibilityText,
-            animated: image.image?.isGIF ?? false
-        )
+    @ViewBuilder
+    private func slide(_ image: PostImageBlok, isShown: Bool) -> some View {
+        if let videoURL = image.videoURL {
+            LoopingVideoPlayer(
+                url: videoURL,
+                aspectRatio: post.blok.aspectRatio,
+                isActive: isShown,
+                fills: image.fit == .cover,
+                background: theme.background
+            )
+        } else {
+            RemoteImage(
+                url: frameURL(image),
+                aspectRatio: post.blok.aspectRatio,
+                contentMode: image.fit == .contain ? .fit : .fill,
+                accessibilityText: image.accessibilityText,
+                animated: image.image?.isGIF ?? false
+            )
+        }
+    }
+
+    private var dots: some View {
+        HStack(spacing: Spacing.s1) {
+            ForEach(images.indices, id: \.self) { offset in
+                Circle()
+                    .fill(theme.foreground.opacity(offset == index ? 1 : 0.25))
+                    .frame(width: Self.dotSize, height: Self.dotSize)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(Motion.stateChange, value: index)
+        .accessibilityHidden(true)
     }
 
     private var counter: some View {

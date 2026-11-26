@@ -59,7 +59,7 @@ final class PostBlokTests: XCTestCase {
         XCTAssertEqual(post.aspectRatio, 2592.0 / 1944.0, accuracy: 0.0001)
     }
 
-    func testImagesWithoutAFileAndVideosAreDropped() throws {
+    func testImagesWithoutAFileAreDroppedAndVideosKept() throws {
         let post = try decode(
             """
             {"component": "post",
@@ -71,8 +71,39 @@ final class PostBlokTests: XCTestCase {
             """
         )
 
-        XCTAssertTrue(post.images.isEmpty)
-        XCTAssertTrue(post.isEmpty)
+        XCTAssertEqual(post.images.count, 1)
+        XCTAssertNotNil(post.images.first?.videoURL)
+        XCTAssertFalse(post.isEmpty)
+    }
+
+    func testAnOriginalPostTakesItsShapeFromAVideoToo() throws {
+        let post = try decode(
+            """
+            {"component": "post", "format": "original",
+             "images": [{"component": "post_image", "image": {"filename": "https://a.storyblok.com/f/1/1080x1920/abc/clip.mp4"}}]}
+            """
+        )
+
+        XCTAssertEqual(post.aspectRatio, 1080.0 / 1920.0, accuracy: 0.0001)
+    }
+
+    func testANewCaptionKeepsEverythingElse() throws {
+        let post = try decode(
+            """
+            {"_uid": "p1", "component": "post", "caption": "old", "date": "2026-11-25 10:00", "format": "4/5",
+             "images": [{"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}]}
+            """
+        )
+
+        let renamed = post.with(caption: "  new words  ")
+        let cleared = post.with(caption: "   ")
+
+        XCTAssertEqual(renamed.caption, "new words")
+        XCTAssertNil(cleared.caption)
+        XCTAssertEqual(renamed.id, "p1")
+        XCTAssertEqual(renamed.date, "2026-11-25 10:00")
+        XCTAssertEqual(renamed.format, .portrait)
+        XCTAssertEqual(renamed.images.map(\.id), ["i1"])
     }
 
     func testAMusicPostCarriesItsTrack() throws {
@@ -92,6 +123,27 @@ final class PostBlokTests: XCTestCase {
         let post = try decode(#"{"component": "post", "date": "soon, maybe"}"#)
 
         XCTAssertNil(post.dateLabel)
+    }
+
+    func testARecentPostTellsItsAgeAndAnOlderOneItsDate() throws {
+        let post = try decode(#"{"component": "post", "date": "2026-11-25 10:00"}"#)
+        let posted = try XCTUnwrap(post.postedAt)
+        XCTAssertEqual(posted.timeIntervalSince1970, 1_795_600_800, accuracy: 0.5)
+
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(30)), "just now")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(5 * 60)), "5 min ago")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(3 * 3600)), "3 h ago")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(25 * 3600)), "yesterday")
+        XCTAssertEqual(post.relativeDateLabel(now: posted.addingTimeInterval(4 * 86400 + 3600)), "4 days ago")
+        XCTAssertNil(post.relativeDateLabel(now: posted.addingTimeInterval(5 * 86400)))
+        XCTAssertNil(post.relativeDateLabel(now: posted.addingTimeInterval(-60)))
+    }
+
+    func testAPostWithoutAReadableDateHasNoAge() throws {
+        let post = try decode(#"{"component": "post", "date": "soon, maybe"}"#)
+
+        XCTAssertNil(post.postedAt)
+        XCTAssertNil(post.relativeDateLabel())
     }
 
     func testTheFeedComesFromTheFixturesNewestFirst() async throws {
@@ -132,6 +184,70 @@ final class PostBlokTests: XCTestCase {
 
         XCTAssertEqual(pool.first?.id, FeedPool.items(in: posts).first?.id)
         XCTAssertTrue(pool.contains { if case .video = $0.kind { return true }; return false })
+    }
+
+    func testAVideoInAPostIsAVideoAndNoImage() throws {
+        let post = try decode(
+            """
+            {"component": "post", "format": "1/1",
+             "images": [
+               {"_uid": "v1", "component": "post_image", "image": {"filename": "https://a.storyblok.com/f/281211/x/abc123/clip.mp4"}},
+               {"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}
+             ]}
+            """
+        )
+
+        XCTAssertEqual(post.images[0].videoURL?.lastPathComponent, "clip.mp4")
+        XCTAssertNil(post.images[0].filename)
+        XCTAssertNil(post.images[1].videoURL)
+        XCTAssertEqual(post.images[1].filename, asset)
+    }
+
+    func testAPostVideoJoinsThePoolAsAClip() throws {
+        let post = try decode(
+            """
+            {"_uid": "p1", "component": "post", "caption": "harbour, moving",
+             "images": [
+               {"_uid": "v1", "component": "post_image", "image": {"filename": "https://a.storyblok.com/f/281211/x/abc123/clip.mp4"}},
+               {"_uid": "i1", "component": "post_image", "image": {"filename": "\(asset)"}}
+             ]}
+            """
+        )
+        let items = FeedPool.items(in: [FeedPost(id: "p1", slug: "a", fullSlug: "feed/a", blok: post)])
+
+        XCTAssertEqual(items.count, 2)
+        guard case .video(let poster, let caption, let url) = items[0].kind else {
+            return XCTFail("the video should be a clip")
+        }
+        XCTAssertNil(poster)
+        XCTAssertEqual(caption, "harbour, moving")
+        XCTAssertEqual(url?.lastPathComponent, "clip.mp4")
+        XCTAssertEqual(items[1].kind, .image(filename: asset))
+    }
+
+    func testThePoolKnowsAnItemByWhatItShows() {
+        let stream = URL(string: "https://cdn.test/mix.wav")!
+        let track = AudioTrack(id: "a", title: "mix", artist: nil, streamURL: stream, artworkURL: nil)
+        let sameTrack = AudioTrack(id: "b", title: "mix", artist: "me", streamURL: stream, artworkURL: nil)
+        let listen = URL(string: "https://soundcloud.com/x")!
+
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .image(filename: asset)).source, asset)
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: track, listenURL: nil)).source,
+            FeedPool.Item(id: "2", kind: .music(title: "mix", artist: "me", artworkURL: "x", track: sameTrack, listenURL: nil)).source
+        )
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: nil, listenURL: listen)).source,
+            listen.absoluteString
+        )
+        XCTAssertEqual(
+            FeedPool.Item(id: "1", kind: .music(title: "mix", artist: nil, artworkURL: nil, track: nil, listenURL: nil)).source,
+            "mix"
+        )
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: nil, caption: nil, url: stream)).source, stream.absoluteString)
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: "p.jpg", caption: "c", url: nil)).source, "p.jpg")
+        XCTAssertEqual(FeedPool.Item(id: "1", kind: .video(poster: nil, caption: "c", url: nil)).source, "c")
+        XCTAssertEqual(FeedPool.Item(id: "7", kind: .video(poster: nil, caption: nil, url: nil)).source, "7")
     }
 
     private func decode(_ json: String) throws -> PostBlok {

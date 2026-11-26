@@ -656,6 +656,31 @@ final class StoryblokDecodingTests: XCTestCase {
         XCTAssertFalse(config.features.isBuildBadgeEnabled)
     }
 
+    func testTheAuthorAvatarBecomesASquareRendition() throws {
+        let config = try decode(SiteConfig.self, """
+        {"author_name":"httpjpg",
+         "author_avatar":{"filename":"https://a.storyblok.com/f/281211/800x800/abc123/me.jpg"}}
+        """)
+        XCTAssertEqual(config.authorName, "httpjpg")
+        XCTAssertEqual(
+            config.authorAvatarURL?.absoluteString.hasPrefix(
+                "https://a.storyblok.com/f/281211/800x800/abc123/me.jpg/m/192x192/smart"
+            ),
+            true
+        )
+    }
+
+    func testAClearedOrMovingAvatarIsNoAvatar() throws {
+        let cleared = try decode(SiteConfig.self, #"{"author_avatar":{"filename":""}}"#)
+        let moving = try decode(
+            SiteConfig.self,
+            #"{"author_avatar":{"filename":"https://a.storyblok.com/f/281211/x/abc123/me.mp4"}}"#
+        )
+        XCTAssertNil(cleared.authorAvatarURL)
+        XCTAssertNil(moving.authorAvatarURL)
+        XCTAssertNil(SiteConfig.fallback.authorAvatarURL)
+    }
+
     func testFallbackConfigOffersBothVariants() {
         XCTAssertEqual(SiteConfig.fallback.headerMenu.map(\.variant), [.projects, .websites])
         XCTAssertFalse(SiteConfig.fallback.features.isRelatedWorkEnabled)

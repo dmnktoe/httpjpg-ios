@@ -94,6 +94,24 @@ public actor FeedPublishAPI {
         return try decode(PublishedPost.self, from: data)
     }
 
+    public func update(slug: String, _ edit: FeedEditRequest) async throws -> PublishedPost {
+        let data = try await send(
+            request(path: Self.postPath(slug), method: "PATCH", body: try JSONEncoder().encode(edit))
+        )
+        return try decode(PublishedPost.self, from: data)
+    }
+
+    public func delete(slug: String) async throws {
+        _ = try await send(request(path: Self.postPath(slug), method: "DELETE", body: nil))
+    }
+
+    static func postPath(_ slug: String) -> String {
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert("-")
+        let segment = slug.addingPercentEncoding(withAllowedCharacters: allowed) ?? slug
+        return "/api/feed/posts/\(segment)"
+    }
+
     static func multipartBody(
         fields: [String: String],
         file: Data,

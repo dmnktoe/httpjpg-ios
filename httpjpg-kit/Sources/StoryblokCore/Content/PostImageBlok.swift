@@ -29,6 +29,11 @@ public struct PostImageBlok: Decodable, Identifiable {
         return image.filename
     }
 
+    public var videoURL: URL? {
+        guard let image, !image.isEmpty, image.isVideo else { return nil }
+        return image.filename.flatMap(URL.init(string:))
+    }
+
     public var accessibilityText: String? {
         alt ?? image?.alt.flatMap { $0.isEmpty ? nil : $0 }
     }
