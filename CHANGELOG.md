@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.8.0...v1.9.0) (2026-11-27)
+
+
+### Added
+
+* add the feed tab with a composer ([#148](https://github.com/dmnktoe/httpjpg-ios/issues/148)) ([93abf9a](https://github.com/dmnktoe/httpjpg-ios/commit/93abf9ae46eb4d457b33e8687e9154275a3797b9))
+* add the feed's profile header and upload turned photos upright ([#151](https://github.com/dmnktoe/httpjpg-ios/issues/151)) ([9c4154b](https://github.com/dmnktoe/httpjpg-ios/commit/9c4154b6caf8272c1eefb67b16ce762a156bcc27))
+* fold older footer status lines into the status sheet ([#147](https://github.com/dmnktoe/httpjpg-ios/issues/147)) ([f1511ab](https://github.com/dmnktoe/httpjpg-ios/commit/f1511ab7a661270e98d9a55517be858d8d627575))
+* rework the feed tab — grid, author, likes, editing, video, and photos on the TV ([#150](https://github.com/dmnktoe/httpjpg-ios/issues/150)) ([3587189](https://github.com/dmnktoe/httpjpg-ios/commit/358718912d77144479b039a49d3d956b2ea7c8e6))
+* **status:** bring Last.fm, Steam, YouTube, GitHub and Reddit to every surface as pixel art ([#144](https://github.com/dmnktoe/httpjpg-ios/issues/144)) ([e75993c](https://github.com/dmnktoe/httpjpg-ios/commit/e75993ccd81a2a0b3122f0abf98b88886be20982))
+
+
+### Fixed
+
+* keep the ask answer in view and the status lines even ([#153](https://github.com/dmnktoe/httpjpg-ios/issues/153)) ([774fb58](https://github.com/dmnktoe/httpjpg-ios/commit/774fb58bfa6dc415f201b3c116b06c12c0f7dcd8))
+* open the composer with its publish client in hand ([#149](https://github.com/dmnktoe/httpjpg-ios/issues/149)) ([b555ca5](https://github.com/dmnktoe/httpjpg-ios/commit/b555ca57686183245a178caf1cbd699647b6168d))
+* take the feed widget and the readme off the old feed page ([#152](https://github.com/dmnktoe/httpjpg-ios/issues/152)) ([5245fca](https://github.com/dmnktoe/httpjpg-ios/commit/5245fca523e4c115f085528002ca936246896233))
+
+
+### Changed
+
+* fill tag chips instead of outlining them ([#145](https://github.com/dmnktoe/httpjpg-ios/issues/145)) ([b1920f9](https://github.com/dmnktoe/httpjpg-ios/commit/b1920f912e8bad67fb9b10f24470b3f5f5379ba2))
+
 ## [1.8.0](https://github.com/dmnktoe/httpjpg-ios/compare/v1.7.1...v1.8.0) (2026-11-24)
 
 
