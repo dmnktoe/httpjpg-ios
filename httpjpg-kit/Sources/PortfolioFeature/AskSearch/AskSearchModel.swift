@@ -26,6 +26,8 @@ final class AskSearchModel {
     private var searchTask: Task<Void, Never>?
     private var askTask: Task<Void, Never>?
     private var searchGeneration = 0
+    /// The question the running answer belongs to.
+    private var askedQuestion: String?
 
     private static let searchDebounceNanoseconds: UInt64 = 140_000_000
 
@@ -97,9 +99,12 @@ final class AskSearchModel {
     func ask() {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, isAskAvailable else { return }
+        // Return pressed again while the same question streams would throw its answer away.
+        guard !(status == .answering && askedQuestion == trimmed) else { return }
 
         searchTask?.cancel()
         askTask?.cancel()
+        askedQuestion = trimmed
 
         answer = ""
         sources = []
@@ -151,11 +156,14 @@ final class AskSearchModel {
             } catch is CancellationError {
                 return
             } catch SiteAPIError.askUnavailable {
+                guard !Task.isCancelled else { return }
                 isAskAvailable = false
                 status = .error
                 errorMessage = "Ask is not available on this deployment."
                 Telemetry.signal("ask.error", parameters: ["reason": "unavailable"])
             } catch {
+                // A cancelled stream can surface as a URL error; it belongs to an answer already replaced.
+                guard !Task.isCancelled else { return }
                 status = .error
                 errorMessage = "The answer failed. Try the search results instead."
                 Telemetry.signal("ask.error", parameters: ["reason": "network"])

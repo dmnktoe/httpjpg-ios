@@ -170,7 +170,7 @@ private struct LetterboxdLine: View {
                     image: poster,
                     clip: .rect(cornerRadius: Radii.sm),
                     width: Spacing.s3,
-                    height: Spacing.s3 * 1.5
+                    height: FooterLineMetrics.height
                 )
             } else {
                 Text("🎞")
@@ -586,10 +586,16 @@ private struct FooterStatusLine<Content: View>: View {
             content
         }
         .font(Typography.mono(Typography.Size.xs))
-
         .lineLimit(1)
         .opacity(0.8)
-        .frame(maxWidth: .infinity)
+        // Every line is at least as tall as the tallest thumb, so a poster or a trophy
+        // no longer spreads its own line apart from the text-only ones.
+        .frame(maxWidth: .infinity, minHeight: FooterLineMetrics.height)
         .padding(.horizontal, PageLayout.gutter)
     }
+}
+
+private enum FooterLineMetrics {
+    /// The letterboxd poster, the tallest thumb a line carries.
+    static let height: CGFloat = Spacing.s3 * 1.5
 }
