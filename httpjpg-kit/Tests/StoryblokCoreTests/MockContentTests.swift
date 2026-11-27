@@ -56,10 +56,10 @@ final class MockContentTests: XCTestCase {
         XCTAssertNotNil(config.footer?.copyrightText)
     }
 
-    func testThePageIndexHidesConfigAndHome() async throws {
+    func testThePageIndexHidesConfigHomeAndTheOldFeedPage() async throws {
         let pages = try await client.pageIndex()
 
-        XCTAssertEqual(pages.map(\.slug), ["about", "imprint", "feed-xml_html"])
+        XCTAssertEqual(pages.map(\.slug), ["about", "imprint"])
     }
 
     func testAPageCarriesItsBloks() async throws {

@@ -88,15 +88,27 @@ final class QuickActionRoutingTests: XCTestCase {
     func testAPageLinkOpensItInsideTheInfoTab() throws {
         let app = makeApp()
 
-        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html")))
+        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "imprint")))
 
         XCTAssertEqual(app.selectedTab, .info)
-        XCTAssertEqual(app.infoPath.map(\.slug), ["feed-xml_html"])
+        XCTAssertEqual(app.infoPath.map(\.slug), ["imprint"])
+    }
+
+    func testTheFeedLinkLandsOnTheFeedTabRoot() throws {
+        let app = makeApp()
+        app.selectedTab = .info
+        app.feedPath = [FeedRoute(id: "post")]
+
+        app.open(try XCTUnwrap(WidgetDeepLink.feed))
+
+        XCTAssertEqual(app.selectedTab, .feed)
+        XCTAssertTrue(app.feedPath.isEmpty)
+        XCTAssertTrue(app.infoPath.isEmpty)
     }
 
     func testTheInfoLinkLandsOnTheTabRoot() throws {
         let app = makeApp()
-        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html")))
+        app.open(try XCTUnwrap(WidgetDeepLink.page(slug: "imprint")))
 
         app.open(try XCTUnwrap(WidgetDeepLink.info))
 
@@ -145,8 +157,8 @@ final class QuickActionRoutingTests: XCTestCase {
 
         app.open(try XCTUnwrap(WidgetDeepLink.play(track)))
 
-        XCTAssertEqual(app.selectedTab, .info)
-        XCTAssertEqual(app.infoPath.map(\.slug), ["feed-xml_html"])
+        XCTAssertEqual(app.selectedTab, .feed)
+        XCTAssertTrue(app.infoPath.isEmpty)
         XCTAssertEqual(app.takePendingPlayback(), track)
         XCTAssertNil(app.pendingPlayback)
     }

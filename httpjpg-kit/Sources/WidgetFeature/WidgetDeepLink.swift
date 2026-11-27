@@ -8,6 +8,7 @@ public enum WidgetDeepLink {
         case work(slug: String)
         case workIndex
         case page(slug: String)
+        case feed
         case info
         case status
         case play(AudioTrack)
@@ -16,6 +17,7 @@ public enum WidgetDeepLink {
 
     private static let workHost = "work"
     private static let pageHost = "page"
+    private static let feedHost = "feed"
     private static let infoHost = "info"
     private static let statusHost = "status"
     private static let playHost = "play"
@@ -33,6 +35,10 @@ public enum WidgetDeepLink {
 
     public static var workIndex: URL? {
         url(host: workHost, slug: nil)
+    }
+
+    public static var feed: URL? {
+        url(host: feedHost, slug: nil)
     }
 
     public static var info: URL? {
@@ -85,6 +91,7 @@ public enum WidgetDeepLink {
         case (workHost, false): return .work(slug: slug)
         case (workHost, true): return .workIndex
         case (pageHost, false): return .page(slug: slug)
+        case (feedHost, true): return .feed
         case (infoHost, true): return .info
         case (statusHost, true): return .status
         case (searchHost, true): return .search(query: searchQuery(from: url))

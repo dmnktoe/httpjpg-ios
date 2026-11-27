@@ -143,7 +143,9 @@ public enum StorySlug {
     public static let config = "config"
     public static let home = "home"
 
-    public static let feed = "feed-xml_html"
+    /// The hand-built page the feed lived on before posts. The site still serves
+    /// it, but its pictures and tracks now live in posts, so the app leaves it out.
+    public static let legacyFeed = "feed-xml_html"
     public static let feedPrefix = "feed/"
     public static let workPrefix = "work/"
 

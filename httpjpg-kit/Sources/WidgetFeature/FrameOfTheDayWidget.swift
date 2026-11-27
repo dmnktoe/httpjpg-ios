@@ -1,4 +1,3 @@
-import StoryblokCore
 import SwiftUI
 import Tokens
 import WidgetKit
@@ -28,7 +27,7 @@ struct FrameOfTheDayWidgetView: View {
     var body: some View {
         content
             .pageTheme(theme)
-            .widgetURL(WidgetDeepLink.page(slug: StorySlug.feed))
+            .widgetURL(WidgetDeepLink.feed)
             .containerBackground(for: .widget) {
                 theme.background
             }
