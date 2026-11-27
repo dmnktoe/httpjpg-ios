@@ -185,11 +185,6 @@ final class PostBlokTests: XCTestCase {
         XCTAssertEqual(pool.map(\.id), FeedPool.items(in: posts).map(\.id))
     }
 
-    func testTheOldFeedPageStaysOutOfThePageIndex() {
-        XCTAssertTrue(StorySlug.isHiddenFromPageIndex("feed-xml_html", component: "page"))
-        XCTAssertFalse(StorySlug.isHiddenFromPageIndex("cv", component: "page"))
-    }
-
     func testASoundCloudTrackJoinsThePoolAsAListenHandoff() throws {
         let post = try decode(
             """

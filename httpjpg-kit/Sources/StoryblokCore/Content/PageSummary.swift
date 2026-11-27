@@ -41,7 +41,6 @@ public struct StoryOverview: Decodable, Sendable {
 
 public extension StorySlug {
     static func isHiddenFromPageIndex(_ slug: String, component: String) -> Bool {
-        slug == config || slug == home || slug == legacyFeed
-            || component == "config" || component == "work" || component == "post"
+        slug == config || slug == home || component == "config" || component == "work" || component == "post"
     }
 }
