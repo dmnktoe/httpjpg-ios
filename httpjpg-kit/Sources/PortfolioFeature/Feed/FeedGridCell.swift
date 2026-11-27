@@ -6,7 +6,6 @@ import Tokens
 struct FeedGridCell: View {
     let post: FeedPost
 
-    @Environment(\.pageTheme) private var theme
     @Environment(\.viewportWidth) private var viewportWidth
     @Environment(\.displayScale) private var displayScale
 
@@ -34,30 +33,45 @@ struct FeedGridCell: View {
     }
 
     private var badge: String? {
-        post.blok.images.count > 1 ? "square.on.square.fill" : nil
+        if post.blok.images.count > 1 { return "square.on.square.fill" }
+        if post.blok.images.first?.videoURL != nil { return "play.fill" }
+        if post.blok.images.isEmpty, post.blok.music != nil { return "music.note" }
+        return nil
+    }
+
+    private var tileWidth: CGFloat {
+        viewportWidth / Self.columns
     }
 
     @ViewBuilder
     private var cover: some View {
-        if let image = post.blok.images.first, image.videoURL == nil {
+        if let image = post.blok.images.first {
+            if let videoURL = image.videoURL {
+                LoopingVideoPlayer(url: videoURL, aspectRatio: 1, fills: true)
+            } else {
+                RemoteImage(
+                    url: URL(string: ImageService.Preset.width(
+                        image.filename,
+                        tileWidth,
+                        scale: displayScale,
+                        focus: image.image?.focus ?? ""
+                    )),
+                    aspectRatio: 1,
+                    contentMode: .fill,
+                    animated: image.image?.isGIF ?? false
+                )
+            }
+        } else if let artwork = post.blok.music?.artworkURL, !artwork.isEmpty {
             RemoteImage(
-                url: URL(string: ImageService.Preset.width(
-                    image.filename,
-                    viewportWidth / Self.columns,
-                    scale: displayScale,
-                    focus: image.image?.focus ?? ""
-                )),
+                url: URL(string: ImageService.Preset.square(artwork, points: tileWidth, scale: displayScale)),
                 aspectRatio: 1,
-                contentMode: .fill,
-                animated: image.image?.isGIF ?? false
+                contentMode: .fill
             )
         } else {
-            theme.border
-                .overlay {
-                    Text(post.blok.images.isEmpty ? "♪" : "▶")
-                        .font(Typography.mono(Typography.Size.xl))
-                        .foregroundStyle(theme.foreground)
-                }
+            FeedTrackTile(
+                title: post.blok.music?.title ?? post.blok.music?.headerText ?? "untitled",
+                artist: post.blok.music?.artist ?? post.blok.music?.footerText
+            )
         }
     }
 }
