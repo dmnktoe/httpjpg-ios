@@ -24,7 +24,7 @@ public struct CommandPalette: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private static let panelShape = RoundedRectangle(cornerRadius: Radii.xxl, style: .continuous)
-    private static let answerAnchor = "answer"
+    private static let topAnchor = "top"
 
     public init(
         query: String,
@@ -80,10 +80,11 @@ public struct CommandPalette: View {
     private var resultsScroll: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.s5) {
+                // Eager on purpose: a lazy stack left blank when a long answer gave way to a short
+                // one under a scroll offset past the new end, and the panel never came back.
+                VStack(alignment: .leading, spacing: Spacing.s5) {
                     if showsAnswerPanel {
                         answerPanel
-                            .id(Self.answerAnchor)
                     }
 
                     if !pendingSuggestions.isEmpty {
@@ -97,8 +98,11 @@ public struct CommandPalette: View {
                     }
                 }
                 .padding(.horizontal, Spacing.s4)
-                .padding(.top, Spacing.s2)
+                .padding(.top, Spacing.s4)
                 .padding(.bottom, Spacing.s8)
+                // The anchor sits on the padded stack, so a new answer lands with the top padding
+                // between it and the header instead of flush under it.
+                .id(Self.topAnchor)
             }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.interactively)
@@ -106,7 +110,7 @@ public struct CommandPalette: View {
             .onChange(of: status) { _, next in
                 guard next == .answering else { return }
                 withAnimation(reduceMotion ? nil : Motion.navigate) {
-                    proxy.scrollTo(Self.answerAnchor, anchor: .top)
+                    proxy.scrollTo(Self.topAnchor, anchor: .top)
                 }
             }
         }

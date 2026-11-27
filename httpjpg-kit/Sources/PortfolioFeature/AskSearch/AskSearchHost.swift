@@ -87,7 +87,11 @@ struct AskSearchHost: View {
     private var queryBinding: Binding<String> {
         Binding(
             get: { model.query },
-            set: { model.setQuery($0) }
+            // The field writes its text back on focus and submit too; only a real edit may reset an answer.
+            set: { next in
+                guard next != model.query else { return }
+                model.setQuery(next)
+            }
         )
     }
 
