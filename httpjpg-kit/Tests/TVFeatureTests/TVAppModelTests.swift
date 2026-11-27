@@ -27,12 +27,12 @@ final class TVAppModelTests: XCTestCase {
         XCTAssertEqual(Set(model.galleryFrames.map(\.id)).count, model.galleryFrames.count)
     }
 
-    func testTheFeedOffersThePhotosOfPostsAndOfTheOldPage() async {
+    func testTheFeedOffersThePhotosOfThePosts() async {
         let model = model()
 
         await model.loadFeed()
 
-        XCTAssertEqual(model.photos.count, 11)
+        XCTAssertEqual(model.photos.count, 5)
         XCTAssertEqual(model.photos.first.flatMap { URL(string: $0)?.lastPathComponent }, "hafen-01.jpg")
         XCTAssertEqual(Set(model.photos).count, model.photos.count)
     }
@@ -44,7 +44,7 @@ final class TVAppModelTests: XCTestCase {
         await model.loadFeed()
 
         XCTAssertTrue(model.isFeedLoaded)
-        XCTAssertEqual(model.tracks.map(\.title), ["fixture mix", "mega mashup (mock)"])
+        XCTAssertEqual(model.tracks.map(\.title), ["fixture mix"])
         XCTAssertEqual(model.clips.count, 1)
         XCTAssertEqual(model.clips.first?.url.pathExtension, "mp4")
     }

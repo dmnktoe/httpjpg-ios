@@ -59,7 +59,7 @@ final class MockContentTests: XCTestCase {
     func testThePageIndexHidesConfigAndHome() async throws {
         let pages = try await client.pageIndex()
 
-        XCTAssertEqual(pages.map(\.slug), ["about", "imprint", "feed-xml_html"])
+        XCTAssertEqual(pages.map(\.slug), ["about", "imprint"])
     }
 
     func testAPageCarriesItsBloks() async throws {

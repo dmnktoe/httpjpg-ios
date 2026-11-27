@@ -81,17 +81,7 @@ public final class ContentClient: @unchecked Sendable {
         if posts == nil, refresh {
             posts = try? await feedPosts(perPage: 50)
         }
-        var feedPage = try? await self.page(slug: StorySlug.feed, refresh: refresh)
-        if feedPage == nil, refresh {
-            feedPage = try? await self.page(slug: StorySlug.feed)
-        }
-
-        var items = FeedPool.items(in: posts ?? [])
-        if let feedPage {
-            let seen = Set(items.map(\.source))
-            items += FeedPool.items(in: feedPage.body).filter { !seen.contains($0.source) }
-        }
-        return items
+        return FeedPool.items(in: posts ?? [])
     }
 
     public func pageIndex(perPage: Int = 100, refresh: Bool = false) async throws -> [PageSummary] {

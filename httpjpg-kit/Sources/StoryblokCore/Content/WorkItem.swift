@@ -143,7 +143,6 @@ public enum StorySlug {
     public static let config = "config"
     public static let home = "home"
 
-    public static let feed = "feed-xml_html"
     public static let feedPrefix = "feed/"
     public static let workPrefix = "work/"
 

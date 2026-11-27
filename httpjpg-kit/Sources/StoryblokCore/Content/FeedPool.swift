@@ -22,17 +22,6 @@ public enum FeedPool {
             self.kind = kind
         }
 
-        public var source: String {
-            switch kind {
-            case .image(let filename):
-                return filename
-            case .music(let title, _, _, let track, let listenURL):
-                return track?.streamURL.absoluteString ?? listenURL?.absoluteString ?? title
-            case .video(let poster, let caption, let url):
-                return url?.absoluteString ?? poster ?? caption ?? id
-            }
-        }
-
         public var imageFilename: String? {
             switch kind {
             case .image(let filename):
@@ -43,10 +32,6 @@ public enum FeedPool {
                 return poster
             }
         }
-    }
-
-    public static func items(in bloks: [PortfolioBlok]) -> [Item] {
-        bloks.flatMap(items(of:))
     }
 
     public static func items(in posts: [FeedPost]) -> [Item] {
@@ -64,46 +49,6 @@ public enum FeedPool {
             return Item(id: id, kind: .video(poster: nil, caption: caption, url: url))
         }
         return image.filename.map { Item(id: id, kind: .image(filename: $0)) }
-    }
-
-    private static func items(of blok: PortfolioBlok) -> [Item] {
-        switch blok {
-        case .image(let image):
-            return imageItem(id: image.id, asset: image.image).map { [$0] } ?? []
-        case .slideshow(let slideshow):
-            return slideshow.images.enumerated().compactMap { offset, asset in
-                imageItem(id: "\(slideshow.id)-\(offset)", asset: asset)
-            }
-        case .scrollClipImage(let clip):
-            return imageItem(id: clip.id, asset: clip.image).map { [$0] } ?? []
-        case .musicPlayer(let player):
-            return musicItem(player).map { [$0] } ?? []
-        case .video(let video):
-            return videoItem(video).map { [$0] } ?? []
-        case .page(let page):
-            return items(in: page.body)
-        case .work(let work):
-            let frames = work.images.enumerated().compactMap { offset, asset in
-                imageItem(id: "\(work.id)-\(offset)", asset: asset)
-            }
-            return frames + items(in: work.body)
-        case .section(let section):
-            return items(in: section.content)
-        case .container(let container):
-            return items(in: container.body)
-        case .grid(let grid):
-            return items(in: grid.items)
-        case .gridItem(let item):
-            return items(in: item.content)
-        case .headline, .paragraph, .richText, .divider, .button, .buttonGroup, .callout, .codeBlock,
-             .list, .link, .icon, .stats, .accordion, .badges, .workList, .marquee, .unknown:
-            return []
-        }
-    }
-
-    private static func imageItem(id: String, asset: StoryblokAsset?) -> Item? {
-        guard let asset, !asset.isEmpty, !asset.isVideo, let filename = asset.filename else { return nil }
-        return Item(id: id, kind: .image(filename: filename))
     }
 
     private static func musicItem(_ player: MusicPlayerBlok) -> Item? {
@@ -129,18 +74,6 @@ public enum FeedPool {
                 track: nil,
                 listenURL: url
             )
-        )
-    }
-
-    private static func videoItem(_ video: VideoBlok) -> Item? {
-        let caption = extractPlainText(video.caption, maxLength: 80)
-        let poster = video.poster.flatMap { $0.isEmpty ? nil : $0.filename }
-        guard poster != nil || !caption.isEmpty || video.nativeURL != nil || video.embedURL != nil else {
-            return nil
-        }
-        return Item(
-            id: video.id,
-            kind: .video(poster: poster, caption: caption.isEmpty ? nil : caption, url: video.nativeURL)
         )
     }
 }

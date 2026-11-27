@@ -155,6 +155,8 @@ public final class AppModel {
             isSidebarOpen = false
         case .page(let slug):
             show(PageRoute(slug: slug, title: slug))
+        case .feed:
+            showFeed()
         case .info:
             select(tab: .info)
             infoPath.removeAll()
@@ -167,7 +169,7 @@ public final class AppModel {
             openAskSearch(prefill: query)
         case .play(let track):
             pendingPlayback = track
-            show(PageRoute(slug: StorySlug.feed, title: StorySlug.feed))
+            showFeed()
         case nil:
             return
         }
@@ -242,6 +244,12 @@ public final class AppModel {
     private func show(_ route: PageRoute) {
         selectedTab = .info
         infoPath = [route]
+        isSidebarOpen = false
+    }
+
+    private func showFeed() {
+        selectedTab = .feed
+        feedPath.removeAll()
         isSidebarOpen = false
     }
 

@@ -201,6 +201,23 @@
             },
             "alt": "",
             "fit": "cover"
+          },
+          {
+            "_uid": "post-original-2",
+            "component": "post_image",
+            "image": {
+              "id": 5730006,
+              "alt": "",
+              "name": "live on display",
+              "title": "",
+              "focus": "",
+              "filename": "https://cdn.httpjpg.com/feed/blence-live-on-display-at-examen.mp4",
+              "copyright": "",
+              "content_type": "video/mp4",
+              "fieldtype": "asset"
+            },
+            "alt": "",
+            "fit": "cover"
           }
         ],
         "music": []

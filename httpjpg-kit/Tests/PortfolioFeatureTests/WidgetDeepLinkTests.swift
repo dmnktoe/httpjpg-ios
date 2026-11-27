@@ -14,10 +14,17 @@ final class WidgetDeepLinkTests: XCTestCase {
     }
 
     func testAPageLinkRoundTrips() throws {
-        let url = try XCTUnwrap(WidgetDeepLink.page(slug: "feed-xml_html"))
+        let url = try XCTUnwrap(WidgetDeepLink.page(slug: "imprint"))
 
-        XCTAssertEqual(url.absoluteString, "httpjpg://page/feed-xml_html")
-        XCTAssertEqual(WidgetDeepLink.destination(from: url), .page(slug: "feed-xml_html"))
+        XCTAssertEqual(url.absoluteString, "httpjpg://page/imprint")
+        XCTAssertEqual(WidgetDeepLink.destination(from: url), .page(slug: "imprint"))
+    }
+
+    func testTheFeedLinkRoundTrips() throws {
+        let url = try XCTUnwrap(WidgetDeepLink.feed)
+
+        XCTAssertEqual(url.absoluteString, "httpjpg://feed")
+        XCTAssertEqual(WidgetDeepLink.destination(from: url), .feed)
     }
 
     func testBareHostsAreTabRoots() throws {
